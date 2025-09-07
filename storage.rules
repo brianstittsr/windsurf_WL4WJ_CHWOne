@@ -1,0 +1,63 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper function to check user role
+    function getUserRole() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isAdmin() {
+      return getUserRole() == 'admin';
+    }
+    
+    function isCHWCoordinator() {
+      return getUserRole() in ['admin', 'chw_coordinator'];
+    }
+    
+    function isCHW() {
+      return getUserRole() in ['admin', 'chw_coordinator', 'chw'];
+    }
+    
+    function isNonprofitStaff() {
+      return getUserRole() in ['admin', 'chw_coordinator', 'nonprofit_staff'];
+    }
+
+    // User profile images
+    match /users/{userId}/profile/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && isAdmin();
+    }
+    
+    // Project documents - staff and coordinators
+    match /projects/{projectId}/{allPaths=**} {
+      allow read, write: if request.auth != null && isNonprofitStaff();
+    }
+    
+    // Grant documents - admin and coordinators
+    match /grants/{grantId}/{allPaths=**} {
+      allow read, write: if request.auth != null && isCHWCoordinator();
+    }
+    
+    // HIPAA protected client documents - restricted access
+    match /clients/{clientId}/{allPaths=**} {
+      allow read, write: if request.auth != null && isCHW();
+    }
+    
+    // CHW certification documents
+    match /chws/{chwId}/certifications/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isCHWCoordinator();
+    }
+    
+    // Resource documents and images
+    match /resources/{resourceId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isCHWCoordinator();
+    }
+    
+    // Survey attachments
+    match /surveys/{surveyId}/{allPaths=**} {
+      allow read, write: if request.auth != null && isNonprofitStaff();
+    }
+  }
+}

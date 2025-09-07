@@ -2,33 +2,32 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/Layout/MainLayout';
-import PlatformLanding from '@/components/Landing/PlatformLanding';
+import CHWManagement from '@/components/CHW/CHWManagement';
 
-export default function Home() {
+export default function CHWsPage() {
   const { currentUser, loading } = useAuth();
+  const router = useRouter();
 
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3">Loading CHWOne Platform...</p>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
   }
 
   if (!currentUser) {
-    redirect('/login');
+    router.push('/login');
+    return null;
   }
 
   return (
     <MainLayout>
-      <PlatformLanding />
+      <CHWManagement />
     </MainLayout>
   );
 }

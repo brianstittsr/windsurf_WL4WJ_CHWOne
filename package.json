@@ -1,38 +1,37 @@
 {
-  "name": "@once-ui-system/magic-portfolio",
-  "version": "2.3.0",
+  "name": "chwone-platform",
+  "version": "1.0.0",
+  "description": "Women Leading for Wellness and Justice Community Health Worker Management Platform",
   "scripts": {
     "dev": "next dev",
     "export": "next export",
     "build": "next build",
-    "biome-write": "npx @biomejs/biome format --write .",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy-schema": "node scripts/deploy-schema.js",
+    "init-db": "node scripts/init-firestore.js"
   },
   "dependencies": {
-    "@mdx-js/loader": "^3.1.0",
-    "@next/mdx": "^15.3.1",
-    "@once-ui-system/core": "^1.4.27",
-    "classnames": "^2.5.1",
-    "cookie": "^1.0.2",
-    "gray-matter": "^4.0.3",
-    "lint-staged": "^16.1.5",
-    "next": "^15.3.1",
-    "next-mdx-remote": "^5.0.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "react-icons": "^5.5.0",
-    "sass": "^1.86.3",
-    "transliteration": "^2.3.5"
+    "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@tanstack/react-query": "^5.59.16",
+    "bootstrap": "^5.3.3",
+    "firebase": "^10.14.1",
+    "firebase-admin": "^12.0.0",
+    "next": "15.0.3",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.5",
+    "react-dom": "^18.3.1",
+    "react-firebase-hooks": "^5.1.1",
+    "react-icons": "^5.3.0",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@types/cookie": "^0.6.0",
     "@types/node": "^20.17.30",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "eslint": "^9.25.0",
-    "typescript": "^5.8.3",
-    "tzdata": "^1.0.44"
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "15.0.3",
+    "typescript": "^5.6.3"
   }
 }

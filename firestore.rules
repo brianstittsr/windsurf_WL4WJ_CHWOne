@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check user role
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isAdmin() {
+      return getUserRole() == 'admin';
+    }
+    
+    function isCHWCoordinator() {
+      return getUserRole() in ['admin', 'chw_coordinator'];
+    }
+    
+    function isCHW() {
+      return getUserRole() in ['admin', 'chw_coordinator', 'chw'];
+    }
+    
+    function isNonprofitStaff() {
+      return getUserRole() in ['admin', 'chw_coordinator', 'nonprofit_staff'];
+    }
+
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && isAdmin();
+    }
+    
+    // CHWs collection - role-based access
+    match /chws/{chwId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isCHWCoordinator();
+    }
+    
+    // Projects collection - staff and coordinators can manage
+    match /projects/{projectId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isNonprofitStaff();
+    }
+    
+    // Grants collection - admin and coordinators only
+    match /grants/{grantId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isCHWCoordinator();
+    }
+    
+    // Resources collection - public read for authenticated users
+    match /resources/{resourceId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isCHWCoordinator();
+    }
+    
+    // Referrals collection - HIPAA protected, restricted access
+    match /referrals/{referralId} {
+      allow read, write: if request.auth != null && (
+        isCHW() || 
+        resource.data.clientId == request.auth.uid
+      );
+    }
+    
+    // Survey Results collection - project-based access
+    match /surveyResults/{surveyId} {
+      allow read, write: if request.auth != null && isNonprofitStaff();
+    }
+    
+    // Audit Logs collection - admin read only, system write
+    match /auditLogs/{logId} {
+      allow read: if request.auth != null && isAdmin();
+      allow write: if request.auth != null; // System can write audit logs
+    }
+    
+    // API Keys collection - admin only
+    match /apiKeys/{keyId} {
+      allow read, write: if request.auth != null && isAdmin();
+    }
+  }
+}
