@@ -1,5 +1,5 @@
 import { getPosts } from "@/utils/utils";
-import { Grid } from "@once-ui-system/core";
+import { Row, Col } from "react-bootstrap";
 import Post from "./Post";
 
 interface PostsProps {
@@ -32,14 +32,28 @@ export function Posts({
     ? sortedBlogs.slice(range[0] - 1, range.length === 2 ? range[1] : sortedBlogs.length)
     : sortedBlogs;
 
+  // Convert columns string to number for Bootstrap grid
+  const getColumnWidth = (cols: string) => {
+    switch (cols) {
+      case "1": return 12;
+      case "2": return 6;
+      case "3": return 4;
+      default: return 12;
+    }
+  };
+
+  const colWidth = getColumnWidth(columns);
+
   return (
     <>
       {displayedBlogs.length > 0 && (
-        <Grid columns={columns} s={{ columns: 1 }} fillWidth marginBottom="40" gap="16">
+        <Row className="mb-5 g-4">
           {displayedBlogs.map((post) => (
-            <Post key={post.slug} post={post} thumbnail={thumbnail} direction={direction} />
+            <Col key={post.slug} xs={12} md={colWidth}>
+              <Post post={post} thumbnail={thumbnail} direction={direction} />
+            </Col>
           ))}
-        </Grid>
+        </Row>
       )}
     </>
   );

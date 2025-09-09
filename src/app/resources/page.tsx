@@ -3,8 +3,8 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import MainLayout from '@/components/Layout/MainLayout';
 import Region5Directory from '@/components/Resources/Region5Directory';
+import { Container, Spinner } from 'react-bootstrap';
 
 export default function ResourcesPage() {
   const { currentUser, loading } = useAuth();
@@ -12,11 +12,14 @@ export default function ResourcesPage() {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <Container fluid className="d-flex justify-content-center align-items-center vh-100" style={{ 
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
+      }}>
+        <div className="text-center">
+          <Spinner animation="border" variant="light" className="mb-3" />
+          <p className="text-light">Loading Resources...</p>
         </div>
-      </div>
+      </Container>
     );
   }
 
@@ -26,8 +29,10 @@ export default function ResourcesPage() {
   }
 
   return (
-    <MainLayout>
+    <main className="container py-4">
+      <h1 className="mb-2">Resource Directory</h1>
+      <p className="text-muted mb-4">Access healthcare resources, community services, and support networks.</p>
       <Region5Directory />
-    </MainLayout>
+    </main>
   );
 }

@@ -128,8 +128,8 @@ CHWOne is designed specifically for community health organizations to:
 ### Frontend
 - **Next.js 15**: React framework with App Router
 - **TypeScript**: Type-safe development
-- **Bootstrap 5**: Responsive UI components
-- **React Bootstrap**: Bootstrap components for React
+- **Once UI**: Modern design system with Magic template
+- **React Icons**: Comprehensive icon library
 
 ### Backend
 - **Firebase Firestore**: NoSQL database for scalable data storage
@@ -266,7 +266,7 @@ CMD ["npm", "start"]
 ### Documentation
 - [Firebase Documentation](https://firebase.google.com/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [Bootstrap Documentation](https://getbootstrap.com/docs)
+- [Once UI Documentation](https://once-ui.com/docs)
 
 ### Community
 - GitHub Issues for bug reports

@@ -1,37 +1,26 @@
-import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
+import { Container } from "react-bootstrap";
 import { baseURL, about, person, work } from "@/resources";
 import { Projects } from "@/components/work/Projects";
 
 export async function generateMetadata() {
-  return Meta.generate({
+  return {
     title: work.title,
     description: work.description,
-    baseURL: baseURL,
-    image: `/api/og/generate?title=${encodeURIComponent(work.title)}`,
-    path: work.path,
-  });
+    openGraph: {
+      title: work.title,
+      description: work.description,
+      url: `${baseURL}${work.path}`,
+      images: [`${baseURL}/api/og/generate?title=${encodeURIComponent(work.title)}`],
+    },
+  };
 }
 
 export default function Work() {
   return (
-    <Column maxWidth="m" paddingTop="24">
-      <Schema
-        as="webPage"
-        baseURL={baseURL}
-        path={work.path}
-        title={work.title}
-        description={work.description}
-        image={`/api/og/generate?title=${encodeURIComponent(work.title)}`}
-        author={{
-          name: person.name,
-          url: `${baseURL}${about.path}`,
-          image: `${baseURL}${person.avatar}`,
-        }}
-      />
-      <Heading marginBottom="l" variant="heading-strong-xl" align="center">
-        {work.title}
-      </Heading>
+    <Container className="py-5" style={{ maxWidth: '900px' }}>
+      {/* Schema metadata added via head */}
+      <h1 className="mb-5 text-center">{work.title}</h1>
       <Projects />
-    </Column>
+    </Container>
   );
 }

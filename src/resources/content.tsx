@@ -1,5 +1,5 @@
 import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/types";
-import { Line, Logo, Row, Text } from "@once-ui-system/core";
+import React from "react";
 
 const person: Person = {
   firstName: "Selene",
@@ -53,24 +53,18 @@ const home: Home = {
   featured: {
     display: true,
     title: (
-      <Row gap="12" vertical="center">
-        <strong className="ml-4">Once UI</strong>{" "}
-        <Line background="brand-alpha-strong" vert height="20" />
-        <Text marginRight="4" onBackground="brand-medium">
-          Featured work
-        </Text>
-      </Row>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
+        <strong style={{ marginLeft: '0.25rem' }}>Once UI</strong>
+        <span style={{ width: '1px', height: '20px', background: 'rgba(0,0,0,0.2)' }} />
+        <span style={{ marginRight: '4px', color: '#6c757d' }}>Featured work</span>
+      </span>
     ),
     href: "/work/building-once-ui-a-customizable-design-system",
   },
   subline: (
     <>
       I'm Selene, a design engineer at{" "}
-      <Logo
-        dark
-        icon="/trademarks/wordmark-dark.svg"
-        style={{ display: "inline-flex", top: "0.25em", marginLeft: "-0.25em" }}
-      />
+      <img src="/trademarks/wordmark-dark.svg" alt="Once UI" style={{ display: 'inline-flex', position: 'relative', top: '0.25em', marginLeft: '-0.25em', height: '1em' }} />
       , where I craft intuitive
       <br /> user experiences. After hours, I build my own projects.
     </>

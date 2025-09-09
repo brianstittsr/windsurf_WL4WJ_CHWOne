@@ -3,8 +3,8 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import MainLayout from '@/components/Layout/MainLayout';
-import Dashboard from '@/components/Dashboard/Dashboard';
+import { Container, Spinner } from 'react-bootstrap';
+import DashboardPlaceholder from '@/components/Dashboard/DashboardPlaceholder';
 
 export default function DashboardPage() {
   const { currentUser, loading } = useAuth();
@@ -12,11 +12,14 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <Container fluid className="d-flex justify-content-center align-items-center vh-100" style={{ 
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
+      }}>
+        <div className="text-center">
+          <Spinner animation="border" variant="light" className="mb-3" />
+          <p className="text-light">Loading CHWOne Platform...</p>
         </div>
-      </div>
+      </Container>
     );
   }
 
@@ -26,8 +29,12 @@ export default function DashboardPage() {
   }
 
   return (
-    <MainLayout>
-      <Dashboard />
-    </MainLayout>
+    <main style={{ padding: '2rem' }}>
+      <div className="container">
+        <h1 className="mb-3">CHWOne Dashboard</h1>
+        <p className="text-muted mb-4">Overview of platform metrics, active projects, and key performance indicators</p>
+        <DashboardPlaceholder />
+      </div>
+    </main>
   );
 }

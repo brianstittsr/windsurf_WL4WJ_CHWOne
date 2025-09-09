@@ -1,5 +1,31 @@
 # CHWOne Platform Setup Guide
 
+This guide will help you set up the CHWOne (Community Health Worker Management Platform) for development and deployment.
+
+## Prerequisites
+
+- Node.js 18+ and npm
+- Firebase CLI
+- Git
+
+## Environment Setup Issues
+
+**IMPORTANT**: If you encounter "Exit code could not be determined" or Node.js commands not working:
+
+1. **Verify Node.js Installation**
+   ```bash
+   node --version
+   npm --version
+   ```
+
+2. **Check PATH Environment Variable**
+   - Ensure Node.js is in your system PATH
+   - Common locations: `C:\Program Files\nodejs\` or `%LOCALAPPDATA%\Programs\nodejs\`
+
+3. **Restart Terminal/IDE**
+   - Close and reopen your terminal/IDE after Node.js installation
+   - This ensures PATH changes take effect
+
 ## Quick Start
 
 ### 1. Install Dependencies
@@ -57,8 +83,7 @@ The following packages are configured in `package.json`:
 - `react-firebase-hooks`: 5.1.1 (Firebase React hooks)
 
 ### UI Components
-- `bootstrap`: 5.3.3 (CSS framework)
-- `react-bootstrap`: 2.10.5 (Bootstrap React components)
+- `@once-ui-system/core`: 1.4.0 (Modern design system)
 - `react-icons`: 5.3.0 (Icon library)
 
 ### Utilities

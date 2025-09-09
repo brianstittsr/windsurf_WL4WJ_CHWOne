@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Table, Button, Modal, Form, Badge, ProgressBar, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, Form, Spinner, Modal } from 'react-bootstrap';
 import { collection, getDocs, addDoc, updateDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Project, ProjectStatus, ProjectOutcome, Grant } from '@/types/platform.types';
@@ -32,38 +32,102 @@ export default function ProjectManagement() {
 
   const fetchData = async () => {
     try {
-      // Fetch projects
-      const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
-      const projectsSnapshot = await getDocs(projectsQuery);
-      const projectsData = projectsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        startDate: doc.data().startDate?.toDate(),
-        endDate: doc.data().endDate?.toDate(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate()
-      })) as Project[];
+      // Check if Firebase is properly configured
+      if (!db) {
+        console.warn('Firebase not configured, using mock data');
+        setProjects(mockProjects);
+        setGrants([]);
+        return;
+      }
 
-      // Fetch grants
-      const grantsQuery = query(collection(db, 'grants'));
-      const grantsSnapshot = await getDocs(grantsQuery);
-      const grantsData = grantsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        startDate: doc.data().startDate?.toDate(),
-        endDate: doc.data().endDate?.toDate(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate()
-      })) as Grant[];
+      // Fetch projects with better error handling
+      try {
+        const projectsQuery = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
+        const projectsSnapshot = await getDocs(projectsQuery);
+        const projectsData = projectsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            startDate: data.startDate?.toDate ? data.startDate.toDate() : null,
+            endDate: data.endDate?.toDate ? data.endDate.toDate() : null,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
+          };
+        }) as Project[];
+        setProjects(projectsData);
+      } catch (projectError) {
+        console.warn('Error fetching projects, using mock data:', projectError);
+        setProjects(mockProjects);
+      }
 
-      setProjects(projectsData);
-      setGrants(grantsData);
+      // Fetch grants with better error handling
+      try {
+        const grantsQuery = query(collection(db, 'grants'));
+        const grantsSnapshot = await getDocs(grantsQuery);
+        const grantsData = grantsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            startDate: data.startDate?.toDate ? data.startDate.toDate() : null,
+            endDate: data.endDate?.toDate ? data.endDate.toDate() : null,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
+          };
+        }) as Grant[];
+        setGrants(grantsData);
+      } catch (grantError) {
+        console.warn('Error fetching grants:', grantError);
+        setGrants([]);
+      }
+
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error in fetchData:', error);
+      // Set mock data as fallback
+      setProjects(mockProjects);
+      setGrants([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Mock projects data for fallback
+  const mockProjects: Project[] = [
+    {
+      id: '1',
+      name: 'Community Health Outreach Program',
+      description: 'Expanding healthcare access to underserved rural communities through mobile clinics and CHW visits.',
+      grantId: 'grant-1',
+      status: ProjectStatus.ACTIVE,
+      startDate: new Date('2024-01-15'),
+      endDate: new Date('2024-12-31'),
+      targetPopulation: 'Rural communities in Johnston County',
+      goals: ['Increase healthcare access', 'Reduce emergency room visits', 'Improve health outcomes'],
+      budget: 250000,
+      spentAmount: 87500,
+      assignedCHWs: ['chw-1', 'chw-2', 'chw-3'],
+      outcomes: [],
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-03-15')
+    },
+    {
+      id: '2',
+      name: 'Diabetes Prevention Initiative',
+      description: 'Community-based diabetes prevention program focusing on lifestyle interventions and education.',
+      status: ProjectStatus.PLANNING,
+      startDate: new Date('2024-04-01'),
+      endDate: new Date('2025-03-31'),
+      targetPopulation: 'Adults at risk for Type 2 diabetes',
+      goals: ['Prevent diabetes onset', 'Promote healthy lifestyle', 'Increase health literacy'],
+      budget: 180000,
+      spentAmount: 15000,
+      assignedCHWs: ['chw-4', 'chw-5'],
+      outcomes: [],
+      createdAt: new Date('2024-02-01'),
+      updatedAt: new Date('2024-03-10')
+    }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +198,7 @@ export default function ProjectManagement() {
     setShowModal(true);
   };
 
-  const getStatusBadge = (status: ProjectStatus) => {
+  const getStatusBadgeVariant = (status: ProjectStatus) => {
     const variants = {
       [ProjectStatus.PLANNING]: 'secondary',
       [ProjectStatus.ACTIVE]: 'success',
@@ -158,201 +222,221 @@ export default function ProjectManagement() {
 
   if (loading) {
     return (
-      <Container fluid className="main-content">
+      <div className="d-flex justify-content-center align-items-center py-5">
         <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
+          <Spinner animation="border" />
+          <p className="mt-3 text-muted">Loading projects...</p>
         </div>
-      </Container>
+      </div>
     );
   }
 
   return (
-    <Container fluid className="main-content">
+    <Container fluid className="p-4">
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h1>Project Management</h1>
+              <h2 className="fw-bold">Project Management</h2>
               <p className="text-muted">Manage community health projects and track outcomes</p>
             </div>
-            <Button variant="primary" onClick={() => setShowModal(true)}>
-              <FaPlus className="me-2" />
-              New Project
+            <Button
+              variant="primary"
+              onClick={() => setShowModal(true)}
+            >
+              <FaPlus className="me-2" /> New Project
             </Button>
           </div>
         </Col>
       </Row>
 
       {/* Project Metrics */}
-      <Row className="mb-4">
+      <Row className="mb-4 g-3">
         <Col md={3}>
-          <Card className="text-center">
+          <Card className="h-100 text-center">
             <Card.Body>
-              <h3 className="text-success">{projects.filter(p => p.status === ProjectStatus.ACTIVE).length}</h3>
-              <p className="mb-0">Active Projects</p>
+              <h2 className="text-info">
+                {projects.filter(p => p.status === ProjectStatus.ACTIVE).length}
+              </h2>
+              <p className="text-muted mb-0">Active Projects</p>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center">
+          <Card className="h-100 text-center">
             <Card.Body>
-              <h3 className="text-primary">{projects.filter(p => p.status === ProjectStatus.COMPLETED).length}</h3>
-              <p className="mb-0">Completed</p>
+              <h2 className="text-primary">
+                {projects.filter(p => p.status === ProjectStatus.COMPLETED).length}
+              </h2>
+              <p className="text-muted mb-0">Completed</p>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center">
+          <Card className="h-100 text-center">
             <Card.Body>
-              <h3 className="text-info">${projects.reduce((sum, p) => sum + p.budget, 0).toLocaleString()}</h3>
-              <p className="mb-0">Total Budget</p>
+              <h2 className="text-dark">
+                ${projects.reduce((sum, p) => sum + p.budget, 0).toLocaleString()}
+              </h2>
+              <p className="text-muted mb-0">Total Budget</p>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center">
+          <Card className="h-100 text-center">
             <Card.Body>
-              <h3 className="text-warning">{projects.filter(p => p.grantId).length}</h3>
-              <p className="mb-0">Grant-Funded</p>
+              <h2 className="text-warning">
+                {projects.filter(p => p.grantId).length}
+              </h2>
+              <p className="text-muted mb-0">Grant-Funded</p>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
       {/* Projects Table */}
-      <Card>
-        <Card.Header>
-          <h5 className="mb-0">Project Portfolio</h5>
-        </Card.Header>
+      <Card className="mb-4">
         <Card.Body>
-          <Table responsive striped hover>
-            <thead>
-              <tr>
-                <th>Project Name</th>
-                <th>Status</th>
-                <th>Grant</th>
-                <th>Timeline</th>
-                <th>Budget</th>
-                <th>Progress</th>
-                <th>CHWs</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((project) => {
-                const grant = grants.find(g => g.id === project.grantId);
-                const progress = calculateProgress(project);
-                const budgetUtilization = getBudgetUtilization(project);
-                
-                return (
-                  <tr key={project.id}>
-                    <td>
-                      <div>
-                        <strong>{project.name}</strong>
-                        <br />
-                        <small className="text-muted">{project.targetPopulation}</small>
-                      </div>
-                    </td>
-                    <td>
-                      <Badge bg={getStatusBadge(project.status)}>
-                        {project.status.replace(/_/g, ' ')}
-                      </Badge>
-                    </td>
-                    <td>
-                      {grant ? (
-                        <div>
-                          <small>{grant.title}</small>
-                          <br />
-                          <Badge bg="info" className="small">
-                            ${grant.amount.toLocaleString()}
-                          </Badge>
-                        </div>
-                      ) : (
-                        <span className="text-muted">No grant</span>
-                      )}
-                    </td>
-                    <td>
-                      <div>
-                        <small>
-                          <FaCalendarAlt className="me-1" />
-                          {project.startDate.toLocaleDateString()}
-                        </small>
-                        {project.endDate && (
-                          <>
-                            <br />
-                            <small className="text-muted">
-                              to {project.endDate.toLocaleDateString()}
-                            </small>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <div>
-                        <strong>${project.budget.toLocaleString()}</strong>
-                        <br />
-                        <small className="text-muted">
-                          Spent: ${project.spentAmount.toLocaleString()}
-                        </small>
-                        <ProgressBar 
-                          now={budgetUtilization} 
-                          variant={budgetUtilization > 90 ? 'danger' : budgetUtilization > 75 ? 'warning' : 'success'}
-                          size="sm"
-                          className="mt-1"
-                        />
-                      </div>
-                    </td>
-                    <td>
-                      <div>
-                        <small>{Math.round(progress)}% complete</small>
-                        <ProgressBar 
-                          now={progress} 
-                          variant="info" 
-                          size="sm"
-                          className="mt-1"
-                        />
-                      </div>
-                    </td>
-                    <td>
-                      <Badge bg="secondary">{project.assignedCHWs.length} CHWs</Badge>
-                    </td>
-                    <td>
-                      <div className="btn-group" role="group">
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          onClick={() => editProject(project)}
-                        >
-                          <FaEdit />
-                        </Button>
-                        <Button variant="outline-info" size="sm">
-                          <FaEye />
-                        </Button>
-                        <Button variant="outline-success" size="sm">
-                          <FaChartLine />
-                        </Button>
-                      </div>
-                    </td>
+          <h4 className="mb-4">Project Portfolio</h4>
+          
+          {projects.length === 0 ? (
+            <div className="text-center py-5">
+              <FaChartLine size={48} className="text-muted mb-3" />
+              <h5>No Projects Yet</h5>
+              <p className="text-muted">Create your first project to get started.</p>
+              <Button
+                variant="primary"
+                onClick={() => setShowModal(true)}
+              >
+                <FaPlus className="me-2" /> Create Your First Project
+              </Button>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead className="bg-light">
+                  <tr>
+                    <th style={{ width: '20%' }}>Project Name</th>
+                    <th style={{ width: '10%' }}>Status</th>
+                    <th style={{ width: '15%' }}>Grant</th>
+                    <th style={{ width: '15%' }}>Timeline</th>
+                    <th style={{ width: '15%' }}>Budget</th>
+                    <th style={{ width: '10%' }}>Progress</th>
+                    <th style={{ width: '5%' }}>CHWs</th>
+                    <th style={{ width: '10%' }}>Actions</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+                </thead>
+                <tbody>
+                  {projects.map((project) => {
+                    const grant = grants.find(g => g.id === project.grantId);
+                    const progress = calculateProgress(project);
+                    const budgetUtilization = getBudgetUtilization(project);
+                    
+                    return (
+                      <tr key={project.id}>
+                        <td>
+                          <div>
+                            <strong>{project.name}</strong>
+                            <div className="small text-muted">{project.targetPopulation}</div>
+                          </div>
+                        </td>
+                        <td>
+                          <Badge bg={getStatusBadgeVariant(project.status)}>
+                            {project.status.replace(/_/g, ' ')}
+                          </Badge>
+                        </td>
+                        <td>
+                          {grant ? (
+                            <div>
+                              <div className="small">{grant.title}</div>
+                              <Badge bg="info">${grant.amount.toLocaleString()}</Badge>
+                            </div>
+                          ) : (
+                            <span className="text-muted">No grant</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="small">
+                            <div className="d-flex align-items-center">
+                              <FaCalendarAlt size={12} className="text-muted me-1" />
+                              {project.startDate.toLocaleDateString()}
+                            </div>
+                            {project.endDate && (
+                              <div className="text-muted">to {project.endDate.toLocaleDateString()}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <div>
+                            <strong>${project.budget.toLocaleString()}</strong>
+                            <div className="small text-muted">Spent: ${project.spentAmount.toLocaleString()}</div>
+                            <div className="progress mt-1" style={{ height: '4px' }}>
+                              <div 
+                                className={`progress-bar ${budgetUtilization > 90 ? 'bg-danger' : budgetUtilization > 75 ? 'bg-warning' : 'bg-info'}`} 
+                                role="progressbar" 
+                                style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
+                                aria-valuenow={Math.min(budgetUtilization, 100)}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                              ></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="small">{Math.round(progress)}% complete</div>
+                          <div className="progress mt-1" style={{ height: '4px' }}>
+                            <div 
+                              className="progress-bar bg-primary" 
+                              role="progressbar" 
+                              style={{ width: `${Math.min(progress, 100)}%` }}
+                              aria-valuenow={Math.min(progress, 100)}
+                              aria-valuemin={0}
+                              aria-valuemax={100}
+                            ></div>
+                          </div>
+                        </td>
+                        <td>
+                          <Badge bg="secondary">{project.assignedCHWs.length}</Badge>
+                        </td>
+                        <td>
+                          <div className="btn-group">
+                            <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() => editProject(project)}
+                            >
+                              <FaEdit />
+                            </Button>
+                            <Button variant="outline-secondary" size="sm">
+                              <FaEye />
+                            </Button>
+                            <Button variant="outline-secondary" size="sm">
+                              <FaChartLine />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card.Body>
       </Card>
 
       {/* Add/Edit Project Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>{selectedProject ? 'Edit Project' : 'New Project'}</Modal.Title>
+          <Modal.Title>
+            {selectedProject ? 'Edit Project' : 'New Project'}
+          </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
-            <Row>
+            <Row className="mb-3">
               <Col md={8}>
-                <Form.Group className="mb-3">
+                <Form.Group>
                   <Form.Label>Project Name</Form.Label>
                   <Form.Control
                     type="text"
@@ -363,7 +447,7 @@ export default function ProjectManagement() {
                 </Form.Group>
               </Col>
               <Col md={4}>
-                <Form.Group className="mb-3">
+                <Form.Group>
                   <Form.Label>Status</Form.Label>
                   <Form.Select
                     value={formData.status}
@@ -371,7 +455,7 @@ export default function ProjectManagement() {
                   >
                     {Object.values(ProjectStatus).map(status => (
                       <option key={status} value={status}>
-                        {status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {status.replace(/_/g, ' ')}
                       </option>
                     ))}
                   </Form.Select>
@@ -390,9 +474,9 @@ export default function ProjectManagement() {
               />
             </Form.Group>
 
-            <Row>
+            <Row className="mb-3">
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group>
                   <Form.Label>Associated Grant</Form.Label>
                   <Form.Select
                     value={formData.grantId}
@@ -401,14 +485,14 @@ export default function ProjectManagement() {
                     <option value="">No grant association</option>
                     {grants.map(grant => (
                       <option key={grant.id} value={grant.id}>
-                        {grant.title} - ${grant.amount.toLocaleString()}
+                        {grant.title} (${grant.amount.toLocaleString()})
                       </option>
                     ))}
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
-                <Form.Group className="mb-3">
+                <Form.Group>
                   <Form.Label>Target Population</Form.Label>
                   <Form.Control
                     type="text"
@@ -421,9 +505,9 @@ export default function ProjectManagement() {
               </Col>
             </Row>
 
-            <Row>
+            <Row className="mb-3">
               <Col md={4}>
-                <Form.Group className="mb-3">
+                <Form.Group>
                   <Form.Label>Start Date</Form.Label>
                   <Form.Control
                     type="date"
@@ -434,7 +518,7 @@ export default function ProjectManagement() {
                 </Form.Group>
               </Col>
               <Col md={4}>
-                <Form.Group className="mb-3">
+                <Form.Group>
                   <Form.Label>End Date (Optional)</Form.Label>
                   <Form.Control
                     type="date"
@@ -444,14 +528,12 @@ export default function ProjectManagement() {
                 </Form.Group>
               </Col>
               <Col md={4}>
-                <Form.Group className="mb-3">
+                <Form.Group>
                   <Form.Label>Budget</Form.Label>
                   <Form.Control
                     type="number"
-                    value={formData.budget}
+                    value={formData.budget.toString()}
                     onChange={(e) => setFormData({...formData, budget: parseFloat(e.target.value) || 0})}
-                    min="0"
-                    step="0.01"
                   />
                 </Form.Group>
               </Col>

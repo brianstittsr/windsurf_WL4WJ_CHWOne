@@ -1,0 +1,156 @@
+'use client';
+
+import React from 'react';
+import { Container, Button as BsButton } from 'react-bootstrap';
+import Link from 'next/link';
+import PageContainer from './PageContainer';
+
+/**
+ * Magic template page that matches the homepage design
+ * This preserves the beautiful gradient background and centered layout
+ */
+
+interface MagicPageTemplateProps {
+  title?: string | React.ReactNode;
+  subtitle?: string | React.ReactNode;
+  children?: React.ReactNode;
+  showHeader?: boolean;
+  actions?: React.ReactNode;
+}
+
+export default function MagicPageTemplate({
+  title,
+  subtitle,
+  children,
+  showHeader = true,
+  actions
+}: MagicPageTemplateProps) {
+  
+  return (
+    <PageContainer
+      variant="magic-centered"
+      background="magic"
+      headerVariant="magic"
+      footerVariant="magic"
+      showHeader={showHeader}
+      showFooter={false}
+    >
+      {/* Magic-style content matching homepage */}
+      <Container className="text-center" style={{ maxWidth: '800px' }}>
+        {title && (
+          <h1 style={{ 
+            fontSize: '4rem', 
+            marginBottom: '1rem', 
+            fontWeight: 'bold',
+            background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            {title}
+          </h1>
+        )}
+        
+        {subtitle && (
+          <p style={{ 
+            fontSize: '1.25rem', 
+            marginBottom: '3rem', 
+            color: 'rgba(255,255,255,0.8)', 
+            lineHeight: 1.6,
+            maxWidth: '600px',
+            margin: '0 auto 3rem auto'
+          }}>
+            {subtitle}
+          </p>
+        )}
+        
+        {actions && (
+          <div className="d-flex flex-wrap justify-content-center gap-3 mb-5">
+            {actions}
+          </div>
+        )}
+
+        {children && (
+          <div style={{
+            padding: '1.5rem',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            textAlign: 'left',
+            marginTop: '2rem'
+          }}>
+            {children}
+          </div>
+        )}
+      </Container>
+
+      {/* Gradient Animation Styles */}
+      <style jsx>{`
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+    </PageContainer>
+  );
+}
+
+// Magic-style button component
+export const MagicButton = ({ 
+  children, 
+  variant = 'primary',
+  onClick,
+  href,
+  ...props 
+}: {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary';
+  onClick?: () => void;
+  href?: string;
+  [key: string]: any;
+}) => {
+  const bsVariant = variant === 'primary' ? 'primary' : 'outline-light';
+  
+  if (href) {
+    return (
+      <Link href={href} passHref>
+        <BsButton 
+          variant={bsVariant}
+          size="lg"
+          className={variant === 'primary' ? 'shadow-lg' : ''}
+          style={{
+            padding: '1rem 2rem',
+            borderRadius: '12px',
+            fontSize: '1.1rem',
+            fontWeight: '600',
+            backdropFilter: variant === 'secondary' ? 'blur(10px)' : 'none'
+          }}
+          {...props}
+        >
+          {children}
+        </BsButton>
+      </Link>
+    );
+  }
+
+  return (
+    <BsButton 
+      variant={bsVariant}
+      size="lg"
+      onClick={onClick}
+      className={variant === 'primary' ? 'shadow-lg' : ''}
+      style={{
+        padding: '1rem 2rem',
+        borderRadius: '12px',
+        fontSize: '1.1rem',
+        fontWeight: '600',
+        backdropFilter: variant === 'secondary' ? 'blur(10px)' : 'none'
+      }}
+      {...props}
+    >
+      {children}
+    </BsButton>
+  );
+};

@@ -1,27 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Container, Row, Col, Navbar, Nav, Button, NavDropdown } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button, Image, Dropdown } from 'react-bootstrap';
 import { useAuth } from '@/contexts/AuthContext';
-import Sidebar from './Sidebar';
+import { UserRole } from '@/types/platform.types';
 import Link from 'next/link';
-import { 
-  FaBars, 
-  FaSignOutAlt, 
-  FaUser, 
-  FaTachometerAlt, 
-  FaUsers, 
-  FaProjectDiagram, 
-  FaMoneyBillWave, 
-  FaDatabase, 
-  FaExchangeAlt, 
-  FaMapMarkerAlt, 
-  FaChartBar, 
-  FaDownload, 
-  FaCog,
-  FaWpforms,
-  FaBriefcase
-} from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -29,7 +13,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { currentUser, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -39,132 +23,187 @@ export default function MainLayout({ children }: MainLayoutProps) {
     }
   };
 
+  const menuItems = [
+    { 
+      href: '/dashboard', 
+      icon: 'computer', 
+      label: 'Dashboard', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/chws', 
+      icon: 'person', 
+      label: 'CHWs', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
+    },
+    { 
+      href: '/projects', 
+      icon: 'sparkle', 
+      label: 'Projects', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/grants', 
+      icon: 'security', 
+      label: 'Grants', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/referrals', 
+      icon: 'openLink', 
+      label: 'Referrals', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/resources', 
+      icon: 'search', 
+      label: 'Resources', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/forms', 
+      icon: 'clipboard', 
+      label: 'Forms', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/workforce', 
+      icon: 'person', 
+      label: 'Workforce', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+  ];
+
+  // Mock user role for testing
+  const userRole = currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR;
+  const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
+
   return (
-    <div className="d-flex">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="position-fixed w-100 h-100 bg-dark bg-opacity-50 d-md-none"
-          style={{ zIndex: 999 }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <div className={`sidebar d-md-block ${sidebarOpen ? 'show' : ''}`} style={{ width: '250px' }}>
-        <Sidebar />
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-grow-1">
-        {/* Top Navigation */}
-        <Navbar bg="white" expand="lg" className="border-bottom shadow-sm">
-          <Container fluid>
-            <Navbar.Brand as={Link} href="/" className="fw-bold text-primary d-flex align-items-center">
-              <img 
-                src="/images/CHWOneLogoDesign.png" 
-                alt="CHWOne Logo" 
-                style={{ height: '40px', marginRight: '10px' }}
-              />
-              CHWOne Platform
-            </Navbar.Brand>
-            <Button
-              variant="outline-secondary"
-              className="d-lg-none me-2"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <FaBars />
-            </Button>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="me-auto">
-                <Nav.Link as={Link} href="/dashboard">
-                  <FaTachometerAlt className="me-1" />
-                  Dashboard
-                </Nav.Link>
-                
-                <NavDropdown title={<><FaUsers className="me-1" />Management</>} id="management-dropdown">
-                  <NavDropdown.Item as={Link} href="/chws">
-                    <FaUsers className="me-2" />
-                    Community Health Workers
-                  </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} href="/projects">
-                    <FaProjectDiagram className="me-2" />
-                    Projects
-                  </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} href="/grants">
-                    <FaMoneyBillWave className="me-2" />
-                    Grants
-                  </NavDropdown.Item>
-                </NavDropdown>
-                
-                <NavDropdown title={<><FaDatabase className="me-1" />Data</>} id="data-dropdown">
-                  <NavDropdown.Item as={Link} href="/datasets">
-                    <FaDatabase className="me-2" />
-                    Datasets
-                  </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} href="/referrals">
-                    <FaExchangeAlt className="me-2" />
-                    Referrals
-                  </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} href="/surveys">
-                    <FaChartBar className="me-2" />
-                    Surveys
-                  </NavDropdown.Item>
-                </NavDropdown>
-                
-                <Nav.Link as={Link} href="/resources">
-                  <FaMapMarkerAlt className="me-1" />
-                  Resources
-                </Nav.Link>
-                
-                <Nav.Link as={Link} href="/forms">
-                  <FaWpforms className="me-1" />
-                  Forms
-                </Nav.Link>
-                
-                <Nav.Link as={Link} href="/workforce">
-                  <FaBriefcase className="me-1" />
-                  Workforce
-                </Nav.Link>
-                
-                <Nav.Link as={Link} href="/api-access">
-                  <FaDownload className="me-1" />
-                  API
-                </Nav.Link>
-              </Nav>
-            
-            <Nav className="ms-auto">
-              <NavDropdown 
-                title={
-                  <span className="d-flex align-items-center">
-                    <FaUser className="me-2" />
-                    {currentUser?.displayName || currentUser?.email}
-                  </span>
-                } 
-                id="user-dropdown"
-                align="end"
-              >
-                <NavDropdown.Item as={Link} href="/settings">
-                  <FaCog className="me-2" />
-                  Settings
-                </NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item onClick={handleLogout}>
-                  <FaSignOutAlt className="me-2" />
-                  Logout
-                </NavDropdown.Item>
-              </NavDropdown>
+    <div className="magic-layout">
+      {/* Top Navigation */}
+      <Navbar expand="lg" className="top-navigation" fixed="top">
+        <Container fluid>
+          <Navbar.Brand href="/dashboard" className="d-flex align-items-center">
+            <Image 
+              src="/images/CHWOneLogoDesign.png" 
+              width={40}
+              height={40}
+              className="me-2"
+              alt="CHWOne Logo"
+              roundedCircle
+            />
+            <span className="fw-bold">CHWOne</span>
+          </Navbar.Brand>
+          
+          <Navbar.Toggle 
+            aria-controls="basic-navbar-nav" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="border-0"
+          >
+            {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+          </Navbar.Toggle>
+          
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              {filteredMenuItems.map((item) => (
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  className="nav-link"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </Nav>
-            </Navbar.Collapse>
-          </Container>
-        </Navbar>
+            
+            <Dropdown align="end">
+              <Dropdown.Toggle variant="light" id="user-dropdown" className="d-flex align-items-center">
+                <div className="d-flex align-items-center">
+                  <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                    style={{ width: '32px', height: '32px' }}>
+                    {(currentUser?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="d-none d-md-inline">{currentUser?.displayName || currentUser?.email || 'User'}</span>
+                </div>
+              </Dropdown.Toggle>
 
-        {/* Page Content */}
-        <main>
+              <Dropdown.Menu>
+                <Dropdown.Item as={Link} href="/settings">
+                  <FaCog className="me-2" /> Settings
+                </Dropdown.Item>
+                <Dropdown.Divider />
+                <Dropdown.Item onClick={handleLogout}>
+                  <FaSignOutAlt className="me-2" /> Logout
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+
+      {/* Main Content with Gradient Background */}
+      <main className="main-content">
+        <div className="content-container">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
+
+      <style jsx global>{`
+        .magic-layout {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+          background-size: 400% 400%;
+          animation: gradientShift 12s ease infinite;
+          padding-top: 70px;
+        }
+
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .top-navigation {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+          flex: 1;
+          padding: 40px 24px;
+        }
+
+        .content-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 32px;
+          box-shadow: 
+            0 20px 25px -5px rgba(0, 0, 0, 0.1),
+            0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 768px) {
+          .main-content {
+            padding: 20px 16px;
+          }
+
+          .content-container {
+            padding: 20px;
+            border-radius: 16px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .content-container {
+            padding: 16px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

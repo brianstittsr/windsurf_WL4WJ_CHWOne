@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Column, Media, Row, Avatar, Text } from "@once-ui-system/core";
+import { Card, Row, Col, Image } from "react-bootstrap";
+import Link from "next/link";
 import { formatDate } from "@/utils/formatDate";
 import { person } from "@/resources";
 
@@ -12,52 +13,52 @@ interface PostProps {
 
 export default function Post({ post, thumbnail, direction }: PostProps) {
   return (
-    <Card
-      fillWidth
-      key={post.slug}
-      href={`/blog/${post.slug}`}
-      transition="micro-medium"
-      direction={direction}
-      border="transparent"
-      background="transparent"
-      padding="4"
-      radius="l-4"
-      gap={direction === "column" ? undefined : "24"}
-      s={{ direction: "column" }}
-    >
-      {post.metadata.image && thumbnail && (
-        <Media
-          priority
-          sizes="(max-width: 768px) 100vw, 640px"
-          border="neutral-alpha-weak"
-          cursor="interactive"
-          radius="l"
-          src={post.metadata.image}
-          alt={"Thumbnail of " + post.metadata.title}
-          aspectRatio="16 / 9"
-        />
-      )}
-      <Row fillWidth>
-        <Column maxWidth={28} paddingY="24" paddingX="l" gap="20" vertical="center">
-          <Row gap="24" vertical="center">
-            <Row vertical="center" gap="16">
-              <Avatar src={person.avatar} size="s" />
-              <Text variant="label-default-s">{person.name}</Text>
-            </Row>
-            <Text variant="body-default-xs" onBackground="neutral-weak">
+    <Link href={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
+      <Card 
+        className="h-100 border-0 shadow-sm hover-lift" 
+        style={{
+          transition: 'transform 0.2s ease-in-out',
+          backgroundColor: 'transparent'
+        }}
+      >
+        {post.metadata.image && thumbnail && (
+          <Card.Img 
+            variant="top" 
+            src={post.metadata.image}
+            alt={"Thumbnail of " + post.metadata.title}
+            style={{
+              aspectRatio: '16/9',
+              objectFit: 'cover',
+              borderRadius: direction === "row" ? '0.5rem 0 0 0.5rem' : '0.5rem 0.5rem 0 0'
+            }}
+          />
+        )}
+        <Card.Body className="p-4">
+          <div className="d-flex align-items-center mb-3">
+            <div className="d-flex align-items-center me-3">
+              <Image 
+                src={person.avatar} 
+                width={24} 
+                height={24} 
+                roundedCircle 
+                className="me-2" 
+              />
+              <span className="small">{person.name}</span>
+            </div>
+            <small className="text-muted ms-auto">
               {formatDate(post.metadata.publishedAt, false)}
-            </Text>
-          </Row>
-          <Text variant="heading-strong-l" wrap="balance">
-            {post.metadata.title}
-          </Text>
+            </small>
+          </div>
+          
+          <h5 className="card-title fw-bold mb-2">{post.metadata.title}</h5>
+          
           {post.metadata.tag && (
-            <Text variant="label-strong-s" onBackground="neutral-weak">
+            <span className="badge bg-light text-secondary">
               {post.metadata.tag}
-            </Text>
+            </span>
           )}
-        </Column>
-      </Row>
-    </Card>
+        </Card.Body>
+      </Card>
+    </Link>
   );
 }

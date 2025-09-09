@@ -1,0 +1,210 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Navbar, Nav, Container, Button, Image, Dropdown } from 'react-bootstrap';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/types/platform.types';
+import Link from 'next/link';
+import { FaBars, FaTimes, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
+
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function MainLayout({ children }: MainLayoutProps) {
+  const { currentUser, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const menuItems = [
+    { 
+      href: '/dashboard', 
+      icon: 'computer', 
+      label: 'Dashboard', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/chws', 
+      icon: 'person', 
+      label: 'CHWs', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
+    },
+    { 
+      href: '/projects', 
+      icon: 'sparkle', 
+      label: 'Projects', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/grants', 
+      icon: 'security', 
+      label: 'Grants', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/referrals', 
+      icon: 'openLink', 
+      label: 'Referrals', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/resources', 
+      icon: 'search', 
+      label: 'Resources', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/forms', 
+      icon: 'clipboard', 
+      label: 'Forms', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/workforce', 
+      icon: 'person', 
+      label: 'Workforce', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+  ];
+
+  // Mock user role for testing
+  const userRole = currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR;
+  const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
+
+  return (
+    <div className="magic-layout">
+      {/* Top Navigation */}
+      <Navbar expand="lg" className="top-navigation" fixed="top">
+        <Container fluid>
+          <Navbar.Brand href="/dashboard" className="d-flex align-items-center">
+            <Image 
+              src="/images/CHWOneLogoDesign.png" 
+              width={40}
+              height={40}
+              className="me-2"
+              alt="CHWOne Logo"
+              roundedCircle
+            />
+            <span className="fw-bold">CHWOne</span>
+          </Navbar.Brand>
+          
+          <Navbar.Toggle 
+            aria-controls="basic-navbar-nav" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="border-0"
+          >
+            {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+          </Navbar.Toggle>
+          
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              {filteredMenuItems.map((item) => (
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  className="nav-link"
+                  passHref
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </Nav>
+            
+            <Dropdown align="end">
+              <Dropdown.Toggle variant="light" id="user-dropdown" className="d-flex align-items-center">
+                <div className="d-flex align-items-center">
+                  <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                    style={{ width: '32px', height: '32px' }}>
+                    {(currentUser?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="d-none d-md-inline">{currentUser?.displayName || currentUser?.email || 'User'}</span>
+                </div>
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                <Dropdown.Item as={Link} href="/settings">
+                  <FaCog className="me-2" /> Settings
+                </Dropdown.Item>
+                <Dropdown.Divider />
+                <Dropdown.Item onClick={handleLogout}>
+                  <FaSignOutAlt className="me-2" /> Logout
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+
+      {/* Main Content with Gradient Background */}
+      <main className="main-content">
+        <div className="content-container">
+          {children}
+        </div>
+      </main>
+
+      <style jsx global>{`
+        .magic-layout {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+          background-size: 400% 400%;
+          animation: gradientShift 12s ease infinite;
+          padding-top: 70px;
+        }
+
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .top-navigation {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+          flex: 1;
+          padding: 40px 24px;
+        }
+
+        .content-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 32px;
+          box-shadow: 
+            0 20px 25px -5px rgba(0, 0, 0, 0.1),
+            0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 768px) {
+          .main-content {
+            padding: 20px 16px;
+          }
+
+          .content-container {
+            padding: 20px;
+            border-radius: 16px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .content-container {
+            padding: 16px;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
