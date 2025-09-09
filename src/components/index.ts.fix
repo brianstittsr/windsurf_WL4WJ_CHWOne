@@ -1,0 +1,11 @@
+import React from 'react';
+
+// Simple HeadingLink component implementation
+export const HeadingLink: React.FC<{ children: React.ReactNode; id: string }> = ({ children, id }) => {
+  return <h2 id={id}>{children}</h2>;
+};
+
+// Export components that are actually used in the codebase
+export { default as RouteGuard } from "@/components/RouteGuard";
+export { default as ThemeToggle } from "@/components/ThemeToggle";
+export { default as CustomMDX } from "@/components/mdx/CustomMDX";
