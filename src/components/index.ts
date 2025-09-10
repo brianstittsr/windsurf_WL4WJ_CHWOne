@@ -1,20 +1,14 @@
-import React from 'react';
-
 // Layout components
 export { default as Header } from "@/components/Layout/Header";
 
-// Use default exports for components that have been migrated
-export { default as Footer } from "@/components/Layout/Footer";
-export { default as Mailchimp } from "@/components/Mailchimp/Mailchimp";
-export { default as ProjectCard } from "@/components/Projects/ProjectCard";
-
-// Simple HeadingLink component implementation
-export const HeadingLink: React.FC<{ children: React.ReactNode; id: string }> = ({ children, id }) => {
-  return <h2 id={id}>{children}</h2>;
-};
+// Use named exports for components that have been migrated
+export { Footer } from "@/components/Footer";
+export { Mailchimp } from "@/components/Mailchimp";
+export { ProjectCard } from "@/components/ProjectCard";
+export { HeadingLink } from "@/components/HeadingLink";
 
 // Export components that are actually used in the codebase
 export { RouteGuard } from "@/components/RouteGuard";
-export { ThemeToggle } from "@/components/Layout/ThemeToggle";
+export { ThemeToggle } from "@/components/ThemeToggle";
 export { CustomMDX } from "@/components/mdx";
 export { ScrollToHash } from "@/components/ScrollToHash";
