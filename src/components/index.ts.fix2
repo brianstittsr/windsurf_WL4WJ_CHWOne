@@ -1,0 +1,12 @@
+import React from 'react';
+
+// Simple HeadingLink component implementation
+export const HeadingLink = ({ children, id }: { children: React.ReactNode; id: string }) => {
+  return React.createElement('h2', { id }, children);
+};
+
+// Export components that are actually used in the codebase
+export { RouteGuard } from "@/components/RouteGuard";
+export { ThemeToggle } from "@/components/ThemeToggle";
+export { CustomMDX } from "@/components/mdx";
+export { ScrollToHash } from "@/components/ScrollToHash";
