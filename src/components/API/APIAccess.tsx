@@ -1,9 +1,47 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Form, Modal } from 'react-bootstrap';
+import {
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Alert,
+  Fab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Key as KeyIcon,
+  Code as CodeIcon,
+  Book as BookIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Copy as CopyIcon,
+  Download as DownloadIcon,
+  ExpandMore as ExpandMoreIcon
+} from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { FaKey, FaDownload, FaCopy, FaEye, FaEyeSlash, FaCode, FaBook } from 'react-icons/fa';
 
 interface APIKey {
   id: string;
@@ -15,13 +53,21 @@ interface APIKey {
   isActive: boolean;
 }
 
+interface APIEndpoint {
+  method: string;
+  endpoint: string;
+  description: string;
+  parameters?: string[];
+  response?: string;
+}
+
 export default function APIAccess() {
   const { currentUser } = useAuth();
   const [apiKeys, setApiKeys] = useState<APIKey[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string>('');
-  const [selectedEndpoint, setSelectedEndpoint] = useState('');
+  const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     permissions: [] as string[]
@@ -43,427 +89,391 @@ export default function APIAccess() {
     'datasets:export'
   ];
 
-  const apiEndpoints = [
+  const apiEndpoints: APIEndpoint[] = [
     {
       method: 'GET',
       endpoint: '/api/chws',
       description: 'Retrieve all Community Health Workers',
-      permission: 'chws:read'
+      parameters: ['limit', 'offset', 'search'],
+      response: 'Array of CHW objects'
     },
     {
       method: 'POST',
       endpoint: '/api/chws',
-      description: 'Create a new CHW record',
-      permission: 'chws:write'
+      description: 'Create a new Community Health Worker',
+      parameters: ['chw data object'],
+      response: 'Created CHW object'
     },
     {
       method: 'GET',
       endpoint: '/api/projects',
       description: 'Retrieve all projects',
-      permission: 'projects:read'
+      parameters: ['limit', 'offset', 'status'],
+      response: 'Array of project objects'
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/grants',
+      description: 'Retrieve all grants',
+      parameters: ['limit', 'offset', 'status'],
+      response: 'Array of grant objects'
     },
     {
       method: 'GET',
       endpoint: '/api/referrals',
-      description: 'Retrieve referral data',
-      permission: 'referrals:read'
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/resources',
-      description: 'Retrieve Region 5 resources',
-      permission: 'resources:read'
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/surveys/empower',
-      description: 'Export Empower survey results',
-      permission: 'surveys:read'
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/datasets/{id}/export',
-      description: 'Export dataset as CSV/JSON',
-      permission: 'datasets:export'
+      description: 'Retrieve all referrals',
+      parameters: ['limit', 'offset', 'status'],
+      response: 'Array of referral objects'
     }
   ];
 
   useEffect(() => {
-    // Mock API keys for demonstration
-    setApiKeys([
-      {
-        id: '1',
-        name: 'Main Dashboard API',
-        key: 'chwone_live_sk_1234567890abcdef',
-        permissions: ['chws:read', 'projects:read', 'referrals:read'],
-        createdAt: new Date('2024-01-15'),
-        lastUsed: new Date('2024-01-20'),
-        isActive: true
-      },
-      {
-        id: '2',
-        name: 'Data Export Service',
-        key: 'chwone_live_sk_fedcba0987654321',
-        permissions: ['datasets:read', 'datasets:export', 'surveys:read'],
-        createdAt: new Date('2024-01-10'),
-        isActive: true
-      }
-    ]);
+    // Load API keys from localStorage or API
+    const savedKeys = localStorage.getItem('apiKeys');
+    if (savedKeys) {
+      setApiKeys(JSON.parse(savedKeys));
+    }
   }, []);
 
-  const generateAPIKey = () => {
-    const prefix = 'chwone_live_sk_';
-    const randomString = Math.random().toString(36).substring(2, 15) + 
-                        Math.random().toString(36).substring(2, 15);
-    return prefix + randomString;
+  const generateApiKey = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = 'chw_';
+    for (let i = 0; i < 32; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   };
 
-  const handleCreateAPIKey = () => {
-    const newKey = generateAPIKey();
-    const apiKey: APIKey = {
+  const handleCreateKey = () => {
+    const key = generateApiKey();
+    const newKey: APIKey = {
       id: Date.now().toString(),
       name: formData.name,
-      key: newKey,
+      key: key,
       permissions: formData.permissions,
       createdAt: new Date(),
       isActive: true
     };
 
-    setApiKeys([...apiKeys, apiKey]);
-    setNewApiKey(newKey);
+    const updatedKeys = [...apiKeys, newKey];
+    setApiKeys(updatedKeys);
+    localStorage.setItem('apiKeys', JSON.stringify(updatedKeys));
+
+    setNewApiKey(key);
     setShowCreateModal(false);
     setShowKeyModal(true);
     setFormData({ name: '', permissions: [] });
+  };
+
+  const handlePermissionChange = (permission: string, checked: boolean) => {
+    if (checked) {
+      setFormData({
+        ...formData,
+        permissions: [...formData.permissions, permission]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        permissions: formData.permissions.filter(p => p !== permission)
+      });
+    }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
-  const togglePermission = (permission: string) => {
-    const updatedPermissions = formData.permissions.includes(permission)
-      ? formData.permissions.filter(p => p !== permission)
-      : [...formData.permissions, permission];
-    
-    setFormData({ ...formData, permissions: updatedPermissions });
-  };
-
-  const getMethodBadgeVariant = (method: string) => {
-    switch (method) {
-      case 'GET': return 'success';
-      case 'POST': return 'primary';
-      case 'PUT': return 'warning';
-      case 'DELETE': return 'danger';
-      default: return 'secondary';
-    }
-  };
-
-  const generateCurlExample = (endpoint: any) => {
+  const generateCurlExample = (endpoint?: APIEndpoint) => {
+    if (!endpoint) return '';
     return `curl -X ${endpoint.method} \\
+  "https://your-domain.com${endpoint.endpoint}" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  https://chwone-platform.com${endpoint.endpoint}`;
+  -H "Content-Type: application/json"`;
   };
 
-  const generateJavaScriptExample = (endpoint: any) => {
-    return `const response = await fetch('https://chwone-platform.com${endpoint.endpoint}', {
+  const generateJavaScriptExample = (endpoint?: APIEndpoint) => {
+    if (!endpoint) return '';
+    return `fetch('https://your-domain.com${endpoint.endpoint}', {
   method: '${endpoint.method}',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
     'Content-Type': 'application/json'
   }
-});
-
-const data = await response.json();
-console.log(data);`;
+})
+.then(response => response.json())
+.then(data => console.log(data));`;
   };
 
   return (
-    <div className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="fw-bold">API Access & Data Export</h2>
-          <p className="text-muted">Manage API keys and access programmatic data export</p>
-        </div>
-        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-          <FaKey className="me-2" />
-          Create API Key
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            API Access
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Manage API keys and explore available endpoints
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setShowCreateModal(true)}
+          size="large"
+        >
+          New API Key
         </Button>
-      </div>
+      </Box>
 
-      {/* HIPAA Compliance Notice */}
-      <Card className="bg-warning bg-opacity-10 border-warning mb-4">
-        <Card.Body className="d-flex align-items-center">
-          <strong className="me-2">🔒 HIPAA Compliance Notice</strong>
-          <span>- API access to protected health information requires proper authorization and audit logging. All API calls are monitored and logged.</span>
-        </Card.Body>
-      </Card>
+      {/* API Keys Section */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Your API Keys
+          </Typography>
 
-      {/* API Keys Management */}
-      <Card className="mb-4">
-        <Card.Body>
-          <h3 className="fw-bold mb-4">Your API Keys</h3>
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Key</th>
-                  <th>Permissions</th>
-                  <th>Created</th>
-                  <th>Last Used</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {apiKeys.map((apiKey) => (
-                  <tr key={apiKey.id}>
-                    <td>
-                      <strong>{apiKey.name}</strong>
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <code className="text-muted me-2">
-                          {apiKey.key.substring(0, 20)}...
-                        </code>
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          onClick={() => copyToClipboard(apiKey.key)}
-                        >
-                          <FaCopy />
+          {apiKeys.length === 0 ? (
+            <Alert severity="info">
+              No API keys created yet. Create your first key to get started.
+            </Alert>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Key (Partial)</TableCell>
+                    <TableCell>Permissions</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Created</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {apiKeys.map((apiKey) => (
+                    <TableRow key={apiKey.id}>
+                      <TableCell>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {apiKey.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                          {apiKey.key.substring(0, 12)}...
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {apiKey.permissions.slice(0, 3).map((perm) => (
+                            <Chip key={perm} label={perm} size="small" variant="outlined" />
+                          ))}
+                          {apiKey.permissions.length > 3 && (
+                            <Chip label={`+${apiKey.permissions.length - 3}`} size="small" variant="outlined" />
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={apiKey.isActive ? 'Active' : 'Inactive'}
+                          color={apiKey.isActive ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {apiKey.createdAt.toLocaleDateString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outlined" size="small">
+                          Manage
                         </Button>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="d-flex flex-wrap gap-1">
-                        {apiKey.permissions.slice(0, 2).map(permission => (
-                          <Badge key={permission} bg="info" className="py-1 px-2">
-                            {permission}
-                          </Badge>
-                        ))}
-                        {apiKey.permissions.length > 2 && (
-                          <Badge bg="light" text="dark" className="py-1 px-2">
-                            +{apiKey.permissions.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      {apiKey.createdAt.toLocaleDateString()}
-                    </td>
-                    <td>
-                      {apiKey.lastUsed ? (
-                        <span className="text-success">
-                          {apiKey.lastUsed.toLocaleDateString()}
-                        </span>
-                      ) : (
-                        <span className="text-muted">Never</span>
-                      )}
-                    </td>
-                    <td>
-                      <Badge bg={apiKey.isActive ? 'success' : 'danger'}>
-                        {apiKey.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </td>
-                    <td>
-                      <Button variant="danger" size="sm">
-                        Revoke
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card.Body>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </CardContent>
       </Card>
 
       {/* API Documentation */}
       <Card>
-        <Card.Body>
-          <div className="d-flex align-items-center mb-3">
-            <FaBook className="me-2" />
-            <h3 className="fw-bold mb-0">API Documentation</h3>
-          </div>
-          <p className="mb-4">
-            Use these endpoints to programmatically access CHWOne platform data. 
-            All requests require a valid API key in the Authorization header.
-          </p>
-          
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Method</th>
-                  <th>Endpoint</th>
-                  <th>Description</th>
-                  <th>Required Permission</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+        <CardContent>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            API Endpoints
+          </Typography>
+
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Method</TableCell>
+                  <TableCell>Endpoint</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {apiEndpoints.map((endpoint, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Badge bg={getMethodBadgeVariant(endpoint.method)}>
-                        {endpoint.method}
-                      </Badge>
-                    </td>
-                    <td>
-                      <code className="bg-light px-2 py-1 rounded">
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Chip
+                        label={endpoint.method}
+                        color={endpoint.method === 'GET' ? 'success' : endpoint.method === 'POST' ? 'primary' : 'warning'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                         {endpoint.endpoint}
-                      </code>
-                    </td>
-                    <td>
-                      {endpoint.description}
-                    </td>
-                    <td>
-                      <Badge bg="secondary">
-                        {endpoint.permission}
-                      </Badge>
-                    </td>
-                    <td>
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {endpoint.description}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
                       <Button
-                        variant="outline-secondary"
-                        size="sm"
+                        variant="outlined"
+                        size="small"
+                        startIcon={<CodeIcon />}
                         onClick={() => setSelectedEndpoint(endpoint.endpoint)}
                       >
-                        <FaCode className="me-1" />
                         Examples
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </Card.Body>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
       </Card>
 
       {/* Create API Key Modal */}
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Create New API Key</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={(e: React.FormEvent) => { e.preventDefault(); handleCreateAPIKey(); }}>
-            <Form.Group className="mb-3">
-              <Form.Label><strong>API Key Name</strong></Form.Label>
-              <Form.Control
-                type="text"
-                value={formData.name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, name: e.target.value})}
-                placeholder="e.g., Dashboard Integration, Data Export Service"
-                required
-              />
-              <Form.Text className="text-muted">
-                Choose a descriptive name to identify this API key's purpose.
-              </Form.Text>
-            </Form.Group>
+      <Dialog open={showCreateModal} onClose={() => setShowCreateModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Create New API Key</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Key Name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            sx={{ mb: 3, mt: 1 }}
+          />
 
-            <Form.Group className="mb-3">
-              <Form.Label><strong>Permissions</strong></Form.Label>
-              <div className="border rounded p-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                {availablePermissions.map(permission => (
-                  <Form.Check
-                    key={permission}
-                    type="checkbox"
-                    id={permission}
-                    label={permission}
-                    checked={formData.permissions.includes(permission)}
-                    onChange={() => togglePermission(permission)}
-                    className="mb-2"
-                  />
-                ))}
-              </div>
-              <Form.Text className="text-muted">
-                Select the minimum permissions required for your use case.
-              </Form.Text>
-            </Form.Group>
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+            Permissions
+          </Typography>
 
-            <div className="alert alert-info">
-              <strong>Security Note:</strong> API keys provide access to sensitive data. 
-              Store them securely and never share them publicly. You can revoke access at any time.
-            </div>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-            Cancel
+          <Grid container spacing={2}>
+            {availablePermissions.map((permission) => (
+              <Grid item xs={12} md={6} key={permission}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.permissions.includes(permission)}
+                      onChange={(e) => handlePermissionChange(permission, e.target.checked)}
+                    />
+                  }
+                  label={permission}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCreateModal(false)}>Cancel</Button>
+          <Button onClick={handleCreateKey} variant="contained" disabled={!formData.name}>
+            Create Key
           </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleCreateAPIKey}
-            disabled={!formData.name || formData.permissions.length === 0}
-          >
-            Create API Key
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        </DialogActions>
+      </Dialog>
 
-      {/* Show New API Key Modal */}
-      <Modal show={showKeyModal} onHide={() => setShowKeyModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Your New API Key</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="alert alert-success mb-3">
-            <strong>API Key Created Successfully!</strong>
-          </div>
-          
-          <Form.Group className="mb-3">
-            <Form.Label><strong>API Key</strong></Form.Label>
-            <div className="d-flex gap-2">
-              <Form.Control
-                type="text"
-                value={newApiKey}
-                readOnly
-              />
-              <Button
-                variant="outline-secondary"
-                onClick={() => copyToClipboard(newApiKey)}
-              >
-                <FaCopy />
-              </Button>
-            </div>
-          </Form.Group>
-
-          <div className="alert alert-warning">
-            <strong>Important:</strong> This is the only time you'll see this API key. 
+      {/* Show New Key Modal */}
+      <Dialog open={showKeyModal} onClose={() => setShowKeyModal(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Your New API Key</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <strong>Important:</strong> This is the only time you'll see this API key.
             Copy it now and store it securely. If you lose it, you'll need to create a new one.
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={() => setShowKeyModal(false)}>
+          </Alert>
+
+          <TextField
+            fullWidth
+            label="API Key"
+            value={newApiKey}
+            InputProps={{
+              readOnly: true,
+            }}
+            sx={{ mb: 2 }}
+          />
+
+          <Button
+            variant="outlined"
+            startIcon={<CopyIcon />}
+            onClick={() => copyToClipboard(newApiKey)}
+            fullWidth
+          >
+            Copy to Clipboard
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowKeyModal(false)} variant="contained">
             I've Saved My Key
           </Button>
-        </Modal.Footer>
-      </Modal>
+        </DialogActions>
+      </Dialog>
 
       {/* Code Examples Modal */}
-      <Modal show={!!selectedEndpoint} onHide={() => setSelectedEndpoint('')} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Code Examples - {selectedEndpoint}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <h5>cURL Example:</h5>
-          <pre className="bg-light p-3 rounded">
-            <code>{selectedEndpoint && generateCurlExample(apiEndpoints.find(e => e.endpoint === selectedEndpoint))}</code>
-          </pre>
+      <Dialog
+        open={!!selectedEndpoint}
+        onClose={() => setSelectedEndpoint(null)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Code Examples - {selectedEndpoint}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            cURL Example:
+          </Typography>
+          <Box sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, mb: 3 }}>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+              {selectedEndpoint && generateCurlExample(apiEndpoints.find(e => e.endpoint === selectedEndpoint))}
+            </Typography>
+          </Box>
 
-          <h5 className="mt-4">JavaScript Example:</h5>
-          <pre className="bg-light p-3 rounded">
-            <code>{selectedEndpoint && generateJavaScriptExample(apiEndpoints.find(e => e.endpoint === selectedEndpoint))}</code>
-          </pre>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setSelectedEndpoint('')}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            JavaScript Example:
+          </Typography>
+          <Box sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1 }}>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+              {selectedEndpoint && generateJavaScriptExample(apiEndpoints.find(e => e.endpoint === selectedEndpoint))}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedEndpoint(null)}>
             Close
           </Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
+        </DialogActions>
+      </Dialog>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="add"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => setShowCreateModal(true)}
+      >
+        <AddIcon />
+      </Fab>
+    </Container>
   );
 }

@@ -1,4 +1,4 @@
-import { Container } from "react-bootstrap";
+import { Container } from "@mui/material";
 import GalleryView from "@/components/gallery/GalleryView";
 import { baseURL, gallery, person } from "@/resources";
 
@@ -17,7 +17,7 @@ export async function generateMetadata() {
 
 export default function Gallery() {
   return (
-    <Container className="py-4" style={{ maxWidth: '1200px' }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Schema metadata added via head */}
       <GalleryView />
     </Container>

@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Container, Form, Button, Card, Spinner, Alert } from 'react-bootstrap';
+import { Container, TextField, Button, Card, CardContent, CircularProgress, Alert, Box, Typography } from '@mui/material';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -30,77 +31,79 @@ export default function LoginPage() {
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center py-5" style={{ minHeight: '80vh' }}>
-      <Card style={{ maxWidth: '400px', width: '100%' }} className="shadow-sm">
-        <Card.Body className="p-4">
-          <div className="text-center mb-4">
-            <img 
+    <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 5, minHeight: '80vh' }}>
+      <Card sx={{ maxWidth: '400px', width: '100%', boxShadow: 2 }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Image 
               src="/images/CHWOneLogoDesign.png" 
               alt="CHWOne Logo"
-              style={{ width: '80px', height: '80px' }}
-              className="mb-3"
+              width={80}
+              height={80}
+              style={{ marginBottom: 16 }}
             />
-            <h2 className="fw-bold text-primary">CHWOne</h2>
-            <p className="text-muted small">Women Leading for Wellness & Justice</p>
-            <h4>Sign In</h4>
-          </div>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>CHWOne</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>Women Leading for Wellness & Justice</Typography>
+            <Typography variant="h5" sx={{ mt: 2 }}>Sign In</Typography>
+          </Box>
           
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Email Address</Form.Label>
-              <Form.Control 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                disabled={loading}
-              />
-            </Form.Group>
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+              disabled={loading}
+              sx={{ mb: 3 }}
+            />
             
-            <Form.Group className="mb-4">
-              <Form.Label>Password</Form.Label>
-              <Form.Control 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                disabled={loading}
-              />
-            </Form.Group>
+            <TextField
+              fullWidth
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+              disabled={loading}
+              sx={{ mb: 4 }}
+            />
             
             <Button 
-              variant="primary" 
+              variant="contained" 
               type="submit" 
-              className="w-100 mb-3" 
+              fullWidth
               disabled={loading}
+              sx={{ mb: 3 }}
             >
               {loading ? (
                 <>
-                  <Spinner animation="border" size="sm" className="me-2" />
+                  <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
                   Signing In...
                 </>
               ) : 'Sign In'}
             </Button>
             
-            <div className="text-center mt-3">
-              <p className="text-muted">
+            <Box sx={{ textAlign: 'center', mt: 3 }}>
+              <Typography color="text.secondary">
                 Don't have an account?{' '}
-                <Link href="/register">Register here</Link>
-              </p>
-            </div>
-          </Form>
+                <Link href="/register" style={{ textDecoration: 'none' }}>Register here</Link>
+              </Typography>
+            </Box>
+          </Box>
           
-          <Card className="bg-light mt-4 p-3">
-            <div className="text-center">
-              <p className="mb-1 fw-bold">🔒 HIPAA Compliant Platform</p>
-              <small className="text-muted">Your login is secured with enterprise-grade encryption</small>
-            </div>
+          <Card sx={{ bgcolor: 'action.hover', mt: 4, p: 3 }}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography sx={{ mb: 1, fontWeight: 'bold' }}>🔒 HIPAA Compliant Platform</Typography>
+              <Typography variant="body2" color="text.secondary">Your login is secured with enterprise-grade encryption</Typography>
+            </Box>
           </Card>
-        </Card.Body>
+        </CardContent>
       </Card>
     </Container>
   );

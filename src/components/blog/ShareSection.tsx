@@ -1,6 +1,6 @@
 "use client";
 
-import { Row, Col, Button, Toast, ToastContainer } from "react-bootstrap";
+import { Grid, Button, Snackbar, Alert, Box, Typography } from "@mui/material";
 import { useState } from "react";
 import { socialSharing } from "@/resources";
 import { FaTwitter, FaLinkedin, FaFacebook, FaPinterest, FaWhatsapp, FaReddit, FaTelegram, FaEnvelope, FaLink } from 'react-icons/fa';
@@ -77,9 +77,9 @@ const socialPlatforms: Record<string, SocialPlatform> = {
 };
 
 export function ShareSection({ title, url }: ShareSectionProps) {
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastVariant, setToastVariant] = useState('success');
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   
   // Don't render if sharing is disabled
   if (!socialSharing.display) {
@@ -89,14 +89,14 @@ export function ShareSection({ title, url }: ShareSectionProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      setToastMessage("Link copied to clipboard");
-      setToastVariant("success");
-      setShowToast(true);
+      setSnackbarMessage("Link copied to clipboard");
+      setSnackbarSeverity("success");
+      setShowSnackbar(true);
     } catch (err) {
       console.error('Failed to copy: ', err);
-      setToastMessage("Failed to copy link");
-      setToastVariant("danger");
-      setShowToast(true);
+      setSnackbarMessage("Failed to copy link");
+      setSnackbarSeverity("error");
+      setShowSnackbar(true);
     }
   };
 
@@ -107,54 +107,53 @@ export function ShareSection({ title, url }: ShareSectionProps) {
     .filter(platform => platform.name); // Filter out platforms that don't exist in our definitions
 
   return (
-    <div className="my-4">
-      <Row className="justify-content-center align-items-center mb-3">
-        <Col xs="auto">
-          <span className="text-muted">Share this post:</span>
-        </Col>
-        <Col xs="auto">
-          <div className="d-flex gap-2 flex-wrap">
+    <Box sx={{ my: 4 }}>
+      <Grid container justifyContent="center" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs="auto">
+          <Typography color="text.secondary">Share this post:</Typography>
+        </Grid>
+        <Grid item xs="auto">
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {enabledPlatforms.map((platform, index) => (
               <Button 
                 key={index} 
-                variant="outline-secondary" 
-                size="sm" 
+                variant="outlined" 
+                size="small"
                 href={platform.generateUrl(title, url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="d-flex align-items-center"
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                <span className="me-1">{platform.icon}</span>
-                <span className="d-none d-md-inline">{platform.label}</span>
+                <Box component="span">{platform.icon}</Box>
+                <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>{platform.label}</Box>
               </Button>
             ))}
             
             {socialSharing.platforms.copyLink && (
               <Button
-                variant="outline-secondary"
-                size="sm"
+                variant="outlined"
+                size="small"
                 onClick={handleCopy}
-                className="d-flex align-items-center"
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                <FaLink className="me-1" />
-                <span className="d-none d-md-inline">Copy Link</span>
+                <FaLink />
+                <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Copy Link</Box>
               </Button>
             )}
-          </div>
-        </Col>
-      </Row>
+          </Box>
+        </Grid>
+      </Grid>
       
-      <ToastContainer position="top-end" className="p-3">
-        <Toast 
-          onClose={() => setShowToast(false)} 
-          show={showToast} 
-          delay={3000} 
-          autohide 
-          bg={toastVariant}
-        >
-          <Toast.Body className="text-white">{toastMessage}</Toast.Body>
-        </Toast>
-      </ToastContainer>
-    </div>
+      <Snackbar 
+        open={showSnackbar} 
+        autoHideDuration={3000} 
+        onClose={() => setShowSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={() => setShowSnackbar(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

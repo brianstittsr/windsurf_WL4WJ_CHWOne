@@ -1,5 +1,50 @@
-import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/types";
 import React from "react";
+
+interface Person {
+  firstName: string;
+  lastName: string;
+  name: string;
+  role: string;
+  avatar: string;
+  email: string;
+  location: string;
+  languages: string[];
+}
+
+interface Newsletter {
+  // Define newsletter interface properties as needed
+  [key: string]: any;
+}
+
+interface Social {
+  // Define social interface properties as needed
+  [key: string]: any;
+}
+
+interface Home {
+  // Define home interface properties as needed
+  [key: string]: any;
+}
+
+interface About {
+  // Define about interface properties as needed
+  [key: string]: any;
+}
+
+interface Blog {
+  // Define blog interface properties as needed
+  [key: string]: any;
+}
+
+interface Work {
+  // Define work interface properties as needed
+  [key: string]: any;
+}
+
+interface Gallery {
+  // Define gallery interface properties as needed
+  [key: string]: any;
+}
 
 const person: Person = {
   firstName: "Selene",

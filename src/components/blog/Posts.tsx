@@ -1,5 +1,5 @@
 import { getPosts } from "@/utils/utils";
-import { Row, Col } from "react-bootstrap";
+import { Grid } from "@mui/material";
 import Post from "./Post";
 
 interface PostsProps {
@@ -32,7 +32,7 @@ export function Posts({
     ? sortedBlogs.slice(range[0] - 1, range.length === 2 ? range[1] : sortedBlogs.length)
     : sortedBlogs;
 
-  // Convert columns string to number for Bootstrap grid
+  // Convert columns string to number for MUI grid
   const getColumnWidth = (cols: string) => {
     switch (cols) {
       case "1": return 12;
@@ -47,13 +47,13 @@ export function Posts({
   return (
     <>
       {displayedBlogs.length > 0 && (
-        <Row className="mb-5 g-4">
+        <Grid container spacing={4} sx={{ mb: 5 }}>
           {displayedBlogs.map((post) => (
-            <Col key={post.slug} xs={12} md={colWidth}>
+            <Grid item key={post.slug} xs={12} md={colWidth}>
               <Post post={post} thumbnail={thumbnail} direction={direction} />
-            </Col>
+            </Grid>
           ))}
-        </Row>
+        </Grid>
       )}
     </>
   );

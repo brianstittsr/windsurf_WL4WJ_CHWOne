@@ -1,65 +1,22 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Button } from "react-bootstrap";
-import { FaSun, FaMoon } from "react-icons/fa";
+import React from "react";
+import { IconButton, Tooltip } from "@mui/material";
+import { Brightness4, Brightness7 } from "@mui/icons-material";
+import { useThemeMode } from "./ThemeProvider";
 
-// Create a simple theme context to replace Once UI's theme context
-export const useThemeToggle = () => {
-  const [theme, setTheme] = useState<string>("light");
-
-  useEffect(() => {
-    // Get initial theme from document or localStorage
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme);
-    document.documentElement.setAttribute("data-theme", savedTheme);
-    
-    // Apply theme class to body
-    if (savedTheme === "dark") {
-      document.body.classList.add("dark-theme");
-    } else {
-      document.body.classList.remove("dark-theme");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-    
-    // Apply theme class to body
-    if (newTheme === "dark") {
-      document.body.classList.add("dark-theme");
-    } else {
-      document.body.classList.remove("dark-theme");
-    }
-  };
-
-  return { theme, toggleTheme };
-};
-
-export const ThemeToggle: React.FC = () => {
-  const [mounted, setMounted] = useState(false);
-  const { theme, toggleTheme } = useThemeToggle();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
+export default function ThemeToggle() {
+  const { mode, toggleTheme } = useThemeMode();
 
   return (
-    <Button 
-      variant="outline-secondary"
-      size="sm"
-      onClick={toggleTheme}
-      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-      className="d-flex align-items-center justify-content-center p-2"
-    >
-      {theme === 'light' ? <FaMoon /> : <FaSun />}
-    </Button>
+    <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
+      <IconButton
+        onClick={toggleTheme}
+        color="inherit"
+        sx={{ ml: 1 }}
+      >
+        {mode === 'light' ? <Brightness4 /> : <Brightness7 />}
+      </IconButton>
+    </Tooltip>
   );
-};
+}

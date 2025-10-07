@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Container, Spinner, Button, Row, Col } from 'react-bootstrap';
+import { Container, Box, CircularProgress, Button, Typography, Stack } from '@mui/material';
 import Link from 'next/link';
 import APIAccess from '@/components/API/APIAccess';
 
@@ -13,14 +13,18 @@ export default function APIAccessPage() {
 
   if (loading) {
     return (
-      <Container fluid className="d-flex justify-content-center align-items-center vh-100" style={{ 
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
         background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
       }}>
-        <div className="text-center">
-          <Spinner animation="border" variant="light" className="mb-3" />
-          <p className="text-light">Loading API Access...</p>
-        </div>
-      </Container>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress sx={{ color: 'white', mb: 3 }} />
+          <Typography sx={{ color: 'white' }}>Loading API Access...</Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -30,20 +34,16 @@ export default function APIAccessPage() {
   }
 
   return (
-    <Container className="py-4">
-      <div className="mb-4">
-        <h1 className="mb-2">API Access Management</h1>
-        <p className="text-muted mb-4">Configure API keys, manage integrations, and monitor external service connections for the CHWOne platform</p>
+    <Container sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>API Access Management</Typography>
+        <Typography color="text.secondary" sx={{ mb: 4 }}>Configure API keys, manage integrations, and monitor external service connections for the CHWOne platform</Typography>
         
-        <div className="d-flex gap-2 mb-4">
-          <Link href="/api-access/keys">
-            <Button variant="primary">Manage API Keys</Button>
-          </Link>
-          <Link href="/api-access/docs">
-            <Button variant="outline-secondary">View Documentation</Button>
-          </Link>
-        </div>
-      </div>
+        <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+          <Button component={Link} href="/api-access/keys" variant="contained">Manage API Keys</Button>
+          <Button component={Link} href="/api-access/docs" variant="outlined">View Documentation</Button>
+        </Stack>
+      </Box>
       
       <APIAccess />
     </Container>

@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { redirect } from 'next/navigation';
-import { Container, Spinner, Button, Row, Col } from 'react-bootstrap';
+import { Container, Box, CircularProgress, Button, Typography, Stack } from '@mui/material';
 import Link from 'next/link';
 import FormsManagement from '@/components/Forms/FormsManagement';
 
@@ -12,14 +12,18 @@ export default function FormsPage() {
 
   if (loading) {
     return (
-      <Container fluid className="d-flex justify-content-center align-items-center vh-100" style={{ 
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
         background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
       }}>
-        <div className="text-center">
-          <Spinner animation="border" variant="light" className="mb-3" />
-          <p className="text-light">Loading Forms...</p>
-        </div>
-      </Container>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress sx={{ color: 'white', mb: 3 }} />
+          <Typography sx={{ color: 'white' }}>Loading Forms...</Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -28,20 +32,17 @@ export default function FormsPage() {
   }
 
   return (
-    <Container className="py-4">
-      <div className="mb-4">
-        <h1 className="mb-2">Forms Management</h1>
-        <p className="text-muted mb-4">Create, manage, and analyze health assessment forms and data collection tools for Community Health Workers</p>
+    <Container sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Forms Management</Typography>
+        <Typography color="text.secondary" sx={{ mb: 4 }}>Create, manage, and analyze health assessment forms and data collection tools for Community Health Workers</Typography>
         
-        <div className="d-flex gap-2 mb-4">
-          <Link href="/forms/new">
-            <Button variant="primary">Create Form</Button>
-          </Link>
-          <Link href="/forms/templates">
-            <Button variant="outline-secondary">Form Templates</Button>
-          </Link>
-        </div>
-      </div>
+        <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+          <Button component={Link} href="/forms/new" variant="contained">Create Form</Button>
+          <Button component={Link} href="/forms/builder" variant="contained" color="secondary">AI Form Builder</Button>
+          <Button component={Link} href="/forms/templates" variant="outlined">Form Templates</Button>
+        </Stack>
+      </Box>
       
       <FormsManagement />
     </Container>

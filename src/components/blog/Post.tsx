@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, Row, Col, Image } from "react-bootstrap";
+import { Card, CardMedia, CardContent, Avatar, Typography, Chip, Box } from "@mui/material";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDate } from "@/utils/formatDate";
 import { person } from "@/resources";
 
@@ -15,49 +16,57 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
   return (
     <Link href={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
       <Card 
-        className="h-100 border-0 shadow-sm hover-lift" 
-        style={{
+        sx={{
+          height: '100%',
+          border: 'none',
+          boxShadow: 1,
           transition: 'transform 0.2s ease-in-out',
-          backgroundColor: 'transparent'
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: 3
+          },
+          bgcolor: 'transparent'
         }}
       >
         {post.metadata.image && thumbnail && (
-          <Card.Img 
-            variant="top" 
-            src={post.metadata.image}
+          <CardMedia
+            component="img"
+            image={post.metadata.image}
             alt={"Thumbnail of " + post.metadata.title}
-            style={{
+            sx={{
               aspectRatio: '16/9',
               objectFit: 'cover',
-              borderRadius: direction === "row" ? '0.5rem 0 0 0.5rem' : '0.5rem 0.5rem 0 0'
+              borderRadius: direction === "row" ? '8px 0 0 8px' : '8px 8px 0 0'
             }}
           />
         )}
-        <Card.Body className="p-4">
-          <div className="d-flex align-items-center mb-3">
-            <div className="d-flex align-items-center me-3">
-              <Image 
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
+              <Avatar 
                 src={person.avatar} 
-                width={24} 
-                height={24} 
-                roundedCircle 
-                className="me-2" 
+                alt={`${person.name} avatar`}
+                sx={{ width: 24, height: 24, mr: 1 }}
               />
-              <span className="small">{person.name}</span>
-            </div>
-            <small className="text-muted ms-auto">
+              <Typography variant="body2">{person.name}</Typography>
+            </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
               {formatDate(post.metadata.publishedAt, false)}
-            </small>
-          </div>
+            </Typography>
+          </Box>
           
-          <h5 className="card-title fw-bold mb-2">{post.metadata.title}</h5>
+          <Typography variant="h6" component="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
+            {post.metadata.title}
+          </Typography>
           
           {post.metadata.tag && (
-            <span className="badge bg-light text-secondary">
-              {post.metadata.tag}
-            </span>
+            <Chip 
+              label={post.metadata.tag}
+              size="small"
+              sx={{ bgcolor: 'action.hover', color: 'text.secondary' }}
+            />
           )}
-        </Card.Body>
+        </CardContent>
       </Card>
     </Link>
   );

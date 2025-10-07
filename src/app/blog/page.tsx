@@ -1,4 +1,4 @@
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Box, Typography } from "@mui/material";
 import { Mailchimp } from "@/components";
 import { Posts } from "@/components/blog/Posts";
 import { baseURL, blog, person, newsletter } from "@/resources";
@@ -18,17 +18,17 @@ export async function generateMetadata() {
 
 export default function Blog() {
   return (
-    <Container className="py-5" style={{ maxWidth: '900px' }}>
+    <Container maxWidth="md" sx={{ py: 5 }}>
       {/* Schema metadata added via head */}
-      <h1 className="mb-4 ps-3">{blog.title}</h1>
+      <Typography variant="h3" component="h1" sx={{ mb: 4, pl: 1 }}>{blog.title}</Typography>
       
-      <div className="d-flex flex-column gap-5">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         <Posts range={[1, 1]} thumbnail />
         <Posts range={[2, 3]} columns="2" thumbnail direction="column" />
-        <Mailchimp className="mb-5" />
-        <h2 className="mb-4 ps-4">Earlier posts</h2>
+        <Mailchimp />
+        <Typography variant="h4" component="h2" sx={{ mb: 4, pl: 2 }}>Earlier posts</Typography>
         <Posts range={[4]} columns="2" />
-      </div>
+      </Box>
     </Container>
   );
 }

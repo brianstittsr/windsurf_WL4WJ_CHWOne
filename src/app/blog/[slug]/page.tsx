@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { CustomMDX, ScrollToHash } from "@/components";
-import { Container, Row, Col, Image } from "react-bootstrap";
+import { Container, Box, Typography, Avatar, Divider, Grid } from "@mui/material";
 import Link from "next/link";
+import Image from "next/image";
 import { baseURL, about, blog, person } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { getPosts } from "@/utils/utils";
@@ -62,77 +63,66 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
     })) || [];
 
   return (
-    <Container fluid className="px-0">
-      <Row className="justify-content-center">
-        <Col lg={8} md={10} className="py-4">
+    <Container maxWidth="lg" sx={{ px: 0 }}>
+      <Grid container justifyContent="center">
+        <Grid item xs={12} md={10} lg={8} sx={{ py: 4 }}>
           {/* Schema metadata added via head */}
-          <div className="text-center mb-4">
-            <Link href="/blog" className="fw-bold text-decoration-none d-inline-block mb-2">
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Link href="/blog" style={{ fontWeight: 'bold', textDecoration: 'none', display: 'inline-block', marginBottom: 8 }}>
               Blog
             </Link>
-            <div className="text-muted small mb-3">
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
-            </div>
-            <h1 className="display-5 fw-bold mb-4">{post.metadata.title}</h1>
-          </div>
+            </Typography>
+            <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 4 }}>{post.metadata.title}</Typography>
+          </Box>
           
-          <div className="d-flex align-items-center justify-content-center mb-4">
-            <div className="d-flex align-items-center gap-2">
-              <Image 
-                src={person.avatar} 
-                width={32} 
-                height={32} 
-                roundedCircle 
-                className="me-2" 
-              />
-              <span className="text-primary">{person.name}</span>
-            </div>
-          </div>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4, gap: 2 }}>
+            <Avatar src={person.avatar} sx={{ width: 32, height: 32 }} />
+            <Typography color="primary">{person.name}</Typography>
+          </Box>
           
           {post.metadata.image && (
-            <div className="mb-4">
+            <Box sx={{ mb: 4 }}>
               <Image
                 src={post.metadata.image}
                 alt={post.metadata.title}
-                fluid
-                className="rounded border"
-                style={{ aspectRatio: '16/9', objectFit: 'cover' }}
+                width={800}
+                height={450}
+                style={{ width: '100%', height: 'auto', aspectRatio: '16/9', objectFit: 'cover', borderRadius: 8 }}
               />
-            </div>
+            </Box>
           )}
           
-          <article className="mx-auto" style={{ maxWidth: '700px' }}>
+          <Box component="article" sx={{ mx: 'auto', maxWidth: '700px' }}>
             <CustomMDX source={post.content} />
-          </article>
+          </Box>
           
           <ShareSection 
             title={post.metadata.title} 
             url={`${baseURL}${blog.path}/${post.slug}`} 
           />
 
-          <div className="mt-5 pt-3 text-center">
-            <hr className="w-25 mx-auto mb-4" />
-            <h2 className="mb-4">Recent posts</h2>
+          <Box sx={{ mt: 5, pt: 3, textAlign: 'center' }}>
+            <Divider sx={{ width: '25%', mx: 'auto', mb: 4 }} />
+            <Typography variant="h4" component="h2" sx={{ mb: 4 }}>Recent posts</Typography>
             <Posts exclude={[post.slug]} range={[1, 2]} columns="2" thumbnail direction="column" />
-          </div>
+          </Box>
           
           <ScrollToHash />
-        </Col>
+        </Grid>
         
-        <Col lg={2} className="d-none d-lg-block">
-          <div className="position-sticky" style={{ top: '80px' }}>
-            <div className="text-muted mb-3">
-              <i className="bi bi-file-text me-2"></i>
+        <Grid item lg={2} sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <Box sx={{ position: 'sticky', top: '80px' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               On this page
-            </div>
-            {/* Replace HeadingNav with a simple nav placeholder */}
-            <nav className="nav flex-column">
-              {/* This would normally be populated with headings */}
-              <div className="text-muted small">Table of contents</div>
-            </nav>
-          </div>
-        </Col>
-      </Row>
+            </Typography>
+            <Box component="nav">
+              <Typography variant="caption" color="text.secondary">Table of contents</Typography>
+            </Box>
+          </Box>
+        </Grid>
+      </Grid>
     </Container>
   );
 }

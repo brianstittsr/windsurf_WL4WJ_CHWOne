@@ -1,618 +1,580 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Form, Nav, Spinner, Table, Badge } from 'react-bootstrap';
+import {
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Fab,
+  Tabs,
+  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
+  Business as BusinessIcon,
+  Work as WorkIcon,
+  School as SchoolIcon,
+  ExpandMore as ExpandMoreIcon,
+  LocationOn as LocationIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon
+} from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { FaBuilding, FaBriefcase, FaGraduationCap, FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 
 interface Employer {
   id: string;
   organizationName: string;
+  industry: string;
   contactPerson: string;
-  email: string;
   phone: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  };
-  organizationType: string;
+  email: string;
+  address: string;
+  website?: string;
   description: string;
-  website: string;
-  activeJobs: number;
-  isVerified: boolean;
-  registrationDate: Date;
+  isActive: boolean;
 }
 
-interface JobOpportunity {
+interface Job {
   id: string;
   title: string;
-  employerName: string;
   employerId: string;
   description: string;
   requirements: string[];
+  salary: string;
   location: string;
-  employmentType: string;
-  salaryRange: {
-    min: number;
-    max: number;
-  };
-  benefits: string[];
+  type: 'full-time' | 'part-time' | 'contract' | 'internship';
+  status: 'open' | 'filled' | 'closed';
   postedDate: Date;
-  applicationDeadline: Date;
-  isActive: boolean;
-  applicants: number;
+  applicationDeadline?: Date;
 }
 
-interface TrainingProgram {
+interface Training {
   id: string;
-  name: string;
+  title: string;
   provider: string;
   description: string;
   duration: string;
-  format: string;
   cost: number;
-  certificationOffered: string;
-  prerequisites: string[];
-  skills: string[];
-  nextStartDate: Date;
-  capacity: number;
-  enrolled: number;
-  isActive: boolean;
+  certification: boolean;
+  startDate: Date;
+  endDate?: Date;
+  location: string;
+  maxParticipants: number;
+  enrolledParticipants: number;
 }
 
 export default function WorkforceDevelopment() {
-  const { currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [tabValue, setTabValue] = useState(0);
   const [employers, setEmployers] = useState<Employer[]>([]);
-  const [jobOpportunities, setJobOpportunities] = useState<JobOpportunity[]>([]);
-  const [trainingPrograms, setTrainingPrograms] = useState<TrainingProgram[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<'employer' | 'job' | 'training'>('employer');
   const [selectedItem, setSelectedItem] = useState<any>(null);
-
-  const [employerForm, setEmployerForm] = useState({
-    organizationName: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    street: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    organizationType: '',
-    description: '',
-    website: ''
-  });
-
-  const [jobForm, setJobForm] = useState({
-    title: '',
-    employerId: '',
-    description: '',
-    requirements: '',
-    location: '',
-    employmentType: '',
-    salaryMin: '',
-    salaryMax: '',
-    benefits: '',
-    applicationDeadline: ''
-  });
-
-  const [trainingForm, setTrainingForm] = useState({
-    name: '',
-    provider: '',
-    description: '',
-    duration: '',
-    format: '',
-    cost: '',
-    certificationOffered: '',
-    prerequisites: '',
-    skills: '',
-    nextStartDate: '',
-    capacity: ''
-  });
+  const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
-      // Test mode with mock data
-      if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
-        const mockEmployers: Employer[] = [
-          {
-            id: '1',
-            organizationName: 'Community Health Partners',
-            contactPerson: 'Sarah Johnson',
-            email: 'sarah@chp.org',
-            phone: '(555) 123-4567',
-            address: { street: '123 Health St', city: 'Springfield', state: 'IL', zipCode: '62701' },
-            organizationType: 'Healthcare',
-            description: 'Leading community health organization',
-            website: 'https://chp.org',
-            activeJobs: 3,
-            isVerified: true,
-            registrationDate: new Date('2024-01-15')
-          },
-          {
-            id: '2',
-            organizationName: 'Regional Medical Center',
-            contactPerson: 'Dr. Michael Chen',
-            email: 'mchen@rmc.org',
-            phone: '(555) 987-6543',
-            address: { street: '456 Medical Ave', city: 'Springfield', state: 'IL', zipCode: '62702' },
-            organizationType: 'Hospital',
-            description: 'Full-service regional medical facility',
-            website: 'https://rmc.org',
-            activeJobs: 5,
-            isVerified: true,
-            registrationDate: new Date('2024-02-01')
-          }
-        ];
+      // Mock data for demonstration
+      setEmployers([
+        {
+          id: '1',
+          organizationName: 'Regional Medical Center',
+          industry: 'Healthcare',
+          contactPerson: 'Dr. Sarah Johnson',
+          phone: '(555) 123-4567',
+          email: 'hr@regionalmed.com',
+          address: '456 Health Ave, Anytown, NC 12345',
+          website: 'https://regionalmed.com',
+          description: 'Leading healthcare provider in the region offering comprehensive medical services.',
+          isActive: true
+        },
+        {
+          id: '2',
+          organizationName: 'Community Health Solutions',
+          industry: 'Non-profit',
+          contactPerson: 'Michael Chen',
+          phone: '(555) 987-6543',
+          email: 'careers@chs.org',
+          address: '789 Wellness Blvd, Anytown, NC 12345',
+          description: 'Non-profit organization focused on community health and wellness programs.',
+          isActive: true
+        }
+      ]);
 
-        const mockJobs: JobOpportunity[] = [
-          {
-            id: '1',
-            title: 'Community Health Worker',
-            employerName: 'Community Health Partners',
-            employerId: '1',
-            description: 'Support community health initiatives and patient outreach',
-            requirements: ['High school diploma', 'Bilingual preferred', 'Community experience'],
-            location: 'Springfield, IL',
-            employmentType: 'Full-time',
-            salaryRange: { min: 35000, max: 45000 },
-            benefits: ['Health insurance', 'Paid time off', 'Professional development'],
-            postedDate: new Date('2024-03-01'),
-            applicationDeadline: new Date('2024-04-01'),
-            isActive: true,
-            applicants: 12
-          },
-          {
-            id: '2',
-            title: 'Health Educator',
-            employerName: 'Regional Medical Center',
-            employerId: '2',
-            description: 'Develop and deliver health education programs',
-            requirements: ['Bachelor\'s degree in Health Education', '2+ years experience'],
-            location: 'Springfield, IL',
-            employmentType: 'Full-time',
-            salaryRange: { min: 45000, max: 55000 },
-            benefits: ['Health insurance', 'Retirement plan', 'Continuing education'],
-            postedDate: new Date('2024-03-05'),
-            applicationDeadline: new Date('2024-04-05'),
-            isActive: true,
-            applicants: 8
-          }
-        ];
+      setJobs([
+        {
+          id: '1',
+          title: 'Community Health Worker',
+          employerId: '1',
+          description: 'Provide community outreach and health education services to underserved populations.',
+          requirements: ['High school diploma', 'Valid driver\'s license', 'Basic computer skills'],
+          salary: '$35,000 - $42,000',
+          location: 'Anytown, NC',
+          type: 'full-time',
+          status: 'open',
+          postedDate: new Date('2024-01-15'),
+          applicationDeadline: new Date('2024-02-15')
+        },
+        {
+          id: '2',
+          title: 'Health Education Coordinator',
+          employerId: '2',
+          description: 'Coordinate health education programs and community workshops.',
+          requirements: ['Bachelor\'s degree in health education or related field', '2+ years experience'],
+          salary: '$45,000 - $55,000',
+          location: 'Anytown, NC (Remote options available)',
+          type: 'full-time',
+          status: 'open',
+          postedDate: new Date('2024-01-20')
+        }
+      ]);
 
-        const mockTraining: TrainingProgram[] = [
-          {
-            id: '1',
-            name: 'CHW Certification Program',
-            provider: 'State Health Department',
-            description: 'Comprehensive training for community health workers',
-            duration: '40 hours',
-            format: 'Hybrid',
-            cost: 500,
-            certificationOffered: 'State CHW Certificate',
-            prerequisites: ['High school diploma'],
-            skills: ['Health promotion', 'Community outreach', 'Basic counseling'],
-            nextStartDate: new Date('2024-04-15'),
-            capacity: 25,
-            enrolled: 18,
-            isActive: true
-          },
-          {
-            id: '2',
-            name: 'Health Data Analytics',
-            provider: 'University Extension',
-            description: 'Learn to analyze health data and create reports',
-            duration: '60 hours',
-            format: 'Online',
-            cost: 750,
-            certificationOffered: 'Health Data Certificate',
-            prerequisites: ['Basic computer skills', 'High school math'],
-            skills: ['Data analysis', 'Excel', 'Report writing'],
-            nextStartDate: new Date('2024-05-01'),
-            capacity: 20,
-            enrolled: 12,
-            isActive: true
-          }
-        ];
-
-        setEmployers(mockEmployers);
-        setJobOpportunities(mockJobs);
-        setTrainingPrograms(mockTraining);
-      }
+      setTrainings([
+        {
+          id: '1',
+          title: 'Certified Community Health Worker Training',
+          provider: 'State Health Department',
+          description: 'Comprehensive training program for aspiring community health workers.',
+          duration: '160 hours',
+          cost: 500,
+          certification: true,
+          startDate: new Date('2024-03-01'),
+          endDate: new Date('2024-05-31'),
+          location: 'Virtual',
+          maxParticipants: 25,
+          enrolledParticipants: 18
+        },
+        {
+          id: '2',
+          title: 'Health Literacy Workshop',
+          provider: 'Local Community College',
+          description: 'One-day workshop on health literacy and communication skills.',
+          duration: '8 hours',
+          cost: 75,
+          certification: false,
+          startDate: new Date('2024-02-20'),
+          location: 'Community College Campus',
+          maxParticipants: 50,
+          enrolledParticipants: 32
+        }
+      ]);
     } catch (error) {
-      console.error('Error fetching workforce data:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegisterEmployer = () => {
-    setModalType('employer');
-    setSelectedItem(null);
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  const openModal = (type: 'employer' | 'job' | 'training', item?: any) => {
+    setModalType(type);
+    setSelectedItem(item || null);
+    setFormData(item ? { ...item } : {});
     setShowModal(true);
   };
 
-  const handlePostJob = () => {
-    setModalType('job');
-    setSelectedItem(null);
-    setShowModal(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      console.log('Saving', modalType, formData);
+
+      setShowModal(false);
+      setSelectedItem(null);
+      setFormData({});
+    } catch (error) {
+      console.error('Error saving item:', error);
+    }
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedItem(null);
+  const getJobTypeColor = (type: string) => {
+    switch (type) {
+      case 'full-time': return 'primary';
+      case 'part-time': return 'secondary';
+      case 'contract': return 'info';
+      case 'internship': return 'warning';
+      default: return 'default';
+    }
+  };
+
+  const getJobStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'success';
+      case 'filled': return 'primary';
+      case 'closed': return 'error';
+      default: return 'default';
+    }
   };
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center p-4" style={{ minHeight: '400px' }}>
-        <Spinner animation="border" />
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <Container fluid className="p-4">
-      <div className="mb-4">
-        <h2 className="fw-bold">Workforce Development</h2>
-        <p className="text-muted">
-          Connect employers, job seekers, and training providers to strengthen our community health workforce
-        </p>
-      </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            Workforce Development
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Connect community members with employment and training opportunities
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => openModal('employer')}
+          size="large"
+        >
+          Add Resource
+        </Button>
+      </Box>
 
-      {/* Tab Navigation */}
-      <Card className="mb-4">
-        <Card.Header className="bg-white">
-          <Nav variant="pills" className="flex-row">
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === 'overview'} 
-                onClick={() => setActiveTab('overview')}
-                className="d-flex align-items-center"
-              >
-                <FaEye className="me-2" /> Overview
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === 'employers'} 
-                onClick={() => setActiveTab('employers')}
-                className="d-flex align-items-center"
-              >
-                <FaBuilding className="me-2" /> Employers
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === 'jobs'} 
-                onClick={() => setActiveTab('jobs')}
-                className="d-flex align-items-center"
-              >
-                <FaBriefcase className="me-2" /> Job Opportunities
-              </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link 
-                active={activeTab === 'training'} 
-                onClick={() => setActiveTab('training')}
-                className="d-flex align-items-center"
-              >
-                <FaGraduationCap className="me-2" /> Training Programs
-              </Nav.Link>
-            </Nav.Item>
-          </Nav>
-        </Card.Header>
-
-        {/* Tab Content */}
-        <Card.Body>
-          {activeTab === 'overview' && (
-            <div>
-              <Row className="mb-4 g-3">
-                <Col md={4}>
-                  <Card className="text-center h-100">
-                    <Card.Body>
-                      <FaBuilding className="text-primary mb-3" size={32} />
-                      <h3>{employers.length}</h3>
-                      <p className="text-muted mb-0">Registered Employers</p>
-                    </Card.Body>
-                  </Card>
-                </Col>
-                <Col md={4}>
-                  <Card className="text-center h-100">
-                    <Card.Body>
-                      <FaBriefcase className="text-success mb-3" size={32} />
-                      <h3>{jobOpportunities.filter(j => j.isActive).length}</h3>
-                      <p className="text-muted mb-0">Active Job Openings</p>
-                    </Card.Body>
-                  </Card>
-                </Col>
-                <Col md={4}>
-                  <Card className="text-center h-100">
-                    <Card.Body>
-                      <FaGraduationCap className="text-warning mb-3" size={32} />
-                      <h3>{trainingPrograms.filter(t => t.isActive).length}</h3>
-                      <p className="text-muted mb-0">Training Programs</p>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
-
-              <Row className="g-4">
-                <Col md={6}>
-                  <Card>
-                    <Card.Header>
-                      <h6 className="mb-0">Recent Job Opportunities</h6>
-                    </Card.Header>
-                    <Card.Body>
-                      {jobOpportunities.slice(0, 3).map(job => (
-                        <div key={job.id} className="border-bottom pb-3 mb-3">
-                          <h6>{job.title}</h6>
-                          <p className="text-muted small mb-2">
-                            {job.employerName} • {job.location}
-                          </p>
-                          <div className="d-flex gap-2">
-                            <Badge bg="success" pill>
-                              ${job.salaryRange.min.toLocaleString()} - ${job.salaryRange.max.toLocaleString()}
-                            </Badge>
-                            <Badge bg="secondary" pill>
-                              {job.employmentType}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </Card.Body>
-                  </Card>
-                </Col>
-                <Col md={6}>
-                  <Card>
-                    <Card.Header>
-                      <h6 className="mb-0">Upcoming Training Programs</h6>
-                    </Card.Header>
-                    <Card.Body>
-                      {trainingPrograms.slice(0, 3).map(program => (
-                        <div key={program.id} className="border-bottom pb-3 mb-3">
-                          <h6>{program.name}</h6>
-                          <p className="text-muted small mb-2">
-                            {program.provider} • {program.duration}
-                          </p>
-                          <div className="d-flex gap-2">
-                            <Badge bg="primary" pill>
-                              ${program.cost}
-                            </Badge>
-                            <Badge bg="warning" pill>
-                              {program.enrolled}/{program.capacity} enrolled
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
-            </div>
-          )}
-
-          {activeTab === 'employers' && (
-            <div>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Registered Employers ({employers.length})</h5>
-                <Button variant="primary" size="sm" onClick={handleRegisterEmployer}>
-                  <FaPlus className="me-2" /> Register Organization
-                </Button>
-              </div>
-              <div className="table-responsive">
-                <Table hover>
-                  <thead>
-                    <tr>
-                      <th>Organization</th>
-                      <th>Type</th>
-                      <th>Contact</th>
-                      <th>Location</th>
-                      <th>Active Jobs</th>
-                      <th>Status</th>
-                      <th>Registered</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employers.map(employer => (
-                      <tr key={employer.id}>
-                        <td>
-                          <div>
-                            <strong>{employer.organizationName}</strong>
-                            <div className="text-muted small">
-                              {employer.description.substring(0, 50)}...
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <Badge bg="light" text="dark">
-                            {employer.organizationType}
-                          </Badge>
-                        </td>
-                        <td>
-                          <div>
-                            <div>{employer.contactPerson}</div>
-                            <div className="text-muted small">{employer.email}</div>
-                          </div>
-                        </td>
-                        <td>{employer.address.city}, {employer.address.state}</td>
-                        <td>{employer.activeJobs}</td>
-                        <td>
-                          <Badge bg={employer.isVerified ? 'success' : 'warning'}>
-                            {employer.isVerified ? 'Verified' : 'Pending'}
-                          </Badge>
-                        </td>
-                        <td>{employer.registrationDate.toLocaleDateString()}</td>
-                        <td>
-                          <div className="d-flex gap-2">
-                            <Button variant="outline-primary" size="sm" title="View Details">
-                              <FaEye />
-                            </Button>
-                            <Button variant="outline-warning" size="sm" title="Edit">
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'jobs' && (
-            <div>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Active Job Opportunities ({jobOpportunities.filter(j => j.isActive).length})</h5>
-                <Button variant="primary" size="sm" onClick={handlePostJob}>
-                  <FaPlus className="me-2" /> Post Job
-                </Button>
-              </div>
-              <div className="table-responsive">
-                <Table hover>
-                  <thead>
-                    <tr>
-                      <th>Position</th>
-                      <th>Employer</th>
-                      <th>Location</th>
-                      <th>Type</th>
-                      <th>Salary Range</th>
-                      <th>Posted</th>
-                      <th>Status</th>
-                      <th>Applications</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {jobOpportunities.map(job => (
-                      <tr key={job.id}>
-                        <td>
-                          <div>
-                            <strong>{job.title}</strong>
-                            <div className="text-muted small">
-                              {job.description.substring(0, 50)}...
-                            </div>
-                          </div>
-                        </td>
-                        <td>{job.employerName}</td>
-                        <td>{job.location}</td>
-                        <td>
-                          <Badge bg="primary">
-                            {job.employmentType}
-                          </Badge>
-                        </td>
-                        <td>${job.salaryRange.min.toLocaleString()} - ${job.salaryRange.max.toLocaleString()}</td>
-                        <td>{job.postedDate.toLocaleDateString()}</td>
-                        <td>
-                          <Badge bg={job.isActive ? 'success' : 'secondary'}>
-                            {job.isActive ? 'Active' : 'Closed'}
-                          </Badge>
-                        </td>
-                        <td>{job.applicants}</td>
-                        <td>
-                          <div className="d-flex gap-2">
-                            <Button variant="outline-primary" size="sm" title="View Details">
-                              <FaEye />
-                            </Button>
-                            <Button variant="outline-warning" size="sm" title="Edit">
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'training' && (
-            <div>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Available Training Programs ({trainingPrograms.filter(t => t.isActive).length})</h5>
-              </div>
-              <div className="table-responsive">
-                <Table hover>
-                  <thead>
-                    <tr>
-                      <th>Program</th>
-                      <th>Provider</th>
-                      <th>Format</th>
-                      <th>Duration</th>
-                      <th>Cost</th>
-                      <th>Start Date</th>
-                      <th>Enrollment</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {trainingPrograms.map(program => (
-                      <tr key={program.id}>
-                        <td>
-                          <div>
-                            <strong>{program.name}</strong>
-                            <div className="text-muted small">
-                              {program.description.substring(0, 50)}...
-                            </div>
-                          </div>
-                        </td>
-                        <td>{program.provider}</td>
-                        <td>{program.format}</td>
-                        <td>{program.duration}</td>
-                        <td>${program.cost.toLocaleString()}</td>
-                        <td>{program.nextStartDate.toLocaleDateString()}</td>
-                        <td>
-                          <div className="d-flex align-items-center">
-                            <div className="me-2">{program.enrolled}/{program.capacity}</div>
-                            <div className="progress flex-grow-1" style={{ height: '6px' }}>
-                              <div 
-                                className="progress-bar bg-success" 
-                                role="progressbar" 
-                                style={{ width: `${(program.enrolled / program.capacity) * 100}%` }}
-                                aria-valuenow={(program.enrolled / program.capacity) * 100}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                              ></div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <Badge bg={program.isActive ? 'success' : 'secondary'}>
-                            {program.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </td>
-                        <td>
-                          <div className="d-flex gap-2">
-                            <Button variant="outline-primary" size="sm" title="View Details">
-                              <FaEye />
-                            </Button>
-                            <Button variant="outline-warning" size="sm" title="Edit">
-                              <FaEdit />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </div>
-          )}
-        </Card.Body>
+      {/* Tabs */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent sx={{ pb: 0 }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="workforce tabs">
+            <Tab
+              icon={<BusinessIcon />}
+              label="Employers"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<WorkIcon />}
+              label="Job Opportunities"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<SchoolIcon />}
+              label="Training Programs"
+              iconPosition="start"
+            />
+          </Tabs>
+        </CardContent>
       </Card>
+
+      {/* Tab Content */}
+      {tabValue === 0 && (
+        <Box>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Employer Partners
+          </Typography>
+          <Grid container spacing={3}>
+            {employers.map((employer) => (
+              <Grid item xs={12} md={6} key={employer.id}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                          {employer.organizationName}
+                        </Typography>
+                        <Chip label={employer.industry} size="small" variant="outlined" />
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<EditIcon />}
+                          onClick={() => openModal('employer', employer)}
+                        >
+                          Edit
+                        </Button>
+                      </Box>
+                    </Box>
+
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {employer.description}
+                    </Typography>
+
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Contact Information:
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <PhoneIcon fontSize="small" color="action" />
+                        <Typography variant="body2">{employer.phone}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <EmailIcon fontSize="small" color="action" />
+                        <Typography variant="body2">{employer.email}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <LocationIcon fontSize="small" color="action" />
+                        <Typography variant="body2">{employer.address}</Typography>
+                      </Box>
+                    </Box>
+
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      Contact Person: {employer.contactPerson}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {tabValue === 1 && (
+        <Box>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Job Opportunities
+          </Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Job Title</TableCell>
+                  <TableCell>Employer</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Salary</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Location</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {jobs.map((job) => {
+                  const employer = employers.find(e => e.id === job.employerId);
+                  return (
+                    <TableRow key={job.id} hover>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            {job.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Posted: {job.postedDate.toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {employer?.organizationName || 'Unknown'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={job.type.replace('-', ' ')}
+                          color={getJobTypeColor(job.type)}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {job.salary}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={job.status}
+                          color={getJobStatusColor(job.status)}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {job.location}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<VisibilityIcon />}
+                            onClick={() => openModal('job', job)}
+                          >
+                            View
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<EditIcon />}
+                            onClick={() => openModal('job', job)}
+                          >
+                            Edit
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+
+      {tabValue === 2 && (
+        <Box>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Training Programs
+          </Typography>
+          <Grid container spacing={3}>
+            {trainings.map((training) => (
+              <Grid item xs={12} key={training.id}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                          {training.title}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+                          <Chip
+                            label={`By ${training.provider}`}
+                            size="small"
+                            variant="outlined"
+                          />
+                          {training.certification && (
+                            <Chip
+                              label="Certification"
+                              color="primary"
+                              size="small"
+                            />
+                          )}
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {training.description}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<EditIcon />}
+                          onClick={() => openModal('training', training)}
+                        >
+                          Edit
+                        </Button>
+                      </Box>
+                    </Box>
+
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={3}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          Duration: {training.duration}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          Cost: ${training.cost}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          Location: {training.location}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          Enrollment: {training.enrolledParticipants}/{training.maxParticipants}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+
+                    <Typography variant="body2" sx={{ mt: 2, fontWeight: 600 }}>
+                      Start Date: {training.startDate.toLocaleDateString()}
+                      {training.endDate && ` - End Date: ${training.endDate.toLocaleDateString()}`}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* Add/Edit Modal */}
+      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {selectedItem ? `Edit ${modalType}` : `Add New ${modalType}`}
+        </DialogTitle>
+        <form onSubmit={handleSubmit}>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              {modalType === 'employer' && 'Add employer partner information'}
+              {modalType === 'job' && 'Create job posting details'}
+              {modalType === 'training' && 'Add training program information'}
+            </Typography>
+
+            {/* Form fields would go here based on modalType */}
+            <TextField
+              fullWidth
+              label="Name/Title"
+              value={formData.title || formData.organizationName || ''}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Description"
+              value={formData.description || ''}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              sx={{ mb: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button type="submit" variant="contained">
+              {selectedItem ? 'Update' : 'Create'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="add"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => openModal('employer')}
+      >
+        <AddIcon />
+      </Fab>
     </Container>
   );
 }

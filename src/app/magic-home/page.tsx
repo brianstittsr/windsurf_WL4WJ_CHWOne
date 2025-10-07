@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Container, Row, Col, Button, Spinner, Navbar, Image } from 'react-bootstrap';
+import { Container, Box, Button, CircularProgress, AppBar, Toolbar, Typography, Stack, Card, CardContent } from '@mui/material';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import Image from 'next/image';
+import { Lock as LockIcon } from '@mui/icons-material';
 
 
 export default function MagicHome() {
@@ -12,82 +13,88 @@ export default function MagicHome() {
 
   if (loading) {
     return (
-      <Container fluid className="d-flex justify-content-center align-items-center vh-100" style={{ 
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
         background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
       }}>
-        <div className="text-center">
-          <Spinner animation="border" variant="light" className="mb-3" />
-          <h1 className="text-white display-4 fw-bold" style={{ textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)' }}>CHWOne Platform</h1>
-        </div>
-      </Container>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress sx={{ color: 'white', mb: 3 }} />
+          <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)' }}>
+            CHWOne Platform
+          </Typography>
+        </Box>
+      </Box>
     );
   }
 
   // Allow access to magic-home page without authentication
 
   return (
-    <div className="d-flex flex-column min-vh-100" style={{ background: '#f8f9fa' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Top Navigation */}
-      <Navbar bg="light" expand="lg" className="shadow-sm sticky-top" style={{ backdropFilter: 'blur(10px)' }}>
-        <Container>
-          <Navbar.Brand href="/" className="fw-bold">CHWOne</Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
-            <div className="d-flex align-items-center gap-4">
-              <Link href="/dashboard" className="text-decoration-none text-secondary">Dashboard</Link>
-              <Link href="/chws" className="text-decoration-none text-secondary">CHWs</Link>
-              <Link href="/projects" className="text-decoration-none text-secondary">Projects</Link>
-              
-              {currentUser ? (
-                <Image 
-                  src={currentUser.photoURL || '/images/CHWOneLogoDesign.png'} 
-                  width={32}
-                  height={32}
-                  roundedCircle
-                />
-              ) : (
-                <Link href="/login">
-                  <Button variant="outline-primary" size="sm">Login</Button>
-                </Link>
-              )}
-            </div>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
+      <AppBar position="sticky" color="default" elevation={1} sx={{ backdropFilter: 'blur(10px)' }}>
+        <Toolbar>
+          <Typography variant="h6" component={Link} href="/" sx={{ fontWeight: 'bold', textDecoration: 'none', color: 'inherit', flexGrow: 0 }}>
+            CHWOne
+          </Typography>
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', gap: 4, alignItems: 'center' }}>
+            <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>Dashboard</Link>
+            <Link href="/chws" style={{ textDecoration: 'none', color: 'inherit' }}>CHWs</Link>
+            <Link href="/projects" style={{ textDecoration: 'none', color: 'inherit' }}>Projects</Link>
+            
+            {currentUser ? (
+              <Image 
+                src={currentUser.photoURL || '/images/CHWOneLogoDesign.png'} 
+                width={32}
+                height={32}
+                alt="User avatar"
+                style={{ borderRadius: '50%' }}
+              />
+            ) : (
+              <Button component={Link} href="/login" variant="outlined" size="small">
+                Login
+              </Button>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
 
       {/* Hero Section */}
-      <Container className="d-flex flex-column justify-content-center align-items-center flex-grow-1 py-5 text-center">
-        <div className="mb-4">
-          <h2 className="fw-bold mb-2">Building bridges between</h2>
-          <h2 className="fw-bold mb-4">wellness and justice</h2>
-        </div>
+      <Container sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flexGrow: 1, py: 5, textAlign: 'center' }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>Building bridges between</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>wellness and justice</Typography>
+        </Box>
 
-        <h1 className="display-4 fw-bold mb-3">Welcome to CHWOne</h1>
+        <Typography variant="h2" sx={{ fontWeight: 'bold', mb: 3 }}>Welcome to CHWOne</Typography>
 
-        <p className="text-muted mb-5 mx-auto" style={{ maxWidth: '600px' }}>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 5, maxWidth: '600px' }}>
           Empowering Community Health Workers with comprehensive tools for client management, resource coordination, and impact tracking.
-        </p>
+        </Typography>
         
-        <div className="d-flex gap-3 mb-5">
-          <Link href="/dashboard">
-            <Button variant="primary" size="lg">
-              Access Dashboard
-            </Button>
-          </Link>
-          <Link href="/resources">
-            <Button variant="outline-secondary" size="lg">
-              Browse Resources
-            </Button>
-          </Link>
-        </div>
+        <Stack direction="row" spacing={2} sx={{ mb: 5 }}>
+          <Button component={Link} href="/dashboard" variant="contained" size="large">
+            Access Dashboard
+          </Button>
+          <Button component={Link} href="/resources" variant="outlined" size="large">
+            Browse Resources
+          </Button>
+        </Stack>
 
-        <div className="bg-light p-4 rounded shadow-sm border" style={{ maxWidth: '600px' }}>
-          <p className="fw-bold mb-1 text-center">🔒 HIPAA Compliant Platform</p>
-          <p className="text-muted small mb-0">
-            All client data is encrypted, access is logged for audit purposes, and privacy regulations are strictly enforced.
-          </p>
-        </div>
+        <Card sx={{ maxWidth: '600px', boxShadow: 2 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <LockIcon /> HIPAA Compliant Platform
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              All client data is encrypted, access is logged for audit purposes, and privacy regulations are strictly enforced.
+            </Typography>
+          </CardContent>
+        </Card>
       </Container>
-    </div>
+    </Box>
   );
 }

@@ -1,5 +1,78 @@
 // Core Platform Types for CHWOne
 
+export interface CHWProfile {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  dateOfBirth?: Date;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+
+  // Contact Information
+  primaryPhone: string;
+  secondaryPhone?: string;
+  emergencyContact?: {
+    name: string;
+    relationship: string;
+    phone: string;
+  };
+
+  // Professional Information
+  chwId?: string;
+  certificationLevel?: 'entry' | 'intermediate' | 'advanced' | 'lead';
+  hireDate?: Date;
+  supervisor?: string;
+  languages: string[];
+
+  // Location & Service Area
+  serviceArea: string[];
+  zipCodes: string[];
+  travelRadius?: number; // miles
+
+  // Skills & Specializations
+  skills: string[];
+  specializations: string[];
+
+  // Availability
+  availability: {
+    monday: string[];
+    tuesday: string[];
+    wednesday: string[];
+    thursday: string[];
+    friday: string[];
+    saturday: string[];
+    sunday: string[];
+  };
+
+  // Resources & Assets
+  resources: CHWResource[];
+  equipment: string[];
+
+  // Profile Settings
+  profileVisible: boolean; // Visible in directory
+  allowContactSharing: boolean;
+  bio?: string;
+  profilePictureUrl?: string;
+
+  // Performance & Metrics
+  completedTrainings: number;
+  activeClients: number;
+  totalEncounters: number;
+  lastActivityDate?: Date;
+}
+
+export interface CHWResource {
+  id: string;
+  title: string;
+  description: string;
+  category: 'document' | 'link' | 'contact' | 'tool' | 'guide';
+  url?: string;
+  fileUrl?: string;
+  tags: string[];
+  isPublic: boolean;
+  sharedWith: string[]; // User IDs
+  createdAt: Date;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -14,12 +87,13 @@ export interface User {
   lastLogin?: Date;
   hipaaTrainingCompleted: boolean;
   hipaaTrainingDate?: Date;
+  chwProfile?: CHWProfile;
 }
 
 export enum UserRole {
   ADMIN = 'admin',
+  CHW = 'chw',
   CHW_COORDINATOR = 'chw_coordinator',
-  CHW = 'community_health_worker',
   NONPROFIT_STAFF = 'nonprofit_staff',
   CLIENT = 'client',
   VIEWER = 'viewer'

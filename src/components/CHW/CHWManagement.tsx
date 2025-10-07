@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Table, Spinner, Card, Row, Col, Button, Form, Badge, ProgressBar, Modal } from 'react-bootstrap';
+import { Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Card, CardContent, Grid, Button, TextField, Chip, LinearProgress, Dialog, Box, Typography } from '@mui/material';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { CommunityHealthWorker, UserRole } from '@/types/platform.types';

@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Container, Spinner } from 'react-bootstrap';
+import { Container, Box, CircularProgress, Typography } from '@mui/material';
 import DashboardPlaceholder from '@/components/Dashboard/DashboardPlaceholder';
 
 export default function DashboardPage() {
@@ -12,14 +12,18 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <Container fluid className="d-flex justify-content-center align-items-center vh-100" style={{ 
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
         background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
       }}>
-        <div className="text-center">
-          <Spinner animation="border" variant="light" className="mb-3" />
-          <p className="text-light">Loading CHWOne Platform...</p>
-        </div>
-      </Container>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress sx={{ color: 'white', mb: 3 }} />
+          <Typography sx={{ color: 'white' }}>Loading CHWOne Platform...</Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -29,12 +33,12 @@ export default function DashboardPage() {
   }
 
   return (
-    <main style={{ padding: '2rem' }}>
-      <div className="container">
-        <h1 className="mb-3">CHWOne Dashboard</h1>
-        <p className="text-muted mb-4">Overview of platform metrics, active projects, and key performance indicators</p>
+    <Box component="main" sx={{ p: 4 }}>
+      <Container>
+        <Typography variant="h3" component="h1" sx={{ mb: 3 }}>CHWOne Dashboard</Typography>
+        <Typography color="text.secondary" sx={{ mb: 4 }}>Overview of platform metrics, active projects, and key performance indicators</Typography>
         <DashboardPlaceholder />
-      </div>
-    </main>
+      </Container>
+    </Box>
   );
 }

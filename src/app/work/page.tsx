@@ -1,4 +1,4 @@
-import { Container } from "react-bootstrap";
+import { Container, Typography } from "@mui/material";
 import { baseURL, about, person, work } from "@/resources";
 import { Projects } from "@/components/work/Projects";
 
@@ -17,9 +17,9 @@ export async function generateMetadata() {
 
 export default function Work() {
   return (
-    <Container className="py-5" style={{ maxWidth: '900px' }}>
+    <Container maxWidth="md" sx={{ py: 5 }}>
       {/* Schema metadata added via head */}
-      <h1 className="mb-5 text-center">{work.title}</h1>
+      <Typography variant="h3" component="h1" sx={{ mb: 5, textAlign: 'center' }}>{work.title}</Typography>
       <Projects />
     </Container>
   );

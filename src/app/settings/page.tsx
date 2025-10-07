@@ -4,21 +4,25 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { redirect } from 'next/navigation';
 import SettingsManagement from '@/components/Settings/SettingsManagement';
-import { Container, Spinner } from 'react-bootstrap';
+import { Container, Box, CircularProgress, Typography } from '@mui/material';
 
 export default function SettingsPage() {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
     return (
-      <Container fluid className="d-flex justify-content-center align-items-center vh-100" style={{ 
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
         background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
       }}>
-        <div className="text-center">
-          <Spinner animation="border" variant="light" className="mb-3" />
-          <p className="text-light">Loading Settings...</p>
-        </div>
-      </Container>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress sx={{ color: 'white', mb: 3 }} />
+          <Typography sx={{ color: 'white' }}>Loading Settings...</Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -27,10 +31,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="container py-4">
-      <h1 className="mb-2">Platform Settings</h1>
-      <p className="text-muted mb-4">Configure user accounts, permissions, notifications, and system preferences</p>
+    <Container component="main" sx={{ py: 4 }}>
+      <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Platform Settings</Typography>
+      <Typography color="text.secondary" sx={{ mb: 4 }}>Configure user accounts, permissions, notifications, and system preferences</Typography>
       <SettingsManagement />
-    </main>
+    </Container>
   );
 }

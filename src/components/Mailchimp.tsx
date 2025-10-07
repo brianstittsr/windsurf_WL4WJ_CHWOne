@@ -1,7 +1,7 @@
 "use client";
 
 import { mailchimp, newsletter } from "@/resources";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import { TextField, Button, Container, Grid, Box, Typography } from "@mui/material";
 import { useState } from "react";
 
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number): T {
@@ -54,75 +54,82 @@ export const Mailchimp: React.FC<MailchimpProps> = ({ className }) => {
 
   return (
     <Container 
-      fluid 
-      className={`py-5 px-4 rounded-4 mb-4 text-center position-relative overflow-hidden ${className}`}
-      style={{
-        background: 'var(--bs-light)',
+      maxWidth="lg"
+      sx={{
+        py: 5,
+        px: 4,
+        borderRadius: 4,
+        mb: 4,
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        bgcolor: 'background.paper',
         border: '1px solid rgba(0,0,0,0.1)'
       }}
     >
       {/* Background Effects */}
-      <div className="position-absolute top-0 start-0 w-100 h-100" style={{
+      <Box sx={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
         background: mailchimp.effects.gradient.display ? 
           `linear-gradient(${mailchimp.effects.gradient.tilt}deg, 
           ${mailchimp.effects.gradient.colorStart}, 
           ${mailchimp.effects.gradient.colorEnd})` : 'transparent',
         opacity: mailchimp.effects.gradient.opacity,
         zIndex: 0
-      }}></div>
+      }} />
       
-      <div className="position-relative z-1">
-        <Row className="justify-content-center">
-          <Col xs={12} md={8} lg={6}>
-            <h2 className="mb-3">{newsletter.title}</h2>
-            <p className="mb-4 text-muted">{newsletter.description}</p>
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
+        <Grid container justifyContent="center">
+          <Grid item xs={12} md={8} lg={6}>
+            <Typography variant="h4" component="h2" sx={{ mb: 3 }}>{newsletter.title}</Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>{newsletter.description}</Typography>
             
             <form
               action={mailchimp.action}
               method="post"
               id="mc-embedded-subscribe-form"
               name="mc-embedded-subscribe-form"
-              className="mb-3"
             >
-              <Row className="justify-content-center g-2">
-                <Col xs={12} md={8}>
-                  <Form.Group>
-                    <Form.Control
-                      formNoValidate
-                      id="mce-EMAIL"
-                      name="EMAIL"
-                      type="email"
-                      placeholder="Email"
-                      required
-                      onChange={(e) => {
-                        if (error) {
-                          handleChange(e as React.ChangeEvent<HTMLInputElement>);
-                        } else {
-                          debouncedHandleChange(e as React.ChangeEvent<HTMLInputElement>);
-                        }
-                      }}
-                      onBlur={handleBlur}
-                      isInvalid={!!error && touched}
-                    />
-                    {error && touched && (
-                      <Form.Control.Feedback type="invalid">
-                        {error}
-                      </Form.Control.Feedback>
-                    )}
-                  </Form.Group>
-                </Col>
+              <Grid container justifyContent="center" spacing={2}>
+                <Grid item xs={12} md={8}>
+                  <TextField
+                    fullWidth
+                    id="mce-EMAIL"
+                    name="EMAIL"
+                    type="email"
+                    placeholder="Email"
+                    required
+                    onChange={(e) => {
+                      if (error) {
+                        handleChange(e as React.ChangeEvent<HTMLInputElement>);
+                      } else {
+                        debouncedHandleChange(e as React.ChangeEvent<HTMLInputElement>);
+                      }
+                    }}
+                    onBlur={handleBlur}
+                    error={!!error && touched}
+                    helperText={error && touched ? error : ''}
+                    variant="outlined"
+                  />
+                </Grid>
                 
-                <Col xs={12} md={4}>
+                <Grid item xs={12} md={4}>
                   <Button 
                     id="mc-embedded-subscribe" 
                     value="Subscribe" 
                     type="submit"
-                    className="w-100"
+                    variant="contained"
+                    fullWidth
+                    sx={{ height: '56px' }}
                   >
                     Subscribe
                   </Button>
-                </Col>
-              </Row>
+                </Grid>
+              </Grid>
               
               {/* Hidden fields for Mailchimp */}
               <div style={{ display: "none" }}>
@@ -149,9 +156,9 @@ export const Mailchimp: React.FC<MailchimpProps> = ({ className }) => {
                 />
               </div>
             </form>
-          </Col>
-        </Row>
-      </div>
+          </Grid>
+        </Grid>
+      </Box>
     </Container>
   );
 };

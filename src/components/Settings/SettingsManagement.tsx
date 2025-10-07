@@ -1,334 +1,470 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Form, Nav, Alert } from 'react-bootstrap';
+import {
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Button,
+  Switch,
+  FormControlLabel,
+  TextField,
+  Divider,
+  Tabs,
+  Tab,
+  Avatar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction
+} from '@mui/material';
+import {
+  Person as PersonIcon,
+  Settings as SettingsIcon,
+  Security as SecurityIcon,
+  Notifications as NotificationsIcon,
+  Database as DatabaseIcon,
+  Save as SaveIcon,
+  Lock as LockIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon
+} from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { FaUser, FaCog, FaShieldAlt, FaBell, FaDatabase } from 'react-icons/fa';
 
 interface UserSettings {
   notifications: {
     email: boolean;
+    push: boolean;
     sms: boolean;
-    dashboard: boolean;
   };
   privacy: {
-    shareData: boolean;
-    auditLog: boolean;
-    profileVisibility: 'public' | 'private' | 'organization';
-    dataSharing: 'enabled' | 'disabled';
+    profileVisibility: 'public' | 'private' | 'contacts';
+    dataSharing: boolean;
+    analytics: boolean;
   };
-  profile: {
-    displayName: string;
-    phoneNumber: string;
-    organization: string;
+  security: {
+    twoFactorEnabled: boolean;
+    sessionTimeout: number;
+    passwordLastChanged: Date;
   };
   preferences: {
-    theme: 'light' | 'dark' | 'auto';
+    theme: 'light' | 'dark' | 'system';
     language: string;
     timezone: string;
   };
 }
 
 export default function SettingsManagement() {
-  const { currentUser } = useAuth();
+  const [tabValue, setTabValue] = useState(0);
   const [settings, setSettings] = useState<UserSettings>({
     notifications: {
       email: true,
-      sms: false,
-      dashboard: true
+      push: false,
+      sms: false
     },
     privacy: {
-      shareData: false,
-      auditLog: true,
-      profileVisibility: 'public',
-      dataSharing: 'enabled'
+      profileVisibility: 'contacts',
+      dataSharing: true,
+      analytics: true
     },
-    profile: {
-      displayName: '',
-      phoneNumber: '',
-      organization: ''
+    security: {
+      twoFactorEnabled: false,
+      sessionTimeout: 30,
+      passwordLastChanged: new Date('2024-01-01')
     },
     preferences: {
-      theme: 'light',
+      theme: 'system',
       language: 'en',
       timezone: 'America/New_York'
     }
   });
-  const [saveMessage, setSaveMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('profile');
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
-  const handleSave = async () => {
-    try {
-      // Check if we're in test mode
-      const isTestMode = process.env.NODE_ENV === 'development' && 
-                         process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
-
-      if (isTestMode) {
-        setSaveMessage('Settings saved successfully! (Test Mode)');
-        setTimeout(() => setSaveMessage(''), 3000);
-        return;
-      }
-
-      // In production, save to Firebase/backend
-      setSaveMessage('Settings saved successfully!');
-      setTimeout(() => setSaveMessage(''), 3000);
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      setSaveMessage('Error saving settings. Please try again.');
-      setTimeout(() => setSaveMessage(''), 3000);
-    }
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
+  const handleSettingChange = (category: keyof UserSettings, key: string, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }));
+  };
+
+  const handleSaveSettings = () => {
+    // Save settings to backend
+    console.log('Saving settings:', settings);
+    // Show success message
+  };
+
+  const handlePasswordChange = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    // Change password logic
+    console.log('Changing password');
+    setShowPasswordDialog(false);
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  };
+
+  const { user } = useAuth();
+
   return (
-    <Container fluid className="p-4">
-      <Row className="mb-4">
-        <Col>
-          <h2 className="fw-bold">Settings</h2>
-          <p className="text-muted">Manage your account preferences and platform settings.</p>
-        </Col>
-      </Row>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            Account Settings
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Manage your account preferences and security settings
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<SaveIcon />}
+          onClick={handleSaveSettings}
+          size="large"
+        >
+          Save Changes
+        </Button>
+      </Box>
 
-      {saveMessage && (
-        <Row className="mb-4">
-          <Col>
-            <Alert variant={saveMessage.includes('Error') ? 'danger' : 'success'}>
-              {saveMessage}
+      {/* User Profile Card */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Avatar
+              sx={{ width: 80, height: 80, bgcolor: 'primary.main' }}
+            >
+              <PersonIcon sx={{ fontSize: 40 }} />
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                {user?.firstName} {user?.lastName}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                {user?.email}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Role: {user?.role?.replace(/_/g, ' ')}
+              </Typography>
+            </Box>
+            <Box>
+              <Button variant="outlined" startIcon={<PersonIcon />}>
+                Edit Profile
+              </Button>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Settings Tabs */}
+      <Card>
+        <CardContent sx={{ pb: 0 }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="settings tabs">
+            <Tab
+              icon={<NotificationsIcon />}
+              label="Notifications"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<SecurityIcon />}
+              label="Privacy & Security"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<SettingsIcon />}
+              label="Preferences"
+              iconPosition="start"
+            />
+          </Tabs>
+        </CardContent>
+
+        <Divider />
+
+        {/* Notifications Tab */}
+        {tabValue === 0 && (
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+              Notification Preferences
+            </Typography>
+
+            <List>
+              <ListItem>
+                <ListItemIcon>
+                  <EmailIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Email Notifications"
+                  secondary="Receive notifications via email"
+                />
+                <ListItemSecondaryAction>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={settings.notifications.email}
+                        onChange={(e) => handleSettingChange('notifications', 'email', e.target.checked)}
+                      />
+                    }
+                    label=""
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <NotificationsIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Push Notifications"
+                  secondary="Receive push notifications in your browser"
+                />
+                <ListItemSecondaryAction>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={settings.notifications.push}
+                        onChange={(e) => handleSettingChange('notifications', 'push', e.target.checked)}
+                      />
+                    }
+                    label=""
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <PhoneIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="SMS Notifications"
+                  secondary="Receive text message notifications"
+                />
+                <ListItemSecondaryAction>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={settings.notifications.sms}
+                        onChange={(e) => handleSettingChange('notifications', 'sms', e.target.checked)}
+                      />
+                    }
+                    label=""
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+            </List>
+          </CardContent>
+        )}
+
+        {/* Privacy & Security Tab */}
+        {tabValue === 1 && (
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+              Privacy & Security Settings
+            </Typography>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  Privacy Settings
+                </Typography>
+
+                <TextField
+                  fullWidth
+                  select
+                  label="Profile Visibility"
+                  value={settings.privacy.profileVisibility}
+                  onChange={(e) => handleSettingChange('privacy', 'profileVisibility', e.target.value)}
+                  sx={{ mb: 2 }}
+                >
+                  <option value="public">Public</option>
+                  <option value="contacts">Contacts Only</option>
+                  <option value="private">Private</option>
+                </TextField>
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.privacy.dataSharing}
+                      onChange={(e) => handleSettingChange('privacy', 'dataSharing', e.target.checked)}
+                    />
+                  }
+                  label="Allow data sharing for research purposes"
+                  sx={{ mb: 1 }}
+                />
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.privacy.analytics}
+                      onChange={(e) => handleSettingChange('privacy', 'analytics', e.target.checked)}
+                    />
+                  }
+                  label="Allow analytics tracking"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  Security Settings
+                </Typography>
+
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    Password last changed: {settings.security.passwordLastChanged.toLocaleDateString()}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    startIcon={<LockIcon />}
+                    onClick={() => setShowPasswordDialog(true)}
+                  >
+                    Change Password
+                  </Button>
+                </Box>
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.security.twoFactorEnabled}
+                      onChange={(e) => handleSettingChange('security', 'twoFactorEnabled', e.target.checked)}
+                    />
+                  }
+                  label="Enable two-factor authentication"
+                  sx={{ mb: 2 }}
+                />
+
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Session Timeout (minutes)"
+                  value={settings.security.sessionTimeout}
+                  onChange={(e) => handleSettingChange('security', 'sessionTimeout', parseInt(e.target.value))}
+                  inputProps={{ min: 5, max: 480 }}
+                />
+
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Two-factor authentication adds an extra layer of security to your account.
+                </Alert>
+              </Grid>
+            </Grid>
+          </CardContent>
+        )}
+
+        {/* Preferences Tab */}
+        {tabValue === 2 && (
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+              Application Preferences
+            </Typography>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Theme"
+                  value={settings.preferences.theme}
+                  onChange={(e) => handleSettingChange('preferences', 'theme', e.target.value)}
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="system">System</option>
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Language"
+                  value={settings.preferences.language}
+                  onChange={(e) => handleSettingChange('preferences', 'language', e.target.value)}
+                >
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Timezone"
+                  value={settings.preferences.timezone}
+                  onChange={(e) => handleSettingChange('preferences', 'timezone', e.target.value)}
+                >
+                  <option value="America/New_York">Eastern Time</option>
+                  <option value="America/Chicago">Central Time</option>
+                  <option value="America/Denver">Mountain Time</option>
+                  <option value="America/Los_Angeles">Pacific Time</option>
+                </TextField>
+              </Grid>
+            </Grid>
+
+            <Alert severity="success" sx={{ mt: 3 }}>
+              Your preferences will be applied immediately after saving.
             </Alert>
-          </Col>
-        </Row>
-      )}
+          </CardContent>
+        )}
+      </Card>
 
-      <Row>
-        <Col>
-          <Card>
-            <Card.Header>
-              <Nav variant="tabs" className="border-bottom-0">
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === 'profile'}
-                    onClick={() => setActiveTab('profile')}
-                    className="d-flex align-items-center"
-                  >
-                    <FaUser className="me-2" /> Profile
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === 'notifications'}
-                    onClick={() => setActiveTab('notifications')}
-                    className="d-flex align-items-center"
-                  >
-                    <FaBell className="me-2" /> Notifications
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === 'privacy'}
-                    onClick={() => setActiveTab('privacy')}
-                    className="d-flex align-items-center"
-                  >
-                    <FaShieldAlt className="me-2" /> Privacy
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link 
-                    active={activeTab === 'preferences'}
-                    onClick={() => setActiveTab('preferences')}
-                    className="d-flex align-items-center"
-                  >
-                    <FaCog className="me-2" /> Preferences
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-            </Card.Header>
-
-            <Card.Body className="p-4">
-              {activeTab === 'profile' && (
-                <div>
-                  <h4 className="mb-4">Profile Settings</h4>
-                  <Row>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                          type="email"
-                          value={currentUser?.email || ''}
-                          disabled
-                          className="bg-light"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Display Name</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={settings.profile.displayName}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({
-                            ...settings,
-                            profile: { ...settings.profile, displayName: e.target.value }
-                          })}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Phone Number</Form.Label>
-                        <Form.Control
-                          type="tel"
-                          value={settings.profile.phoneNumber}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({
-                            ...settings,
-                            profile: { ...settings.profile, phoneNumber: e.target.value }
-                          })}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Organization</Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={settings.profile.organization}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({
-                            ...settings,
-                            profile: { ...settings.profile, organization: e.target.value }
-                          })}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </div>
-              )}
-
-              {activeTab === 'notifications' && (
-                <div>
-                  <h4 className="mb-4">Notification Settings</h4>
-                  <Form>
-                    <Form.Check
-                      type="checkbox"
-                      id="email-notifications"
-                      label="Email notifications"
-                      checked={settings.notifications.email}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({
-                        ...settings,
-                        notifications: { ...settings.notifications, email: e.target.checked }
-                      })}
-                      className="mb-3"
-                    />
-                    <Form.Check
-                      type="checkbox"
-                      id="sms-notifications"
-                      label="SMS notifications"
-                      checked={settings.notifications.sms}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({
-                        ...settings,
-                        notifications: { ...settings.notifications, sms: e.target.checked }
-                      })}
-                      className="mb-3"
-                    />
-                    <Form.Check
-                      type="checkbox"
-                      id="dashboard-notifications"
-                      label="Dashboard notifications"
-                      checked={settings.notifications.dashboard}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings({
-                        ...settings,
-                        notifications: { ...settings.notifications, dashboard: e.target.checked }
-                      })}
-                      className="mb-3"
-                    />
-                  </Form>
-                </div>
-              )}
-
-              {activeTab === 'privacy' && (
-                <div>
-                  <h4 className="mb-4">Privacy Settings</h4>
-                  <Row>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Profile Visibility</Form.Label>
-                        <Form.Select
-                          value={settings.privacy.profileVisibility}
-                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSettings({
-                            ...settings,
-                            privacy: { ...settings.privacy, profileVisibility: e.target.value as 'public' | 'private' | 'organization' }
-                          })}
-                        >
-                          <option value="public">Public</option>
-                          <option value="organization">Organization Only</option>
-                          <option value="private">Private</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Data Sharing</Form.Label>
-                        <Form.Select
-                          value={settings.privacy.dataSharing}
-                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSettings({
-                            ...settings,
-                            privacy: { ...settings.privacy, dataSharing: e.target.value as 'enabled' | 'disabled' }
-                          })}
-                        >
-                          <option value="enabled">Enabled</option>
-                          <option value="disabled">Disabled</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </div>
-              )}
-
-              {activeTab === 'preferences' && (
-                <div>
-                  <h4 className="mb-4">Preferences</h4>
-                  <Row>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Theme</Form.Label>
-                        <Form.Select
-                          value={settings.preferences.theme}
-                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSettings({
-                            ...settings,
-                            preferences: { ...settings.preferences, theme: e.target.value as 'light' | 'dark' | 'auto' }
-                          })}
-                        >
-                          <option value="light">Light</option>
-                          <option value="dark">Dark</option>
-                          <option value="auto">Auto</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                    <Col md={6} className="mb-3">
-                      <Form.Group>
-                        <Form.Label>Language</Form.Label>
-                        <Form.Select
-                          value={settings.preferences.language}
-                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSettings({
-                            ...settings,
-                            preferences: { ...settings.preferences, language: e.target.value }
-                          })}
-                        >
-                          <option value="en">English</option>
-                          <option value="es">Spanish</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </div>
-              )}
-
-              <div className="mt-4 pt-3 border-top">
-                <Button variant="primary" onClick={handleSave}>
-                  <FaDatabase className="me-2" /> Save Settings
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+      {/* Change Password Dialog */}
+      <Dialog open={showPasswordDialog} onClose={() => setShowPasswordDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Change Password</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            type="password"
+            label="Current Password"
+            value={passwordData.currentPassword}
+            onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+            sx={{ mb: 2, mt: 1 }}
+          />
+          <TextField
+            fullWidth
+            type="password"
+            label="New Password"
+            value={passwordData.newPassword}
+            onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            type="password"
+            label="Confirm New Password"
+            value={passwordData.confirmPassword}
+            onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowPasswordDialog(false)}>Cancel</Button>
+          <Button onClick={handlePasswordChange} variant="contained">
+            Change Password
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

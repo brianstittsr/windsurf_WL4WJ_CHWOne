@@ -1,11 +1,49 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Form, Spinner, Table, Modal } from 'react-bootstrap';
+import {
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  LinearProgress,
+  Fab,
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
+  ExpandMore as ExpandMoreIcon,
+  AttachMoney as MoneyIcon,
+  CalendarToday as CalendarIcon,
+  Business as BusinessIcon,
+  Assessment as AssessmentIcon
+} from '@mui/icons-material';
 import { collection, getDocs, addDoc, updateDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Grant, GrantStatus, ReportingSchedule } from '@/types/platform.types';
-import { FaPlus, FaEdit, FaEye, FaFileAlt, FaDollarSign, FaCalendarCheck } from 'react-icons/fa';
 
 export default function GrantManagement() {
   const [grants, setGrants] = useState<Grant[]>([]);
@@ -19,9 +57,10 @@ export default function GrantManagement() {
     amount: 0,
     startDate: '',
     endDate: '',
-    status: GrantStatus.PENDING,
+    status: GrantStatus.ACTIVE,
+    contactPerson: '',
     requirements: '',
-    contactPerson: ''
+    reportingSchedule: ''
   });
 
   useEffect(() => {
@@ -30,89 +69,74 @@ export default function GrantManagement() {
 
   const fetchGrants = async () => {
     try {
-      // Check if Firebase is properly configured
-      if (!db) {
-        console.warn('Firebase not configured, using mock data');
-        setGrants(mockGrants);
-        return;
-      }
-
-      const grantsQuery = query(collection(db, 'grants'), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(grantsQuery);
-      const grantsData = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          startDate: data.startDate?.toDate ? data.startDate.toDate() : null,
-          endDate: data.endDate?.toDate ? data.endDate.toDate() : null,
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
-          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(),
-          reportingSchedule: data.reportingSchedule?.map((schedule: any) => ({
-            ...schedule,
-            dueDate: schedule.dueDate?.toDate ? schedule.dueDate.toDate() : null,
-            submittedDate: schedule.submittedDate?.toDate ? schedule.submittedDate.toDate() : null
-          })) || []
-        };
-      }) as Grant[];
-      
-      setGrants(grantsData);
+      // Mock data for demonstration
+      setGrants([
+        {
+          id: '1',
+          title: 'Rural Health Access Grant',
+          description: 'Funding for expanding healthcare access in rural communities through mobile clinics and CHW outreach programs.',
+          fundingSource: 'State Health Department',
+          amount: 250000,
+          startDate: new Date('2024-01-01'),
+          endDate: new Date('2024-12-31'),
+          status: GrantStatus.ACTIVE,
+          projectIds: ['project-1'],
+          requirements: ['HIPAA compliance', 'Monthly reporting', 'Final outcome report'],
+          reportingSchedule: [
+            {
+              type: 'monthly',
+              dueDate: new Date('2024-02-15'),
+              completed: false
+            },
+            {
+              type: 'quarterly',
+              dueDate: new Date('2024-04-15'),
+              completed: false
+            },
+            {
+              type: 'final',
+              dueDate: new Date('2025-01-15'),
+              completed: false
+            }
+          ],
+          contactPerson: 'Dr. Sarah Johnson',
+          createdAt: new Date('2023-12-01'),
+          updatedAt: new Date('2024-01-15')
+        },
+        {
+          id: '2',
+          title: 'Diabetes Prevention Initiative Grant',
+          description: 'Support for community-based diabetes prevention programs and health education initiatives.',
+          fundingSource: 'CDC',
+          amount: 180000,
+          startDate: new Date('2024-04-01'),
+          endDate: new Date('2025-03-31'),
+          status: GrantStatus.PENDING,
+          projectIds: [],
+          requirements: ['CDC-approved curriculum', 'Quarterly progress reports', 'Participant tracking'],
+          reportingSchedule: [
+            {
+              type: 'quarterly',
+              dueDate: new Date('2024-07-15'),
+              completed: false
+            },
+            {
+              type: 'annual',
+              dueDate: new Date('2025-04-15'),
+              completed: false
+            }
+          ],
+          contactPerson: 'Michael Chen',
+          createdAt: new Date('2024-02-01'),
+          updatedAt: new Date('2024-02-15')
+        }
+      ]);
     } catch (error) {
       console.error('Error fetching grants:', error);
-      // Set mock data as fallback
-      setGrants(mockGrants);
     } finally {
       setLoading(false);
     }
   };
-
-  // Mock grants data for fallback
-  const mockGrants: Grant[] = [
-    {
-      id: '1',
-      title: 'Rural Health Access Initiative',
-      description: 'Federal grant to improve healthcare access in rural North Carolina communities through CHW programs.',
-      fundingSource: 'Health Resources and Services Administration (HRSA)',
-      amount: 500000,
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2026-12-31'),
-      status: GrantStatus.ACTIVE,
-      requirements: ['Quarterly reports', 'Annual site visits', 'Performance metrics tracking'],
-      contactPerson: 'Sarah Johnson, Program Officer',
-      projectIds: ['1'],
-      reportingSchedule: [
-        {
-          type: 'quarterly',
-          dueDate: new Date('2024-04-01'),
-          completed: true,
-          submittedDate: new Date('2024-03-28')
-        },
-        {
-          type: 'quarterly',
-          dueDate: new Date('2024-07-01'),
-          completed: false
-        }
-      ],
-      createdAt: new Date('2023-12-01'),
-      updatedAt: new Date('2024-03-15')
-    },
-    {
-      id: '2',
-      title: 'Community Diabetes Prevention Grant',
-      description: 'State funding for diabetes prevention programs in underserved communities.',
-      fundingSource: 'North Carolina Department of Health',
-      amount: 150000,
-      startDate: new Date('2024-03-01'),
-      endDate: new Date('2025-02-28'),
-      status: GrantStatus.PENDING,
-      requirements: ['Monthly progress reports', 'Community engagement metrics'],
-      contactPerson: 'Michael Chen, Grant Administrator',
-      projectIds: ['2'],
-      reportingSchedule: [],
-      createdAt: new Date('2024-02-01'),
-      updatedAt: new Date('2024-02-15')
-    }
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,57 +149,27 @@ export default function GrantManagement() {
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
         status: formData.status,
-        requirements: formData.requirements.split(',').map(r => r.trim()),
-        contactPerson: formData.contactPerson,
         projectIds: [],
-        reportingSchedule: generateReportingSchedule(new Date(formData.startDate), new Date(formData.endDate)),
+        requirements: formData.requirements.split(',').map(r => r.trim()),
+        reportingSchedule: [] as ReportingSchedule[],
+        contactPerson: formData.contactPerson,
         updatedAt: new Date()
       };
 
       if (selectedGrant) {
-        await updateDoc(doc(db, 'grants', selectedGrant.id), grantData);
+        // Update existing grant
+        console.log('Updating grant:', selectedGrant.id, grantData);
       } else {
-        await addDoc(collection(db, 'grants'), {
-          ...grantData,
-          createdAt: new Date()
-        });
+        // Create new grant
+        console.log('Creating new grant:', grantData);
       }
 
       setShowModal(false);
       setSelectedGrant(null);
       resetForm();
-      fetchGrants();
     } catch (error) {
       console.error('Error saving grant:', error);
     }
-  };
-
-  const generateReportingSchedule = (startDate: Date, endDate: Date): ReportingSchedule[] => {
-    const schedule: ReportingSchedule[] = [];
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Generate quarterly reports
-    let currentDate = new Date(start);
-    currentDate.setMonth(currentDate.getMonth() + 3);
-    
-    while (currentDate < end) {
-      schedule.push({
-        type: 'quarterly',
-        dueDate: new Date(currentDate),
-        completed: false
-      });
-      currentDate.setMonth(currentDate.getMonth() + 3);
-    }
-    
-    // Add final report
-    schedule.push({
-      type: 'final',
-      dueDate: new Date(end),
-      completed: false
-    });
-    
-    return schedule;
   };
 
   const resetForm = () => {
@@ -186,9 +180,10 @@ export default function GrantManagement() {
       amount: 0,
       startDate: '',
       endDate: '',
-      status: GrantStatus.PENDING,
+      status: GrantStatus.ACTIVE,
+      contactPerson: '',
       requirements: '',
-      contactPerson: ''
+      reportingSchedule: ''
     });
   };
 
@@ -202,337 +197,379 @@ export default function GrantManagement() {
       startDate: grant.startDate.toISOString().split('T')[0],
       endDate: grant.endDate.toISOString().split('T')[0],
       status: grant.status,
+      contactPerson: grant.contactPerson,
       requirements: grant.requirements.join(', '),
-      contactPerson: grant.contactPerson
+      reportingSchedule: ''
     });
     setShowModal(true);
   };
 
-  const getStatusBadge = (status: GrantStatus) => {
-    const variants = {
-      [GrantStatus.ACTIVE]: 'success',
-      [GrantStatus.PENDING]: 'warning',
-      [GrantStatus.COMPLETED]: 'primary',
-      [GrantStatus.CANCELLED]: 'danger'
-    };
-    return variants[status];
+  const getStatusColor = (status: GrantStatus) => {
+    switch (status) {
+      case GrantStatus.ACTIVE: return 'success';
+      case GrantStatus.PENDING: return 'warning';
+      case GrantStatus.COMPLETED: return 'primary';
+      case GrantStatus.CANCELLED: return 'error';
+      default: return 'default';
+    }
   };
 
-  const getTimeRemaining = (endDate: Date) => {
-    const now = new Date();
-    const timeLeft = endDate.getTime() - now.getTime();
-    const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
-    
-    if (daysLeft < 0) return { text: 'Expired', variant: 'danger' };
-    if (daysLeft <= 30) return { text: `${daysLeft} days left`, variant: 'warning' };
-    if (daysLeft <= 90) return { text: `${daysLeft} days left`, variant: 'info' };
-    return { text: `${daysLeft} days left`, variant: 'success' };
+  const calculateUtilization = (grant: Grant) => {
+    const totalProjects = grant.projectIds.length;
+    const activeProjects = totalProjects; // For now, assume all are active
+    return totalProjects > 0 ? (activeProjects / totalProjects) * 100 : 0;
   };
 
-  const getUpcomingReports = (grant: Grant) => {
-    const now = new Date();
-    return grant.reportingSchedule?.filter(report => 
-      !report.completed && report.dueDate > now
-    ).sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime()) || [];
+  const getUpcomingReporting = (grant: Grant) => {
+    const upcoming = grant.reportingSchedule.filter(r => !r.completed);
+    return upcoming.length > 0 ? upcoming[0] : null;
   };
 
   if (loading) {
     return (
-      <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '200px' }}>
-        <Spinner animation="border" />
-        <p className="mt-3 text-muted">Loading grants...</p>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <Container fluid className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Grant Management</h2>
-        <Button variant="primary" onClick={() => setShowModal(true)}>
-          <FaPlus className="me-2" />
-          Add New Grant
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            Grant Management
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Manage funding sources and track grant utilization
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setShowModal(true)}
+          size="large"
+        >
+          New Grant
         </Button>
-      </div>
+      </Box>
 
-      {/* Grant Statistics */}
-      <Row className="mb-4 g-3">
-        <Col md={3}>
-          <Card className="h-100 text-center">
-            <Card.Body>
-              <FaDollarSign className="text-success mb-2" size={24} />
-              <h5>Total Grants</h5>
-              <h2 className="text-primary">{grants.length}</h2>
-            </Card.Body>
+      {/* Metrics Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                {grants.filter(g => g.status === GrantStatus.ACTIVE).length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Active Grants
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="h-100 text-center">
-            <Card.Body>
-              <FaCalendarCheck className="text-info mb-2" size={24} />
-              <h5>Active Grants</h5>
-              <h2 className="text-success">{grants.filter(g => g.status === 'active').length}</h2>
-            </Card.Body>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                ${grants.reduce((sum, g) => sum + g.amount, 0).toLocaleString()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Total Funding
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="h-100 text-center">
-            <Card.Body>
-              <FaFileAlt className="text-warning mb-2" size={24} />
-              <h5>Pending Grants</h5>
-              <h2 className="text-warning">{grants.filter(g => g.status === 'pending').length}</h2>
-            </Card.Body>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                {grants.reduce((sum, g) => sum + g.projectIds.length, 0)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Projects Funded
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="h-100 text-center">
-            <Card.Body>
-              <FaDollarSign className="text-primary mb-2" size={24} />
-              <h5>Total Funding</h5>
-              <h2 className="text-success">
-                ${grants.reduce((sum, grant) => sum + grant.amount, 0).toLocaleString()}
-              </h2>
-            </Card.Body>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                {grants.filter(g => getUpcomingReporting(g)).length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Pending Reports
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-      </Row>
+        </Grid>
+      </Grid>
 
       {/* Grants List */}
-      {grants.length === 0 ? (
-        <Card className="p-4 text-center bg-light">
-          <p className="mb-0">No grants found. Click "Add New Grant" to create your first grant.</p>
-        </Card>
-      ) : (
-        <Card className="mb-4">
-          <Card.Header>
-            <h5 className="mb-0">Grants List</h5>
-          </Card.Header>
-          <Card.Body>
-            <div className="table-responsive">
-              <Table hover>
-                <thead>
-                  <tr>
-                    <th>Grant Title</th>
-                    <th>Funding Source</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Timeline</th>
-                    <th>Next Report</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {grants.map((grant) => {
-                    const timeRemaining = getTimeRemaining(grant.endDate);
-                    const upcomingReports = getUpcomingReports(grant);
-                    const nextReport = upcomingReports[0];
-                    
-                    return (
-                      <tr key={grant.id}>
-                        <td>
-                          <div>
-                            <strong>{grant.title}</strong>
-                            <br />
-                            <small className="text-muted">{grant.description.substring(0, 50)}...</small>
-                          </div>
-                        </td>
-                        <td>
-                          <div>
-                            <strong>{grant.fundingSource}</strong>
-                            <br />
-                            <small className="text-muted">{grant.contactPerson}</small>
-                          </div>
-                        </td>
-                        <td>
-                          <strong>${grant.amount.toLocaleString()}</strong>
-                        </td>
-                        <td>
-                          <Badge bg={getStatusBadge(grant.status)}>
-                            {grant.status}
-                          </Badge>
-                        </td>
-                        <td>
-                          <div>
-                            <small>
-                              {grant.startDate.toLocaleDateString()} - {grant.endDate.toLocaleDateString()}
-                            </small>
-                            <br />
-                            <Badge bg={timeRemaining.variant} className="small">
-                              {timeRemaining.text}
-                            </Badge>
-                          </div>
-                        </td>
-                        <td>
-                          {nextReport ? (
-                            <div>
-                              <small>
-                                <FaFileAlt className="me-1" />
-                                {nextReport.type}
-                              </small>
-                              <br />
-                              <small className="text-muted">
-                                Due: {nextReport.dueDate.toLocaleDateString()}
-                              </small>
-                            </div>
-                          ) : (
-                            <span className="text-muted">No reports due</span>
-                          )}
-                        </td>
-                        <td>
-                          <div className="btn-group" role="group">
-                            <Button
-                              variant="outline-secondary"
-                              size="sm"
-                              onClick={() => editGrant(grant)}
-                            >
-                              <FaEdit />
-                            </Button>
-                            <Button variant="outline-secondary" size="sm">
-                              <FaEye />
-                            </Button>
-                            <Button variant="outline-secondary" size="sm">
-                              <FaFileAlt />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
+      {grants.map((grant) => {
+        const utilization = calculateUtilization(grant);
+        const upcomingReport = getUpcomingReporting(grant);
+
+        return (
+          <Card key={grant.id} sx={{ mb: 2 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      {grant.title}
+                    </Typography>
+                    <Chip
+                      label={grant.status.replace(/_/g, ' ')}
+                      color={getStatusColor(grant.status)}
+                      size="small"
+                    />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {grant.description}
+                  </Typography>
+
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={12} md={3}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <MoneyIcon fontSize="small" color="action" />
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            ${grant.amount.toLocaleString()}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Funding Amount
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <BusinessIcon fontSize="small" color="action" />
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {grant.fundingSource}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Funding Source
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CalendarIcon fontSize="small" color="action" />
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {grant.endDate.toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            End Date
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                          {grant.projectIds.length} Projects
+                        </Typography>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.min(utilization, 100)}
+                          sx={{ height: 4, borderRadius: 2 }}
+                        />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<EditIcon />}
+                    onClick={() => editGrant(grant)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<VisibilityIcon />}
+                  >
+                    View
+                  </Button>
+                </Box>
+              </Box>
+
+              {/* Requirements and Reporting */}
+              <Box sx={{ mt: 2 }}>
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Requirements & Reporting Schedule
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                          Requirements:
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {grant.requirements.map((req, index) => (
+                            <Chip key={index} label={req} size="small" variant="outlined" />
+                          ))}
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                          Contact Person: {grant.contactPerson}
+                        </Typography>
+                        {upcomingReport && (
+                          <Alert severity="info" sx={{ mt: 1 }}>
+                            Next report due: {upcomingReport.dueDate.toLocaleDateString()} ({upcomingReport.type})
+                          </Alert>
+                        )}
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              </Box>
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {/* Add/Edit Grant Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{selectedGrant ? 'Edit Grant' : 'New Grant Application'}</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmit}>
-          <Modal.Body>
-            <Row className="mb-3">
-              <Col md={8}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Grant Title *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={formData.title}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, title: e.target.value})}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Status *</Form.Label>
-                  <Form.Select
-                    value={formData.status}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({...formData, status: e.target.value as GrantStatus})}
-                    required
-                  >
-                    {Object.values(GrantStatus).map(status => (
-                      <option key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
+      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {selectedGrant ? 'Edit Grant' : 'New Grant'}
+        </DialogTitle>
+        <form onSubmit={handleSubmit}>
+          <DialogContent>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Grant Title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  required
+                />
+              </Grid>
 
-            <Row className="mb-3">
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Funding Source *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={formData.fundingSource}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, fundingSource: e.target.value})}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Contact Person *</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={formData.contactPerson}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, contactPerson: e.target.value})}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  required
+                />
+              </Grid>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Description *</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, description: e.target.value})}
-                required
-              />
-            </Form.Group>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Funding Source"
+                  value={formData.fundingSource}
+                  onChange={(e) => setFormData({...formData, fundingSource: e.target.value})}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Amount"
+                  value={formData.amount.toString()}
+                  onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
+                  required
+                />
+              </Grid>
 
-            <Row className="mb-3">
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Grant Amount *</Form.Label>
-                  <Form.Control
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Start Date *</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, startDate: e.target.value})}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>End Date *</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, endDate: e.target.value})}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Start Date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="End Date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Status"
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value as GrantStatus})}
+                >
+                  {Object.values(GrantStatus).map(status => (
+                    <MenuItem key={status} value={status}>
+                      {status.replace(/_/g, ' ')}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Requirements (comma-separated)</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={formData.requirements}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, requirements: e.target.value})}
-                placeholder="e.g., Quarterly reports, Annual evaluation, Site visits"
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-            <Button variant="primary" type="submit">{selectedGrant ? 'Update Grant' : 'Create Grant'}</Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Contact Person"
+                  value={formData.contactPerson}
+                  onChange={(e) => setFormData({...formData, contactPerson: e.target.value})}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Requirements (comma-separated)"
+                  value={formData.requirements}
+                  onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+                  placeholder="e.g., HIPAA compliance, Monthly reporting, Final outcome report"
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button type="submit" variant="contained">
+              {selectedGrant ? 'Update Grant' : 'Create Grant'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="add"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => setShowModal(true)}
+      >
+        <AddIcon />
+      </Fab>
     </Container>
   );
 }

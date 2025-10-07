@@ -1,5 +1,5 @@
 import { getPosts } from "@/utils/utils";
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Grid } from "@mui/material";
 import { ProjectCard } from "@/components";
 
 interface ProjectsProps {
@@ -24,10 +24,10 @@ export function Projects({ range, exclude }: ProjectsProps) {
     : sortedProjects;
 
   return (
-    <Container fluid className="px-4 mb-5">
-      <Row className="gy-5">
+    <Container maxWidth="lg" sx={{ px: 4, mb: 5 }}>
+      <Grid container spacing={5}>
         {displayedProjects.map((post, index) => (
-          <Col xs={12} key={post.slug}>
+          <Grid item xs={12} key={post.slug}>
             <ProjectCard
               priority={index < 2}
               href={`/work/${post.slug}`}
@@ -38,9 +38,9 @@ export function Projects({ range, exclude }: ProjectsProps) {
               avatars={post.metadata.team?.map((member) => ({ src: member.avatar })) || []}
               link={post.metadata.link || ""}
             />
-          </Col>
+          </Grid>
         ))}
-      </Row>
+      </Grid>
     </Container>
   );
 }

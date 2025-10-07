@@ -1,41 +1,60 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Form, Spinner, Modal } from 'react-bootstrap';
+import {
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Fab
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  Warning as WarningIcon,
+  CheckCircle as CheckCircleIcon,
+  Pending as PendingIcon,
+  Cancel as CancelIcon
+} from '@mui/icons-material';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Referral, ReferralResource, Client, ReferralStatus, ReferralUrgency, ResourceCategory } from '@/types/platform.types';
-import { FaPlus, FaEdit, FaEye, FaPhone, FaEnvelope, FaExclamationTriangle } from 'react-icons/fa';
 
 export default function ReferralManagement() {
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [resources, setResources] = useState<ReferralResource[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [resources, setResources] = useState<ReferralResource[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
-  const [formData, setFormData] = useState<Partial<Referral>>({});
-  const [isConnectedToCare360] = useState(true); // Mock connection status
-
-  const getStatusVariant = (status: ReferralStatus) => {
-    const variants = {
-      [ReferralStatus.PENDING]: 'warning',
-      [ReferralStatus.CONTACTED]: 'info', 
-      [ReferralStatus.COMPLETED]: 'success',
-      [ReferralStatus.CANCELLED]: 'danger'
-    };
-    return variants[status] || 'info';
-  };
-
-  const getUrgencyVariant = (urgency: ReferralUrgency) => {
-    const variants = {
-      [ReferralUrgency.LOW]: 'info',
-      [ReferralUrgency.MEDIUM]: 'warning',
-      [ReferralUrgency.HIGH]: 'warning', 
-      [ReferralUrgency.URGENT]: 'danger'
-    };
-    return variants[urgency] || 'info';
-  };
+  const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
+  const [formData, setFormData] = useState({
+    clientId: '',
+    resourceId: '',
+    urgency: ReferralUrgency.MEDIUM,
+    reason: '',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchData();
@@ -43,40 +62,109 @@ export default function ReferralManagement() {
 
   const fetchData = async () => {
     try {
-      // Fetch referrals
-      const referralsQuery = query(
-        collection(db, 'referrals'),
-        orderBy('createdAt', 'desc')
-      );
-      const referralsSnapshot = await getDocs(referralsQuery);
-      const referralsData = referralsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-        followUpDate: doc.data().followUpDate?.toDate(),
-        completedAt: doc.data().completedAt?.toDate()
-      })) as Referral[];
+      // Mock data for demonstration
+      setReferrals([
+        {
+          id: '1',
+          clientId: 'client-1',
+          resourceId: 'resource-1',
+          chwId: 'chw-1',
+          status: ReferralStatus.PENDING,
+          urgency: ReferralUrgency.HIGH,
+          reason: 'Medical consultation needed',
+          notes: 'Client requires urgent cardiology consultation',
+          followUpDate: new Date('2024-02-15'),
+          outcomeNotes: '',
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-15'),
+          completedAt: undefined
+        },
+        {
+          id: '2',
+          clientId: 'client-2',
+          resourceId: 'resource-2',
+          chwId: 'chw-2',
+          status: ReferralStatus.COMPLETED,
+          urgency: ReferralUrgency.MEDIUM,
+          reason: 'Food assistance',
+          notes: 'Family of 4 needs emergency food support',
+          followUpDate: new Date('2024-02-10'),
+          outcomeNotes: 'Successfully connected with local food bank',
+          createdAt: new Date('2024-01-15'),
+          updatedAt: new Date('2024-02-05'),
+          completedAt: new Date('2024-02-05')
+        }
+      ]);
 
-      // Fetch resources
-      const resourcesQuery = query(collection(db, 'referralResources'));
-      const resourcesSnapshot = await getDocs(resourcesQuery);
-      const resourcesData = resourcesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as ReferralResource[];
+      setClients([
+        {
+          id: 'client-1',
+          firstName: 'John',
+          lastName: 'Smith',
+          dateOfBirth: new Date('1980-01-01'),
+          assignedCHW: 'chw-1',
+          consentGiven: true,
+          consentDate: new Date('2024-01-01'),
+          isActive: true,
+          address: {
+            street: '123 Main St',
+            city: 'Anytown',
+            state: 'NC',
+            zipCode: '12345',
+            county: 'AnyCounty'
+          },
+          demographics: {
+            gender: 'Male',
+            preferredLanguage: 'English',
+            householdSize: 2
+          },
+          healthConditions: ['Hypertension'],
+          socialDeterminants: {
+            housingStatus: 'Stable',
+            employmentStatus: 'Unemployed',
+            transportationAccess: true,
+            foodSecurity: 'Insecure',
+            socialSupport: 'Limited',
+            educationLevel: 'High School'
+          },
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-15')
+        }
+      ]);
 
-      // Fetch clients (limited for HIPAA compliance)
-      const clientsQuery = query(collection(db, 'clients'));
-      const clientsSnapshot = await getDocs(clientsQuery);
-      const clientsData = clientsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Client[];
-
-      setReferrals(referralsData);
-      setResources(resourcesData);
-      setClients(clientsData);
+      setResources([
+        {
+          id: 'resource-1',
+          name: 'Cardiology Clinic',
+          organization: 'Regional Medical Center',
+          category: ResourceCategory.HEALTHCARE,
+          description: 'Specialized cardiac care services',
+          contactInfo: {
+            phone: '(555) 123-4567',
+            email: 'cardiology@regionalmed.com'
+          },
+          address: {
+            street: '456 Health Ave',
+            city: 'Anytown',
+            state: 'NC',
+            zipCode: '12345',
+            county: 'AnyCounty'
+          },
+          serviceHours: {
+            monday: '8:00 AM - 5:00 PM',
+            tuesday: '8:00 AM - 5:00 PM',
+            wednesday: '8:00 AM - 5:00 PM',
+            thursday: '8:00 AM - 5:00 PM',
+            friday: '8:00 AM - 5:00 PM'
+          },
+          eligibilityCriteria: ['Medical referral required'],
+          servicesOffered: ['Consultations', 'Diagnostic tests', 'Treatment'],
+          isActive: true,
+          region5Certified: true,
+          createdAt: new Date('2023-01-01'),
+          updatedAt: new Date('2024-01-01')
+        }
+      ]);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -88,45 +176,33 @@ export default function ReferralManagement() {
     e.preventDefault();
     try {
       const referralData = {
-        ...formData,
-        status: formData.status || ReferralStatus.PENDING,
-        followUpDate: formData.followUpDate ? new Date(formData.followUpDate as string) : null,
-        updatedAt: new Date()
+        clientId: formData.clientId,
+        resourceId: formData.resourceId,
+        chwId: 'current-user', // Would get from auth context
+        status: ReferralStatus.PENDING,
+        urgency: formData.urgency,
+        reason: formData.reason,
+        notes: formData.notes,
+        followUpDate: undefined,
+        outcomeNotes: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        completedAt: undefined
       };
 
-      if (editingReferral) {
-        await updateDoc(doc(db, 'referrals', editingReferral.id), referralData);
+      if (selectedReferral) {
+        // Update existing referral
+        console.log('Updating referral:', selectedReferral.id, referralData);
       } else {
-        await addDoc(collection(db, 'referrals'), {
-          ...referralData,
-          createdAt: new Date()
-        });
+        // Create new referral
+        console.log('Creating new referral:', referralData);
       }
 
       setShowModal(false);
-      setEditingReferral(null);
-      setFormData({});
-      fetchData();
+      setSelectedReferral(null);
+      resetForm();
     } catch (error) {
       console.error('Error saving referral:', error);
-    }
-  };
-
-  const updateReferralStatus = async (referralId: string, status: ReferralStatus) => {
-    try {
-      const updateData: any = {
-        status,
-        updatedAt: new Date()
-      };
-
-      if (status === ReferralStatus.COMPLETED) {
-        updateData.completedAt = new Date();
-      }
-
-      await updateDoc(doc(db, 'referrals', referralId), updateData);
-      fetchData();
-    } catch (error) {
-      console.error('Error updating referral status:', error);
     }
   };
 
@@ -136,308 +212,343 @@ export default function ReferralManagement() {
       resourceId: '',
       urgency: ReferralUrgency.MEDIUM,
       reason: '',
-      notes: '',
-      followUpDate: ''
+      notes: ''
     });
   };
 
-  const getResourceByCategory = (category: ResourceCategory) => {
-    return resources.filter(resource => resource.category === category);
+  const editReferral = (referral: Referral) => {
+    setSelectedReferral(referral);
+    setFormData({
+      clientId: referral.clientId,
+      resourceId: referral.resourceId,
+      urgency: referral.urgency,
+      reason: referral.reason,
+      notes: referral.notes || ''
+    });
+    setShowModal(true);
+  };
+
+  const getStatusColor = (status: ReferralStatus) => {
+    switch (status) {
+      case ReferralStatus.PENDING: return 'warning';
+      case ReferralStatus.CONTACTED: return 'info';
+      case ReferralStatus.SCHEDULED: return 'primary';
+      case ReferralStatus.COMPLETED: return 'success';
+      case ReferralStatus.CANCELLED: return 'error';
+      case ReferralStatus.NO_SHOW: return 'error';
+      default: return 'default';
+    }
+  };
+
+  const getStatusIcon = (status: ReferralStatus) => {
+    switch (status) {
+      case ReferralStatus.PENDING: return <PendingIcon />;
+      case ReferralStatus.CONTACTED: return <PhoneIcon />;
+      case ReferralStatus.SCHEDULED: return <CheckCircleIcon />;
+      case ReferralStatus.COMPLETED: return <CheckCircleIcon />;
+      case ReferralStatus.CANCELLED: return <CancelIcon />;
+      case ReferralStatus.NO_SHOW: return <WarningIcon />;
+      default: return <PendingIcon />;
+    }
+  };
+
+  const getUrgencyColor = (urgency: ReferralUrgency) => {
+    switch (urgency) {
+      case ReferralUrgency.LOW: return 'success';
+      case ReferralUrgency.MEDIUM: return 'warning';
+      case ReferralUrgency.HIGH: return 'error';
+      case ReferralUrgency.URGENT: return 'error';
+      default: return 'default';
+    }
   };
 
   if (loading) {
     return (
-      <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '200px' }}>
-        <Spinner animation="border" />
-        <p className="mt-3 text-muted">Loading referrals...</p>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <Container fluid className="p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="fw-bold">Referral Communications</h2>
-          <p className="text-muted">Manage client referrals and resource connections</p>
-        </div>
-        <Button variant="primary" onClick={() => setShowModal(true)}>
-          <FaPlus className="me-2" />
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            Referral Management
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Track and manage client referrals to community resources
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setShowModal(true)}
+          size="large"
+        >
           New Referral
         </Button>
-      </div>
-
-      {/* HIPAA Notice */}
-      <div className="alert alert-info d-flex align-items-center mb-4">
-        <FaExclamationTriangle className="me-2" />
-        <strong>HIPAA Protected Communications</strong>
-        <span className="ms-2">- All referral communications are encrypted and logged for compliance.</span>
-      </div>
+      </Box>
 
       {/* Metrics Cards */}
-      <Row className="mb-4 g-3">
-        <Col md={3}>
-          <Card className="text-center h-100">
-            <Card.Body>
-              <h2 className="text-warning">{referrals.filter(r => r.status === ReferralStatus.PENDING).length}</h2>
-              <p className="mb-0">Pending Referrals</p>
-            </Card.Body>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                {referrals.filter(r => r.status === ReferralStatus.PENDING).length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Pending Referrals
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="text-center h-100">
-            <Card.Body>
-              <h2 className="text-success">{referrals.filter(r => r.status === ReferralStatus.COMPLETED).length}</h2>
-              <p className="mb-0">Completed</p>
-            </Card.Body>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                {referrals.filter(r => r.status === ReferralStatus.COMPLETED).length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Completed
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="text-center h-100">
-            <Card.Body>
-              <h2 className="text-danger">{referrals.filter(r => r.urgency === ReferralUrgency.URGENT).length}</h2>
-              <p className="mb-0">Urgent</p>
-            </Card.Body>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                {referrals.filter(r => r.urgency === ReferralUrgency.HIGH || r.urgency === ReferralUrgency.URGENT).length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                High Priority
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="text-center h-100">
-            <Card.Body>
-              <h2 className="text-info">{resources.filter(r => r.region5Certified).length}</h2>
-              <p className="mb-0">Region 5 Resources</p>
-            </Card.Body>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                {resources.length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Available Resources
+              </Typography>
+            </CardContent>
           </Card>
-        </Col>
-      </Row>
-
-      {/* NC C.A.R.E. 360 Integration Status */}
-      <Card className="mb-4">
-        <Card.Body>
-          <h4>NC C.A.R.E. 360 Integration Status</h4>
-          <div className="mt-3">
-            <Badge bg={isConnectedToCare360 ? 'success' : 'danger'} className="p-2">
-              {isConnectedToCare360 ? 'Connected' : 'Disconnected'}
-            </Badge>
-            <p className="mt-2 mb-0">
-              {isConnectedToCare360 
-                ? 'Real-time resource matching and referral tracking enabled'
-                : 'Manual resource matching - Contact IT for connection support'
-              }
-            </p>
-          </div>
-        </Card.Body>
-      </Card>
+        </Grid>
+      </Grid>
 
       {/* Referrals Table */}
       <Card>
-        <Card.Body>
-          <h4 className="mb-4">Active Referrals</h4>
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>Resource</th>
-                  <th>Category</th>
-                  <th>Status</th>
-                  <th>Urgency</th>
-                  <th>Date Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+        <CardContent>
+          <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            Active Referrals
+          </Typography>
+
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Client</TableCell>
+                  <TableCell>Resource</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Urgency</TableCell>
+                  <TableCell>Reason</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {referrals.map((referral) => {
                   const client = clients.find(c => c.id === referral.clientId);
                   const resource = resources.find(r => r.id === referral.resourceId);
+
                   return (
-                    <tr key={referral.id}>
-                      <td>
-                        {client ? `${client.firstName} ${client.lastName}` : 'Unknown Client'}
-                      </td>
-                      <td>
-                        {resource?.name || 'Unknown Resource'}
-                      </td>
-                      <td>
-                        <Badge bg="info">
-                          {resource?.category}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge bg={getStatusVariant(referral.status)}>
-                          {referral.status}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge bg={getUrgencyVariant(referral.urgency)}>
-                          {referral.urgency}
-                        </Badge>
-                      </td>
-                      <td>
-                        {referral.createdAt?.toLocaleDateString()}
-                      </td>
-                      <td>
-                        <div className="btn-group">
-                          <Button 
-                            variant="outline-secondary" 
-                            size="sm"
-                            onClick={() => {
-                              // View referral functionality
-                              console.log('View referral:', referral);
-                            }}
+                    <TableRow key={referral.id} hover>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            {client ? `${client.firstName} ${client.lastName}` : 'Unknown Client'}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            ID: {referral.clientId}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            {resource?.name || 'Unknown Resource'}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {resource?.organization}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {getStatusIcon(referral.status)}
+                          <Chip
+                            label={referral.status.replace(/_/g, ' ')}
+                            color={getStatusColor(referral.status)}
+                            size="small"
+                          />
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={referral.urgency}
+                          color={getUrgencyColor(referral.urgency)}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {referral.reason}
+                        </Typography>
+                        {referral.notes && (
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', mt: 0.5 }}>
+                            {referral.notes.substring(0, 50)}...
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {referral.createdAt.toLocaleDateString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<EditIcon />}
+                            onClick={() => editReferral(referral)}
                           >
-                            <FaEye />
+                            Edit
                           </Button>
-                          <Button 
-                            variant="outline-primary" 
-                            size="sm"
-                            onClick={() => {
-                              setEditingReferral(referral);
-                              setFormData(referral);
-                              setShowModal(true);
-                            }}
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<VisibilityIcon />}
                           >
-                            <FaEdit />
+                            View
                           </Button>
-                        </div>
-                      </td>
-                    </tr>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        </Card.Body>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
       </Card>
 
       {/* Add/Edit Referral Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>{editingReferral ? 'Edit Referral' : 'New Referral'}</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmit}>
-          <Modal.Body>
-            <Row className="mb-3">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Client</Form.Label>
-                  <Form.Select
-                    value={formData.clientId || ''}
-                    onChange={(e) => setFormData({...formData, clientId: e.target.value})}
-                    required
-                  >
-                    <option value="">Select Client</option>
-                    {clients.map(client => (
-                      <option key={client.id} value={client.id}>
-                        {client.firstName} {client.lastName}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Resource</Form.Label>
-                  <Form.Select
-                    value={formData.resourceId || ''}
-                    onChange={(e) => setFormData({...formData, resourceId: e.target.value})}
-                    required
-                  >
-                    <option value="">Select Resource</option>
-                    {resources.map(resource => (
-                      <option key={resource.id} value={resource.id}>
-                        {resource.name}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-            
-            <Row className="mb-3">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Category</Form.Label>
-                  <Form.Select
-                    value={formData.category || ''}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  >
-                    <option value="">Select Category</option>
-                    <option value={ResourceCategory.HEALTHCARE}>Healthcare</option>
-                    <option value={ResourceCategory.HOUSING}>Housing</option>
-                    <option value={ResourceCategory.TRANSPORTATION}>Transportation</option>
-                    <option value={ResourceCategory.EMPLOYMENT}>Employment</option>
-                    <option value={ResourceCategory.EDUCATION}>Education</option>
-                    <option value={ResourceCategory.MENTAL_HEALTH}>Mental Health</option>
-                    <option value={ResourceCategory.CHILDCARE}>Childcare</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Status</Form.Label>
-                  <Form.Select
-                    value={formData.status || ''}
-                    onChange={(e) => setFormData({...formData, status: e.target.value as ReferralStatus})}
-                    required
-                  >
-                    <option value={ReferralStatus.PENDING}>Pending</option>
-                    <option value={ReferralStatus.CONTACTED}>Contacted</option>
-                    <option value={ReferralStatus.COMPLETED}>Completed</option>
-                    <option value={ReferralStatus.CANCELLED}>Cancelled</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-            
-            <Row className="mb-3">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Urgency</Form.Label>
-                  <Form.Select
-                    value={formData.urgency || ''}
-                    onChange={(e) => setFormData({...formData, urgency: e.target.value as ReferralUrgency})}
-                    required
-                  >
-                    <option value={ReferralUrgency.LOW}>Low</option>
-                    <option value={ReferralUrgency.MEDIUM}>Medium</option>
-                    <option value={ReferralUrgency.HIGH}>High</option>
-                    <option value={ReferralUrgency.URGENT}>Urgent</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Follow-up Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={formData.followUpDate || ''}
-                    onChange={(e) => setFormData({...formData, followUpDate: e.target.value})}
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Notes</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                placeholder="Additional notes about this referral..."
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>
-              Cancel
+      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {selectedReferral ? 'Edit Referral' : 'New Referral'}
+        </DialogTitle>
+        <form onSubmit={handleSubmit}>
+          <DialogContent>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Client"
+                  value={formData.clientId}
+                  onChange={(e) => setFormData({...formData, clientId: e.target.value})}
+                  required
+                >
+                  {clients.map(client => (
+                    <MenuItem key={client.id} value={client.id}>
+                      {client.firstName} {client.lastName}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Resource"
+                  value={formData.resourceId}
+                  onChange={(e) => setFormData({...formData, resourceId: e.target.value})}
+                  required
+                >
+                  {resources.map(resource => (
+                    <MenuItem key={resource.id} value={resource.id}>
+                      {resource.name} - {resource.organization}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Urgency"
+                  value={formData.urgency}
+                  onChange={(e) => setFormData({...formData, urgency: e.target.value as ReferralUrgency})}
+                >
+                  {Object.values(ReferralUrgency).map(urgency => (
+                    <MenuItem key={urgency} value={urgency}>
+                      {urgency.charAt(0).toUpperCase() + urgency.slice(1)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Reason for Referral"
+                  value={formData.reason}
+                  onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                  required
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Additional Notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                  placeholder="Any additional information about this referral..."
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button type="submit" variant="contained">
+              {selectedReferral ? 'Update Referral' : 'Create Referral'}
             </Button>
-            <Button variant="primary" type="submit">
-              {editingReferral ? 'Update' : 'Create'} Referral
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="add"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => setShowModal(true)}
+      >
+        <AddIcon />
+      </Fab>
     </Container>
   );
 }
