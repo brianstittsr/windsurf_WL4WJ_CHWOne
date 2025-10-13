@@ -1,10 +1,7 @@
 // Export Common components
+// Only export AnimatedLoading since that's what we need
 import AnimatedLoading from './AnimatedLoading';
-import TestModeToggle from './TestModeToggle';
-import TestModeWrapper from './TestModeWrapper';
 
 export {
-  AnimatedLoading,
-  TestModeToggle,
-  TestModeWrapper
+  AnimatedLoading
 };

@@ -1,13 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Container, Button as BsButton } from 'react-bootstrap';
+import { Box, Container, Typography, Button } from '@mui/material';
 import Link from 'next/link';
-import PageContainer from './PageContainer';
 
 /**
- * Magic template page that matches the homepage design
- * This preserves the beautiful gradient background and centered layout
+ * Stub MagicPageTemplate that doesn't use react-bootstrap
+ * This is a simplified version for build compatibility
  */
 
 interface MagicPageTemplateProps {
@@ -27,20 +26,19 @@ export default function MagicPageTemplate({
 }: MagicPageTemplateProps) {
   
   return (
-    <PageContainer
-      variant="magic-centered"
-      background="magic"
-      headerVariant="magic"
-      footerVariant="magic"
-      showHeader={showHeader}
-      showFooter={false}
-    >
-      {/* Magic-style content matching homepage */}
-      <Container className="text-center" style={{ maxWidth: '800px' }}>
+    <Box sx={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+      color: 'white',
+      padding: 4
+    }}>
+      <Container maxWidth="md" sx={{ textAlign: 'center', py: 4 }}>
         {title && (
-          <h1 style={{ 
-            fontSize: '4rem', 
-            marginBottom: '1rem', 
+          <Typography variant="h1" sx={{
+            fontSize: '4rem',
+            mb: 2,
             fontWeight: 'bold',
             background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
             WebkitBackgroundClip: 'text',
@@ -48,56 +46,47 @@ export default function MagicPageTemplate({
             backgroundClip: 'text'
           }}>
             {title}
-          </h1>
+          </Typography>
         )}
         
         {subtitle && (
-          <p style={{ 
-            fontSize: '1.25rem', 
-            marginBottom: '3rem', 
-            color: 'rgba(255,255,255,0.8)', 
+          <Typography variant="h5" sx={{
+            fontSize: '1.25rem',
+            mb: 4,
+            color: 'rgba(255,255,255,0.8)',
             lineHeight: 1.6,
             maxWidth: '600px',
-            margin: '0 auto 3rem auto'
+            mx: 'auto'
           }}>
             {subtitle}
-          </p>
+          </Typography>
         )}
         
         {actions && (
-          <div className="d-flex flex-wrap justify-content-center gap-3 mb-5">
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2, mb: 4 }}>
             {actions}
-          </div>
+          </Box>
         )}
 
         {children && (
-          <div style={{
-            padding: '1.5rem',
+          <Box sx={{
+            p: 3,
             background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '16px',
+            borderRadius: 2,
             border: '1px solid rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(10px)',
             textAlign: 'left',
-            marginTop: '2rem'
+            mt: 4
           }}>
             {children}
-          </div>
+          </Box>
         )}
       </Container>
-
-      {/* Gradient Animation Styles */}
-      <style jsx>{`
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
-    </PageContainer>
+    </Box>
   );
 }
 
-// Magic-style button component
+// Magic-style button component using MUI instead of react-bootstrap
 export const MagicButton = ({ 
   children, 
   variant = 'primary',
@@ -111,46 +100,38 @@ export const MagicButton = ({
   href?: string;
   [key: string]: any;
 }) => {
-  const bsVariant = variant === 'primary' ? 'primary' : 'outline-light';
+  const muiVariant = variant === 'primary' ? 'contained' : 'outlined';
+  const buttonSx = {
+    py: 2,
+    px: 4,
+    borderRadius: 3,
+    fontSize: '1.1rem',
+    fontWeight: 600,
+    backdropFilter: variant === 'secondary' ? 'blur(10px)' : 'none',
+    ...props.sx
+  };
   
   if (href) {
     return (
-      <Link href={href}>
-        <BsButton 
-          variant={bsVariant}
-          size="lg"
-          className={variant === 'primary' ? 'shadow-lg' : ''}
-          style={{
-            padding: '1rem 2rem',
-            borderRadius: '12px',
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            backdropFilter: variant === 'secondary' ? 'blur(10px)' : 'none'
-          }}
-          {...props}
-        >
-          {children}
-        </BsButton>
-      </Link>
+      <Button 
+        variant={muiVariant}
+        onClick={onClick}
+        href={href}
+        LinkComponent={Link}
+        sx={buttonSx}
+      >
+        {children}
+      </Button>
     );
   }
 
   return (
-    <BsButton 
-      variant={bsVariant}
-      size="lg"
+    <Button 
+      variant={muiVariant}
       onClick={onClick}
-      className={variant === 'primary' ? 'shadow-lg' : ''}
-      style={{
-        padding: '1rem 2rem',
-        borderRadius: '12px',
-        fontSize: '1.1rem',
-        fontWeight: '600',
-        backdropFilter: variant === 'secondary' ? 'blur(10px)' : 'none'
-      }}
-      {...props}
+      sx={buttonSx}
     >
       {children}
-    </BsButton>
+    </Button>
   );
 };
