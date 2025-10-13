@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const projectId = params.id;
+export async function GET(request: NextRequest) {
+  // Extract the id from the URL path
+  const urlParts = request.url.split('/');
+  const projectId = urlParts[urlParts.length - 2]; // Get the ID from the URL path
+  
   const url = new URL(request.url);
   const filename = url.searchParams.get('filename');
   const content = url.searchParams.get('content');
