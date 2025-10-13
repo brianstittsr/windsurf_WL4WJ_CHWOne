@@ -386,7 +386,7 @@ export default function PublicFormPage() {
             Form Not Found
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            The form you're looking for doesn't exist or is no longer available.
+            The form you&apos;re looking for doesn&apos;t exist or is no longer available.
           </Typography>
         </Box>
       </Container>

@@ -93,7 +93,7 @@ export default function AdminDashboard() {
               Access Denied
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-              You don't have permission to access the admin panel.
+              You don&apos;t have permission to access the admin panel.
             </Typography>
             <Button variant="contained" onClick={() => router.push('/dashboard')}>
               Return to Dashboard

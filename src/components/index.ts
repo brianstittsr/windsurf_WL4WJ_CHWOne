@@ -4,7 +4,7 @@ export * from './Common';
 export * from './Layout';
 
 // Export individual components
-export { default as CustomMDX } from './CustomMDX.jsx';
-export { default as ScrollToHash } from './ScrollToHash.jsx';
-export { default as ProjectCard } from './ProjectCard.jsx';
-export { default as Mailchimp } from './Mailchimp.jsx';
+export { CustomMDX } from './CustomMDX.jsx';
+export { ScrollToHash } from './ScrollToHash.jsx';
+export { ProjectCard } from './ProjectCard.jsx';
+export { Mailchimp } from './Mailchimp.jsx';

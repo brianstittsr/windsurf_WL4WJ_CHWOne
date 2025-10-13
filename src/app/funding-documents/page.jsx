@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import { Button, Card, Box, Typography, TextField, CardContent, Stack, Container, Grid, Paper } from '@mui/material';
 
-interface FundingProject {
-  id: string;
-  title: string;
-  description: string;
-  contributors: string[];
-  status: 'draft' | 'collecting' | 'synthesizing' | 'complete';
-  createdAt: Date;
-}
+/**
+ * @typedef {Object} FundingProject
+ * @property {string} id - Project ID
+ * @property {string} title - Project title
+ * @property {string} description - Project description
+ * @property {string[]} contributors - List of contributor IDs
+ * @property {'draft'|'collecting'|'synthesizing'|'complete'} status - Current project status
+ * @property {Date} createdAt - Creation date
+ */
 
 export default function FundingDocumentsPage() {
   const [projects, setProjects] = useState([]);
