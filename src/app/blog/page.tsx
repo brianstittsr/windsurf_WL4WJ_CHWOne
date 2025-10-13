@@ -1,6 +1,6 @@
 import { Container, Box, Typography } from "@mui/material";
-import { Mailchimp } from "@/components";
-import { Posts } from "@/components/blog/Posts";
+import { Mailchimp } from "@/components/Mailchimp.jsx";
+import { Posts } from "@/components/blog/Posts.jsx";
 import { baseURL, blog, person, newsletter } from "@/resources";
 
 export async function generateMetadata() {
