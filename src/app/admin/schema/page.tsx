@@ -4,9 +4,9 @@ import React from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Box } from '@mui/material';
-import SchemaManager from '@/components/Admin/SchemaManager';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
-import AnimatedLoading from '@/components/Common/AnimatedLoading';
+import { SchemaManager } from '@/components/Admin';
+import { UnifiedLayout } from '@/components/Layout';
+import { AnimatedLoading } from '@/components/Common';
 
 // Inner component that uses the auth context
 function SchemaManagerPage() {

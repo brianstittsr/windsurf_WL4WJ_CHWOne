@@ -28,7 +28,6 @@ const nextConfig = {
   // Optimize static asset handling
   poweredByHeader: false,
   reactStrictMode: true,
-  swcMinify: true,
   // Improve asset caching
   staticPageGenerationTimeout: 120,
   // Disable compression during development for faster builds
