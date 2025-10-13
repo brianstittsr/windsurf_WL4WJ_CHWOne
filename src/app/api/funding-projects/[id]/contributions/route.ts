@@ -3,11 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // In-memory storage for demo - replace with database
 let contributions: any[] = [];
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
-  const projectId = context.params.id;
+// Define the correct type for dynamic route parameters
+type Props = {
+  params: { id: string }
+};
+
+export async function GET(request: NextRequest, { params }: Props) {
+  const projectId = params.id;
   const projectContributions = contributions.filter(c => c.projectId === projectId);
 
   return NextResponse.json({
@@ -16,12 +18,9 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: Props) {
   try {
-    const projectId = context.params.id;
+    const projectId = params.id;
     const body = await request.json();
     const { contributorName, contributorEmail, section, content } = body;
 
