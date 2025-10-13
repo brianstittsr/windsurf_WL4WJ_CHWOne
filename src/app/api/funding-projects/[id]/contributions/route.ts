@@ -3,16 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // In-memory storage for demo - replace with database
 let contributions: any[] = [];
 
-// Define the correct type for route handlers in Next.js App Router
-type RouteContext = {
-  params: { id: string }
-};
-
 export async function GET(
   request: NextRequest,
-  { params }: RouteContext
+  context: { params: { id: string } }
 ) {
-  const projectId = params.id;
+  const projectId = context.params.id;
   const projectContributions = contributions.filter(c => c.projectId === projectId);
 
   return NextResponse.json({
@@ -23,10 +18,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: RouteContext
+  context: { params: { id: string } }
 ) {
   try {
-    const projectId = params.id;
+    const projectId = context.params.id;
     const body = await request.json();
     const { contributorName, contributorEmail, section, content } = body;
 
