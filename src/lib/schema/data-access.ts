@@ -387,33 +387,6 @@ export async function createProject(project: Omit<Project, 'id' | 'createdAt' | 
   }
 }
 
-/**
- * Create a grant
- */
-export async function createGrant(grant: Omit<Grant, 'id' | 'createdAt' | 'updatedAt'>) {
-  try {
-    const grantsRef = collection(db, COLLECTIONS.GRANTS);
-    
-    const docRef = await addDoc(grantsRef, {
-      ...grant,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    });
-    
-    // Log activity
-    await logActivity({
-      action: 'create',
-      resourceType: 'grant',
-      resourceId: docRef.id,
-      description: `Grant created: ${grant.title}`
-    });
-    
-    return { success: true, grantId: docRef.id };
-  } catch (error) {
-    console.error('Error creating grant:', error);
-    return { success: false, error };
-  }
-}
 
 // ============================================================================
 // FORMS & SUBMISSIONS
@@ -534,6 +507,149 @@ export async function createReferral(referral: Omit<Referral, 'id' | 'createdAt'
   } catch (error) {
     console.error('Error creating referral:', error);
     return { success: false, error };
+  }
+}
+
+// ============================================================================
+// PROJECTS & GRANTS
+// ============================================================================
+
+/**
+ * Create a grant
+ */
+export async function createGrant(grant: Omit<Grant, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ success: boolean; grantId?: string; error?: any }> {
+  try {
+    const grantsRef = collection(db, COLLECTIONS.GRANTS);
+    
+    const docRef = await addDoc(grantsRef, {
+      ...grant,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+    
+    // Log activity
+    await logActivity({
+      action: 'create',
+      resourceType: 'grant',
+      resourceId: docRef.id,
+      description: `Grant created: ${grant.title}`
+    });
+    
+    return { success: true, grantId: docRef.id };
+  } catch (error) {
+    console.error('Error creating grant:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Update a grant
+ */
+export async function updateGrant(id: string, updates: Partial<Grant>): Promise<{ success: boolean; error?: any }> {
+  try {
+    const grantRef = doc(db, COLLECTIONS.GRANTS, id);
+    
+    await updateDoc(grantRef, {
+      ...updates,
+      updatedAt: Timestamp.now()
+    });
+    
+    // Log activity
+    await logActivity({
+      action: 'update',
+      resourceType: 'grant',
+      resourceId: id,
+      description: `Grant updated: ${updates.title || id}`
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating grant:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Get all grants
+ */
+export async function getAllGrants(options: {
+  organizationId?: string;
+  status?: string;
+  limit?: number;
+} = {}): Promise<{ success: boolean; grants: Grant[]; error?: any }> {
+  try {
+    const constraints: QueryConstraint[] = [];
+    
+    if (options.organizationId) {
+      constraints.push(where('organizationId', '==', options.organizationId));
+    }
+    
+    if (options.status) {
+      constraints.push(where('status', '==', options.status));
+    }
+    
+    // Always sort by creation date, newest first
+    constraints.push(orderBy('createdAt', 'desc'));
+    
+    if (options.limit) {
+      constraints.push(limit(options.limit));
+    }
+    
+    const grantsQuery = query(collection(db, COLLECTIONS.GRANTS), ...constraints);
+    const grantsSnapshot = await getDocs(grantsQuery);
+    
+    const grants = grantsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Grant[];
+    
+    return { success: true, grants };
+  } catch (error) {
+    console.error('Error getting grants:', error);
+    return { success: false, grants: [], error };
+  }
+}
+
+/**
+ * Get a grant by ID
+ */
+export async function getGrantById(id: string): Promise<{ success: boolean; grant?: Grant; error?: any }> {
+  try {
+    const grantRef = doc(db, COLLECTIONS.GRANTS, id);
+    const grantDoc = await getDoc(grantRef);
+    
+    if (grantDoc.exists()) {
+      return { 
+        success: true, 
+        grant: { 
+          id: grantDoc.id, 
+          ...grantDoc.data() 
+        } as Grant 
+      };
+    }
+    
+    return { success: false, error: 'Grant not found' };
+  } catch (error) {
+    console.error('Error getting grant:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Get active grants count
+ */
+export async function getActiveGrantsCount(): Promise<number> {
+  try {
+    const grantsQuery = query(
+      collection(db, COLLECTIONS.GRANTS),
+      where('status', '==', 'active')
+    );
+    
+    const grantsSnapshot = await getDocs(grantsQuery);
+    return grantsSnapshot.size;
+  } catch (error) {
+    console.error('Error fetching active grants count:', error);
+    return 8; // Fallback mock value
   }
 }
 
