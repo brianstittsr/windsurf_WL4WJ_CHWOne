@@ -294,7 +294,7 @@ export const Textarea = (props: TextareaProps) => (
 );
 
 // Export default to make importing easier
-export default {
+const components = {
   Box,
   Typography,
   Button: OnceButton,
@@ -311,3 +311,5 @@ export default {
   Textarea,
   // Add other components as needed
 };
+
+export default components;

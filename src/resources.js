@@ -73,7 +73,7 @@ export const work = {
   ]
 };
 
-export default {
+const resources = {
   baseURL,
   blog,
   person,
@@ -84,3 +84,5 @@ export default {
   routes,
   work
 };
+
+export default resources;

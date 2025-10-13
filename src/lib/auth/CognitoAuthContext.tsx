@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { cognitoAuth, CognitoUser, AuthState } from '@/lib/auth/cognitoAuth';
+import { cognitoAuth, CognitoUser, AuthState, checkCognitoAvailability } from '@/lib/auth/cognitoAuth';
 import { UserRole } from '@/types/firebase/schema';
 import { useAuth as useFirebaseAuth } from '@/contexts/AuthContext';
 
@@ -25,11 +25,33 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
     loading: true,
     error: null
   });
+  const [isCognitoAvailable, setIsCognitoAvailable] = useState<boolean>(false);
+
+  // Check if Cognito is available
+  useEffect(() => {
+    const checkAvailability = async () => {
+      const available = await checkCognitoAvailability();
+      setIsCognitoAvailable(available);
+      
+      // If Cognito is not available, set loading to false
+      if (!available) {
+        setAuthState(prev => ({
+          ...prev,
+          loading: false,
+          error: 'Cognito authentication is not available'
+        }));
+      }
+    };
+    
+    checkAvailability();
+  }, []);
 
   useEffect(() => {
-    // Check for existing authentication on app load
-    checkAuthState();
-  }, []);
+    // Only check auth state if Cognito is available
+    if (isCognitoAvailable) {
+      checkAuthState();
+    }
+  }, [isCognitoAvailable]);
 
   const checkAuthState = async () => {
     try {
@@ -51,6 +73,17 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    // Check if Cognito is available
+    if (!isCognitoAvailable) {
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        loading: false,
+        error: 'Cognito authentication is not available'
+      });
+      throw new Error('Cognito authentication is not available');
+    }
+    
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     try {
       const user = await cognitoAuth.signIn(email, password);
@@ -72,6 +105,17 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, attributes: Record<string, string> = {}) => {
+    // Check if Cognito is available
+    if (!isCognitoAvailable) {
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        loading: false,
+        error: 'Cognito authentication is not available'
+      });
+      throw new Error('Cognito authentication is not available');
+    }
+    
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     try {
       await cognitoAuth.signUp(email, password, attributes);
@@ -87,6 +131,17 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Check if Cognito is available
+    if (!isCognitoAvailable) {
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        loading: false,
+        error: null // No error on sign out if Cognito is not available
+      });
+      return; // Just return success since we're already signed out
+    }
+    
     setAuthState(prev => ({ ...prev, loading: true }));
     try {
       await cognitoAuth.signOut();
@@ -106,7 +161,24 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Helper function to check Cognito availability
+  const checkCognitoAvailabilityOrThrow = () => {
+    if (!isCognitoAvailable) {
+      const error = 'Cognito authentication is not available';
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        loading: false,
+        error
+      });
+      throw new Error(error);
+    }
+  };
+
   const confirmSignUp = async (email: string, code: string) => {
+    // Check if Cognito is available
+    checkCognitoAvailabilityOrThrow();
+    
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     try {
       await cognitoAuth.confirmSignUp(email, code);
@@ -122,6 +194,9 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const forgotPassword = async (email: string) => {
+    // Check if Cognito is available
+    checkCognitoAvailabilityOrThrow();
+    
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     try {
       await cognitoAuth.forgotPassword(email);
@@ -137,6 +212,9 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const confirmPassword = async (email: string, code: string, newPassword: string) => {
+    // Check if Cognito is available
+    checkCognitoAvailabilityOrThrow();
+    
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     try {
       await cognitoAuth.confirmPassword(email, code, newPassword);
@@ -152,6 +230,9 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserAttributes = async (attributes: Record<string, string>) => {
+    // Check if Cognito is available
+    checkCognitoAvailabilityOrThrow();
+    
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     try {
       await cognitoAuth.updateUserAttributes(attributes);
@@ -168,6 +249,9 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resendConfirmationCode = async (email: string) => {
+    // Check if Cognito is available
+    checkCognitoAvailabilityOrThrow();
+    
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     try {
       await cognitoAuth.resendConfirmationCode(email);
@@ -201,6 +285,7 @@ export function CognitoAuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Move useContext outside of conditional blocks
 export function useCognitoAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -210,68 +295,81 @@ export function useCognitoAuth() {
 }
 
 // Configuration to switch between Firebase and Cognito
+// Default to Firebase if not specified or if Cognito is not available
 const AUTH_PROVIDER = process.env.NEXT_PUBLIC_AUTH_PROVIDER || 'firebase';
 const USE_COGNITO = AUTH_PROVIDER === 'cognito';
 
 // Legacy compatibility - create a Firebase-like interface
 export function useAuth() {
-  // Use Cognito if explicitly enabled, otherwise use Firebase
+  // Use Cognito only if explicitly enabled AND available
   if (USE_COGNITO) {
-    const cognitoAuth = useCognitoAuth();
+    try {
+      const cognitoAuth = useCognitoAuth();
+      
+      // If Cognito is not available (error state), fall back to Firebase
+      if (cognitoAuth.error === 'Cognito authentication is not available') {
+        console.warn('Falling back to Firebase authentication');
+        return useFirebaseAuth();
+      }
 
-    // Transform Cognito auth to Firebase-like interface
-    return {
-      currentUser: cognitoAuth.user ? {
-        uid: cognitoAuth.user.username,
-        email: cognitoAuth.user.email,
-        displayName: cognitoAuth.user.givenName
-          ? `${cognitoAuth.user.givenName} ${cognitoAuth.user.familyName || ''}`.trim()
-          : cognitoAuth.user.email,
-        emailVerified: cognitoAuth.user.emailVerified,
-        phoneNumber: cognitoAuth.user.phoneNumber,
-        role: UserRole.CHW, // Default role - would be determined by custom attributes
-        chwProfile: {
-          firstName: cognitoAuth.user.givenName || '',
-          lastName: cognitoAuth.user.familyName || '',
-          primaryPhone: cognitoAuth.user.phoneNumber || '',
-          languages: [],
-          serviceArea: [],
-          zipCodes: [],
-          skills: [],
-          specializations: [],
-          availability: {
-            monday: [],
-            tuesday: [],
-            wednesday: [],
-            thursday: [],
-            friday: [],
-            saturday: [],
-            sunday: []
+      // Transform Cognito auth to Firebase-like interface
+      return {
+        currentUser: cognitoAuth.user ? {
+          uid: cognitoAuth.user.username,
+          email: cognitoAuth.user.email,
+          displayName: cognitoAuth.user.givenName
+            ? `${cognitoAuth.user.givenName} ${cognitoAuth.user.familyName || ''}`.trim()
+            : cognitoAuth.user.email,
+          emailVerified: cognitoAuth.user.emailVerified,
+          phoneNumber: cognitoAuth.user.phoneNumber,
+          role: UserRole.CHW, // Default role - would be determined by custom attributes
+          chwProfile: {
+            firstName: cognitoAuth.user.givenName || '',
+            lastName: cognitoAuth.user.familyName || '',
+            primaryPhone: cognitoAuth.user.phoneNumber || '',
+            languages: [],
+            serviceArea: [],
+            zipCodes: [],
+            skills: [],
+            specializations: [],
+            availability: {
+              monday: [],
+              tuesday: [],
+              wednesday: [],
+              thursday: [],
+              friday: [],
+              saturday: [],
+              sunday: []
+            },
+            resources: [],
+            equipment: [],
+            profileVisible: false,
+            allowContactSharing: true,
+            completedTrainings: 0,
+            activeClients: 0,
+            totalEncounters: 0
           },
-          resources: [],
-          equipment: [],
-          profileVisible: false,
-          allowContactSharing: true,
-          completedTrainings: 0,
-          activeClients: 0,
-          totalEncounters: 0
+          ...cognitoAuth.user.customAttributes
+        } : null,
+        loading: cognitoAuth.loading,
+        signIn: async (email: string, password: string) => {
+          await cognitoAuth.signIn(email, password);
         },
-        ...cognitoAuth.user.customAttributes
-      } : null,
-      loading: cognitoAuth.loading,
-      signIn: async (email: string, password: string) => {
-        await cognitoAuth.signIn(email, password);
-      },
-      signUp: async (email: string, password: string, attributes?: Record<string, string>) => {
-        await cognitoAuth.signUp(email, password, attributes);
-      },
-      signOut: cognitoAuth.signOut,
-      confirmSignUp: cognitoAuth.confirmSignUp,
-      forgotPassword: cognitoAuth.forgotPassword,
-      confirmPassword: cognitoAuth.confirmPassword,
-      updateUserAttributes: cognitoAuth.updateUserAttributes,
-      resendConfirmationCode: cognitoAuth.resendConfirmationCode
-    };
+        signUp: async (email: string, password: string, attributes?: Record<string, string>) => {
+          await cognitoAuth.signUp(email, password, attributes);
+        },
+        signOut: cognitoAuth.signOut,
+        confirmSignUp: cognitoAuth.confirmSignUp,
+        forgotPassword: cognitoAuth.forgotPassword,
+        confirmPassword: cognitoAuth.confirmPassword,
+        updateUserAttributes: cognitoAuth.updateUserAttributes,
+        resendConfirmationCode: cognitoAuth.resendConfirmationCode
+      };
+    } catch (error) {
+      // If there's an error with Cognito, fall back to Firebase
+      console.warn('Error using Cognito auth, falling back to Firebase:', error);
+      return useFirebaseAuth();
+    }
   } else {
     // Use Firebase as default
     return useFirebaseAuth();

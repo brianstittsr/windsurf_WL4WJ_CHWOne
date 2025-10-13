@@ -37,7 +37,7 @@ import {
   Book as BookIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
-  Copy as CopyIcon,
+  ContentCopy as CopyIcon,
   Download as DownloadIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
@@ -399,8 +399,8 @@ export default function APIAccess() {
         <DialogTitle>Your New API Key</DialogTitle>
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 2 }}>
-            <strong>Important:</strong> This is the only time you'll see this API key.
-            Copy it now and store it securely. If you lose it, you'll need to create a new one.
+            <strong>Important:</strong> This is the only time you&apos;ll see this API key.
+            Copy it now and store it securely. If you lose it, you&apos;ll need to create a new one.
           </Alert>
 
           <TextField
@@ -424,7 +424,7 @@ export default function APIAccess() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowKeyModal(false)} variant="contained">
-            I've Saved My Key
+            I&apos;ve Saved My Key
           </Button>
         </DialogActions>
       </Dialog>

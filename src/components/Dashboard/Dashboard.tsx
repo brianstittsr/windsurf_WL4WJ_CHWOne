@@ -183,7 +183,7 @@ export default function Dashboard() {
           Welcome back, {currentUser?.displayName || 'CHW Coordinator'}! 👋
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Here's an overview of your community health initiatives and key performance metrics.
+          Here&apos;s an overview of your community health initiatives and key performance metrics.
         </Typography>
       </Box>
 

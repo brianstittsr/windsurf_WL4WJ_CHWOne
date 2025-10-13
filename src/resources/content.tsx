@@ -59,7 +59,7 @@ const person: Person = {
 
 const newsletter: Newsletter = {
   display: true,
-  title: <>Subscribe to {person.firstName}'s Newsletter</>,
+  title: <>Subscribe to {person.firstName}&apos;s Newsletter</>,
   description: <>My weekly newsletter about creativity and engineering</>,
 };
 
@@ -108,7 +108,7 @@ const home: Home = {
   },
   subline: (
     <>
-      I'm Selene, a design engineer at{" "}
+      I&apos;m Selene, a design engineer at{" "}
       <img src="/trademarks/wordmark-dark.svg" alt="Once UI" style={{ display: 'inline-flex', position: 'relative', top: '0.25em', marginLeft: '-0.25em', height: '1em' }} />
       , where I craft intuitive
       <br /> user experiences. After hours, I build my own projects.

@@ -317,7 +317,7 @@ export const APIAccess = () => {
             Rate Limits
           </Typography>
           <Typography variant="body2" paragraph>
-            The API is rate-limited to 100 requests per minute. If you exceed this limit, you'll receive a 429 Too Many Requests response.
+            The API is rate-limited to 100 requests per minute. If you exceed this limit, you&apos;ll receive a 429 Too Many Requests response.
           </Typography>
         </Box>
       )}

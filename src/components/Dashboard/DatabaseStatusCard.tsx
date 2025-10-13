@@ -168,7 +168,7 @@ export default function DatabaseStatusCard() {
                 </Typography>
                 <Typography variant="body2" color="error.dark" component="ol" sx={{ pl: 2, mt: 0.5 }}>
                   <li>Check that your Firebase security rules are properly configured</li>
-                  <li>Make sure you're authenticated if the rules require it</li>
+                  <li>Make sure you&apos;re authenticated if the rules require it</li>
                   <li>Try deploying the updated security rules</li>
                 </Typography>
               </>
