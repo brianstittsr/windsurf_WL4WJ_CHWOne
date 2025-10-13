@@ -4,6 +4,8 @@ import { CognitoAuthProvider } from '@/lib/auth/CognitoAuthContext';
 import { fonts } from "@/resources";
 import './globals.css';
 import ThemeRegistry from '@/components/ThemeRegistry';
+import FirebaseInitializer from '@/components/FirebaseInitializer';
+import TestModeWrapper from '@/components/Common/TestModeWrapper';
 
 export const metadata: Metadata = {
   title: 'CHWOne - Community Health Worker Management Platform',
@@ -21,10 +23,22 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        {/* Preload the first carousel image for faster initial load */}
+        <link 
+          rel="preload" 
+          href="/images/carousel/community-health-workers.webp" 
+          as="image" 
+          type="image/webp"
+          fetchPriority="high"
+        />
       </head>
-      <body className={`${fonts.heading.variable} ${fonts.body.variable} ${fonts.label.variable} ${fonts.code.variable}`}>
+      <body>
+        {/* Test Mode Toggle - Only appears in development */}
+        <TestModeWrapper />
+        
         <ThemeRegistry>
           <CognitoAuthProvider>
+            <FirebaseInitializer />
             {children}
           </CognitoAuthProvider>
         </ThemeRegistry>
