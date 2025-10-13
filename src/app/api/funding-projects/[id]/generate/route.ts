@@ -3,12 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // In-memory storage - replace with database
 let contributions: any[] = [];
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest) {
   try {
-    const projectId = params.id;
+    // Extract the id from the URL path
+    const urlParts = request.url.split('/');
+    const projectId = urlParts[urlParts.length - 2]; // Get the ID from the URL path
     const body = await request.json();
     const { outputType } = body; // 'one-pager', 'pitch-package', 'both'
 
