@@ -13,12 +13,19 @@
     "test:coverage": "jest --coverage",
     "deploy-schema": "node scripts/deploy-schema.js",
     "init-db": "node scripts/init-firestore.js",
-    "deploy-rules": "node deploy-firestore-rules.js"
+    "deploy-rules": "node scripts/deploy-firestore-rules.js",
+    "deploy-indexes": "node scripts/deploy-firestore-indexes.js",
+    "migrate-schema": "node scripts/migrate-schema.js",
+    "check-schema": "node scripts/check-schema-health.js",
+    "firebase:deploy:all": "firebase deploy",
+    "firebase:deploy:rules": "firebase deploy --only firestore:rules",
+    "firebase:deploy:indexes": "firebase deploy --only firestore:indexes"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.908.0",
     "@aws-sdk/lib-storage": "^3.908.0",
     "@aws-sdk/s3-request-presigner": "^3.908.0",
+    "chalk": "^4.1.2",
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",

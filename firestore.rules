@@ -1,79 +1,176 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check user role
+    // DEVELOPMENT MODE - Allow full access for testing
+    // IMPORTANT: CHANGE THESE RULES BEFORE PRODUCTION DEPLOYMENT!
+    // match /{document=**} {
+    //   allow read, write: if true;
+    // }
+    
+    // PRODUCTION RULES
+    // Helper functions for authentication and authorization
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
     function getUserRole() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
     
     function isAdmin() {
-      return getUserRole() == 'admin';
+      return isAuthenticated() && getUserRole() == 'admin';
     }
     
     function isCHWCoordinator() {
-      return getUserRole() in ['admin', 'chw_coordinator'];
+      return isAuthenticated() && getUserRole() == 'chw_coordinator';
     }
     
     function isCHW() {
-      return getUserRole() in ['admin', 'chw_coordinator', 'chw'];
+      return isAuthenticated() && (getUserRole() == 'chw' || getUserRole() == 'wl4wj_chw');
     }
     
     function isNonprofitStaff() {
-      return getUserRole() in ['admin', 'chw_coordinator', 'nonprofit_staff'];
-    }
-
-    // Users collection - users can read/write their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      allow read: if request.auth != null && isAdmin();
+      return isAuthenticated() && getUserRole() == 'nonprofit_staff';
     }
     
-    // CHWs collection - role-based access
-    match /chws/{chwId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && isCHWCoordinator();
+    function isStaff() {
+      return isAuthenticated() && (isAdmin() || isCHWCoordinator() || isNonprofitStaff());
+    }
+    
+    // Organization access check
+    function hasOrgAccess(orgId) {
+      let user = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && 
+        (user.organizationId == orgId || 
+         user.permissions.canAccessAllOrganizations == true);
+    }
+    
+    // Data validation functions
+    function isValidUser(user) {
+      return user.uid is string &&
+             user.email is string &&
+             user.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$') &&
+             user.role in ['admin', 'chw', 'chw_coordinator', 'nonprofit_staff', 
+                          'wl4wj_chw', 'client', 'viewer', 'demo'] &&
+             user.organizationId is string &&
+             user.isActive is bool &&
+             user.createdAt is timestamp &&
+             user.updatedAt is timestamp;
+    }
+    
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAdmin() || (isAuthenticated() && request.auth.uid == userId && isValidUser(request.resource.data));
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if isAdmin();
+    }
+    
+    // CHW Profiles collection - role-based access
+    match /chwProfiles/{profileId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || (isAuthenticated() && request.auth.uid == profileId);
+      allow delete: if isAdmin();
+    }
+    
+    // Organizations collection - admin control, public read
+    match /organizations/{orgId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
     
     // Projects collection - staff and coordinators can manage
     match /projects/{projectId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && isNonprofitStaff();
+      allow read: if isAuthenticated() && hasOrgAccess(resource.data.organizationId);
+      allow write: if isStaff() && hasOrgAccess(request.resource.data.organizationId);
     }
     
     // Grants collection - admin and coordinators only
     match /grants/{grantId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && isCHWCoordinator();
+      allow read: if isAuthenticated() && hasOrgAccess(resource.data.organizationId);
+      allow write: if isAdmin() || isCHWCoordinator() && hasOrgAccess(request.resource.data.organizationId);
+    }
+    
+    // Forms collection - staff can create, all can read
+    match /forms/{formId} {
+      allow read: if isAuthenticated() && hasOrgAccess(resource.data.organizationId);
+      allow write: if isStaff() && hasOrgAccess(request.resource.data.organizationId);
+    }
+    
+    // Form Submissions collection - submitter can create, staff can read
+    match /formSubmissions/{submissionId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated() && (resource.data.submittedBy == request.auth.uid || 
+                                          isStaff() && hasOrgAccess(resource.data.organizationId));
+      allow update: if isStaff() && hasOrgAccess(resource.data.organizationId);
+      allow delete: if isAdmin();
     }
     
     // Resources collection - public read for authenticated users
     match /resources/{resourceId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && isCHWCoordinator();
+      allow read: if isAuthenticated() && hasOrgAccess(resource.data.organizationId);
+      allow write: if isStaff() && hasOrgAccess(request.resource.data.organizationId);
+    }
+    
+    // Clients collection - CHW and staff access
+    match /clients/{clientId} {
+      allow read: if isAuthenticated() && (
+        resource.data.assignedCHWId == request.auth.uid ||
+        isStaff() && hasOrgAccess(resource.data.organizationId)
+      );
+      allow create, update: if isAuthenticated() && (
+        isCHW() || isStaff()
+      ) && hasOrgAccess(request.resource.data.organizationId);
+      allow delete: if isAdmin();
     }
     
     // Referrals collection - HIPAA protected, restricted access
     match /referrals/{referralId} {
-      allow read, write: if request.auth != null && (
-        isCHW() || 
-        resource.data.clientId == request.auth.uid
+      allow read: if isAuthenticated() && (
+        resource.data.chwId == request.auth.uid ||
+        resource.data.clientId == request.auth.uid ||
+        isStaff() && hasOrgAccess(resource.data.organizationId)
       );
+      allow create, update: if isAuthenticated() && (
+        isCHW() || isStaff()
+      ) && hasOrgAccess(request.resource.data.organizationId);
+      allow delete: if isAdmin();
     }
     
-    // Survey Results collection - project-based access
-    match /surveyResults/{surveyId} {
-      allow read, write: if request.auth != null && isNonprofitStaff();
+    // Dashboard Metrics collection - staff access only
+    match /dashboardMetrics/{metricId} {
+      allow read: if isAuthenticated() && (
+        isStaff() && hasOrgAccess(resource.data.organizationId)
+      );
+      allow write: if isAdmin();
     }
     
-    // Audit Logs collection - admin read only, system write
-    match /auditLogs/{logId} {
-      allow read: if request.auth != null && isAdmin();
-      allow write: if request.auth != null; // System can write audit logs
+    // Files collection - organization-based access
+    match /files/{fileId} {
+      allow read: if isAuthenticated() && hasOrgAccess(resource.data.organizationId);
+      allow create, update: if isAuthenticated() && hasOrgAccess(request.resource.data.organizationId);
+      allow delete: if isAdmin() || (isStaff() && hasOrgAccess(resource.data.organizationId));
     }
     
-    // API Keys collection - admin only
-    match /apiKeys/{keyId} {
-      allow read, write: if request.auth != null && isAdmin();
+    // Activity Logs collection - admin read only, system write
+    match /activityLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable audit trail
+    }
+    
+    // Notifications collection - user-specific access
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAdmin() || isStaff();
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+    
+    // System collection - admin only
+    match /system/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
   }
 }
