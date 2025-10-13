@@ -21,11 +21,11 @@ import {
   useTheme
 } from '@mui/material';
 import { Menu as MenuIcon, Close as CloseIcon, Settings as SettingsIcon, Logout as LogoutIcon } from '@mui/icons-material';
-import { useAuth } from '@/lib/auth/CognitoAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
 import Link from 'next/link';
 import Image from 'next/image';
-import ThemeToggle from '../ThemeToggle';
+// ThemeToggle removed - using light mode only
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -117,6 +117,36 @@ export default function MainLayout({ children }: MainLayoutProps) {
       roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
     },
     { 
+      href: '/datasets', 
+      icon: 'database', 
+      label: 'Datasets', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/reports', 
+      icon: 'analytics', 
+      label: 'Reports', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/civicrm', 
+      icon: 'people', 
+      label: 'CiviCRM', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/ai-assistant', 
+      icon: 'chat', 
+      label: 'AI Assistant', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
+      href: '/training', 
+      icon: 'school', 
+      label: 'Training', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
       href: '/profile', 
       icon: 'person', 
       label: 'My Profile', 
@@ -131,28 +161,30 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <Box sx={{ 
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
       backgroundSize: '400% 400%',
-      animation: 'gradientShift 12s ease infinite',
+      animation: 'gradientShift 24s ease infinite',
       '@keyframes gradientShift': {
         '0%': { backgroundPosition: '0% 50%' },
         '50%': { backgroundPosition: '100% 50%' },
         '100%': { backgroundPosition: '0% 50%' },
       },
+      display: 'flex',
+      flexDirection: 'column',
     }}>
       {/* Top Navigation */}
       <AppBar 
         position="fixed" 
+        elevation={0}
         sx={{ 
-          background: 'rgba(255, 255, 255, 0.95)',
+          background: 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
           color: 'text.primary',
-          boxShadow: 1,
         }}
       >
         <Toolbar>
-          <Link href="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}>
             <Image 
               src="/images/CHWOneLogoDesign.png" 
               width={40}
@@ -163,8 +195,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <Box component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem', color: 'rgba(0, 0, 0, 0.87)' }}>CHWOne</Box>
           </Link>
 
-          {/* Desktop Menu */}
-          {!isMobile && (
+          {/* Desktop Menu - Only show when logged in */}
+          {!isMobile && currentUser && (
             <Box sx={{ flexGrow: 1, display: 'flex', ml: 4, gap: 2 }}>
               {filteredMenuItems.map((item) => (
                 <Button
@@ -178,10 +210,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
               ))}
             </Box>
           )}
+          
+          {/* Spacer when not showing menu */}
+          {(!currentUser || isMobile) && <Box sx={{ flexGrow: 1 }} />}
 
-          {/* Mobile Menu Button */}
-          {isMobile && <Box sx={{ flexGrow: 1 }} />}
-          {isMobile && (
+          {/* Mobile Menu Button - Only show when logged in */}
+          {isMobile && currentUser && (
             <IconButton
               edge="start"
               color="inherit"
@@ -192,31 +226,64 @@ export default function MainLayout({ children }: MainLayoutProps) {
             </IconButton>
           )}
 
-          {/* Theme Toggle */}
-          <ThemeToggle />
 
-          {/* User Menu */}
+          {/* Login Button or User Menu */}
           <Box sx={{ ml: 2 }}>
-            <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
-              <Avatar sx={{ bgcolor: 'primary.main' }}>
-                {(currentUser?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
-              </Avatar>
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleUserMenuClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-              <MenuItem component={Link} href="/settings" onClick={handleUserMenuClose}>
-                <SettingsIcon sx={{ mr: 1 }} /> Settings
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={handleLogout}>
-                <LogoutIcon sx={{ mr: 1 }} /> Logout
-              </MenuItem>
-            </Menu>
+            {currentUser ? (
+              // User Menu when logged in
+              <>
+                <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    {(currentUser?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
+                  </Avatar>
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleUserMenuClose}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                >
+                  <MenuItem component={Link} href="/settings" onClick={handleUserMenuClose}>
+                    <SettingsIcon sx={{ mr: 1 }} /> Settings
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem onClick={handleLogout}>
+                    <LogoutIcon sx={{ mr: 1 }} /> Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              // Login/Register buttons when not logged in
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button 
+                  variant="outlined" 
+                  color="primary"
+                  component={Link}
+                  href="/register"
+                  sx={{ 
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 500
+                  }}
+                >
+                  Register
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="primary"
+                  component={Link}
+                  href="/login"
+                  sx={{ 
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 500
+                  }}
+                >
+                  Login
+                </Button>
+              </Box>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
@@ -251,6 +318,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
           pt: 10,
           px: { xs: 2, sm: 3 },
           pb: 5,
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'visible'
         }}
       >
         <Container 
@@ -258,10 +329,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
           sx={{
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
-            borderRadius: 3,
-            p: { xs: 2, sm: 4 },
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: 2,
+            p: { xs: 3, sm: 4 },
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'visible',
+            height: 'auto'
           }}
         >
           {children}
