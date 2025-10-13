@@ -1,56 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// In-memory storage for demo - replace with database
-let contributions: any[] = [];
-
-// Define the correct type for dynamic route parameters
-type Props = {
-  params: { id: string }
-};
-
-export async function GET(request: NextRequest, { params }: Props) {
-  const projectId = params.id;
-  const projectContributions = contributions.filter(c => c.projectId === projectId);
-
+// Simple stub implementation for the API route
+export async function GET(request: NextRequest) {
+  // Extract the id from the URL path
+  const id = request.url.split('/').pop();
+  
   return NextResponse.json({
     success: true,
-    contributions: projectContributions,
+    contributions: [],
+    projectId: id
   });
 }
 
-export async function POST(request: NextRequest, { params }: Props) {
+export async function POST(request: NextRequest) {
+  // Extract the id from the URL path
+  const id = request.url.split('/').pop();
+  
   try {
-    const projectId = params.id;
     const body = await request.json();
-    const { contributorName, contributorEmail, section, content } = body;
-
-    if (!contributorName || !section || !content) {
-      return NextResponse.json({
-        success: false,
-        error: 'Name, section, and content are required',
-      }, { status: 400 });
-    }
-
-    const newContribution = {
-      id: Date.now().toString(),
-      projectId,
-      contributorName,
-      contributorEmail: contributorEmail || '',
-      section,
-      content,
-      submittedAt: new Date().toISOString(),
-    };
-
-    contributions.push(newContribution);
-
+    
     return NextResponse.json({
       success: true,
-      contribution: newContribution,
+      contribution: {
+        id: Date.now().toString(),
+        projectId: id,
+        ...body,
+        submittedAt: new Date().toISOString()
+      }
     });
   } catch (error) {
     return NextResponse.json({
       success: false,
-      error: 'Failed to submit contribution',
+      error: 'Failed to submit contribution'
     }, { status: 500 });
   }
 }
