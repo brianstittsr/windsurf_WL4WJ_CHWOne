@@ -8,24 +8,67 @@
  * 4. Checking for inconsistencies in the data
  */
 
-const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 
-// Initialize Firebase Admin SDK
+// Import Firebase client SDK
+const { initializeApp } = require('firebase/app');
+const { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  serverTimestamp,
+  Timestamp
+} = require('firebase/firestore');
+
+// Import Firebase config
+let firebaseConfig;
 try {
-  const serviceAccount = require('../serviceAccountKey.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  // Try to import from environment variables first
+  if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+    firebaseConfig = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+    };
+  } else {
+    // Fall back to local config file
+    const configPath = path.join(__dirname, '..', 'src', 'lib', 'firebase-config.ts');
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, 'utf8');
+      // Extract the config object using regex
+      const configMatch = configContent.match(/firebaseConfig\s*=\s*({[\s\S]*?});/);
+      if (configMatch && configMatch[1]) {
+        // Convert the extracted string to a JavaScript object
+        // This is a simple approach and might not work for complex configs
+        const configStr = configMatch[1].replace(/\s*\/\/.*$/gm, '');
+        firebaseConfig = eval(`(${configStr})`);
+      }
+    }
+  }
+  
+  if (!firebaseConfig) {
+    throw new Error('Firebase configuration not found');
+  }
 } catch (error) {
-  console.error(chalk.red('Error initializing Firebase Admin SDK:'), error.message);
-  console.error(chalk.yellow('Make sure you have a serviceAccountKey.json file in the root directory.'));
+  console.error(chalk.red('Error loading Firebase configuration:'), error.message);
+  console.error(chalk.yellow('Please set Firebase environment variables or create a firebase-config.ts file.'));
   process.exit(1);
 }
 
-const db = admin.firestore();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // Collections to check
 const COLLECTIONS = {
@@ -77,7 +120,10 @@ async function checkCollections() {
   
   for (const collectionName of collections) {
     try {
-      const snapshot = await db.collection(collectionName).limit(1).get();
+      const collRef = collection(db, collectionName);
+      const q = query(collRef, limit(1));
+      const snapshot = await getDocs(q);
+      
       if (!snapshot.empty) {
         console.log(chalk.green(`✓ Collection exists: ${collectionName}`));
         results.collections.existing++;
@@ -97,9 +143,10 @@ async function checkSchemaVersion() {
   console.log(chalk.blue('\nChecking schema version...'));
   
   try {
-    const schemaVersionDoc = await db.collection(COLLECTIONS.SYSTEM).doc('schema_version').get();
+    const schemaVersionRef = doc(db, COLLECTIONS.SYSTEM, 'schema_version');
+    const schemaVersionDoc = await getDoc(schemaVersionRef);
     
-    if (schemaVersionDoc.exists) {
+    if (schemaVersionDoc.exists()) {
       const versionData = schemaVersionDoc.data();
       results.schemaVersion = versionData;
       console.log(chalk.green(`✓ Schema version: ${versionData.version}`));
@@ -118,7 +165,8 @@ async function checkOrganizations() {
   console.log(chalk.blue('\nChecking organizations...'));
   
   try {
-    const orgsSnapshot = await db.collection(COLLECTIONS.ORGANIZATIONS).get();
+    const orgsRef = collection(db, COLLECTIONS.ORGANIZATIONS);
+    const orgsSnapshot = await getDocs(orgsRef);
     
     if (orgsSnapshot.empty) {
       console.log(chalk.yellow('⚠ No organizations found'));
@@ -127,13 +175,13 @@ async function checkOrganizations() {
     
     console.log(chalk.green(`✓ Found ${orgsSnapshot.size} organizations`));
     
-    orgsSnapshot.forEach(doc => {
-      const org = doc.data();
+    orgsSnapshot.forEach(docSnap => {
+      const org = docSnap.data();
       results.organizations.push({
-        id: doc.id,
+        id: docSnap.id,
         name: org.name
       });
-      console.log(chalk.green(`  - ${org.name} (${doc.id})`));
+      console.log(chalk.green(`  - ${org.name} (${docSnap.id})`));
     });
   } catch (error) {
     console.log(chalk.red(`✗ Error checking organizations: ${error.message}`));
@@ -145,7 +193,8 @@ async function checkUserRoles() {
   console.log(chalk.blue('\nChecking user roles...'));
   
   try {
-    const usersSnapshot = await db.collection(COLLECTIONS.USERS).get();
+    const usersRef = collection(db, COLLECTIONS.USERS);
+    const usersSnapshot = await getDocs(usersRef);
     
     if (usersSnapshot.empty) {
       console.log(chalk.yellow('⚠ No users found'));
@@ -155,8 +204,8 @@ async function checkUserRoles() {
     console.log(chalk.green(`✓ Found ${usersSnapshot.size} users`));
     
     // Count users by role
-    usersSnapshot.forEach(doc => {
-      const user = doc.data();
+    usersSnapshot.forEach(docSnap => {
+      const user = docSnap.data();
       if (user.role) {
         results.userRoles[user.role] = (results.userRoles[user.role] || 0) + 1;
       }
@@ -182,13 +231,12 @@ async function checkTimestamps() {
   for (const collectionName of collections) {
     try {
       // Check oldest document
-      const oldestQuery = await db.collection(collectionName)
-        .orderBy('createdAt', 'asc')
-        .limit(1)
-        .get();
+      const collRef = collection(db, collectionName);
+      const oldestQ = query(collRef, orderBy('createdAt', 'asc'), limit(1));
+      const oldestSnapshot = await getDocs(oldestQ);
       
-      if (!oldestQuery.empty) {
-        const oldestDoc = oldestQuery.docs[0].data();
+      if (!oldestSnapshot.empty) {
+        const oldestDoc = oldestSnapshot.docs[0].data();
         if (oldestDoc.createdAt) {
           const date = oldestDoc.createdAt.toDate();
           if (date < oldestDate) {
@@ -198,13 +246,11 @@ async function checkTimestamps() {
       }
       
       // Check newest document
-      const newestQuery = await db.collection(collectionName)
-        .orderBy('createdAt', 'desc')
-        .limit(1)
-        .get();
+      const newestQ = query(collRef, orderBy('createdAt', 'desc'), limit(1));
+      const newestSnapshot = await getDocs(newestQ);
       
-      if (!newestQuery.empty) {
-        const newestDoc = newestQuery.docs[0].data();
+      if (!newestSnapshot.empty) {
+        const newestDoc = newestSnapshot.docs[0].data();
         if (newestDoc.createdAt) {
           const date = newestDoc.createdAt.toDate();
           if (date > newestDate) {
@@ -233,7 +279,9 @@ async function validateDocuments() {
   
   for (const collectionName of collections) {
     try {
-      const snapshot = await db.collection(collectionName).limit(10).get();
+      const collRef = collection(db, collectionName);
+      const q = query(collRef, limit(10));
+      const snapshot = await getDocs(q);
       
       if (snapshot.empty) {
         continue;
@@ -242,8 +290,8 @@ async function validateDocuments() {
       console.log(chalk.green(`Checking ${snapshot.size} documents in ${collectionName}...`));
       results.documents.total += snapshot.size;
       
-      snapshot.forEach(doc => {
-        const data = doc.data();
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
         
         // Basic validation checks
         const issues = [];
@@ -276,10 +324,10 @@ async function validateDocuments() {
           results.documents.invalid++;
           results.documents.issues.push({
             collection: collectionName,
-            id: doc.id,
+            id: docSnap.id,
             issues
           });
-          console.log(chalk.yellow(`  ⚠ Document ${doc.id} has issues: ${issues.join(', ')}`));
+          console.log(chalk.yellow(`  ⚠ Document ${docSnap.id} has issues: ${issues.join(', ')}`));
         } else {
           results.documents.valid++;
         }

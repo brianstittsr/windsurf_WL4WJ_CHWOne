@@ -10,25 +10,73 @@
  * 5. Normalizes enum values
  */
 
-const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-// Initialize Firebase Admin SDK
+// Import Firebase client SDK
+const { initializeApp } = require('firebase/app');
+const { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  query, 
+  where, 
+  limit, 
+  serverTimestamp,
+  Timestamp
+} = require('firebase/firestore');
+
+// Import Firebase config
+let firebaseConfig;
 try {
-  const serviceAccount = require('../serviceAccountKey.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  // Try to import from environment variables first
+  if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+    firebaseConfig = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+    };
+  } else {
+    // Fall back to local config file
+    const configPath = path.join(__dirname, '..', 'src', 'lib', 'firebase-config.ts');
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, 'utf8');
+      // Extract the config object using regex
+      const configMatch = configContent.match(/firebaseConfig\s*=\s*({[\s\S]*?});/);
+      if (configMatch && configMatch[1]) {
+        // Convert the extracted string to a JavaScript object
+        // This is a simple approach and might not work for complex configs
+        const configStr = configMatch[1].replace(/\s*\/\/.*$/gm, '');
+        firebaseConfig = eval(`(${configStr})`);
+      }
+    }
+  }
+  
+  if (!firebaseConfig) {
+    throw new Error('Firebase configuration not found');
+  }
 } catch (error) {
-  console.error('Error initializing Firebase Admin SDK:', error.message);
-  console.error('Make sure you have a serviceAccountKey.json file in the root directory.');
+  console.error('Error loading Firebase configuration:', error.message);
+  console.error('Please set Firebase environment variables or create a firebase-config.ts file.');
   process.exit(1);
 }
 
-const db = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Equivalent of FieldValue.serverTimestamp()
+const FieldValue = {
+  serverTimestamp: () => serverTimestamp()
+};
 
 // Create a readline interface for user input
 const rl = readline.createInterface({
@@ -190,13 +238,13 @@ async function createDefaultOrganizations() {
   ];
   
   for (const org of organizations) {
-    const orgRef = db.collection(COLLECTIONS.ORGANIZATIONS).doc(org.id);
-    const orgDoc = await orgRef.get();
+    const orgRef = doc(db, COLLECTIONS.ORGANIZATIONS, org.id);
+    const orgDoc = await getDoc(orgRef);
     
-    if (!orgDoc.exists) {
+    if (!orgDoc.exists()) {
       log('info', `Creating organization: ${org.id}`);
       if (!config.dryRun) {
-        await orgRef.set(org);
+        await setDoc(orgRef, org);
       }
       stats.created++;
     } else {
@@ -210,9 +258,9 @@ async function createDefaultOrganizations() {
 async function migrateCHWProfiles() {
   log('info', 'Migrating CHW profiles...');
   
-  const usersSnapshot = await db.collection(COLLECTIONS.USERS)
-    .where('role', 'in', ['chw', 'wl4wj_chw'])
-    .get();
+  const usersRef = collection(db, COLLECTIONS.USERS);
+  const usersQuery = query(usersRef, where('role', 'in', ['chw', 'wl4wj_chw']));
+  const usersSnapshot = await getDocs(usersQuery);
   
   if (usersSnapshot.empty) {
     log('info', 'No CHWs found to migrate.');
@@ -226,23 +274,26 @@ async function migrateCHWProfiles() {
     const uid = userDoc.id;
     
     // Check if CHW profile already exists
-    const chwProfileRef = db.collection(COLLECTIONS.CHW_PROFILES).doc(uid);
-    const chwProfileDoc = await chwProfileRef.get();
+    const chwProfileRef = doc(db, COLLECTIONS.CHW_PROFILES, uid);
+    const chwProfileDoc = await getDoc(chwProfileRef);
     
-    if (chwProfileDoc.exists) {
+    if (chwProfileDoc.exists()) {
       log('info', `CHW profile for ${uid} already exists, skipping.`);
       stats.skipped++;
       continue;
     }
     
     // Create a new CHW profile
+    const twoYearsFromNow = new Date();
+    twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
+    
     const chwProfile = {
       uid,
       firstName: userData.firstName || userData.displayName?.split(' ')[0] || '',
       lastName: userData.lastName || userData.displayName?.split(' ').slice(1).join(' ') || '',
       certificationNumber: userData.certificationNumber || `CHW-${new Date().getFullYear()}-${uid.substring(0, 6)}`,
       certificationDate: userData.certificationDate || FieldValue.serverTimestamp(),
-      expirationDate: userData.expirationDate || admin.firestore.Timestamp.fromDate(new Date(new Date().setFullYear(new Date().getFullYear() + 2))),
+      expirationDate: userData.expirationDate || Timestamp.fromDate(twoYearsFromNow),
       certificationLevel: userData.certificationLevel || 'entry',
       primaryPhone: userData.phoneNumber || '',
       region: userData.region || 'Charlotte Metro',
@@ -275,7 +326,7 @@ async function migrateCHWProfiles() {
     
     log('info', `Creating CHW profile for ${uid}`);
     if (!config.dryRun) {
-      await chwProfileRef.set(chwProfile);
+      await setDoc(chwProfileRef, chwProfile);
     }
     stats.created++;
   }
@@ -285,7 +336,8 @@ async function migrateCHWProfiles() {
 async function normalizeUserData() {
   log('info', 'Normalizing user data...');
   
-  const usersSnapshot = await db.collection(COLLECTIONS.USERS).get();
+  const usersRef = collection(db, COLLECTIONS.USERS);
+  const usersSnapshot = await getDocs(usersRef);
   
   if (usersSnapshot.empty) {
     log('info', 'No users found to normalize.');
@@ -329,7 +381,8 @@ async function normalizeUserData() {
     
     log('info', `Normalizing user ${uid}`);
     if (!config.dryRun) {
-      await db.collection(COLLECTIONS.USERS).doc(uid).update(updates);
+      const userRef = doc(db, COLLECTIONS.USERS, uid);
+      await updateDoc(userRef, updates);
     }
     stats.updated++;
   }
@@ -339,10 +392,10 @@ async function normalizeUserData() {
 async function createSchemaVersion() {
   log('info', 'Creating schema version document...');
   
-  const schemaVersionRef = db.collection(COLLECTIONS.SYSTEM).doc('schema_version');
-  const schemaVersionDoc = await schemaVersionRef.get();
+  const schemaVersionRef = doc(db, COLLECTIONS.SYSTEM, 'schema_version');
+  const schemaVersionDoc = await getDoc(schemaVersionRef);
   
-  if (schemaVersionDoc.exists) {
+  if (schemaVersionDoc.exists()) {
     log('info', 'Schema version document already exists, skipping.');
     stats.skipped++;
     return;
@@ -361,7 +414,7 @@ async function createSchemaVersion() {
   
   log('info', 'Creating schema version document');
   if (!config.dryRun) {
-    await schemaVersionRef.set(schemaVersion);
+    await setDoc(schemaVersionRef, schemaVersion);
   }
   stats.created++;
 }
