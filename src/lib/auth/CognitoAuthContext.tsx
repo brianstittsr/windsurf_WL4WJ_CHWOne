@@ -299,79 +299,69 @@ export function useCognitoAuth() {
 const AUTH_PROVIDER = process.env.NEXT_PUBLIC_AUTH_PROVIDER || 'firebase';
 const USE_COGNITO = AUTH_PROVIDER === 'cognito';
 
-// Legacy compatibility - create a Firebase-like interface
+// Always call hooks at the top level to avoid conditional hook errors
 export function useAuth() {
-  // Use Cognito only if explicitly enabled AND available
-  if (USE_COGNITO) {
-    try {
-      const cognitoAuth = useCognitoAuth();
-      
-      // If Cognito is not available (error state), fall back to Firebase
-      if (cognitoAuth.error === 'Cognito authentication is not available') {
-        console.warn('Falling back to Firebase authentication');
-        return useFirebaseAuth();
-      }
-
-      // Transform Cognito auth to Firebase-like interface
-      return {
-        currentUser: cognitoAuth.user ? {
-          uid: cognitoAuth.user.username,
-          email: cognitoAuth.user.email,
-          displayName: cognitoAuth.user.givenName
-            ? `${cognitoAuth.user.givenName} ${cognitoAuth.user.familyName || ''}`.trim()
-            : cognitoAuth.user.email,
-          emailVerified: cognitoAuth.user.emailVerified,
-          phoneNumber: cognitoAuth.user.phoneNumber,
-          role: UserRole.CHW, // Default role - would be determined by custom attributes
-          chwProfile: {
-            firstName: cognitoAuth.user.givenName || '',
-            lastName: cognitoAuth.user.familyName || '',
-            primaryPhone: cognitoAuth.user.phoneNumber || '',
-            languages: [],
-            serviceArea: [],
-            zipCodes: [],
-            skills: [],
-            specializations: [],
-            availability: {
-              monday: [],
-              tuesday: [],
-              wednesday: [],
-              thursday: [],
-              friday: [],
-              saturday: [],
-              sunday: []
-            },
-            resources: [],
-            equipment: [],
-            profileVisible: false,
-            allowContactSharing: true,
-            completedTrainings: 0,
-            activeClients: 0,
-            totalEncounters: 0
+  // Call both hooks unconditionally at the top level
+  const cognitoAuthContext = useCognitoAuth();
+  const firebaseAuthContext = useFirebaseAuth();
+  
+  // Then conditionally return the appropriate context
+  if (USE_COGNITO && !cognitoAuthContext.error) {
+    // Transform Cognito auth to Firebase-like interface
+    return {
+      currentUser: cognitoAuthContext.user ? {
+        uid: cognitoAuthContext.user.username,
+        email: cognitoAuthContext.user.email,
+        displayName: cognitoAuthContext.user.givenName
+          ? `${cognitoAuthContext.user.givenName} ${cognitoAuthContext.user.familyName || ''}`.trim()
+          : cognitoAuthContext.user.email,
+        emailVerified: cognitoAuthContext.user.emailVerified,
+        phoneNumber: cognitoAuthContext.user.phoneNumber,
+        role: UserRole.CHW, // Default role - would be determined by custom attributes
+        chwProfile: {
+          firstName: cognitoAuthContext.user.givenName || '',
+          lastName: cognitoAuthContext.user.familyName || '',
+          primaryPhone: cognitoAuthContext.user.phoneNumber || '',
+          languages: [],
+          serviceArea: [],
+          zipCodes: [],
+          skills: [],
+          specializations: [],
+          availability: {
+            monday: [],
+            tuesday: [],
+            wednesday: [],
+            thursday: [],
+            friday: [],
+            saturday: [],
+            sunday: []
           },
-          ...cognitoAuth.user.customAttributes
-        } : null,
-        loading: cognitoAuth.loading,
-        signIn: async (email: string, password: string) => {
-          await cognitoAuth.signIn(email, password);
+          resources: [],
+          equipment: [],
+          profileVisible: false,
+          allowContactSharing: true,
+          completedTrainings: 0,
+          activeClients: 0,
+          totalEncounters: 0
         },
-        signUp: async (email: string, password: string, attributes?: Record<string, string>) => {
-          await cognitoAuth.signUp(email, password, attributes);
-        },
-        signOut: cognitoAuth.signOut,
-        confirmSignUp: cognitoAuth.confirmSignUp,
-        forgotPassword: cognitoAuth.forgotPassword,
-        confirmPassword: cognitoAuth.confirmPassword,
-        updateUserAttributes: cognitoAuth.updateUserAttributes,
-        resendConfirmationCode: cognitoAuth.resendConfirmationCode
-      };
-    } catch (error) {
-      // If there's an error with Cognito, fall back to Firebase
-      console.warn('Error using Cognito auth, falling back to Firebase:', error);
-      return useFirebaseAuth();
-    }
+        ...cognitoAuthContext.user.customAttributes
+      } : null,
+      loading: cognitoAuthContext.loading,
+      signIn: async (email: string, password: string) => {
+        await cognitoAuthContext.signIn(email, password);
+      },
+      signUp: async (email: string, password: string, attributes?: Record<string, string>) => {
+        await cognitoAuthContext.signUp(email, password, attributes);
+      },
+      signOut: cognitoAuthContext.signOut,
+      confirmSignUp: cognitoAuthContext.confirmSignUp,
+      forgotPassword: cognitoAuthContext.forgotPassword,
+      confirmPassword: cognitoAuthContext.confirmPassword,
+      updateUserAttributes: cognitoAuthContext.updateUserAttributes,
+      resendConfirmationCode: cognitoAuthContext.resendConfirmationCode
+    };
   } else {
     // Use Firebase as default
-    return useFirebaseAuth();
+    return firebaseAuthContext;
   }
 }

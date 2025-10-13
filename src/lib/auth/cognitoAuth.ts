@@ -1,9 +1,40 @@
-import {
-  CognitoUserPool,
-  CognitoUser,
-  AuthenticationDetails,
-  CognitoUserAttribute
-} from 'amazon-cognito-identity-js';
+// Use dynamic imports to make Cognito optional
+// This prevents build errors when the package is not installed
+let CognitoUserPool: any;
+let CognitoUser: any;
+let AuthenticationDetails: any;
+let CognitoUserAttribute: any;
+
+// Flag to track if Cognito is available
+let _isCognitoAvailable = false;
+
+// Function to check if Cognito is available
+export const checkCognitoAvailability = async (): Promise<boolean> => {
+  try {
+    await loadCognito();
+    return _isCognitoAvailable;
+  } catch (error) {
+    console.warn('Error checking Cognito availability:', error);
+    return false;
+  }
+};
+
+// Try to load Cognito dynamically
+const loadCognito = async () => {
+  try {
+    const cognito = await import('amazon-cognito-identity-js');
+    CognitoUserPool = cognito.CognitoUserPool;
+    CognitoUser = cognito.CognitoUser;
+    AuthenticationDetails = cognito.AuthenticationDetails;
+    CognitoUserAttribute = cognito.CognitoUserAttribute;
+    _isCognitoAvailable = true;
+    return true;
+  } catch (error) {
+    console.warn('Amazon Cognito Identity JS not available:', error);
+    _isCognitoAvailable = false;
+    return false;
+  }
+};
 
 export interface CognitoUser {
   username: string;
@@ -23,23 +54,69 @@ export interface AuthState {
 }
 
 class CognitoAuthService {
-  private userPool: CognitoUserPool;
+  private userPool: any;
   private currentUser: CognitoUser | null = null;
+  private isAvailable = false;
 
   constructor() {
-    // Initialize Cognito User Pool
-    const poolData = {
-      UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID || '',
-      ClientId: process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID || ''
-    };
+    // We'll initialize the user pool asynchronously when needed
+    this.init();
+  }
 
-    this.userPool = new CognitoUserPool(poolData);
+  private async init() {
+    // Try to load Cognito
+    this.isAvailable = await loadCognito();
+    
+    if (this.isAvailable) {
+      // Get Cognito credentials from environment variables
+      const userPoolId = process.env.NEXT_PUBLIC_USER_POOL_ID || '';
+      const clientId = process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID || '';
+      
+      // Check if both required credentials are available
+      if (userPoolId && clientId) {
+        // Initialize Cognito User Pool
+        const poolData = {
+          UserPoolId: userPoolId,
+          ClientId: clientId
+        };
+
+        try {
+          this.userPool = new CognitoUserPool(poolData);
+        } catch (error) {
+          console.error('Failed to initialize Cognito User Pool:', error);
+          this.isAvailable = false;
+        }
+      } else {
+        // Mark Cognito as unavailable if credentials are missing
+        console.warn('Cognito credentials missing. UserPoolId and ClientId are required.');
+        this.isAvailable = false;
+      }
+    }
+  }
+
+  // Helper to check if Cognito is available
+  private checkAvailability(): boolean {
+    if (!this.isAvailable || !_isCognitoAvailable) {
+      console.warn('Cognito authentication is not available');
+      return false;
+    }
+    return true;
   }
 
   /**
    * Sign up a new user
    */
   async signUp(email: string, password: string, attributes: Record<string, string> = {}): Promise<any> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.reject(new Error('Cognito authentication is not available'));
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve, reject) => {
       const attributeList = [];
 
@@ -73,6 +150,16 @@ class CognitoAuthService {
    * Confirm user account with verification code
    */
   async confirmSignUp(email: string, code: string): Promise<any> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.reject(new Error('Cognito authentication is not available'));
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve, reject) => {
       const userData = {
         Username: email,
@@ -94,6 +181,16 @@ class CognitoAuthService {
    * Sign in user
    */
   async signIn(email: string, password: string): Promise<CognitoUser> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.reject(new Error('Cognito authentication is not available'));
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve, reject) => {
       const authenticationData = {
         Username: email,
@@ -136,6 +233,16 @@ class CognitoAuthService {
    * Sign out current user
    */
   async signOut(): Promise<void> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.resolve(); // Just resolve if Cognito is not available
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve) => {
       if (this.currentUser) {
         const userData = {
@@ -154,6 +261,20 @@ class CognitoAuthService {
    * Get current authenticated user
    */
   async getCurrentUser(): Promise<CognitoUser | null> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.resolve(null); // Return null if Cognito is not available
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+      // If still not available after init, return null
+      if (!this.isAvailable) {
+        return null;
+      }
+    }
+
     return new Promise((resolve) => {
       const cognitoUser = this.userPool.getCurrentUser();
 
@@ -189,6 +310,16 @@ class CognitoAuthService {
    * Reset password
    */
   async forgotPassword(email: string): Promise<void> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.reject(new Error('Cognito authentication is not available'));
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve, reject) => {
       const userData = {
         Username: email,
@@ -211,6 +342,16 @@ class CognitoAuthService {
    * Confirm new password after forgot password
    */
   async confirmPassword(email: string, code: string, newPassword: string): Promise<void> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.reject(new Error('Cognito authentication is not available'));
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve, reject) => {
       const userData = {
         Username: email,
@@ -233,6 +374,16 @@ class CognitoAuthService {
    * Update user attributes
    */
   async updateUserAttributes(attributes: Record<string, string>): Promise<void> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.reject(new Error('Cognito authentication is not available'));
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve, reject) => {
       if (!this.currentUser) {
         reject(new Error('No authenticated user'));
@@ -309,6 +460,10 @@ class CognitoAuthService {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
+    // If Cognito is not available, always return false
+    if (!this.isAvailable) {
+      return false;
+    }
     return this.currentUser !== null;
   }
 
@@ -323,6 +478,16 @@ class CognitoAuthService {
    * Resend confirmation code
    */
   async resendConfirmationCode(email: string): Promise<void> {
+    // Make sure Cognito is available
+    if (!this.checkAvailability()) {
+      return Promise.reject(new Error('Cognito authentication is not available'));
+    }
+    
+    // Wait for initialization if needed
+    if (!this.userPool) {
+      await this.init();
+    }
+
     return new Promise((resolve, reject) => {
       const userData = {
         Username: email,
@@ -341,4 +506,7 @@ class CognitoAuthService {
   }
 }
 
+// Create the service instance but don't force initialization until needed
 export const cognitoAuth = new CognitoAuthService();
+
+// checkCognitoAvailability is already exported at the top of the file

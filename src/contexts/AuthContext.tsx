@@ -95,13 +95,15 @@ if (isCognitoEnabled && USE_COGNITO && hasCognitoCredentials) {
 }
 
 export function useAuth() {
+  // Always call useContext at the top level to avoid conditional hook errors
+  const context = useContext(AuthContext);
+  
   // If Cognito module is available, use it
   if (cognitoAuthModule && cognitoAuthModule.useAuth) {
     return cognitoAuthModule.useAuth();
   }
   
   // Default to Firebase Auth
-  const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
