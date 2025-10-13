@@ -50,6 +50,7 @@ export interface CHWProfile {
   // Profile Settings
   profileVisible: boolean; // Visible in directory
   allowContactSharing: boolean;
+  isPublicProfile?: boolean; // Public shareable profile
   bio?: string;
   profilePictureUrl?: string;
 

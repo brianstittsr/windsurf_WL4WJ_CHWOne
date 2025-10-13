@@ -48,6 +48,8 @@ import {
   Edit,
   Visibility,
   VisibilityOff,
+  HelpOutline as Help,
+  ContentCopy,
   Send,
   AttachFile,
   Link,
@@ -59,7 +61,7 @@ import {
   Message,
   Call
 } from '@mui/icons-material';
-import { useAuth } from '@/lib/auth/CognitoAuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { CHWProfile, CHWResource } from '@/types/platform.types';
 
 interface TabPanelProps {
@@ -88,7 +90,8 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-export default function CHWProfilePage() {
+// Inner component that uses the auth context
+function CHWProfileContent() {
   const { userId } = useParams();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -177,6 +180,7 @@ export default function CHWProfilePage() {
         equipment: ['Blood Pressure Monitor', 'Glucometer', 'Scale', 'First Aid Kit'],
         profileVisible: true,
         allowContactSharing: true,
+        isPublicProfile: false,
         bio: 'Dedicated Community Health Worker with 4 years of experience serving underserved communities in North Carolina. Passionate about improving health outcomes through education, advocacy, and comprehensive care coordination.',
         profilePictureUrl: 'https://via.placeholder.com/150',
         completedTrainings: 12,
@@ -295,22 +299,106 @@ export default function CHWProfilePage() {
                   >
                     {editMode ? 'Cancel Edit' : 'Edit Profile'}
                   </Button>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={profile.profileVisible}
-                        onChange={(e) => handleProfileVisibilityChange(e.target.checked)}
-                      />
-                    }
-                    label={
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={profile.profileVisible}
+                          onChange={(e) => handleProfileVisibilityChange(e.target.checked)}
+                        />
+                      }
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {profile.profileVisible ? <Visibility /> : <VisibilityOff />}
+                          <Typography variant="body2">
+                            Visible in Directory
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                    
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={editedProfile?.isPublicProfile || false}
+                          onChange={(e) => {
+                            if (editedProfile) {
+                              const isPublic = e.target.checked;
+                              setEditedProfile({
+                                ...editedProfile,
+                                isPublicProfile: isPublic
+                              });
+                              
+                              // Update the profile state as well
+                              if (profile) {
+                                setProfile({
+                                  ...profile,
+                                  isPublicProfile: isPublic
+                                });
+                              }
+                              
+                              // In a real app, you would save this change immediately
+                              if (isPublic) {
+                                // Generate a shareable link
+                                const shareableLink = `${window.location.origin}/public-profile/${userId}`;
+                                navigator.clipboard.writeText(shareableLink);
+                                alert(`Profile made public! Shareable link copied to clipboard: ${shareableLink}`);
+                              } else {
+                                alert('Profile is now private');
+                              }
+                            }
+                          }}
+                          color="secondary"
+                        />
+                      }
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Share />
+                          <Typography variant="body2">
+                            Make Profile Public
+                          </Typography>
+                          <Tooltip title="When enabled, your profile will be accessible to the public via a shareable link">
+                            <IconButton size="small">
+                              <Help fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      }
+                    />
+                  </Box>
+                  
+                  {/* Display public profile link when profile is public */}
+                  {profile.isPublicProfile && (
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(76, 175, 80, 0.1)', borderRadius: 1 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Link fontSize="small" /> Public Profile Link
+                      </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {profile.profileVisible ? <Visibility /> : <VisibilityOff />}
-                        <Typography variant="body2">
-                          Visible in Directory
-                        </Typography>
+                        <TextField
+                          size="small"
+                          fullWidth
+                          value={`${window.location.origin}/public-profile/${userId}`}
+                          InputProps={{
+                            readOnly: true,
+                          }}
+                          sx={{ bgcolor: 'white' }}
+                        />
+                        <Tooltip title="Copy link">
+                          <IconButton 
+                            onClick={() => {
+                              const link = `${window.location.origin}/public-profile/${userId}`;
+                              navigator.clipboard.writeText(link);
+                              alert('Link copied to clipboard!');
+                            }}
+                            color="primary"
+                            size="small"
+                          >
+                            <ContentCopy fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
-                    }
-                  />
+                    </Box>
+                  )}
                 </Box>
               </Grid>
             )}
@@ -754,5 +842,14 @@ export default function CHWProfilePage() {
         </DialogActions>
       </Dialog>
     </Container>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function CHWProfilePage() {
+  return (
+    <AuthProvider>
+      <CHWProfileContent />
+    </AuthProvider>
   );
 }
