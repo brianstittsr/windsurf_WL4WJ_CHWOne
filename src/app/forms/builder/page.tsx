@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -27,7 +27,8 @@ import MainLayout from '@/components/Layout/MainLayout';
 import AIFormBuilder from '@/components/FormBuilder';
 import { FormField } from '@/types/firebase/schema';
 
-export default function FormBuilderPage() {
+// Inner component that uses the auth context
+function FormBuilderContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
   const [generatedFields, setGeneratedFields] = useState<FormField[]>([]);
@@ -205,5 +206,14 @@ export default function FormBuilderPage() {
         </Dialog>
       </Container>
     </MainLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function FormBuilderPage() {
+  return (
+    <AuthProvider>
+      <FormBuilderContent />
+    </AuthProvider>
   );
 }
