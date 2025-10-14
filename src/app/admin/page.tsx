@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -56,7 +57,8 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-export default function AdminDashboard() {
+// Inner component that uses the auth context
+function AdminDashboardContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
@@ -211,5 +213,14 @@ export default function AdminDashboard() {
         ))}
       </Container>
     </MainLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function AdminDashboard() {
+  return (
+    <AuthProvider>
+      <AdminDashboardContent />
+    </AuthProvider>
   );
 }
