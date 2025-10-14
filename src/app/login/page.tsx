@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useThemeMode } from '@/components/ThemeProvider';
@@ -43,7 +43,7 @@ interface RoleOption {
 }
 
 // Login form component that uses the auth context
-function LoginForm() {
+function LoginFormContent() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -329,6 +329,15 @@ function LoginForm() {
         </Box>
       </Paper>
     </Container>
+  );
+}
+
+// Wrap the component that uses useSearchParams in Suspense
+function LoginForm() {
+  return (
+    <Suspense fallback={<CircularProgress />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
 
