@@ -17,7 +17,8 @@ import Link from 'next/link';
 import MainLayout from '@/components/Layout/MainLayout';
 import FileUpload from '@/components/FileUpload';
 
-export default function UploadPage() {
+// Inner component that uses the auth context
+function UploadContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -141,3 +142,11 @@ export default function UploadPage() {
   );
 }
 
+// Export the wrapped component with AuthProvider
+export default function UploadPage() {
+  return (
+    <AuthProvider>
+      <UploadContent />
+    </AuthProvider>
+  );
+}
