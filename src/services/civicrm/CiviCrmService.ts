@@ -449,6 +449,9 @@ class CiviCrmService {
           count: 1,
           values: [{
             id: uuidv4(),
+            title: params.title || 'Untitled Event',
+            event_type_id: params.event_type_id || '1',
+            start_date: params.start_date || new Date().toISOString().split('T')[0],
             ...params,
             is_active: params.is_active !== undefined ? params.is_active : true
           }]
@@ -502,6 +505,11 @@ class CiviCrmService {
           count: 1,
           values: [{
             id: uuidv4(),
+            case_type_id: params.case_type_id || '1',
+            subject: params.subject || 'New Case',
+            status_id: params.status_id || '1',
+            start_date: params.start_date || new Date().toISOString().split('T')[0],
+            contact_id: params.contact_id || '1',
             ...params
           }]
         };
@@ -556,6 +564,11 @@ class CiviCrmService {
           count: 1,
           values: [{
             id: uuidv4(),
+            activity_type_id: params.activity_type_id || '1',
+            subject: params.subject || 'New Activity',
+            activity_date_time: params.activity_date_time || new Date().toISOString().replace('T', ' ').split('.')[0],
+            status_id: params.status_id || '1',
+            source_contact_id: params.source_contact_id || '1',
             ...params
           }]
         };
@@ -608,6 +621,9 @@ class CiviCrmService {
           count: 1,
           values: [{
             id: uuidv4(),
+            relationship_type_id: params.relationship_type_id || '1',
+            contact_id_a: params.contact_id_a || '1',
+            contact_id_b: params.contact_id_b || '2',
             ...params,
             is_active: params.is_active !== undefined ? params.is_active : true
           }]
