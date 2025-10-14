@@ -9,7 +9,7 @@ export async function generateMetadata() {
     openGraph: {
       title: gallery.title,
       description: gallery.description,
-      url: `${baseURL}${gallery.path}`,
+      url: `${baseURL}/gallery`,
       images: [`${baseURL}/api/og/generate?title=${encodeURIComponent(gallery.title)}`],
     },
   };

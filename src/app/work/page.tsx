@@ -1,5 +1,5 @@
 import { Container, Typography } from "@mui/material";
-import { baseURL, about, person, work } from "@/resources";
+import { baseURL, work } from "@/resources";
 import { Projects } from "@/components/work/Projects";
 
 export async function generateMetadata() {
@@ -9,7 +9,7 @@ export async function generateMetadata() {
     openGraph: {
       title: work.title,
       description: work.description,
-      url: `${baseURL}${work.path}`,
+      url: `${baseURL}/work`,
       images: [`${baseURL}/api/og/generate?title=${encodeURIComponent(work.title)}`],
     },
   };

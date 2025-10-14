@@ -1,16 +1,47 @@
+import { Box, Container, Typography, Button, Paper } from '@mui/material';
 import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="container-fluid d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-      <div className="text-center">
-        <h1 className="display-1 fw-bold text-primary">404</h1>
-        <h2 className="mb-4">Page Not Found</h2>
-        <p className="text-muted mb-4">The page you are looking for does not exist.</p>
-        <Link href="/" className="btn btn-primary">
-          Return Home
-        </Link>
-      </div>
-    </div>
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '100vh',
+        bgcolor: 'background.default'
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 4, 
+            textAlign: 'center',
+            borderRadius: 2,
+            backgroundColor: 'background.paper',
+          }}
+        >
+          <Typography variant="h1" color="primary" sx={{ fontWeight: 'bold', fontSize: { xs: '4rem', md: '6rem' } }}>
+            404
+          </Typography>
+          <Typography variant="h4" sx={{ mb: 2 }}>
+            Page Not Found
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            The page you are looking for does not exist.
+          </Typography>
+          <Button 
+            variant="contained" 
+            color="primary"
+            component={Link} 
+            href="/"
+            size="large"
+          >
+            Return Home
+          </Button>
+        </Paper>
+      </Container>
+    </Box>
   );
 }

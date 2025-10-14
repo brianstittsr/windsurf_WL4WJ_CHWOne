@@ -1,30 +1,20 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import GrantManagement from '@/components/Grants/GrantManagement';
-import { Container, Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
-export default function GrantsPage() {
+// Inner component that uses the auth context
+function GrantsContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
 
   if (loading) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
-      }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress sx={{ color: 'white', mb: 3 }} />
-          <Typography sx={{ color: 'white' }}>Loading Grants...</Typography>
-        </Box>
-      </Box>
-    );
+    return <AnimatedLoading message="Loading Grants..." />;
   }
 
   if (!currentUser) {
@@ -33,10 +23,21 @@ export default function GrantsPage() {
   }
 
   return (
-    <Container component="main" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Grant Management</Typography>
-      <Typography color="text.secondary" sx={{ mb: 4 }}>Track funding opportunities, manage grant applications, and monitor funding for CHW programs and initiatives</Typography>
-      <GrantManagement />
-    </Container>
+    <UnifiedLayout>
+      <Box sx={{ py: 4, px: 2 }}>
+        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Grant Management</Typography>
+        <Typography color="text.secondary" sx={{ mb: 4 }}>Track funding opportunities, manage grant applications, and monitor funding for CHW programs and initiatives</Typography>
+        <GrantManagement />
+      </Box>
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function GrantsPage() {
+  return (
+    <AuthProvider>
+      <GrantsContent />
+    </AuthProvider>
   );
 }

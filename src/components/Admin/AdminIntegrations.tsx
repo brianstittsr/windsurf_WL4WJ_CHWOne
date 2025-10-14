@@ -64,7 +64,14 @@ interface IntegrationConfig {
 }
 
 export default function AdminIntegrations() {
-  const [integrations, setIntegrations] = useState({
+  type IntegrationsType = {
+    [key: string]: {
+      status: IntegrationStatus;
+      config: IntegrationConfig;
+    };
+  };
+
+  const [integrations, setIntegrations] = useState<IntegrationsType>({
     '3cx': {
       status: { connected: false } as IntegrationStatus,
       config: {
@@ -143,7 +150,16 @@ export default function AdminIntegrations() {
   const [configDialog, setConfigDialog] = useState<string | null>(null);
   const [tempConfig, setTempConfig] = useState<IntegrationConfig | null>(null);
 
-  const integrationInfo = {
+  type IntegrationInfoType = {
+    [key: string]: {
+      name: string;
+      description: string;
+      icon: React.ReactNode;
+      color: string;
+    };
+  };
+
+  const integrationInfo: IntegrationInfoType = {
     '3cx': {
       name: '3CX Phone System',
       description: 'Integrate with 3CX for call management and telephony features',

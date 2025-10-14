@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -30,27 +30,18 @@ import {
   Favorite as FavoriteIcon,
   GroupWork as GroupWorkIcon
 } from '@mui/icons-material';
-import MainLayout from '@/components/Layout/MainLayout';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import { WL4WJLogo } from '@/components/Logos';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
-export default function WL4WJDashboard() {
+// Inner component that uses the auth context
+function WL4WJDashboardContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
   const theme = useTheme();
 
   if (loading) {
-    return (
-      <MainLayout>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '60vh'
-        }}>
-          <CircularProgress />
-        </Box>
-      </MainLayout>
-    );
+    return <AnimatedLoading message="Loading WL4WJ Dashboard..." />;
   }
 
   if (!currentUser) {
@@ -104,7 +95,7 @@ export default function WL4WJDashboard() {
   ];
 
   return (
-    <MainLayout>
+    <UnifiedLayout>
       <Box sx={{ py: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 4, textAlign: 'center' }}>
@@ -297,6 +288,15 @@ export default function WL4WJDashboard() {
           </CardContent>
         </Card>
       </Box>
-    </MainLayout>
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function WL4WJDashboard() {
+  return (
+    <AuthProvider>
+      <WL4WJDashboardContent />
+    </AuthProvider>
   );
 }

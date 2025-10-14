@@ -8,3 +8,4 @@ export { CustomMDX } from './CustomMDX.jsx';
 export { ScrollToHash } from './ScrollToHash.jsx';
 export { ProjectCard } from './ProjectCard.jsx';
 export { Mailchimp } from './Mailchimp.jsx';
+export { default as FirebaseInitializer } from './FirebaseInitializer';

@@ -107,7 +107,12 @@ function synthesizeDocument(contributionsBySection: { [key: string]: any[] }, ou
 }
 
 async function generateDocuments(synthesizedContent: any, outputType: string) {
-  const documents = [];
+  const documents: Array<{
+    type: string;
+    format: string;
+    content: string | any;
+    filename: string;
+  }> = [];
 
   if (outputType === 'one-pager' || outputType === 'both') {
     // Generate 1-pager PDF content

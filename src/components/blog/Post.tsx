@@ -44,10 +44,11 @@ export default function Post({ post, thumbnail, direction }: PostProps) {
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mr: 3 }}>
               <Avatar 
-                src={person.avatar} 
                 alt={`${person.name} avatar`}
                 sx={{ width: 24, height: 24, mr: 1 }}
-              />
+              >
+                {person.name.charAt(0)}
+              </Avatar>
               <Typography variant="body2">{person.name}</Typography>
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>

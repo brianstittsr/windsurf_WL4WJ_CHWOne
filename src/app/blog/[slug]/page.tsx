@@ -3,7 +3,7 @@ import { CustomMDX, ScrollToHash } from "@/components";
 import { Container, Box, Typography, Avatar, Divider, Grid } from "@mui/material";
 import Link from "next/link";
 import Image from "next/image";
-import { baseURL, about, blog, person } from "@/resources";
+import { baseURL, blog, person } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { getPosts } from "@/utils/utils";
 import { Metadata } from "next";
@@ -78,7 +78,9 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4, gap: 2 }}>
-            <Avatar src={person.avatar} sx={{ width: 32, height: 32 }} />
+            <Avatar sx={{ width: 32, height: 32 }}>
+              {person.name.charAt(0)}
+            </Avatar>
             <Typography color="primary">{person.name}</Typography>
           </Box>
           
@@ -95,7 +97,7 @@ export default async function Blog({ params }: { params: Promise<{ slug: string 
           )}
           
           <Box component="article" sx={{ mx: 'auto', maxWidth: '700px' }}>
-            <CustomMDX source={post.content} />
+            <CustomMDX content={post.content} />
           </Box>
           
           <ShareSection 

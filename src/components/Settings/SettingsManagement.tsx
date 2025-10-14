@@ -32,7 +32,7 @@ import {
   Settings as SettingsIcon,
   Security as SecurityIcon,
   Notifications as NotificationsIcon,
-  Database as DatabaseIcon,
+  Storage as DatabaseIcon,
   Save as SaveIcon,
   Lock as LockIcon,
   Email as EmailIcon,

@@ -100,8 +100,10 @@ export interface CHWResource {
 export enum UserRole {
   ADMIN = 'admin',
   CHW = 'chw',
+  WL4J_CHW = 'wl4j_chw',
   CHW_COORDINATOR = 'chw_coordinator',
-  NONPROFIT_STAFF = 'nonprofit_staff'
+  NONPROFIT_STAFF = 'nonprofit_staff',
+  DEMO = 'demo'
 }
 
 export interface UserPermissions {

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Grid,
   Card,
   CardContent,
@@ -22,11 +21,17 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableFooter,
   Paper,
   CircularProgress,
   LinearProgress,
-  Fab
+  Fab,
+  List,
+  ListItem,
+  ListItemText
 } from '@mui/material';
+import ProjectAttachments from './ProjectAttachments';
+import ProjectReports from './ProjectReports';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -45,6 +50,8 @@ export default function ProjectManagement() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -175,6 +182,11 @@ export default function ProjectManagement() {
       assignedCHWs: []
     });
   };
+  
+  const handleViewProject = (project: Project) => {
+    setViewingProject(project);
+    setShowDetailsDialog(true);
+  };
 
   const editProject = (project: Project) => {
     setSelectedProject(project);
@@ -224,7 +236,7 @@ export default function ProjectManagement() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ width: '100%', py: 4 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
@@ -430,8 +442,9 @@ export default function ProjectManagement() {
                             variant="outlined"
                             size="small"
                             startIcon={<TimelineIcon />}
+                            onClick={() => handleViewProject(project)}
                           >
-                            Report
+                            View Details
                           </Button>
                         </Box>
                       </TableCell>
@@ -578,6 +591,160 @@ export default function ProjectManagement() {
       >
         <AddIcon />
       </Fab>
-    </Container>
+      
+      {/* Project Details Dialog */}
+      <Dialog
+        open={showDetailsDialog}
+        onClose={() => setShowDetailsDialog(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        {viewingProject && (
+          <>
+            <DialogTitle>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="h6">{viewingProject.name}</Typography>
+                <Chip
+                  label={viewingProject.status.replace(/_/g, ' ')}
+                  color={getStatusColor(viewingProject.status)}
+                  size="small"
+                />
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="subtitle1" gutterBottom>Description</Typography>
+                <Typography variant="body1">{viewingProject.description}</Typography>
+              </Box>
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ mb: 3 }}>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>Project Details</Typography>
+                      <List>
+                        <ListItem>
+                          <ListItemText 
+                            primary="Target Population" 
+                            secondary={viewingProject.targetPopulation} 
+                          />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText 
+                            primary="Timeline" 
+                            secondary={`${viewingProject.startDate.toLocaleDateString()} to ${viewingProject.endDate ? viewingProject.endDate.toLocaleDateString() : 'Ongoing'}`} 
+                          />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText 
+                            primary="Budget" 
+                            secondary={`$${viewingProject.budget.toLocaleString()} (Spent: $${viewingProject.spentAmount.toLocaleString()})`} 
+                          />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText 
+                            primary="Goals" 
+                            secondary={
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                                {viewingProject.goals.map((goal, index) => (
+                                  <Chip key={index} label={goal} size="small" />
+                                ))}
+                              </Box>
+                            } 
+                          />
+                        </ListItem>
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  {/* Project Outcomes */}
+                  <Card sx={{ mb: 3 }}>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>Project Outcomes</Typography>
+                      {viewingProject.outcomes && viewingProject.outcomes.length > 0 ? (
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Metric</TableCell>
+                                <TableCell align="right">Target</TableCell>
+                                <TableCell align="right">Current</TableCell>
+                                <TableCell align="right">Progress</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {viewingProject.outcomes.map((outcome, index) => (
+                                <TableRow key={index}>
+                                  <TableCell>{outcome.metric}</TableCell>
+                                  <TableCell align="right">{outcome.target} {outcome.unit}</TableCell>
+                                  <TableCell align="right">{outcome.current} {outcome.unit}</TableCell>
+                                  <TableCell align="right">
+                                    <LinearProgress
+                                      variant="determinate"
+                                      value={Math.min((outcome.current / outcome.target) * 100, 100)}
+                                      sx={{ height: 8, borderRadius: 4 }}
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      ) : (
+                        <Typography color="text.secondary">No outcomes recorded yet</Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+                
+                {/* Project Attachments */}
+                <Grid item xs={12}>
+                  <ProjectAttachments 
+                    project={viewingProject} 
+                    onUpdateProject={(updatedProject) => {
+                      // Update the project in the projects array
+                      const updatedProjects = projects.map(p => 
+                        p.id === updatedProject.id ? updatedProject : p
+                      );
+                      setProjects(updatedProjects);
+                      setViewingProject(updatedProject);
+                    }} 
+                  />
+                </Grid>
+                
+                {/* Project Reports */}
+                <Grid item xs={12}>
+                  <ProjectReports 
+                    project={viewingProject} 
+                    onUpdateProject={(updatedProject) => {
+                      // Update the project in the projects array
+                      const updatedProjects = projects.map(p => 
+                        p.id === updatedProject.id ? updatedProject : p
+                      );
+                      setProjects(updatedProjects);
+                      setViewingProject(updatedProject);
+                    }} 
+                  />
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setShowDetailsDialog(false)}>Close</Button>
+              <Button 
+                variant="contained" 
+                onClick={() => {
+                  setShowDetailsDialog(false);
+                  editProject(viewingProject);
+                }}
+              >
+                Edit Project
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </Box>
   );
 }

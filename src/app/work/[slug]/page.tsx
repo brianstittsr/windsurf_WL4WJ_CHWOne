@@ -3,7 +3,7 @@ import { getPosts } from "@/utils/utils";
 import { Container, Box, Typography, Avatar, Divider, Stack } from "@mui/material";
 import Link from "next/link";
 import Image from "next/image";
-import { baseURL, about, person, work } from "@/resources";
+import { baseURL, person, work } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components";
 import { Metadata } from "next";
@@ -37,7 +37,7 @@ export async function generateMetadata({
     openGraph: {
       title: post.metadata.title,
       description: post.metadata.summary,
-      url: `${baseURL}${work.path}/${post.slug}`,
+      url: `${baseURL}/work/${post.slug}`,
       images: [post.metadata.image || `${baseURL}/api/og/generate?title=${post.metadata.title}`],
     },
   };
@@ -110,7 +110,7 @@ export default async function Project({
       )}
       
       <Box sx={{ mx: 'auto', maxWidth: '700px' }}>
-        <CustomMDX source={post.content} />
+        <CustomMDX content={post.content} />
       </Box>
       
       <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 5 }}>

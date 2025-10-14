@@ -118,7 +118,7 @@ class CognitoAuthService {
     }
 
     return new Promise((resolve, reject) => {
-      const attributeList = [];
+      const attributeList: any[] = [];
 
       // Add email attribute
       const emailAttribute = new CognitoUserAttribute({
@@ -136,7 +136,7 @@ class CognitoAuthService {
         attributeList.push(attr);
       });
 
-      this.userPool.signUp(email, password, attributeList, [], (err, result) => {
+      this.userPool.signUp(email, password, attributeList, [], (err: any, result: any) => {
         if (err) {
           reject(err);
         } else {
@@ -416,7 +416,7 @@ class CognitoAuthService {
   /**
    * Parse Cognito user attributes into user object
    */
-  private parseUserAttributes(attributes: CognitoUserAttribute[]): CognitoUser {
+  private parseUserAttributes(attributes: any[]): CognitoUser {
     const user: CognitoUser = {
       username: '',
       email: '',

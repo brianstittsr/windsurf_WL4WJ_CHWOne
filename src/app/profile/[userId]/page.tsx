@@ -32,7 +32,13 @@ import {
   Tab,
   Tabs,
   IconButton,
-  Tooltip
+  Tooltip,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableFooter
 } from '@mui/material';
 import {
   Person,
@@ -50,6 +56,9 @@ import {
   VisibilityOff,
   HelpOutline as Help,
   ContentCopy,
+  OpenInNew,
+  DirectionsCar,
+  Add,
   Send,
   AttachFile,
   Link,
@@ -138,6 +147,7 @@ function CHWProfileContent() {
         certificationLevel: 'advanced',
         hireDate: new Date('2020-01-15'),
         supervisor: 'Dr. Sarah Johnson',
+        ncchwaRecertificationDate: new Date('2025-12-31'),
         languages: ['English', 'Spanish', 'Portuguese'],
         serviceArea: ['Downtown', 'East Side', 'West End'],
         zipCodes: ['27601', '27603', '27604', '27605'],
@@ -186,7 +196,31 @@ function CHWProfileContent() {
         completedTrainings: 12,
         activeClients: 45,
         totalEncounters: 1250,
-        lastActivityDate: new Date()
+        lastActivityDate: new Date(),
+        mileageEntries: [
+          {
+            id: '1',
+            date: new Date('2025-10-10'),
+            startLocation: 'Office',
+            endLocation: 'Community Center',
+            purpose: 'Health Workshop',
+            miles: 12.5,
+            notes: 'Monthly diabetes workshop',
+            reimbursed: true,
+            reimbursementDate: new Date('2025-10-15')
+          },
+          {
+            id: '2',
+            date: new Date('2025-10-12'),
+            startLocation: 'Office',
+            endLocation: 'Client Home',
+            purpose: 'Home Visit',
+            miles: 8.2,
+            notes: 'Follow-up visit',
+            reimbursed: false
+          }
+        ],
+        totalMiles: 20.7
       };
 
       setProfile(mockProfile);
@@ -549,7 +583,7 @@ function CHWProfileContent() {
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Assessment /> Performance Metrics
+                    <Assessment /> Metrics
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
@@ -579,6 +613,89 @@ function CHWProfileContent() {
                       </Box>
                     </Grid>
                   </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+            
+            {/* Mileage Tracking */}
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <DirectionsCar /> Mileage Tracking
+                    </Typography>
+                    {isOwnProfile && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<Add />}
+                        onClick={() => {
+                          // In a real app, this would open a dialog to add a new mileage entry
+                          alert('Add mileage entry functionality would open here');
+                        }}
+                      >
+                        Add Entry
+                      </Button>
+                    )}
+                  </Box>
+                  
+                  {profile.mileageEntries && profile.mileageEntries.length > 0 ? (
+                    <>
+                      <Box sx={{ overflowX: 'auto' }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Date</TableCell>
+                              <TableCell>Start</TableCell>
+                              <TableCell>End</TableCell>
+                              <TableCell>Purpose</TableCell>
+                              <TableCell align="right">Miles</TableCell>
+                              <TableCell>Status</TableCell>
+                              {isOwnProfile && <TableCell align="right">Actions</TableCell>}
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {profile.mileageEntries.map((entry) => (
+                              <TableRow key={entry.id}>
+                                <TableCell>{entry.date.toLocaleDateString()}</TableCell>
+                                <TableCell>{entry.startLocation}</TableCell>
+                                <TableCell>{entry.endLocation}</TableCell>
+                                <TableCell>{entry.purpose}</TableCell>
+                                <TableCell align="right">{entry.miles.toFixed(1)}</TableCell>
+                                <TableCell>
+                                  <Chip 
+                                    size="small" 
+                                    label={entry.reimbursed ? 'Reimbursed' : 'Pending'} 
+                                    color={entry.reimbursed ? 'success' : 'warning'}
+                                    variant="outlined"
+                                  />
+                                </TableCell>
+                                {isOwnProfile && (
+                                  <TableCell align="right">
+                                    <IconButton size="small">
+                                      <Edit fontSize="small" />
+                                    </IconButton>
+                                  </TableCell>
+                                )}
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                          <TableFooter>
+                            <TableRow>
+                              <TableCell colSpan={4} align="right"><strong>Total Miles:</strong></TableCell>
+                              <TableCell align="right"><strong>{profile.totalMiles?.toFixed(1) || '0.0'}</strong></TableCell>
+                              <TableCell colSpan={isOwnProfile ? 2 : 1}></TableCell>
+                            </TableRow>
+                          </TableFooter>
+                        </Table>
+                      </Box>
+                    </>
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 3 }}>
+                      <Typography color="text.secondary">No mileage entries recorded</Typography>
+                    </Box>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -616,6 +733,44 @@ function CHWProfileContent() {
                     {profile.supervisor && (
                       <ListItem>
                         <ListItemText primary="Supervisor" secondary={profile.supervisor} />
+                      </ListItem>
+                    )}
+                    {profile.ncchwaRecertificationDate && (
+                      <ListItem>
+                        <ListItemIcon>
+                          <CalendarToday />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              NCCHWA Recertification Date
+                              <Tooltip title="Visit NCCHWA website to renew">
+                                <IconButton 
+                                  size="small" 
+                                  component="a" 
+                                  href="https://www.ncchwa.org" 
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <OpenInNew fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          } 
+                          secondary={
+                            <Box>
+                              <Typography variant="body2">
+                                {profile.ncchwaRecertificationDate.toLocaleDateString()}
+                              </Typography>
+                              <Chip 
+                                size="small" 
+                                label={`${Math.max(0, Math.ceil((profile.ncchwaRecertificationDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} days remaining`}
+                                color={Math.ceil((profile.ncchwaRecertificationDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) < 30 ? 'error' : 'success'}
+                                sx={{ mt: 1 }}
+                              />
+                            </Box>
+                          } 
+                        />
                       </ListItem>
                     )}
                   </List>

@@ -213,29 +213,33 @@ export const Flex = ({ children, ...props }: FlexProps) => (
   </Stack>
 );
 
-// Heading component (using Typography)
-interface HeadingProps extends Omit<React.ComponentProps<typeof Typography>, 'component'> {
-  children: React.ReactNode;
-  level?: 1 | 2 | 3 | 4 | 5 | 6;
-}
-
-export const Heading = ({ children, level = 1, ...props }: HeadingProps) => {
+// Heading component
+export const Heading = ({ 
+  children, 
+  level = 1, 
+  sx, 
+  ...props 
+}: { 
+  children: React.ReactNode; 
+  level?: 1 | 2 | 3 | 4 | 5 | 6; 
+  sx?: any;
+  [key: string]: any;
+}) => {
   const variant = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
-  // Use type assertion to handle component prop safely
+  const Component = variant;
+  
   return (
-    <Typography 
+    <Component 
       {...props} 
-      variant={variant}
-      // @ts-ignore - MUI typing issue with component prop
-      component={`h${level}`}
-      sx={{ 
+      style={{ 
         fontWeight: level <= 2 ? 700 : 600,
         lineHeight: 1.2,
-        ...props.sx 
+        ...(sx || {}),
+        ...props.style
       }}
     >
       {children}
-    </Typography>
+    </Component>
   );
 };
 

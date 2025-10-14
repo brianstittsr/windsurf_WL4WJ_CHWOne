@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Card, Flex, Heading, Text, Input } from '@once-ui-system/components';
+import { Button, Card, Box, Typography, TextField, CardContent, Stack, Container, Grid, Paper } from '@mui/material';
 
 interface FundingProject {
   id: string;
@@ -35,62 +35,80 @@ export default function FundingDocumentsPage() {
   };
 
   return (
-    <Flex direction="column" gap="xl" padding="xl">
-      <Heading size="xl">Funding Document Synthesis</Heading>
-      <Text>
-        Create collaborative funding documents by gathering input from multiple contributors
-        and synthesizing them into professional 1-pagers and pitch packages.
-      </Text>
+    <Box sx={{ py: 4, px: 2 }}>
+      <Container maxWidth="lg">
+        <Stack spacing={4}>
+          <Box>
+            <Typography variant="h3" gutterBottom>Funding Document Synthesis</Typography>
+            <Typography variant="body1">
+              Create collaborative funding documents by gathering input from multiple contributors
+              and synthesizing them into professional 1-pagers and pitch packages.
+            </Typography>
+          </Box>
 
-      {/* Create New Project */}
-      <Card padding="lg" background="surface">
-        <Heading size="lg" marginBottom="md">Create New Funding Project</Heading>
-        <Flex direction="column" gap="md">
-          <Input
-            label="Project Title"
-            value={newProjectTitle}
-            onChange={(e) => setNewProjectTitle(e.target.value)}
-            placeholder="e.g., Community Health Initiative Funding 2025"
-          />
-          <Input
-            label="Description"
-            value={newProjectDescription}
-            onChange={(e) => setNewProjectDescription(e.target.value)}
-            placeholder="Brief description of the funding opportunity"
-          />
-          <Button onClick={createProject} variant="primary">
-            Create Project
-          </Button>
-        </Flex>
-      </Card>
+          {/* Create New Project */}
+          <Card sx={{ p: 3 }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>Create New Funding Project</Typography>
+              <Stack spacing={3}>
+                <TextField
+                  label="Project Title"
+                  value={newProjectTitle}
+                  onChange={(e) => setNewProjectTitle(e.target.value)}
+                  placeholder="e.g., Community Health Initiative Funding 2025"
+                  fullWidth
+                />
+                <TextField
+                  label="Description"
+                  value={newProjectDescription}
+                  onChange={(e) => setNewProjectDescription(e.target.value)}
+                  placeholder="Brief description of the funding opportunity"
+                  fullWidth
+                  multiline
+                  rows={2}
+                />
+                <Button onClick={createProject} variant="contained" color="primary">
+                  Create Project
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
 
-      {/* Existing Projects */}
-      <Card padding="lg" background="surface">
-        <Heading size="lg" marginBottom="md">Your Projects</Heading>
-        {projects.length === 0 ? (
-          <Text color="secondary">No projects yet. Create your first funding document project above.</Text>
-        ) : (
-          <Flex direction="column" gap="md">
-            {projects.map((project) => (
-              <Card key={project.id} padding="md" background="neutral-weak">
-                <Flex justifyContent="space-between" alignItems="center">
-                  <Flex direction="column" gap="xs">
-                    <Heading size="md">{project.title}</Heading>
-                    <Text size="sm" color="secondary">{project.description}</Text>
-                    <Text size="xs" color="tertiary">
-                      Status: {project.status} • Created: {project.createdAt.toLocaleDateString()}
-                    </Text>
-                  </Flex>
-                  <Flex gap="sm">
-                    <Button size="sm" variant="secondary">Edit</Button>
-                    <Button size="sm" variant="primary">View Contributions</Button>
-                  </Flex>
-                </Flex>
-              </Card>
-            ))}
-          </Flex>
-        )}
-      </Card>
-    </Flex>
+          {/* Existing Projects */}
+          <Card sx={{ p: 3 }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>Your Projects</Typography>
+              {projects.length === 0 ? (
+                <Typography color="text.secondary">No projects yet. Create your first funding document project above.</Typography>
+              ) : (
+                <Stack spacing={2}>
+                  {projects.map((project) => (
+                    <Paper key={project.id} sx={{ p: 2 }}>
+                      <Grid container justifyContent="space-between" alignItems="center">
+                        <Grid item xs={12} md={8}>
+                          <Stack spacing={1}>
+                            <Typography variant="h6">{project.title}</Typography>
+                            <Typography variant="body2" color="text.secondary">{project.description}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Status: {project.status} • Created: {project.createdAt.toLocaleDateString()}
+                            </Typography>
+                          </Stack>
+                        </Grid>
+                        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, mt: { xs: 2, md: 0 } }}>
+                          <Stack direction="row" spacing={1}>
+                            <Button size="small" variant="outlined">Edit</Button>
+                            <Button size="small" variant="contained" color="primary">View Contributions</Button>
+                          </Stack>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  ))}
+                </Stack>
+              )}
+            </CardContent>
+          </Card>
+        </Stack>
+      </Container>
+    </Box>
   );
 }

@@ -1,7 +1,8 @@
 // Export Common components
-// Only export AnimatedLoading since that's what we need
 import AnimatedLoading from './AnimatedLoading.jsx';
+import TestModeWrapper from './TestModeWrapper';
 
 export {
-  AnimatedLoading
+  AnimatedLoading,
+  TestModeWrapper
 };

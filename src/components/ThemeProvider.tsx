@@ -113,13 +113,19 @@ export const ThemeProviderWrapper = ({ children }: { children: ReactNode }) => {
   const [mode, setMode] = useState<ThemeMode>('light');
 
   useEffect(() => {
-    // Check for saved theme preference or default to system preference
-    const savedTheme = localStorage.getItem('theme') as ThemeMode;
-    if (savedTheme) {
-      setMode(savedTheme);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setMode(prefersDark ? 'dark' : 'light');
+    // Check for saved theme preference or default to light mode
+    try {
+      const savedTheme = localStorage.getItem('theme') as ThemeMode;
+      if (savedTheme) {
+        setMode(savedTheme);
+      } else {
+        // Default to light mode
+        setMode('light');
+        localStorage.setItem('theme', 'light');
+      }
+    } catch (error) {
+      // In case of any localStorage errors, default to light mode
+      setMode('light');
     }
   }, []);
 

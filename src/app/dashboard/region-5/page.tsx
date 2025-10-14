@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/CognitoAuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import {
   Container,
   Box,
@@ -29,29 +29,20 @@ import {
   Folder as FolderIcon,
   Upload as UploadIcon
 } from '@mui/icons-material';
-import MainLayout from '@/components/Layout/MainLayout';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import { Region5Logo } from '@/components/Logos';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
-export default function Region5Dashboard() {
+// Inner component that uses the auth context
+function Region5DashboardContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
   const theme = useTheme();
   const { metrics, loading: metricsLoading, error } = useDashboardMetrics('region5');
 
   if (loading) {
-    return (
-      <MainLayout>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '60vh'
-        }}>
-          <CircularProgress />
-        </Box>
-      </MainLayout>
-    );
+    return <AnimatedLoading message="Loading Region 5 Dashboard..." />;
   }
 
   if (!currentUser) {
@@ -98,7 +89,7 @@ export default function Region5Dashboard() {
   ];
 
   return (
-    <MainLayout>
+    <UnifiedLayout>
       <Box sx={{ py: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 4, textAlign: 'center' }}>
@@ -288,6 +279,15 @@ export default function Region5Dashboard() {
           </Grid>
         </Grid>
       </Box>
-    </MainLayout>
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function Region5Dashboard() {
+  return (
+    <AuthProvider>
+      <Region5DashboardContent />
+    </AuthProvider>
   );
 }

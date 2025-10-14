@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { firebaseConfig } from './firebase-config';
-import { initializeFirebaseSchema } from './schema/initialize-schema';
+// Remove direct import to break circular dependency
 
 // Use environment variables if available, otherwise use hardcoded config
 const config = {
@@ -32,8 +32,13 @@ export default app;
 
 // Initialize schema (will run when this module is imported)
 if (typeof window !== 'undefined') {
-  // Only run in browser environment
-  initializeFirebaseSchema().catch(error => {
-    console.error('Failed to initialize Firebase schema:', error);
-  });
+  // Only run in browser environment after a short delay to ensure db is initialized
+  setTimeout(() => {
+    // Dynamically import to avoid circular dependency
+    import('./schema/initialize-schema').then(module => {
+      module.initializeFirebaseSchema().catch((error: Error) => {
+        console.error('Failed to initialize Firebase schema:', error);
+      });
+    });
+  }, 1000); // Small delay to ensure everything is loaded
 }

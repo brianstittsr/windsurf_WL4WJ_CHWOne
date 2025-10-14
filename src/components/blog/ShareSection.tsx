@@ -81,10 +81,7 @@ export function ShareSection({ title, url }: ShareSectionProps) {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   
-  // Don't render if sharing is disabled
-  if (!socialSharing.display) {
-    return null;
-  }
+  // Always display sharing
 
   const handleCopy = async () => {
     try {
@@ -100,10 +97,12 @@ export function ShareSection({ title, url }: ShareSectionProps) {
     }
   };
 
+  // Define default enabled platforms
+  const enabledPlatformKeys = ['x', 'facebook', 'linkedin'];
+  
   // Get enabled platforms
-  const enabledPlatforms = Object.entries(socialSharing.platforms)
-    .filter(([key, enabled]) => enabled && key !== 'copyLink')
-    .map(([platformKey]) => ({ key: platformKey, ...socialPlatforms[platformKey] }))
+  const enabledPlatforms = enabledPlatformKeys
+    .map(platformKey => ({ key: platformKey, ...socialPlatforms[platformKey] }))
     .filter(platform => platform.name); // Filter out platforms that don't exist in our definitions
 
   return (
@@ -129,17 +128,15 @@ export function ShareSection({ title, url }: ShareSectionProps) {
               </Button>
             ))}
             
-            {socialSharing.platforms.copyLink && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleCopy}
-                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-              >
-                <FaLink />
-                <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Copy Link</Box>
-              </Button>
-            )}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleCopy}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            >
+              <FaLink />
+              <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Copy Link</Box>
+            </Button>
           </Box>
         </Grid>
       </Grid>

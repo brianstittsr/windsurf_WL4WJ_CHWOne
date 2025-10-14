@@ -22,6 +22,7 @@ export interface CHWProfile {
   hireDate?: Date;
   supervisor?: string;
   languages: string[];
+  ncchwaRecertificationDate?: Date; // NCCHWA Recertification Date
 
   // Location & Service Area
   serviceArea: string[];
@@ -54,11 +55,25 @@ export interface CHWProfile {
   bio?: string;
   profilePictureUrl?: string;
 
-  // Performance & Metrics
+  // Metrics
   completedTrainings: number;
   activeClients: number;
   totalEncounters: number;
   lastActivityDate?: Date;
+  mileageEntries?: MileageEntry[];
+  totalMiles?: number;
+}
+
+export interface MileageEntry {
+  id: string;
+  date: Date;
+  startLocation: string;
+  endLocation: string;
+  purpose: string;
+  miles: number;
+  notes?: string;
+  reimbursed?: boolean;
+  reimbursementDate?: Date;
 }
 
 export interface CHWResource {
@@ -165,6 +180,35 @@ export interface Project {
   spentAmount: number;
   createdAt: Date;
   updatedAt: Date;
+  attachments?: ProjectAttachment[];
+  reports?: ProjectReport[];
+}
+
+export interface ProjectAttachment {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  uploadedBy: string;
+  uploadedAt: Date;
+  description?: string;
+  url: string;
+  tags?: string[];
+}
+
+export interface ProjectReport {
+  id: string;
+  title: string;
+  description?: string;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  status: 'draft' | 'generating' | 'complete' | 'error';
+  fileUrl?: string;
+  bmadReportId?: string;
+  version: number;
+  usedAttachments?: string[]; // IDs of attachments used in the report
+  reportConfig?: any; // Store the BMAD report configuration
 }
 
 export enum ProjectStatus {

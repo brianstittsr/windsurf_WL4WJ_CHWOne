@@ -1,30 +1,20 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import ProjectManagement from '@/components/Projects/ProjectManagement';
-import { Container, Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
-export default function ProjectsPage() {
+// Inner component that uses the auth context
+function ProjectsContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
 
   if (loading) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
-      }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress sx={{ color: 'white', mb: 3 }} />
-          <Typography sx={{ color: 'white' }}>Loading Projects...</Typography>
-        </Box>
-      </Box>
-    );
+    return <AnimatedLoading message="Loading Projects..." />;
   }
 
   if (!currentUser) {
@@ -33,10 +23,21 @@ export default function ProjectsPage() {
   }
 
   return (
-    <Container component="main" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Project Management</Typography>
-      <Typography color="text.secondary" sx={{ mb: 4 }}>Coordinate and track health initiatives, community programs, and CHW assignments across your organization</Typography>
-      <ProjectManagement />
-    </Container>
+    <UnifiedLayout>
+      <Box sx={{ py: 4, px: 2 }}>
+        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Project Management</Typography>
+        <Typography color="text.secondary" sx={{ mb: 4 }}>Coordinate and track health initiatives, community programs, and CHW assignments across your organization</Typography>
+        <ProjectManagement />
+      </Box>
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function ProjectsPage() {
+  return (
+    <AuthProvider>
+      <ProjectsContent />
+    </AuthProvider>
   );
 }

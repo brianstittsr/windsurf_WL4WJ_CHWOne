@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Grid,
   Card,
   CardContent,
@@ -116,7 +115,8 @@ export default function ReferralManagement() {
           demographics: {
             gender: 'Male',
             preferredLanguage: 'English',
-            householdSize: 2
+            householdSize: 2,
+            insuranceStatus: 'Insured'
           },
           healthConditions: ['Hypertension'],
           socialDeterminants: {
@@ -271,7 +271,7 @@ export default function ReferralManagement() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ width: '100%', py: 4 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
@@ -549,6 +549,6 @@ export default function ReferralManagement() {
       >
         <AddIcon />
       </Fab>
-    </Container>
+    </Box>
   );
 }

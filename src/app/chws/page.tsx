@@ -1,30 +1,20 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import CHWManagement from '@/components/CHW/CHWManagement';
-import { Container, Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
-export default function CHWsPage() {
+// Inner component that uses the auth context
+function CHWsContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
 
   if (loading) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
-      }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress sx={{ color: 'white', mb: 3 }} />
-          <Typography sx={{ color: 'white' }}>Loading CHW Management...</Typography>
-        </Box>
-      </Box>
-    );
+    return <AnimatedLoading message="Loading CHW Management..." />;
   }
 
   if (!currentUser) {
@@ -33,10 +23,21 @@ export default function CHWsPage() {
   }
 
   return (
-    <Container component="main" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Community Health Workers</Typography>
-      <Typography color="text.secondary" sx={{ mb: 4 }}>Manage and coordinate CHWs across your organization.</Typography>
-      <CHWManagement />
-    </Container>
+    <UnifiedLayout>
+      <Box sx={{ py: 4, px: 2 }}>
+        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Community Health Workers</Typography>
+        <Typography color="text.secondary" sx={{ mb: 4 }}>Manage and coordinate CHWs across your organization.</Typography>
+        <CHWManagement />
+      </Box>
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function CHWsPage() {
+  return (
+    <AuthProvider>
+      <CHWsContent />
+    </AuthProvider>
   );
 }
