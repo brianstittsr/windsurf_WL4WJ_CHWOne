@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import AnimatedLoading from '../Common/AnimatedLoading';
 import { Menu as MenuIcon, Close as CloseIcon, Settings as SettingsIcon, Logout as LogoutIcon } from '@mui/icons-material';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -34,7 +34,8 @@ interface UnifiedLayoutProps {
   fullWidth?: boolean;
 }
 
-export default function UnifiedLayout({ children, fullWidth = false }: UnifiedLayoutProps) {
+// Inner component that uses the auth context
+function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProps) {
   const { currentUser, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -434,5 +435,14 @@ export default function UnifiedLayout({ children, fullWidth = false }: UnifiedLa
         </Box>
       )}
     </Box>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function UnifiedLayout(props: UnifiedLayoutProps) {
+  return (
+    <AuthProvider>
+      <UnifiedLayoutContent {...props} />
+    </AuthProvider>
   );
 }
