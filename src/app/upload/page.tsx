@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -17,8 +17,8 @@ import Link from 'next/link';
 import MainLayout from '@/components/Layout/MainLayout';
 import FileUpload from '@/components/FileUpload';
 
-// Inner component that uses the auth context
-function UploadContent() {
+// Inner component that uses useSearchParams
+function UploadContentWithParams() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -139,6 +139,15 @@ function UploadContent() {
         />
       </Container>
     </MainLayout>
+  );
+}
+
+// Wrap the component that uses useSearchParams in Suspense
+function UploadContent() {
+  return (
+    <Suspense fallback={<CircularProgress />}>
+      <UploadContentWithParams />
+    </Suspense>
   );
 }
 
