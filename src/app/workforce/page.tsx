@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { redirect } from 'next/navigation';
 import WorkforceDevelopment from '@/components/Workforce/WorkforceDevelopment';
 import { Container, Box, CircularProgress, Typography } from '@mui/material';
@@ -38,3 +38,4 @@ export default function WorkforcePage() {
     </Container>
   );
 }
+
