@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { redirect } from 'next/navigation';
 import SettingsManagement from '@/components/Settings/SettingsManagement';
 import { Container, Box, CircularProgress, Typography } from '@mui/material';
 
-export default function SettingsPage() {
+// Inner component that uses the auth context
+function SettingsContent() {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
@@ -36,5 +37,14 @@ export default function SettingsPage() {
       <Typography color="text.secondary" sx={{ mb: 4 }}>Configure user accounts, permissions, notifications, and system preferences</Typography>
       <SettingsManagement />
     </Container>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function SettingsPage() {
+  return (
+    <AuthProvider>
+      <SettingsContent />
+    </AuthProvider>
   );
 }
