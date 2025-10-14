@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Container, Box, CircularProgress, Button, Typography, Stack } from '@mui/material';
 import Link from 'next/link';
 import APIAccess from '@/components/API/APIAccess';
 
-export default function APIAccessPage() {
+// Inner component that uses the auth context
+function APIAccessContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
 
@@ -47,5 +48,14 @@ export default function APIAccessPage() {
       
       <APIAccess />
     </Container>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function APIAccessPage() {
+  return (
+    <AuthProvider>
+      <APIAccessContent />
+    </AuthProvider>
   );
 }
