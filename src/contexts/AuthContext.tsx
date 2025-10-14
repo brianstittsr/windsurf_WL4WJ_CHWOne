@@ -416,7 +416,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           Authentication Service Unavailable
         </h2>
         <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#64748b', maxWidth: '600px' }}>
-          We're experiencing issues with our authentication service. Please try again later.
+          We&apos;re experiencing issues with our authentication service. Please try again later.
         </p>
         <button 
           onClick={() => window.location.reload()}
