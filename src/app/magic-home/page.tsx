@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { Container, Box, Button, CircularProgress, AppBar, Toolbar, Typography, Stack, Card, CardContent } from '@mui/material';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Lock as LockIcon } from '@mui/icons-material';
 
-
-export default function MagicHome() {
+// Inner component that uses the auth context
+function MagicHomeContent() {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
@@ -96,5 +96,14 @@ export default function MagicHome() {
         </Card>
       </Container>
     </Box>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function MagicHome() {
+  return (
+    <AuthProvider>
+      <MagicHomeContent />
+    </AuthProvider>
   );
 }
