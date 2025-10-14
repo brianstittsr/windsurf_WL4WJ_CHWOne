@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation';
 import WorkforceDevelopment from '@/components/Workforce/WorkforceDevelopment';
 import { Container, Box, CircularProgress, Typography } from '@mui/material';
 
-export default function WorkforcePage() {
+// Inner component that uses the auth context
+function WorkforceContent() {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
@@ -39,3 +40,11 @@ export default function WorkforcePage() {
   );
 }
 
+// Export the wrapped component with AuthProvider
+export default function WorkforcePage() {
+  return (
+    <AuthProvider>
+      <WorkforceContent />
+    </AuthProvider>
+  );
+}
