@@ -20,9 +20,10 @@ import { useRouter } from 'next/navigation';
 import { DatasetMergeAssistant } from '@/components/AI';
 import { dataProcessingService } from '@/services/bmad/DataProcessingService';
 import { Dataset } from '@/types/bmad.types';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 
-export default function DatasetMergePage() {
+// Inner component that uses the auth context
+function DatasetMergeContent() {
   const { currentUser } = useAuth();
   const router = useRouter();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -123,5 +124,14 @@ export default function DatasetMergePage() {
         />
       )}
     </Container>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function DatasetMergePage() {
+  return (
+    <AuthProvider>
+      <DatasetMergeContent />
+    </AuthProvider>
   );
 }
