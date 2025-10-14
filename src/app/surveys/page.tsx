@@ -5,7 +5,8 @@ import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Container, Box, CircularProgress, Typography, Alert } from '@mui/material';
 
-export default function SurveysPage() {
+// Inner component that uses the auth context
+function SurveysContent() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
 
@@ -40,3 +41,11 @@ export default function SurveysPage() {
   );
 }
 
+// Export the wrapped component with AuthProvider
+export default function SurveysPage() {
+  return (
+    <AuthProvider>
+      <SurveysContent />
+    </AuthProvider>
+  );
+}
