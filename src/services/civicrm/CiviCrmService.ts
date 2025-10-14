@@ -369,6 +369,7 @@ class CiviCrmService {
           count: 1,
           values: [{
             id: uuidv4(),
+            contact_type: params.contact_type || 'Individual', // Add default contact_type if not provided
             ...params,
             created_date: new Date().toISOString().split('T')[0],
             modified_date: new Date().toISOString().split('T')[0]
@@ -381,6 +382,7 @@ class CiviCrmService {
           count: 1,
           values: [{
             id: params.id,
+            contact_type: params.contact_type || 'Individual', // Add default contact_type if not provided
             ...params,
             modified_date: new Date().toISOString().split('T')[0]
           }]
@@ -390,7 +392,7 @@ class CiviCrmService {
           is_error: 0,
           version: '3',
           count: 1,
-          values: [{ id: params.id, deleted: true }]
+          values: [{ id: params.id, contact_type: 'Individual', deleted: true }]
         };
       default:
         return {
