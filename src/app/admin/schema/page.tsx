@@ -8,7 +8,7 @@ import { SchemaManager, UnifiedLayout, AnimatedLoading } from '@/components';
 
 // Inner component that uses the auth context
 function SchemaManagerPage() {
-  const { currentUser, loading, userRole } = useAuth();
+  const { currentUser, loading, userProfile } = useAuth();
   const router = useRouter();
 
   if (loading) {
@@ -21,7 +21,7 @@ function SchemaManagerPage() {
   }
 
   // Only allow admins to access this page
-  if (userRole !== 'admin') {
+  if (userProfile?.role !== 'admin') {
     router.push('/dashboard');
     return null;
   }
