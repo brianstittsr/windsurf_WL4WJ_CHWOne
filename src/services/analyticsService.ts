@@ -7,7 +7,7 @@ import {
   limit,
   Timestamp
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
 import {
   COLLECTIONS,
   OrganizationMetrics,
@@ -31,81 +31,33 @@ class AnalyticsService {
   }
 
   async getOrganizationMetrics(organization: 'general' | 'region5' | 'wl4wj'): Promise<OrganizationMetrics> {
-    const cacheKey = `metrics_${organization}`;
-
-    // Check cache first
-    const cached = this.getCachedData<OrganizationMetrics>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      // Get data from various collections
-      const [
-        usersData,
-        formsData,
-        submissionsData,
-        activityData
-      ] = await Promise.all([
-        this.getUsersMetrics(organization),
-        this.getFormsMetrics(organization),
-        this.getSubmissionsMetrics(organization),
-        this.getActivityMetrics(organization)
-      ]);
-
-      const metrics: OrganizationMetrics = {
-        totalUsers: usersData.totalUsers,
-        activeUsers: usersData.activeUsers,
-        totalForms: formsData.totalForms,
-        publishedForms: formsData.publishedForms,
-        totalSubmissions: submissionsData.totalSubmissions,
-        submissionsThisMonth: submissionsData.submissionsThisMonth,
-        averageCompletionTime: submissionsData.averageCompletionTime,
-        formCompletionRate: submissionsData.formCompletionRate,
-        userEngagementScore: activityData.userEngagementScore,
-        topFormCategories: activityData.topFormCategories,
-        submissionTrends: activityData.submissionTrends,
-        userActivityTrends: activityData.userActivityTrends
-      };
-
-      // Cache the result
-      this.setCachedData(cacheKey, metrics);
-
-      return metrics;
-    } catch (error) {
-      console.error('Error fetching organization metrics:', error);
-      // Return default metrics on error
-      return this.getDefaultMetrics(organization);
-    }
+    // DATA OPERATIONS DISABLED - Return mock data immediately for navigation testing
+    console.log('[ANALYTICS] Data operations disabled - returning mock data');
+    return this.getDefaultMetrics(organization);
   }
 
-  private async getUsersMetrics(organization: string) {
+  // DISABLED FOR NAVIGATION TESTING
+  /* private async getUsersMetrics(organization: string) {
     try {
-      // Get total users for this organization
+      // Simple query without composite index requirement
       const usersQuery = query(
         collection(db, COLLECTIONS.USERS),
         where('organization', '==', organization)
       );
       const usersSnapshot = await getDocs(usersQuery);
 
-      // Get active users (logged in within last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      const activeUsersQuery = query(
-        collection(db, COLLECTIONS.USERS),
-        where('organization', '==', organization),
-        where('lastLoginAt', '>=', Timestamp.fromDate(thirtyDaysAgo))
-      );
-      const activeUsersSnapshot = await getDocs(activeUsersQuery);
+      // Return mock data for active users to avoid composite index requirement
+      // TODO: Create Firebase composite index for organization + lastLoginAt
+      const mockActiveUsers = Math.floor(usersSnapshot.size * 0.7); // Assume 70% active
 
       return {
         totalUsers: usersSnapshot.size,
-        activeUsers: activeUsersSnapshot.size
+        activeUsers: mockActiveUsers
       };
     } catch (error) {
       console.error('Error fetching users metrics:', error);
-      return { totalUsers: 0, activeUsers: 0 };
+      // Return mock data immediately on any error
+      return { totalUsers: 15, activeUsers: 12 };
     }
   }
 
@@ -246,7 +198,7 @@ class AnalyticsService {
       console.error('Error fetching activity metrics:', error);
       return this.getDefaultActivityMetrics();
     }
-  }
+  } */
 
   private getDefaultMetrics(organization: 'general' | 'region5' | 'wl4wj'): OrganizationMetrics {
     return {

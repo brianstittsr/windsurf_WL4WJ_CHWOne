@@ -14,6 +14,13 @@ CHWOne is designed specifically for community health organizations to:
 
 ## ✨ Key Features
 
+### 🤖 AI Assistance
+- **BMAD Chat Agent**: Home page chat widget connected to Archon Knowledge Base for NC CHW Association content
+- **CHWOne Assistant**: Agentic AI assistant for CHWs to search resources and automate tasks via n8n
+- **Data Collection Assistant**: AI-powered survey and form creation with QR code generation
+- **Grants AI Assistant**: Comprehensive tool for creating grant responses and managing grant data collection/reporting
+- **NCCHWA Training Tracker**: System for tracking CHW certification, training, and recertification requirements
+
 ### 🔐 Security & Compliance
 - **HIPAA Compliant**: All client data encrypted and audit logged
 - **Firebase Authentication**: Secure user management with role-based access

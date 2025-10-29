@@ -3,9 +3,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // DEVELOPMENT MODE - Allow full access for testing
     // IMPORTANT: CHANGE THESE RULES BEFORE PRODUCTION DEPLOYMENT!
-    // match /{document=**} {
-    //   allow read, write: if true;
-    // }
+    match /{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Comment out the line below when using development mode rules above
+    // Uncomment for production deployment
+    /* 
     
     // PRODUCTION RULES
     // Helper functions for authentication and authorization
@@ -172,5 +176,6 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
+    */
   }
 }

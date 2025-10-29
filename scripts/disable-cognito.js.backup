@@ -1,0 +1,48 @@
+/**
+ * Disable Cognito Authentication Script
+ * 
+ * This script updates the .env.local file to explicitly disable Cognito authentication
+ * and ensure the application uses Firebase authentication only.
+ * 
+ * Usage: node scripts/disable-cognito.js
+ */
+
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Path to .env.local file
+const envPath = path.join(process.cwd(), '.env.local');
+
+console.log('Disabling Cognito authentication...');
+
+// Check if .env.local exists
+if (!fs.existsSync(envPath)) {
+  console.error('.env.local file not found. Please create it first.');
+  process.exit(1);
+}
+
+// Read current .env.local file
+const envContent = fs.readFileSync(envPath, 'utf8');
+const env = dotenv.parse(envContent);
+
+// Update environment variables
+env.NEXT_PUBLIC_AUTH_PROVIDER = 'firebase';
+env.NEXT_PUBLIC_USER_POOL_ID = '';
+env.NEXT_PUBLIC_USER_POOL_CLIENT_ID = '';
+
+// Convert back to .env format
+const newEnvContent = Object.entries(env)
+  .map(([key, value]) => `${key}=${value}`)
+  .join('\n');
+
+// Write back to .env.local
+fs.writeFileSync(envPath, newEnvContent);
+
+console.log('Cognito authentication has been disabled.');
+console.log('The application will now use Firebase authentication only.');
+console.log('\nUpdated environment variables:');
+console.log('- NEXT_PUBLIC_AUTH_PROVIDER=firebase');
+console.log('- NEXT_PUBLIC_USER_POOL_ID=');
+console.log('- NEXT_PUBLIC_USER_POOL_CLIENT_ID=');
+console.log('\nPlease restart your development server for changes to take effect.');

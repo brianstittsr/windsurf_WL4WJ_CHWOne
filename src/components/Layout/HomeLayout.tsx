@@ -87,7 +87,8 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
   ];
 
   // Mock user role for testing - replace with actual auth context
-  const userRole = currentUser?.role === 'chw' ? UserRole.CHW : (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR);
+  const userRole = currentUser?.email?.includes('chw') ? UserRole.CHW : 
+                 (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR);
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
 
   return (

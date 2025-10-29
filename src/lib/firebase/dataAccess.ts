@@ -13,7 +13,7 @@ import {
   DocumentData,
   QueryConstraint
 } from 'firebase/firestore';
-import { db, handleFirebaseError } from './firebaseConfig';
+import { db, auth, handleFirebaseError } from './firebaseConfig';
 
 // Mock data for fallback when Firebase is unavailable
 import { getMockData } from '../mockData';
@@ -36,6 +36,22 @@ export async function safeGetDocument(collectionName: string, docId: string) {
     
     // Handle Firebase errors
     const errorInfo = handleFirebaseError(error);
+    
+    // Log detailed error information for debugging
+    if (errorInfo.type === 'permission') {
+      console.error(
+        `Permission denied for ${collectionName}/${docId}. ` +
+        `This usually means the current user doesn't have access to this document. ` +
+        `Check your Firestore rules and make sure the user has the correct role.`
+      );
+      
+      // Check if user is authenticated
+      if (!auth.currentUser) {
+        console.error('User is not authenticated. Log in first.');
+      } else {
+        console.log('Current user:', auth.currentUser.uid, auth.currentUser.email);
+      }
+    }
     
     // Use mock data as fallback
     if (errorInfo.type === 'offline' || errorInfo.type === 'permission') {
@@ -78,6 +94,23 @@ export async function safeQueryDocuments(
     
     // Handle Firebase errors
     const errorInfo = handleFirebaseError(error);
+    
+    // Log detailed error information for debugging
+    if (errorInfo.type === 'permission') {
+      console.error(
+        `Permission denied for query on ${collectionName}. ` +
+        `This usually means the current user doesn't have access to this collection. ` +
+        `Check your Firestore rules and make sure the user has the correct role.`
+      );
+      
+      // Check if user is authenticated
+      if (!auth.currentUser) {
+        console.error('User is not authenticated. Log in first.');
+      } else {
+        console.log('Current user:', auth.currentUser.uid, auth.currentUser.email);
+        console.log('Query constraints:', JSON.stringify(constraints));
+      }
+    }
     
     // Use mock data as fallback
     if (mockFallback && (errorInfo.type === 'offline' || errorInfo.type === 'permission')) {

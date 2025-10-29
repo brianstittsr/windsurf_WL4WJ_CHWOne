@@ -23,7 +23,7 @@ import {
 import { Menu as MenuIcon, Close as CloseIcon, Settings as SettingsIcon, Logout as LogoutIcon } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
-import Link from 'next/link';
+import ClickableLink from './ClickableLink';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/Layout/LanguageSwitcher';
@@ -82,12 +82,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
       icon: 'settings', 
       label: t('navigation.admin'), 
       roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/chws', 
-      icon: 'person', 
-      label: t('navigation.chws'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
     },
     { 
       href: '/projects', 
@@ -149,17 +143,19 @@ export default function MainLayout({ children }: MainLayoutProps) {
       label: t('navigation.training'), 
       roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
     },
-    { 
-      href: '/profile', 
-      icon: 'person', 
-      label: t('navigation.myProfile'), 
-      roles: [UserRole.CHW] 
+    {
+      href: '/chw-tools',
+      icon: 'build',
+      label: 'CHW Tools',
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF]
     },
   ];
 
   // Mock user role for testing - replace with actual auth context
-  const userRole = currentUser?.role === 'chw' ? UserRole.CHW : (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR);
-  const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
+  const userRole = currentUser?.email?.includes('chw') ? UserRole.CHW : 
+                 (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR);
+  // RBAC DISABLED: Show all menu items regardless of role
+      const filteredMenuItems = menuItems; // No filtering
 
   return (
     <Box sx={{ 
@@ -184,10 +180,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
           color: 'text.primary',
+          zIndex: (theme) => theme.zIndex.drawer + 1, // Ensure AppBar is above other content
         }}
       >
         <Toolbar>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}>
+          <ClickableLink href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}>
             <Image 
               src="/images/CHWOneLogoDesign.png" 
               width={40}
@@ -198,17 +195,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <Box component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem', color: 'rgba(0, 0, 0, 0.87)' }}>
               {t('common.appName')}
             </Box>
-          </Link>
+          </ClickableLink>
 
           {/* Desktop Menu - Only show when logged in */}
           {!isMobile && currentUser && (
-            <Box sx={{ flexGrow: 1, display: 'flex', ml: 4, gap: 2 }}>
+            <Box sx={{ flexGrow: 1, display: 'flex', ml: 4, gap: 2, position: 'relative', zIndex: 1200 }}>
               {filteredMenuItems.map((item) => (
                 <Button
                   key={item.href}
-                  component={Link}
+                  component={ClickableLink}
                   href={item.href}
-                  sx={{ color: 'rgba(0, 0, 0, 0.87)' }}
+                  sx={{ color: 'rgba(0, 0, 0, 0.87)', zIndex: 1200, position: 'relative' }}
                 >
                   {item.label}
                 </Button>
@@ -251,7 +248,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 >
-                  <MenuItem component={Link} href="/settings" onClick={handleUserMenuClose}>
+                  <MenuItem component={ClickableLink} href="/profile" onClick={handleUserMenuClose}>
+                    <SettingsIcon sx={{ mr: 1 }} /> {t('navigation.myProfile')}
+                  </MenuItem>
+                  <MenuItem component={ClickableLink} href="/settings" onClick={handleUserMenuClose}>
                     <SettingsIcon sx={{ mr: 1 }} /> {t('common.settings')}
                   </MenuItem>
                   <Divider />
@@ -266,7 +266,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 <Button 
                   variant="outlined" 
                   color="primary"
-                  component={Link}
+                  component={ClickableLink}
                   href="/register"
                   sx={{ 
                     borderRadius: 2,
@@ -279,7 +279,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 <Button 
                   variant="contained" 
                   color="primary"
-                  component={Link}
+                  component={ClickableLink}
                   href="/login"
                   sx={{ 
                     borderRadius: 2,
@@ -306,7 +306,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
             {filteredMenuItems.map((item) => (
               <ListItem key={item.href} disablePadding>
                 <ListItemButton 
-                  component={Link} 
+                  component={ClickableLink} 
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                 >

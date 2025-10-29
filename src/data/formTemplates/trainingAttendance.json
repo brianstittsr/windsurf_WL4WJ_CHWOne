@@ -1,0 +1,219 @@
+{
+  "id": "template-attendance-training",
+  "name": "Training Attendance Sheet",
+  "description": "Comprehensive attendance tracking for training sessions with CEU tracking",
+  "category": "attendance",
+  "isDefault": true,
+  "schema": {
+    "title": "Training Attendance Record",
+    "description": "Please complete this form to record training attendance and CEU credits",
+    "sections": [
+      {
+        "id": "training-details",
+        "title": "Training Details",
+        "fields": [
+          {
+            "id": "training-title",
+            "type": "text",
+            "label": "Training Title",
+            "placeholder": "Enter training title",
+            "required": true
+          },
+          {
+            "id": "training-date",
+            "type": "date",
+            "label": "Date",
+            "required": true
+          },
+          {
+            "id": "training-time-start",
+            "type": "time",
+            "label": "Start Time",
+            "required": true
+          },
+          {
+            "id": "training-time-end",
+            "type": "time",
+            "label": "End Time",
+            "required": true
+          },
+          {
+            "id": "training-location",
+            "type": "text",
+            "label": "Location",
+            "placeholder": "Enter location",
+            "required": true
+          },
+          {
+            "id": "training-instructor",
+            "type": "text",
+            "label": "Instructor/Trainer",
+            "placeholder": "Enter name of instructor",
+            "required": true
+          },
+          {
+            "id": "training-ceu-hours",
+            "type": "number",
+            "label": "CEU Hours",
+            "placeholder": "Enter number of CEU hours",
+            "required": true,
+            "validation": {
+              "min": 0,
+              "max": 24,
+              "customMessage": "Please enter a valid number of CEU hours (0-24)"
+            }
+          },
+          {
+            "id": "training-competencies",
+            "type": "multiselect",
+            "label": "Core Competencies Covered",
+            "required": true,
+            "options": [
+              { "label": "Communication Skills", "value": "communication" },
+              { "label": "Capacity Building", "value": "capacity" },
+              { "label": "Service Coordination", "value": "coordination" },
+              { "label": "Health Education", "value": "education" },
+              { "label": "Advocacy", "value": "advocacy" },
+              { "label": "Outreach", "value": "outreach" },
+              { "label": "Professional Development", "value": "professional" },
+              { "label": "Documentation & Reporting", "value": "documentation" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "attendance-list",
+        "title": "Attendees",
+        "fields": [
+          {
+            "id": "attendees-table",
+            "type": "table",
+            "label": "Attendee List",
+            "required": true,
+            "columns": [
+              {
+                "id": "name",
+                "label": "Full Name",
+                "type": "text",
+                "required": true
+              },
+              {
+                "id": "chw-id",
+                "label": "CHW ID",
+                "type": "text",
+                "required": false
+              },
+              {
+                "id": "organization",
+                "label": "Organization",
+                "type": "text",
+                "required": false
+              },
+              {
+                "id": "email",
+                "label": "Email",
+                "type": "text",
+                "validation": {
+                  "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+                  "customMessage": "Please enter a valid email address"
+                },
+                "required": true
+              },
+              {
+                "id": "time-in",
+                "label": "Time In",
+                "type": "time",
+                "required": true
+              },
+              {
+                "id": "time-out",
+                "label": "Time Out",
+                "type": "time",
+                "required": true
+              },
+              {
+                "id": "pre-assessment",
+                "label": "Pre-Assessment",
+                "type": "checkbox",
+                "required": false
+              },
+              {
+                "id": "post-assessment",
+                "label": "Post-Assessment",
+                "type": "checkbox",
+                "required": false
+              },
+              {
+                "id": "signature",
+                "label": "Signature",
+                "type": "signature",
+                "required": true
+              }
+            ],
+            "minRows": 1,
+            "maxRows": 50,
+            "addRowLabel": "Add Attendee"
+          }
+        ]
+      },
+      {
+        "id": "training-materials",
+        "title": "Training Materials",
+        "fields": [
+          {
+            "id": "materials-provided",
+            "type": "multiselect",
+            "label": "Materials Provided",
+            "required": false,
+            "options": [
+              { "label": "Handouts", "value": "handouts" },
+              { "label": "Presentation Slides", "value": "slides" },
+              { "label": "Workbook", "value": "workbook" },
+              { "label": "Digital Resources", "value": "digital" },
+              { "label": "Reference Guide", "value": "reference" },
+              { "label": "Certificate", "value": "certificate" }
+            ]
+          },
+          {
+            "id": "materials-upload",
+            "type": "file",
+            "label": "Upload Training Materials",
+            "required": false,
+            "multiple": true,
+            "acceptedFileTypes": ".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx"
+          }
+        ]
+      },
+      {
+        "id": "notes-section",
+        "title": "Notes",
+        "fields": [
+          {
+            "id": "notes",
+            "type": "textarea",
+            "label": "Training Notes",
+            "placeholder": "Enter any additional information about the training",
+            "required": false
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "submitButtonText": "Submit Training Record",
+      "showProgressBar": true,
+      "allowSave": true,
+      "requireAuthentication": true,
+      "notifyOnSubmission": true,
+      "confirmationMessage": "Training attendance has been recorded successfully."
+    }
+  },
+  "metadata": {
+    "tags": ["attendance", "training", "CEU", "certification", "professional development"],
+    "usageCount": 0,
+    "rating": 5,
+    "reviewCount": 0,
+    "thumbnailUrl": "/images/templates/attendance-training.png"
+  },
+  "createdAt": "2025-10-17T00:00:00.000Z",
+  "updatedAt": "2025-10-17T00:00:00.000Z"
+}

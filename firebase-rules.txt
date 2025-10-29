@@ -1,0 +1,48 @@
+// Firestore Rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to all users for public data
+    match /public/{document=**} {
+      allow read: if true;
+    }
+    
+    // Allow authenticated users to read their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to read CHW data
+    match /chws/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.token.admin == true || request.auth.token.chw_coordinator == true);
+    }
+    
+    // Allow authenticated users to read resources
+    match /resources/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.token.admin == true || request.auth.token.chw_coordinator == true);
+    }
+    
+    // Allow authenticated users to read and write their own forms
+    match /forms/{formId} {
+      allow read: if true;
+      allow write: if request.auth != null && (request.auth.token.admin == true || request.auth.token.chw_coordinator == true);
+    }
+    
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}
+
+// Storage Rules
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}

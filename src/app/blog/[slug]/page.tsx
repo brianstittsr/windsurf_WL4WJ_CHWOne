@@ -7,7 +7,7 @@ import { baseURL, blog, person } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { getPosts } from "@/utils/utils";
 import { Metadata } from "next";
-import React from "react";
+import React, { use } from "react";
 import { Posts } from "@/components/blog/Posts";
 import { ShareSection } from "@/components/blog/ShareSection";
 
@@ -45,8 +45,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function Blog({ params }: { params: Promise<{ slug: string | string[] }> }) {
-  const routeParams = await params;
+export default function Blog({ params }: { params: Promise<{ slug: string | string[] }> }) {
+  // Use React.use() to unwrap the params promise as recommended by Next.js 15+
+  const routeParams = use(params);
   const slugPath = Array.isArray(routeParams.slug)
     ? routeParams.slug.join("/")
     : routeParams.slug || "";

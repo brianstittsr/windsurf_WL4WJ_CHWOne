@@ -17,3 +17,152 @@ body {
 }
 
 /* Remove conflicting styles to let Once UI handle theming */
+
+/* Menu Links Fix - Aggressive Approach */
+a[href], button, [role="button"], .MuiButtonBase-root {
+  position: relative !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.MuiAppBar-root {
+  z-index: 9999 !important;
+}
+
+.MuiDrawer-root {
+  z-index: 10000 !important;
+}
+
+.MuiContainer-root {
+  z-index: 1 !important;
+}
+
+/* Ensure menu items are clickable */
+.MuiMenuItem-root, .MuiListItem-root {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+/* Fix for Next.js Link components */
+a[href] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+/* Super Aggressive Button Clickability Fix */
+.MuiButton-root, 
+button, 
+a[href], 
+[role="button"], 
+.MuiButtonBase-root {
+  isolation: isolate !important; /* Create a new stacking context */
+  position: relative !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transform: translateZ(0) !important; /* Force GPU acceleration */
+  will-change: transform !important; /* Hint for browser optimization */
+  touch-action: manipulation !important; /* Optimize for touch */
+}
+
+/* Specific fix for Dashboard button */
+a[href="/dashboard"],
+a[href="/dashboard"] * {
+  z-index: 100000 !important; /* Even higher z-index */
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+
+/* Fix for potential overlapping elements */
+.MuiContainer-root > * {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+/* Ensure the AppBar doesn't block clicks with its backdrop */
+.MuiAppBar-root::after {
+  content: none !important;
+}
+
+/* Remove any potential click blockers */
+body::before,
+#__next::before,
+main::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Fix for Next.js page transitions potentially blocking clicks */
+#__next > div {
+  position: static !important;
+}
+
+/* Debug outline for clickable elements (remove in production) */
+.MuiButton-root:hover, 
+a[href]:hover, 
+[role="button"]:hover {
+  outline: 2px solid rgba(0, 0, 255, 0.3) !important;
+}
+
+/* Super Aggressive Button Clickability Fix */
+.MuiButton-root, 
+button, 
+a[href], 
+[role="button"], 
+.MuiButtonBase-root {
+  isolation: isolate !important; /* Create a new stacking context */
+  position: relative !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transform: translateZ(0) !important; /* Force GPU acceleration */
+  will-change: transform !important; /* Hint for browser optimization */
+  touch-action: manipulation !important; /* Optimize for touch */
+}
+
+/* Specific fix for Dashboard button */
+a[href="/dashboard"],
+a[href="/dashboard"] * {
+  z-index: 100000 !important; /* Even higher z-index */
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+
+/* Fix for potential overlapping elements */
+.MuiContainer-root > * {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+/* Ensure the AppBar doesn't block clicks with its backdrop */
+.MuiAppBar-root::after {
+  content: none !important;
+}
+
+/* Remove any potential click blockers */
+body::before,
+#__next::before,
+main::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Fix for Next.js page transitions potentially blocking clicks */
+#__next > div {
+  position: static !important;
+}
+
+/* Debug outline for clickable elements (remove in production) */
+.MuiButton-root:hover, 
+a[href]:hover, 
+[role="button"]:hover {
+  outline: 2px solid rgba(0, 0, 255, 0.3) !important;
+}
+

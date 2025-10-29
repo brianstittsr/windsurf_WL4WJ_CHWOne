@@ -28,7 +28,6 @@ import {
   Save,
   Cancel
 } from '@mui/icons-material';
-import { useAuth } from '@/lib/auth/CognitoAuthContext';
 
 interface CHWProfile {
   firstName: string;
@@ -78,8 +77,8 @@ export default function ProfileComponent({
     if (currentUser) {
       // Load profile data - in real implementation, this would come from API
       setProfile({
-        firstName: currentUser.given_name || '',
-        lastName: currentUser.family_name || '',
+        firstName: currentUser.displayName?.split(' ')[0] || '',
+        lastName: currentUser.displayName?.split(' ')[1] || '',
         email: currentUser.email || '',
         phone: '', // Would come from user profile
         county: '', // Would come from user profile

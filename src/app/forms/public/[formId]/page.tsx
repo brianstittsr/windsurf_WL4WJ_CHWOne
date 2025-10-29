@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Container,
@@ -48,7 +48,10 @@ interface Form {
 }
 
 export default function PublicFormPage() {
+  // Get params using useParams hook - this is already a regular object in client components
   const params = useParams();
+  // In client components, useParams() already returns a regular object, not a promise
+  // so we don't need to use React.use()
   const formId = params.formId as string;
 
   const [form, setForm] = useState<Form | null>(null);

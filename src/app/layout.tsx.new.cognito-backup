@@ -1,0 +1,51 @@
+import type { Metadata } from "next";
+import './globals.css';
+import { Providers } from "@/components/Providers";
+import { CognitoAuthProvider } from '@/lib/auth/CognitoAuthContext';
+import ThemeRegistry from '@/components/ThemeRegistry';
+import { FirebaseInitializer } from '@/components';
+import { TestModeWrapper } from '@/components/Common';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+
+export const metadata: Metadata = {
+  title: 'CHWOne - Community Health Worker Management Platform',
+  description: 'Women Leading for Wellness and Justice Community Health Worker Management Platform',
+  keywords: 'community health workers, CHW, healthcare, North Carolina, wellness, justice',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+        {/* Preload the first carousel image for faster initial load */}
+        <link 
+          rel="preload" 
+          href="/images/carousel/community-health-workers.webp" 
+          as="image" 
+          type="image/webp"
+          fetchPriority="high"
+        />
+      </head>
+      <body>
+        <ThemeRegistry>
+          <LanguageProvider>
+            <Providers>
+              <CognitoAuthProvider>
+                <FirebaseInitializer />
+                {/* Test Mode Toggle - Only appears in development */}
+                <TestModeWrapper />
+                {children}
+              </CognitoAuthProvider>
+            </Providers>
+          </LanguageProvider>
+        </ThemeRegistry>
+      </body>
+    </html>
+  );
+}

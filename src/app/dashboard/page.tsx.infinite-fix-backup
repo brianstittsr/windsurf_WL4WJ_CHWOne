@@ -1,0 +1,109 @@
+'use client';
+
+import React from 'react';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { Box } from '@mui/material';
+import DashboardContent from '@/components/Dashboard/DashboardContent';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
+
+// Dashboard component that uses the auth context
+// Track redirect attempts to prevent loops
+const MAX_REDIRECT_ATTEMPTS = 3;
+
+function Dashboard() {
+  // Use React state for redirect attempts to ensure it works correctly
+  const [redirectAttempts, setRedirectAttempts] = React.useState(0);
+  console.log('%c[DASHBOARD] Dashboard component rendering', 'background: #3182ce; color: white; padding: 2px 4px; border-radius: 2px;');
+  const { currentUser, loading } = useAuth();
+  console.log('%c[DASHBOARD] Auth state:', 'color: #3182ce;', { 
+    currentUser: currentUser ? { 
+      uid: currentUser.uid,
+      email: currentUser.email,
+      displayName: currentUser.displayName
+    } : null, 
+    loading,
+    timestamp: new Date().toISOString()
+  });
+  const router = useRouter();
+
+  if (loading) {
+    console.log('%c[DASHBOARD] Still loading, showing loading screen', 'color: #3182ce;');
+    return <AnimatedLoading message="Loading Dashboard..." />;
+  }
+
+  if (!currentUser) {
+    const newAttempts = redirectAttempts + 1;
+    setRedirectAttempts(newAttempts);
+    console.log('%c[DASHBOARD] No current user, redirecting to login', 'background: orange; color: white; padding: 2px 4px; border-radius: 2px;', {
+      redirectAttempts: newAttempts,
+      maxAttempts: MAX_REDIRECT_ATTEMPTS
+    });
+    
+    // Prevent redirect loops by checking redirect attempts
+    if (newAttempts <= MAX_REDIRECT_ATTEMPTS) {
+      // Add a small delay before redirecting to ensure state is updated
+      setTimeout(() => {
+        router.push('/login');
+      }, 100);
+    } else {
+      console.error('%c[DASHBOARD] Too many redirect attempts, showing error instead', 'background: red; color: white;');
+      return (
+        <div style={{ 
+          padding: '2rem', 
+          maxWidth: '600px', 
+          margin: '0 auto', 
+          textAlign: 'center',
+          marginTop: '4rem'
+        }}>
+          <h2 style={{ color: '#e53e3e', marginBottom: '1rem' }}>Authentication Error</h2>
+          <p style={{ marginBottom: '1rem' }}>
+            There was a problem with authentication. Please try signing in again.
+          </p>
+          <button 
+            onClick={() => {
+              setRedirectAttempts(0);
+              router.push('/login');
+            }}
+            style={{
+              backgroundColor: '#3182ce',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Go to Login
+          </button>
+        </div>
+      );
+    }
+    return null;
+  }
+  
+  // Reset redirect counter on successful render
+  React.useEffect(() => {
+    if (currentUser && redirectAttempts > 0) {
+      setRedirectAttempts(0);
+    }
+  }, [currentUser, redirectAttempts]);
+  
+  console.log('%c[DASHBOARD] User authenticated, rendering dashboard', 'background: green; color: white; padding: 2px 4px; border-radius: 2px;');
+
+  return (
+    <UnifiedLayout>
+      <DashboardContent />
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function DashboardPage() {
+  return (
+    <AuthProvider>
+      <Dashboard />
+    </AuthProvider>
+  );
+}

@@ -1,0 +1,211 @@
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { Box } from '@mui/material';
+import DashboardContent from '@/components/Dashboard/DashboardContent';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
+
+// Dashboard component that uses the auth context
+// Track redirect attempts to prevent loops
+const MAX_REDIRECT_ATTEMPTS = 3;
+
+function Dashboard() {
+  // Use refs and state for tracking
+  const redirectAttemptsRef = useRef(0);
+  const authCheckTimeoutRef = useRef(null);
+  const [pendingAuth, setPendingAuth] = useState(false);
+  const [forceRender, setForceRender] = useState(0); // Add force render state
+  
+  console.log('%c[DASHBOARD] Dashboard component rendering', 'background: #3182ce; color: white; padding: 2px 4px; border-radius: 2px;');
+  const { currentUser, loading, userProfile } = useAuth();
+  console.log('%c[DASHBOARD] Auth state:', 'color: #3182ce;', { 
+    currentUser: currentUser ? { 
+      uid: currentUser.uid,
+      email: currentUser.email,
+      displayName: currentUser.displayName
+    } : null, 
+    loading,
+    timestamp: new Date().toISOString()
+  });
+  const router = useRouter();
+  
+  // Check for login success flag
+  useEffect(() => {
+    const loginSuccess = sessionStorage.getItem('loginSuccess');
+    const loginTime = sessionStorage.getItem('loginTime');
+    
+    if (loginSuccess === 'true') {
+      console.log('%c[DASHBOARD] Login success flag found', 'color: green;', { loginTime });
+      // Set pending auth to true
+      setPendingAuth(true);
+      // Clear the flag to prevent issues on refresh
+      sessionStorage.removeItem('loginSuccess');
+    }
+    
+    // Cleanup function
+    return () => {
+      if (authCheckTimeoutRef.current) {
+        clearTimeout(authCheckTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Reset redirect counter on successful render
+  useEffect(() => {
+    if (currentUser && redirectAttemptsRef.current > 0) {
+      redirectAttemptsRef.current = 0;
+    }
+    
+    // Force a re-render after a delay to ensure auth state is properly loaded
+    const forceRenderTimeout = setTimeout(() => {
+      setForceRender(prev => prev + 1);
+    }, 1000);
+    
+    return () => clearTimeout(forceRenderTimeout);
+  }, [currentUser]);
+  
+  // Add debug logging for force render
+  useEffect(() => {
+    console.log('%c[DASHBOARD] Force render triggered', 'color: purple;', { 
+      forceRender, 
+      currentUser: !!currentUser,
+      userProfile: !!userProfile
+    });
+  }, [forceRender, currentUser, userProfile]);
+
+  if (loading) {
+    console.log('%c[DASHBOARD] Still loading, showing loading screen', 'color: #3182ce;');
+    return <AnimatedLoading message="Loading Dashboard..." />;
+  }
+
+  if (!currentUser) {
+    // Check for pending authentication
+    if (pendingAuth === true) {
+      console.log('%c[DASHBOARD] Authentication is pending, showing loading screen', 'color: green;');
+      // Wait for auth state to update with a longer timeout
+      if (!authCheckTimeoutRef.current) {
+        authCheckTimeoutRef.current = setTimeout(() => {
+          console.log('%c[DASHBOARD] Auth check timeout expired, proceeding with normal flow', 'color: orange;');
+          setPendingAuth(false);
+        }, 3000); // Wait up to 3 seconds for auth to complete
+      }
+      return <AnimatedLoading message="Completing authentication..." />;
+    }
+    
+    // Check localStorage for auth session before redirecting
+    const storedSession = localStorage.getItem('authSession');
+    let hasValidSession = false;
+    
+    if (storedSession) {
+      try {
+        const session = JSON.parse(storedSession);
+        const sessionTime = new Date(session.timestamp).getTime();
+        const currentTime = new Date().getTime();
+        const sessionAge = currentTime - sessionTime;
+        
+        console.log('%c[DASHBOARD] Found stored auth session', 'color: #3182ce;', { 
+          email: session.email,
+          sessionAge: Math.round(sessionAge / 1000) + ' seconds'
+        });
+        
+        // If session is less than 5 minutes old, wait for auth state to update
+        if (sessionAge < 5 * 60 * 1000) {
+          console.log('%c[DASHBOARD] Recent session found, waiting for auth state to update', 'color: green;');
+          if (redirectAttemptsRef.current < 3) {
+            redirectAttemptsRef.current += 1;
+            hasValidSession = true;
+            return <AnimatedLoading message="Restoring session..." />;
+          }
+        } else {
+          console.log('%c[DASHBOARD] Session is too old, clearing', 'color: orange;');
+          localStorage.removeItem('authSession');
+        }
+      } catch (e) {
+        console.error('%c[DASHBOARD] Error parsing stored session', 'color: red;', e);
+        localStorage.removeItem('authSession');
+      }
+    }
+    
+    // Increment the ref counter instead of state
+    redirectAttemptsRef.current += 1;
+    
+    console.log('%c[DASHBOARD] No current user, redirecting to login', 'background: orange; color: white; padding: 2px 4px; border-radius: 2px;', {
+      redirectAttempts: redirectAttemptsRef.current,
+      maxAttempts: MAX_REDIRECT_ATTEMPTS,
+      hasStoredSession: !!storedSession,
+      hasValidSession,
+      pendingAuth
+    });
+    
+    // Prevent redirect loops by checking redirect attempts
+    if (redirectAttemptsRef.current <= MAX_REDIRECT_ATTEMPTS) {
+      // Add a small delay before redirecting to ensure state is updated
+      setTimeout(() => {
+        router.push('/login');
+      }, 100);
+    } else {
+      console.error('%c[DASHBOARD] Too many redirect attempts, showing error instead', 'background: red; color: white;');
+      return (
+        <div style={{ 
+          padding: '2rem', 
+          maxWidth: '600px', 
+          margin: '0 auto', 
+          textAlign: 'center',
+          marginTop: '4rem'
+        }}>
+          <h2 style={{ color: '#e53e3e', marginBottom: '1rem' }}>Authentication Error</h2>
+          <p style={{ marginBottom: '1rem' }}>
+            There was a problem with authentication. Please try signing in again.
+          </p>
+          <button 
+            onClick={() => {
+              redirectAttemptsRef.current = 0;
+              setPendingAuth(false);
+              router.push('/login');
+            }}
+            style={{
+              backgroundColor: '#3182ce',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Go to Login
+          </button>
+        </div>
+      );
+    }
+    return null;
+  }
+  
+  console.log('%c[DASHBOARD] User authenticated, rendering dashboard', 'background: green; color: white; padding: 2px 4px; border-radius: 2px;');
+
+  // DASHBOARD FIX: Always render dashboard content when user is authenticated
+  console.log('%c[DASHBOARD] User authenticated, rendering dashboard', 'background: green; color: white; padding: 2px 4px; border-radius: 2px;');
+  
+  // Ensure we have a valid user before rendering
+  if (!currentUser || !currentUser.uid) {
+    console.log('%c[DASHBOARD] User object invalid, showing loading', 'color: red;');
+    return <AnimatedLoading message="Preparing dashboard..." />;
+  }
+  
+  return (
+    <UnifiedLayout>
+      <DashboardContent key={forceRender} /> {/* Add key to force re-render */}
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function DashboardPage() {
+  return (
+    <AuthProvider>
+      <Dashboard />
+    </AuthProvider>
+  );
+}

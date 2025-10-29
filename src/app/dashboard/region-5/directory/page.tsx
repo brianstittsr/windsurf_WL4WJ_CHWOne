@@ -84,9 +84,17 @@ export default function Region5DirectoryPage() {
     loadDirectory();
   }, []);
 
+  // Use a ref to prevent filterCHWs from being called during initial render
+  const isInitialMount = React.useRef(true);
+
   useEffect(() => {
+    // Skip the first render to prevent calling filterCHWs during render
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     filterCHWs();
-  }, [chwList, searchQuery, filterSpecialization, filterLanguage, filterServiceArea]);
+  }, [searchQuery, filterSpecialization, filterLanguage, filterServiceArea]);
 
   const loadDirectory = async () => {
     try {
@@ -197,6 +205,7 @@ export default function Region5DirectoryPage() {
       ];
 
       setChwList(mockDirectory);
+      setFilteredList(mockDirectory); // Initialize filteredList with all CHWs
     } catch (err) {
       console.error('Failed to load directory:', err);
     } finally {

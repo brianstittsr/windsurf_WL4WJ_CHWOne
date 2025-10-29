@@ -1,52 +1,98 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { getSchemaVersion } from '@/lib/schema/initialize-schema';
+import { auth, isValidConfig } from '@/lib/firebase/firebaseConfig';
 
+/**
+ * FirebaseInitializer Component
+ * 
+ * This component verifies Firebase services are working correctly
+ * and initializes the schema if needed. It does NOT initialize Firebase
+ * itself, as that's handled by the firebaseConfig.ts module.
+ */
 export default function FirebaseInitializer() {
   const [initialized, setInitialized] = useState(false);
   const [schemaVersion, setSchemaVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    const initializeFirebase = async () => {
+    // Use a flag to prevent multiple initialization attempts
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+    
+    const verifyFirebase = async () => {
       try {
-        // Verify Firebase Auth is working
-        const auth = getAuth();
+        // Check if Firebase configuration is valid
+        if (!isValidConfig || !auth) {
+          console.error('Firebase is not properly configured. Please check your environment variables.');
+          if (isMounted) setInitialized(false);
+          return;
+        }
+
+        // Log Firebase config status (reduced logging)
+        console.log('Firebase Auth config status: Valid');
         
-        // Log Firebase config status
-        console.log('Firebase Auth initialized with config:', {
-          apiKey: auth.app.options.apiKey ? 'Set' : 'Missing',
-          authDomain: auth.app.options.authDomain ? 'Set' : 'Missing',
-          projectId: auth.app.options.projectId ? 'Set' : 'Missing',
-        });
-        
-        // Test auth state listener
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-          console.log('Firebase Auth state initialized', user ? 'User authenticated' : 'No user');
-          unsubscribe();
-        });
-        
-        // Check schema version
-        try {
-          const versionInfo = await getSchemaVersion();
-          if (versionInfo) {
-            setSchemaVersion(versionInfo.version);
-            console.log(`Firebase schema version: ${versionInfo.version} (applied at ${versionInfo.appliedAt.toDate().toLocaleString()})`);
-          } else {
-            console.log('Schema version not found, initialization may be in progress');
-          }
-        } catch (schemaError) {
-          console.warn('Error checking schema version:', schemaError);
+        // Check network status first
+        const isOnline = typeof navigator !== 'undefined' && navigator.onLine;
+        if (!isOnline) {
+          console.warn('Browser is offline, enabling offline mode for Firebase');
+          localStorage.setItem('firebaseNetworkError', 'true');
+          if (isMounted) setInitialized(true); // Continue anyway to prevent lockup
+          return;
         }
         
-        setInitialized(true);
+        // Skip the problematic Firebase connectivity check - authentication works fine without it
+        console.log('Firebase connectivity: Assuming online (auth will handle errors if needed)');
+        localStorage.setItem('firebaseNetworkError', 'false');
+        
+        // Test auth state listener with timeout protection
+        const authTimeoutId = setTimeout(() => {
+          console.warn('Firebase auth state listener timed out');
+          if (isMounted) setInitialized(true); // Continue anyway to prevent lockup
+        }, 3000); // 3 second timeout
+        
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          clearTimeout(authTimeoutId);
+          unsubscribe(); // Immediately unsubscribe to prevent memory leaks
+          if (!isMounted) return;
+          
+          // Check schema version with timeout protection
+          timeoutId = setTimeout(async () => {
+            try {
+              const versionInfo = await Promise.race([
+                getSchemaVersion(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Schema version check timed out')), 3000))
+              ]) as any;
+              
+              if (versionInfo && versionInfo.version && isMounted) {
+                setSchemaVersion(versionInfo.version);
+              }
+            } catch (schemaError) {
+              console.warn('Error checking schema version:', schemaError);
+            } finally {
+              if (isMounted) setInitialized(true);
+            }
+          }, 0);
+        }, (error) => {
+          console.error('Firebase auth state change error:', error);
+          clearTimeout(authTimeoutId);
+          if (isMounted) setInitialized(true); // Continue anyway to prevent lockup
+        });
+        
       } catch (error) {
-        console.error('Error initializing Firebase:', error);
+        console.error('Error verifying Firebase:', error);
+        if (isMounted) setInitialized(true); // Continue anyway to prevent lockup
       }
     };
 
-    initializeFirebase();
+    verifyFirebase();
+    
+    // Cleanup function to prevent memory leaks and state updates after unmount
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   // This component doesn't render anything

@@ -23,6 +23,16 @@ const nextConfig = {
         hostname: "images.pexels.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+        pathname: "**",
+      },
     ],
   },
   // Optimize static asset handling
@@ -48,6 +58,14 @@ const nextConfig = {
     
     return config;
   },
+  
+  // Allow cross-origin requests during development
+  allowedDevOrigins: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://192.168.1.216:3000',
+    'http://192.168.1.216:3001'
+  ],
 };
 
 export default nextConfig;

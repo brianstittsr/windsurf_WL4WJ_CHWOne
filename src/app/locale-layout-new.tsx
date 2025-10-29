@@ -1,5 +1,4 @@
 import { Providers } from "@/components/Providers";
-import { CognitoAuthProvider } from '@/lib/auth/CognitoAuthContext';
 import ThemeRegistry from '@/components/ThemeRegistry';
 import { FirebaseInitializer } from '@/components';
 import { TestModeWrapper } from '@/components/Common';
@@ -21,12 +20,10 @@ export default function LocaleLayout({
       <body>
         <ThemeRegistry>
           <Providers>
-            <CognitoAuthProvider>
-              <FirebaseInitializer />
+            <FirebaseInitializer />
               {/* Test Mode Toggle - Only appears in development */}
               <TestModeWrapper />
               {children}
-            </CognitoAuthProvider>
           </Providers>
         </ThemeRegistry>
       </body>

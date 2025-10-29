@@ -1,0 +1,156 @@
+/* Logo Glow Animation */
+.logoContainer {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.5s ease;
+}
+
+.logoImage {
+  border-radius: 50%;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+/* Interactive hover effects */
+.logoContainer:hover .logoImage {
+  transform: scale(1.05) rotate(5deg);
+  filter: brightness(1.2);
+}
+
+.logoContainer:hover .glowEffect {
+  opacity: 1;
+  filter: blur(20px);
+  animation: pulse 1.5s infinite;
+}
+
+.logoContainer:hover .glowRing {
+  box-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.9),
+    0 0 40px rgba(100, 181, 246, 0.8),
+    0 0 60px rgba(33, 150, 243, 0.6),
+    0 0 80px rgba(13, 71, 161, 0.4);
+  animation: rotate 5s linear infinite, pulse 2s infinite alternate;
+}
+
+/* Glow effect */
+.glowEffect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(100, 181, 246, 0.6) 30%,
+    rgba(33, 150, 243, 0.4) 50%,
+    rgba(173, 216, 230, 0) 70%
+  );
+  filter: blur(15px);
+  opacity: 0.7;
+  z-index: 1;
+  animation: pulse 3s infinite;
+}
+
+/* Outer glow ring */
+.glowRing {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.8),
+    0 0 30px rgba(100, 181, 246, 0.7),
+    0 0 45px rgba(33, 150, 243, 0.5),
+    0 0 60px rgba(13, 71, 161, 0.3);
+  animation: rotate 10s linear infinite, pulse 3s infinite alternate;
+  z-index: 0;
+  
+  /* No pseudo-elements in CSS modules */
+}
+
+/* Sparkle elements */
+.sparkle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: white;
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  z-index: 3;
+}
+
+.sparkle1 {
+  top: 10%;
+  left: 20%;
+  animation: sparkleAnimation 4s infinite 0.5s;
+}
+
+.sparkle2 {
+  top: 15%;
+  right: 15%;
+  animation: sparkleAnimation 4s infinite 1s;
+}
+
+.sparkle3 {
+  bottom: 20%;
+  left: 15%;
+  animation: sparkleAnimation 4s infinite 1.5s;
+}
+
+.sparkle4 {
+  bottom: 10%;
+  right: 20%;
+  animation: sparkleAnimation 4s infinite 2s;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.95);
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+    filter: hue-rotate(30deg);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+    filter: hue-rotate(0deg);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sparkleAnimation {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}

@@ -1,0 +1,291 @@
+/**
+ * Firebase Configuration
+ * 
+ * This is the single source of truth for Firebase initialization.
+ * All Firebase services should be imported from this file to ensure
+ * consistent instances across the application.
+ * 
+ * IMPORTANT: This file is designed to work in both client and server environments.
+ * - In server components, it provides a basic Firebase app instance
+ * - In client components, it provides full Firebase functionality
+ */
+
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { Auth, getAuth, connectAuthEmulator } from 'firebase/auth';
+import { 
+  Firestore, 
+  getFirestore, 
+  connectFirestoreEmulator, 
+  initializeFirestore, 
+  FirestoreSettings
+} from 'firebase/firestore';
+import { FirebaseStorage, getStorage, connectStorageEmulator } from 'firebase/storage';
+import { persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+};
+
+// Validate required Firebase configuration
+const validateFirebaseConfig = () => {
+  const requiredFields = ['apiKey', 'authDomain', 'projectId', 'appId'];
+  const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
+  
+  if (missingFields.length > 0) {
+    console.error(`Missing required Firebase configuration: ${missingFields.join(', ')}`);
+    console.error('Please check your .env.local file and ensure all required Firebase configuration values are set.');
+    return false;
+  }
+  return true;
+};
+
+// Check if Firebase configuration is valid
+const isValidConfig = validateFirebaseConfig();
+
+// Type to track initialization status
+type FirebaseServices = {
+  app: FirebaseApp;
+  auth: Auth;
+  db: Firestore;
+  storage: FirebaseStorage;
+  initialized: boolean;
+};
+
+// Module-level variables to store Firebase instances
+let services: FirebaseServices | null = null;
+
+/**
+ * Initialize Firebase services
+ * 
+ * This function ensures Firebase is only initialized once,
+ * and handles both client and server environments appropriately.
+ * It also validates the Firebase configuration before initialization.
+ */
+function initializeFirebase(): FirebaseServices {
+  // If services are already initialized, return them
+  if (services && services.initialized) {
+    return services;
+  }
+  
+  // Check if Firebase configuration is valid
+  if (!isValidConfig) {
+    console.error('Firebase initialization failed: Invalid configuration');
+    throw new Error('Firebase configuration is invalid or missing required fields');
+  }
+  
+  try {
+    // Check if Firebase app already exists
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    
+    // Initialize Firebase services
+    const auth = getAuth(app);
+    
+    // Initialize Firestore with appropriate cache settings based on environment
+    let db;
+    
+    // Only use persistence in browser environments
+    if (typeof window !== 'undefined') {
+      try {
+        // First try to get an existing instance
+        db = getFirestore(app);
+        
+        // Only attempt to set persistence on first initialization
+        // This prevents the "already been called with different options" error
+        const firestoreApps = getApps().filter(app => {
+          try {
+            return !!getFirestore(app);
+          } catch (e) {
+            return false;
+          }
+        });
+        
+        if (firestoreApps.length <= 1) {
+          try {
+            // Try to initialize with persistence only on first load
+            db = initializeFirestore(app, {
+              localCache: persistentLocalCache({
+                tabManager: persistentMultipleTabManager()
+              })
+            } as FirestoreSettings);
+          } catch (persistenceError) {
+            console.warn('Failed to initialize Firestore with persistence, falling back to memory cache');
+            // Already handled by getting the default instance above
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing Firestore:', error);
+        // Fall back to default Firestore without persistence
+        db = getFirestore(app);
+      }
+    } else {
+      // Server environment - use default settings without persistence
+      db = getFirestore(app);
+    }
+    
+    const storage = getStorage(app);
+    
+    // Create services object
+    services = {
+      app,
+      auth,
+      db,
+      storage,
+      initialized: true
+    };
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+    throw new Error('Failed to initialize Firebase services');
+  }
+  
+  // Client-side only initialization
+  if (typeof window !== 'undefined') {
+    // Initialize schema in client environment
+    initializeClientFeatures(services);
+    
+    // Initialize schema after a short delay
+    setTimeout(() => {
+      import('../schema/initialize-schema')
+        .then(module => {
+          module.initializeFirebaseSchema()
+            .catch((error: Error) => {
+              console.error('Failed to initialize Firebase schema:', error);
+            });
+        })
+        .catch(error => {
+          console.error('Error importing schema module:', error);
+        });
+    }, 1000);
+  }
+  
+  return services;
+}
+
+/**
+ * Initialize client-specific Firebase features
+ * Only runs in browser environment
+ */
+function initializeClientFeatures(services: FirebaseServices): void {
+  try {
+    // Persistence is now configured during Firestore initialization
+    // with persistentLocalCache in the initializeFirestore call
+    
+    // Connect to emulators in development
+    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true') {
+      connectAuthEmulator(services.auth, 'http://localhost:9099');
+      connectFirestoreEmulator(services.db, 'localhost', 8080);
+      connectStorageEmulator(services.storage, 'localhost', 9199);
+      console.log('Using Firebase emulators');
+    }
+  } catch (error) {
+    console.error('Error initializing client features:', error);
+  }
+}
+
+/**
+ * Handle Firebase errors gracefully
+ * Provides consistent error handling across the application
+ */
+const handleFirebaseError = (error: any) => {
+  console.error('Firebase error:', error);
+  
+  // Check for permission errors
+  if (error.code === 'permission-denied') {
+    console.error('Firebase permission denied. Check your security rules.');
+    return { type: 'permission', message: 'You do not have permission to access this data.' };
+  }
+  
+  // Check for offline errors
+  if (error.code === 'unavailable' || error.code === 'failed-precondition') {
+    console.error('Firebase unavailable. App will use cached data if available.');
+    return { type: 'offline', message: 'You are currently offline. Some features may be limited.' };
+  }
+  
+  // Other errors
+  return { type: 'unknown', message: 'An error occurred. Please try again later.' };
+};
+
+// Initialize Firebase and export services
+let app, auth, db, storage;
+
+try {
+  // Only initialize if we have valid config
+  if (isValidConfig) {
+    const services = initializeFirebase();
+    app = services.app;
+    auth = services.auth;
+    db = services.db;
+    storage = services.storage;
+  } else {
+    console.error('Firebase services not initialized due to invalid configuration');
+  }
+} catch (error) {
+  console.error('Error during Firebase initialization:', error);
+}
+
+export { app, auth, db, storage, handleFirebaseError, initializeFirebase, isValidConfig };
+
+// Offline mode detection with network error tracking
+export const isOfflineMode = typeof window !== 'undefined' && (
+  localStorage.getItem('forceOfflineMode') === 'true' || 
+  !window.navigator.onLine ||
+  localStorage.getItem('firebaseNetworkError') === 'true'
+);
+
+// Track network status changes
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    console.log('Browser is online, updating Firebase status');
+    localStorage.setItem('firebaseNetworkError', 'false');
+  });
+  
+  window.addEventListener('offline', () => {
+    console.log('Browser is offline, enabling offline mode');
+    localStorage.setItem('firebaseNetworkError', 'true');
+  });
+}
+
+// Mock users for offline mode
+export const mockUsers = [
+  {
+    uid: 'mock-admin-uid',
+    email: 'admin@example.com',
+    displayName: 'Admin User',
+    emailVerified: true,
+    isAnonymous: false,
+    metadata: {
+      creationTime: new Date().toISOString(),
+      lastSignInTime: new Date().toISOString()
+    },
+    providerData: [
+      {
+        providerId: 'password',
+        uid: 'admin@example.com',
+        displayName: 'Admin User',
+        email: 'admin@example.com',
+        phoneNumber: null,
+        photoURL: null
+      }
+    ],
+    refreshToken: 'mock-refresh-token',
+    tenantId: null,
+    delete: () => Promise.resolve(),
+    getIdToken: () => Promise.resolve('mock-id-token'),
+    getIdTokenResult: () => Promise.resolve({ token: 'mock-id-token', claims: { role: 'admin' } }),
+    reload: () => Promise.resolve(),
+    toJSON: () => ({ uid: 'mock-admin-uid', email: 'admin@example.com', displayName: 'Admin User' })
+  }
+];
+
+// Toggle offline mode for testing
+export const toggleOfflineMode = () => {
+  const current = localStorage.getItem('forceOfflineMode') === 'true';
+  localStorage.setItem('forceOfflineMode', (!current).toString());
+  return !current;
+};

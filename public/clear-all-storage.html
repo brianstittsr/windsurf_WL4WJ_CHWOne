@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage Cleared</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 { color: #1a365d; margin-bottom: 20px; }
+        .status { color: #38a169; font-weight: bold; font-size: 18px; margin-bottom: 20px; }
+        .info { color: #2d3748; margin-bottom: 30px; }
+        button {
+            background: #1a365d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #0f2942; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>All Storage Cleared</h1>
+        <div class="status">✓ Successfully cleared all browser storage</div>
+        <div class="info">
+            localStorage and sessionStorage have been completely cleared.<br>
+            You will need to log in again to access the application.
+        </div>
+        <button onclick="window.location.href='/login'">Go to Login</button>
+    </div>
+    
+    <script>
+        // Clear ALL storage
+        localStorage.clear();
+        sessionStorage.clear();
+        console.log('All storage cleared');
+    </script>
+</body>
+</html>

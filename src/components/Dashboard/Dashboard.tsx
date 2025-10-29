@@ -37,7 +37,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardMetrics, Project, ProjectStatus } from '@/types/platform.types';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
 import Link from 'next/link';
 
 const StatusIndicator: React.FC<{ status: 'active' | 'pending' | 'inactive'; label: string }> = ({ status, label }) => {

@@ -39,6 +39,7 @@ import {
   Phone as PhoneIcon
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
+import { updateProfile } from 'firebase/auth';
 
 interface UserSettings {
   notifications: {
@@ -64,7 +65,10 @@ interface UserSettings {
 }
 
 export default function SettingsManagement() {
+  const { currentUser } = useAuth();
   const [tabValue, setTabValue] = useState(0);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [displayName, setDisplayName] = useState(currentUser?.displayName || '');
   const [settings, setSettings] = useState<UserSettings>({
     notifications: {
       email: true,
@@ -108,10 +112,16 @@ export default function SettingsManagement() {
     }));
   };
 
-  const handleSaveSettings = () => {
-    // Save settings to backend
-    console.log('Saving settings:', settings);
-    // Show success message
+  const handleSaveSettings = async () => {
+    if (!currentUser) return;
+
+    try {
+      await updateProfile(currentUser, { displayName });
+      console.log('Profile updated successfully');
+      setIsEditMode(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
   const handlePasswordChange = () => {
@@ -125,7 +135,6 @@ export default function SettingsManagement() {
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
-  const { user } = useAuth();
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -159,19 +168,29 @@ export default function SettingsManagement() {
               <PersonIcon sx={{ fontSize: 40 }} />
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                {user?.firstName} {user?.lastName}
-              </Typography>
+              {isEditMode ? (
+                <TextField
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  label="Display Name"
+                  variant="outlined"
+                  size="small"
+                />
+              ) : (
+                <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                  {currentUser?.displayName || 'User'}
+                </Typography>
+              )}
               <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-                {user?.email}
+                {currentUser?.email}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Role: {user?.role?.replace(/_/g, ' ')}
+                Role: User
               </Typography>
             </Box>
             <Box>
-              <Button variant="outlined" startIcon={<PersonIcon />}>
-                Edit Profile
+              <Button variant="outlined" startIcon={<PersonIcon />} onClick={() => setIsEditMode(!isEditMode)}>
+                {isEditMode ? 'Cancel' : 'Edit Profile'}
               </Button>
             </Box>
           </Box>

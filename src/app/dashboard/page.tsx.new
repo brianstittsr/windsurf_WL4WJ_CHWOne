@@ -1,0 +1,49 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { Box, Typography, Button, Container, CircularProgress } from '@mui/material';
+
+function Dashboard() {
+  const { currentUser, loading, signOut } = useAuth();
+  const router = useRouter();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !currentUser) {
+      router.push('/login');
+    }
+  }, [currentUser, loading, router]);
+
+  if (loading || !currentUser) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Container maxWidth="lg">
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Dashboard
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Welcome, {currentUser.email}!
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={signOut}
+          sx={{ mt: 2 }}
+        >
+          Sign Out
+        </Button>
+      </Box>
+    </Container>
+  );
+}
+
+export default Dashboard;

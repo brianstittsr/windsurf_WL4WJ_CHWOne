@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Browser Storage</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #1a365d;
+    }
+    .card {
+      background-color: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background-color: #1a365d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #2c5282;
+    }
+    .success {
+      color: #38a169;
+      font-weight: bold;
+    }
+    .error {
+      color: #e53e3e;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+    ul {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CHWOne Login Fix Tool</h1>
+  
+  <div class="card">
+    <h2>Clear Browser Storage</h2>
+    <p>If you're having trouble logging in, this tool will clear all stored data related to authentication and reset your browser state.</p>
+    <p>This will:</p>
+    <ul>
+      <li>Clear all localStorage items</li>
+      <li>Clear all sessionStorage items</li>
+      <li>Clear any authentication-related cookies</li>
+      <li>Reset any offline mode settings</li>
+    </ul>
+    <button id="clearButton">Clear Browser Storage</button>
+    <p id="result" class="hidden"></p>
+  </div>
+
+  <div class="card">
+    <h2>Login Instructions</h2>
+    <p>After clearing your browser storage, try logging in with these credentials:</p>
+    <ul>
+      <li><strong>Email:</strong> admin@example.com</li>
+      <li><strong>Password:</strong> admin123</li>
+    </ul>
+    <a href="/login"><button>Go to Login Page</button></a>
+  </div>
+
+  <script>
+    document.getElementById('clearButton').addEventListener('click', function() {
+      try {
+        // Clear localStorage
+        const localStorageItems = Object.keys(localStorage);
+        localStorageItems.forEach(key => localStorage.removeItem(key));
+        
+        // Clear sessionStorage
+        const sessionStorageItems = Object.keys(sessionStorage);
+        sessionStorageItems.forEach(key => sessionStorage.removeItem(key));
+        
+        // Clear specific items that might cause issues
+        localStorage.removeItem('firebaseNetworkError');
+        localStorage.removeItem('forceOfflineMode');
+        localStorage.removeItem('authSession');
+        localStorage.removeItem('BYPASS_AUTH');
+        localStorage.removeItem('theme');
+        
+        // Show success message
+        const resultElement = document.getElementById('result');
+        resultElement.textContent = 'Browser storage cleared successfully! You can now try logging in again.';
+        resultElement.className = 'success';
+        resultElement.classList.remove('hidden');
+        
+        // Log for debugging
+        console.log('Cleared localStorage items:', localStorageItems);
+        console.log('Cleared sessionStorage items:', sessionStorageItems);
+      } catch (error) {
+        // Show error message
+        const resultElement = document.getElementById('result');
+        resultElement.textContent = 'Error clearing storage: ' + error.message;
+        resultElement.className = 'error';
+        resultElement.classList.remove('hidden');
+        console.error('Error clearing storage:', error);
+      }
+    });
+  </script>
+</body>
+</html>

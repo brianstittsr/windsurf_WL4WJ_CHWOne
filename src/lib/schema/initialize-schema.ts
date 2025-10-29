@@ -8,7 +8,8 @@ import {
   Timestamp,
   getDoc
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
+import { log, logError } from '@/utils/logger';
 import { 
   COLLECTIONS, 
   Organization,
@@ -17,6 +18,10 @@ import {
   CURRENT_SCHEMA_VERSION
 } from './unified-schema';
 
+// Import Firebase Auth for admin user creation
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '@/lib/firebase/firebaseConfig';
+
 /**
  * Initialize the Firebase database schema
  * This function creates the necessary collections and documents
@@ -24,7 +29,7 @@ import {
  */
 export async function initializeFirebaseSchema() {
   try {
-    console.log('Starting Firebase schema initialization...');
+    log('SCHEMA', 'Starting Firebase schema initialization...');
     
     // Check if schema is already initialized
     const schemaVersionRef = doc(db, 'system', 'schema_version');
@@ -46,12 +51,15 @@ export async function initializeFirebaseSchema() {
     // Initialize organizations
     await initializeOrganizations();
     
+    // Create admin user
+    await createAdminUser();
+    
     // Create schema version document
     await setDoc(schemaVersionRef, {
       version: CURRENT_SCHEMA_VERSION,
       appliedAt: Timestamp.now(),
       description: 'Initial schema creation',
-      changes: ['Created default organizations', 'Set up initial collections']
+      changes: ['Created default organizations', 'Created admin user', 'Set up initial collections']
     } as SchemaVersion);
     
     // Create a connection test document
@@ -63,7 +71,7 @@ export async function initializeFirebaseSchema() {
     console.log(`Schema initialization complete (version ${CURRENT_SCHEMA_VERSION})`);
     return true;
   } catch (error) {
-    console.error('Error initializing Firebase schema:', error);
+    logError('SCHEMA', 'Error initializing Firebase schema:', error);
     return false;
   }
 }
@@ -84,7 +92,7 @@ async function initializeOrganizations() {
       createDefaultOrganization('wl4wj', 'Women Leading for Wellness & Justice', 'WL4WJ')
     ]);
     
-    console.log('Created default organizations');
+    log('SCHEMA', 'Created default organizations');
   } else {
     console.log(`Found ${organizationsSnapshot.size} existing organizations`);
   }
@@ -144,6 +152,67 @@ async function createDefaultOrganization(id: string, name: string, shortName: st
 }
 
 /**
+ * Create admin user
+ * Creates an admin user with the specified credentials
+ */
+async function createAdminUser() {
+  try {
+    log('SCHEMA', 'Creating admin user...');
+    
+    // Check if admin user already exists
+    const usersRef = collection(db, COLLECTIONS.USERS);
+    const adminQuery = query(usersRef, where('email', '==', 'admin@example.com'));
+    const adminSnapshot = await getDocs(adminQuery);
+    
+    if (!adminSnapshot.empty) {
+      log('SCHEMA', 'Admin user already exists');
+      return true;
+    }
+    
+    // Admin user credentials
+    const email = 'admin@example.com';
+    const password = 'admin123';
+    const displayName = 'Admin User';
+    
+    console.log(`Creating admin user: ${email}`);
+    
+    // Create user in Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    // Update user profile with display name
+    await updateProfile(user, { displayName });
+    
+    // Create user document in Firestore
+    const userData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: displayName,
+      role: UserRole.ADMIN,
+      organizationId: 'general', // Default organization
+      isActive: true,
+      isApproved: true,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      hipaaTrainingCompleted: true,
+      hipaaTrainingDate: Timestamp.now()
+    };
+    
+    await setDoc(doc(db, COLLECTIONS.USERS, user.uid), userData);
+    
+    console.log(`Admin user created successfully with UID: ${user.uid}`);
+    log('SCHEMA', 'You can now log in with:');
+    console.log(`Email: ${email}`);
+    log('SCHEMA', 'Password: admin123');
+    
+    return true;
+  } catch (error) {
+    logError('SCHEMA', 'Error creating admin user:', error);
+    return false;
+  }
+}
+
+/**
  * Upgrade schema from previous version to current version
  */
 async function upgradeSchema(fromVersion: string) {
@@ -153,7 +222,7 @@ async function upgradeSchema(fromVersion: string) {
   // Example upgrade path
   if (fromVersion === '0.9.0') {
     // Perform upgrade steps
-    console.log('Applying schema changes for 0.9.0 -> 1.0.0');
+    log('SCHEMA', 'Applying schema changes for 0.9.0 -> 1.0.0');
     
     // Update schema version document
     await setDoc(doc(db, 'system', 'schema_version'), {
@@ -179,7 +248,38 @@ export async function getSchemaVersion() {
     
     return null;
   } catch (error) {
-    console.error('Error getting schema version:', error);
+    logError('SCHEMA', 'Error getting schema version:', error);
     return null;
+  }
+}
+
+/**
+ * Lazily initialize schema only when needed
+ * This reduces overhead during login and improves performance
+ */
+export async function initializeSchemaIfNeeded() {
+  try {
+    // Check if schema is already verified in this session
+    if (typeof window !== 'undefined') {
+      const schemaVerified = sessionStorage.getItem('schemaVerified');
+      if (schemaVerified) {
+        log('SCHEMA', 'Schema already verified in this session');
+        return true;
+      }
+    }
+    
+    // Initialize schema
+    const result = await initializeFirebaseSchema();
+    
+    // Mark as verified for this session
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('schemaVerified', 'true');
+      sessionStorage.setItem('schemaVerifiedAt', new Date().toISOString());
+    }
+    
+    return result;
+  } catch (error) {
+    logError('SCHEMA', 'Error in lazy schema initialization', error);
+    return false;
   }
 }

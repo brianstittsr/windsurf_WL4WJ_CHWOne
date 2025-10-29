@@ -16,7 +16,7 @@ import {
   CollectionReference,
   QueryConstraint
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
 import { 
   COLLECTIONS,
   User,

@@ -1,0 +1,409 @@
+{
+  "id": "template-onboarding-chw",
+  "name": "CHW Onboarding Checklist",
+  "description": "Comprehensive onboarding form for new Community Health Workers",
+  "category": "onboarding",
+  "isDefault": true,
+  "schema": {
+    "title": "CHW Onboarding Checklist",
+    "description": "Complete this form to onboard a new Community Health Worker",
+    "sections": [
+      {
+        "id": "personal-information",
+        "title": "Personal Information",
+        "fields": [
+          {
+            "id": "first-name",
+            "type": "text",
+            "label": "First Name",
+            "placeholder": "Enter first name",
+            "required": true
+          },
+          {
+            "id": "middle-name",
+            "type": "text",
+            "label": "Middle Name",
+            "placeholder": "Enter middle name",
+            "required": false
+          },
+          {
+            "id": "last-name",
+            "type": "text",
+            "label": "Last Name",
+            "placeholder": "Enter last name",
+            "required": true
+          },
+          {
+            "id": "preferred-name",
+            "type": "text",
+            "label": "Preferred Name",
+            "placeholder": "Enter preferred name",
+            "required": false
+          },
+          {
+            "id": "date-of-birth",
+            "type": "date",
+            "label": "Date of Birth",
+            "required": true
+          },
+          {
+            "id": "email",
+            "type": "text",
+            "label": "Email Address",
+            "placeholder": "Enter email address",
+            "required": true,
+            "validation": {
+              "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "customMessage": "Please enter a valid email address"
+            }
+          },
+          {
+            "id": "phone",
+            "type": "text",
+            "label": "Phone Number",
+            "placeholder": "Enter phone number",
+            "required": true
+          },
+          {
+            "id": "address",
+            "type": "textarea",
+            "label": "Mailing Address",
+            "placeholder": "Enter complete mailing address",
+            "required": true
+          },
+          {
+            "id": "emergency-contact",
+            "type": "text",
+            "label": "Emergency Contact Name",
+            "placeholder": "Enter emergency contact name",
+            "required": true
+          },
+          {
+            "id": "emergency-contact-phone",
+            "type": "text",
+            "label": "Emergency Contact Phone",
+            "placeholder": "Enter emergency contact phone",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "employment-information",
+        "title": "Employment Information",
+        "fields": [
+          {
+            "id": "hire-date",
+            "type": "date",
+            "label": "Hire Date",
+            "required": true
+          },
+          {
+            "id": "position-title",
+            "type": "text",
+            "label": "Position Title",
+            "placeholder": "Enter position title",
+            "required": true
+          },
+          {
+            "id": "employment-type",
+            "type": "select",
+            "label": "Employment Type",
+            "required": true,
+            "options": [
+              { "label": "Full-time", "value": "full-time" },
+              { "label": "Part-time", "value": "part-time" },
+              { "label": "Contract", "value": "contract" },
+              { "label": "Volunteer", "value": "volunteer" },
+              { "label": "Intern", "value": "intern" }
+            ]
+          },
+          {
+            "id": "supervisor",
+            "type": "text",
+            "label": "Supervisor Name",
+            "placeholder": "Enter supervisor name",
+            "required": true
+          },
+          {
+            "id": "organization",
+            "type": "text",
+            "label": "Organization",
+            "placeholder": "Enter organization name",
+            "required": true
+          },
+          {
+            "id": "department",
+            "type": "text",
+            "label": "Department",
+            "placeholder": "Enter department name",
+            "required": false
+          },
+          {
+            "id": "work-location",
+            "type": "text",
+            "label": "Work Location",
+            "placeholder": "Enter work location",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "certification-information",
+        "title": "Certification Information",
+        "fields": [
+          {
+            "id": "certification-status",
+            "type": "select",
+            "label": "CHW Certification Status",
+            "required": true,
+            "options": [
+              { "label": "Certified", "value": "certified" },
+              { "label": "In Progress", "value": "in-progress" },
+              { "label": "Not Started", "value": "not-started" }
+            ]
+          },
+          {
+            "id": "certification-date",
+            "type": "date",
+            "label": "Certification Date",
+            "required": false,
+            "conditional": {
+              "dependsOn": "certification-status",
+              "operator": "equals",
+              "value": "certified"
+            }
+          },
+          {
+            "id": "certification-expiration",
+            "type": "date",
+            "label": "Certification Expiration Date",
+            "required": false,
+            "conditional": {
+              "dependsOn": "certification-status",
+              "operator": "equals",
+              "value": "certified"
+            }
+          },
+          {
+            "id": "certification-upload",
+            "type": "file",
+            "label": "Upload Certification Document",
+            "required": false,
+            "acceptedFileTypes": ".pdf,.jpg,.jpeg,.png",
+            "conditional": {
+              "dependsOn": "certification-status",
+              "operator": "equals",
+              "value": "certified"
+            }
+          },
+          {
+            "id": "certification-plan",
+            "type": "textarea",
+            "label": "Certification Plan",
+            "placeholder": "Enter plan and timeline for certification",
+            "required": false,
+            "conditional": {
+              "dependsOn": "certification-status",
+              "operator": "notEquals",
+              "value": "certified"
+            }
+          }
+        ]
+      },
+      {
+        "id": "required-documents",
+        "title": "Required Documents",
+        "fields": [
+          {
+            "id": "documents-checklist",
+            "type": "checkbox-group",
+            "label": "Document Checklist",
+            "required": true,
+            "options": [
+              { "label": "Completed W-4", "value": "w4" },
+              { "label": "I-9 Employment Eligibility Verification", "value": "i9" },
+              { "label": "Direct Deposit Form", "value": "direct-deposit" },
+              { "label": "Background Check Authorization", "value": "background-check" },
+              { "label": "Signed Confidentiality Agreement", "value": "confidentiality" },
+              { "label": "Signed Code of Ethics", "value": "code-of-ethics" },
+              { "label": "Emergency Contact Information", "value": "emergency-contact" },
+              { "label": "Photo ID Copy", "value": "photo-id" }
+            ]
+          },
+          {
+            "id": "documents-upload",
+            "type": "file",
+            "label": "Upload Documents",
+            "required": false,
+            "multiple": true,
+            "acceptedFileTypes": ".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          }
+        ]
+      },
+      {
+        "id": "equipment-resources",
+        "title": "Equipment & Resources",
+        "fields": [
+          {
+            "id": "equipment-checklist",
+            "type": "checkbox-group",
+            "label": "Equipment Provided",
+            "required": true,
+            "options": [
+              { "label": "Laptop/Computer", "value": "laptop" },
+              { "label": "Mobile Phone", "value": "phone" },
+              { "label": "Tablet", "value": "tablet" },
+              { "label": "ID Badge", "value": "badge" },
+              { "label": "Business Cards", "value": "business-cards" },
+              { "label": "Uniform/Branded Clothing", "value": "uniform" },
+              { "label": "Office Supplies", "value": "supplies" },
+              { "label": "PPE Kit", "value": "ppe" }
+            ]
+          },
+          {
+            "id": "equipment-details",
+            "type": "textarea",
+            "label": "Equipment Details",
+            "placeholder": "Enter details about equipment provided (serial numbers, etc.)",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "training-schedule",
+        "title": "Training Schedule",
+        "fields": [
+          {
+            "id": "orientation-date",
+            "type": "date",
+            "label": "Orientation Date",
+            "required": true
+          },
+          {
+            "id": "orientation-location",
+            "type": "text",
+            "label": "Orientation Location",
+            "required": true
+          },
+          {
+            "id": "training-schedule-table",
+            "type": "table",
+            "label": "Training Schedule",
+            "required": true,
+            "columns": [
+              {
+                "id": "training-topic",
+                "label": "Training Topic",
+                "type": "text",
+                "required": true
+              },
+              {
+                "id": "training-date",
+                "label": "Date",
+                "type": "date",
+                "required": true
+              },
+              {
+                "id": "training-time",
+                "label": "Time",
+                "type": "time",
+                "required": true
+              },
+              {
+                "id": "training-location",
+                "label": "Location",
+                "type": "text",
+                "required": true
+              },
+              {
+                "id": "training-instructor",
+                "label": "Instructor",
+                "type": "text",
+                "required": false
+              }
+            ],
+            "minRows": 1,
+            "maxRows": 20,
+            "addRowLabel": "Add Training"
+          }
+        ]
+      },
+      {
+        "id": "system-access",
+        "title": "System Access",
+        "fields": [
+          {
+            "id": "system-access-checklist",
+            "type": "checkbox-group",
+            "label": "System Access Provided",
+            "required": true,
+            "options": [
+              { "label": "Email Account", "value": "email" },
+              { "label": "CHWOne Platform", "value": "chwone" },
+              { "label": "EHR/EMR System", "value": "ehr" },
+              { "label": "CRM System", "value": "crm" },
+              { "label": "File Sharing", "value": "file-sharing" },
+              { "label": "Communication Tools", "value": "communication" },
+              { "label": "Reporting Systems", "value": "reporting" },
+              { "label": "Time Tracking System", "value": "time-tracking" }
+            ]
+          },
+          {
+            "id": "system-access-notes",
+            "type": "textarea",
+            "label": "System Access Notes",
+            "placeholder": "Enter any additional information about system access",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "signatures",
+        "title": "Signatures",
+        "fields": [
+          {
+            "id": "chw-signature",
+            "type": "signature",
+            "label": "CHW Signature",
+            "required": true
+          },
+          {
+            "id": "chw-signature-date",
+            "type": "date",
+            "label": "Date",
+            "required": true
+          },
+          {
+            "id": "supervisor-signature",
+            "type": "signature",
+            "label": "Supervisor Signature",
+            "required": true
+          },
+          {
+            "id": "supervisor-signature-date",
+            "type": "date",
+            "label": "Date",
+            "required": true
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "submitButtonText": "Complete Onboarding",
+      "showProgressBar": true,
+      "allowSave": true,
+      "requireAuthentication": true,
+      "notifyOnSubmission": true,
+      "confirmationMessage": "Onboarding checklist has been submitted successfully."
+    }
+  },
+  "metadata": {
+    "tags": ["onboarding", "chw", "hiring", "orientation", "training"],
+    "usageCount": 0,
+    "rating": 5,
+    "reviewCount": 0,
+    "thumbnailUrl": "/images/templates/onboarding-chw.png"
+  },
+  "createdAt": "2025-10-17T00:00:00.000Z",
+  "updatedAt": "2025-10-17T00:00:00.000Z"
+}

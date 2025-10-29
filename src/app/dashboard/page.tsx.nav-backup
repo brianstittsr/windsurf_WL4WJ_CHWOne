@@ -1,0 +1,53 @@
+'use client';
+
+import React from 'react';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { Box } from '@mui/material';
+import DashboardContent from '@/components/Dashboard/DashboardContent';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AnimatedLoading from '@/components/Common/AnimatedLoading';
+
+// Dashboard component that uses the auth context
+function Dashboard() {
+  console.log('%c[DASHBOARD] Dashboard component rendering', 'background: #3182ce; color: white; padding: 2px 4px; border-radius: 2px;');
+  const { currentUser, loading } = useAuth();
+  console.log('%c[DASHBOARD] Auth state:', 'color: #3182ce;', { 
+    currentUser: currentUser ? { 
+      uid: currentUser.uid,
+      email: currentUser.email,
+      displayName: currentUser.displayName
+    } : null, 
+    loading,
+    timestamp: new Date().toISOString()
+  });
+  const router = useRouter();
+
+  if (loading) {
+    console.log('%c[DASHBOARD] Still loading, showing loading screen', 'color: #3182ce;');
+    return <AnimatedLoading message="Loading Dashboard..." />;
+  }
+
+  if (!currentUser) {
+    console.log('%c[DASHBOARD] No current user, redirecting to login', 'background: orange; color: white; padding: 2px 4px; border-radius: 2px;');
+    router.push('/login');
+    return null;
+  }
+  
+  console.log('%c[DASHBOARD] User authenticated, rendering dashboard', 'background: green; color: white; padding: 2px 4px; border-radius: 2px;');
+
+  return (
+    <UnifiedLayout>
+      <DashboardContent />
+    </UnifiedLayout>
+  );
+}
+
+// Export the wrapped component with AuthProvider
+export default function DashboardPage() {
+  return (
+    <AuthProvider>
+      <Dashboard />
+    </AuthProvider>
+  );
+}

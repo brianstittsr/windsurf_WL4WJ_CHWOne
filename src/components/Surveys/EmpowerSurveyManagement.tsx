@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, Spinner, Modal, Alert } from 'react-bootstrap';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
 import { EmpowerSurveyResult, SurveyResponse, Project } from '@/types/platform.types';
 import { FaPlus, FaEye, FaDownload, FaChartBar, FaSync, FaExternalLinkAlt } from 'react-icons/fa';
 

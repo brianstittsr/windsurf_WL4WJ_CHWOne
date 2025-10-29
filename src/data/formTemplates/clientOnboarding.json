@@ -1,0 +1,593 @@
+{
+  "id": "template-onboarding-client",
+  "name": "Client Onboarding Form",
+  "description": "Comprehensive intake form for new clients with needs assessment",
+  "category": "onboarding",
+  "isDefault": true,
+  "schema": {
+    "title": "Client Onboarding Form",
+    "description": "Complete this form to onboard a new client",
+    "sections": [
+      {
+        "id": "client-information",
+        "title": "Client Information",
+        "fields": [
+          {
+            "id": "first-name",
+            "type": "text",
+            "label": "First Name",
+            "placeholder": "Enter first name",
+            "required": true
+          },
+          {
+            "id": "middle-name",
+            "type": "text",
+            "label": "Middle Name",
+            "placeholder": "Enter middle name",
+            "required": false
+          },
+          {
+            "id": "last-name",
+            "type": "text",
+            "label": "Last Name",
+            "placeholder": "Enter last name",
+            "required": true
+          },
+          {
+            "id": "preferred-name",
+            "type": "text",
+            "label": "Preferred Name",
+            "placeholder": "Enter preferred name",
+            "required": false
+          },
+          {
+            "id": "date-of-birth",
+            "type": "date",
+            "label": "Date of Birth",
+            "required": true
+          },
+          {
+            "id": "gender",
+            "type": "select",
+            "label": "Gender",
+            "required": true,
+            "options": [
+              { "label": "Female", "value": "female" },
+              { "label": "Male", "value": "male" },
+              { "label": "Non-binary", "value": "non-binary" },
+              { "label": "Prefer to self-describe", "value": "self-describe" },
+              { "label": "Prefer not to say", "value": "not-say" }
+            ]
+          },
+          {
+            "id": "gender-self-describe",
+            "type": "text",
+            "label": "Self-described Gender",
+            "placeholder": "Please describe",
+            "required": false,
+            "conditional": {
+              "dependsOn": "gender",
+              "operator": "equals",
+              "value": "self-describe"
+            }
+          },
+          {
+            "id": "pronouns",
+            "type": "select",
+            "label": "Pronouns",
+            "required": false,
+            "options": [
+              { "label": "She/Her/Hers", "value": "she-her" },
+              { "label": "He/Him/His", "value": "he-him" },
+              { "label": "They/Them/Theirs", "value": "they-them" },
+              { "label": "Other", "value": "other" },
+              { "label": "Prefer not to say", "value": "not-say" }
+            ]
+          },
+          {
+            "id": "pronouns-other",
+            "type": "text",
+            "label": "Other Pronouns",
+            "placeholder": "Please specify",
+            "required": false,
+            "conditional": {
+              "dependsOn": "pronouns",
+              "operator": "equals",
+              "value": "other"
+            }
+          }
+        ]
+      },
+      {
+        "id": "contact-information",
+        "title": "Contact Information",
+        "fields": [
+          {
+            "id": "phone",
+            "type": "text",
+            "label": "Phone Number",
+            "placeholder": "Enter phone number",
+            "required": true
+          },
+          {
+            "id": "alternate-phone",
+            "type": "text",
+            "label": "Alternate Phone Number",
+            "placeholder": "Enter alternate phone number",
+            "required": false
+          },
+          {
+            "id": "email",
+            "type": "text",
+            "label": "Email Address",
+            "placeholder": "Enter email address",
+            "required": false,
+            "validation": {
+              "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "customMessage": "Please enter a valid email address"
+            }
+          },
+          {
+            "id": "address",
+            "type": "textarea",
+            "label": "Home Address",
+            "placeholder": "Enter complete home address",
+            "required": true
+          },
+          {
+            "id": "county",
+            "type": "text",
+            "label": "County",
+            "placeholder": "Enter county",
+            "required": true
+          },
+          {
+            "id": "preferred-contact-method",
+            "type": "select",
+            "label": "Preferred Contact Method",
+            "required": true,
+            "options": [
+              { "label": "Phone Call", "value": "phone" },
+              { "label": "Text Message", "value": "text" },
+              { "label": "Email", "value": "email" },
+              { "label": "Mail", "value": "mail" }
+            ]
+          },
+          {
+            "id": "best-time-to-contact",
+            "type": "select",
+            "label": "Best Time to Contact",
+            "required": true,
+            "options": [
+              { "label": "Morning (8am-12pm)", "value": "morning" },
+              { "label": "Afternoon (12pm-5pm)", "value": "afternoon" },
+              { "label": "Evening (5pm-8pm)", "value": "evening" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "emergency-contact",
+        "title": "Emergency Contact",
+        "fields": [
+          {
+            "id": "emergency-contact-name",
+            "type": "text",
+            "label": "Emergency Contact Name",
+            "placeholder": "Enter emergency contact name",
+            "required": true
+          },
+          {
+            "id": "emergency-contact-relationship",
+            "type": "text",
+            "label": "Relationship to Client",
+            "placeholder": "Enter relationship",
+            "required": true
+          },
+          {
+            "id": "emergency-contact-phone",
+            "type": "text",
+            "label": "Emergency Contact Phone",
+            "placeholder": "Enter emergency contact phone",
+            "required": true
+          },
+          {
+            "id": "emergency-contact-address",
+            "type": "textarea",
+            "label": "Emergency Contact Address",
+            "placeholder": "Enter emergency contact address",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "demographic-information",
+        "title": "Demographic Information",
+        "fields": [
+          {
+            "id": "race",
+            "type": "multiselect",
+            "label": "Race (select all that apply)",
+            "required": false,
+            "options": [
+              { "label": "American Indian or Alaska Native", "value": "american-indian" },
+              { "label": "Asian", "value": "asian" },
+              { "label": "Black or African American", "value": "black" },
+              { "label": "Native Hawaiian or Other Pacific Islander", "value": "pacific-islander" },
+              { "label": "White", "value": "white" },
+              { "label": "Other", "value": "other" },
+              { "label": "Prefer not to say", "value": "not-say" }
+            ]
+          },
+          {
+            "id": "race-other",
+            "type": "text",
+            "label": "Other Race",
+            "placeholder": "Please specify",
+            "required": false,
+            "conditional": {
+              "dependsOn": "race",
+              "operator": "contains",
+              "value": "other"
+            }
+          },
+          {
+            "id": "ethnicity",
+            "type": "select",
+            "label": "Ethnicity",
+            "required": false,
+            "options": [
+              { "label": "Hispanic or Latino", "value": "hispanic" },
+              { "label": "Not Hispanic or Latino", "value": "not-hispanic" },
+              { "label": "Prefer not to say", "value": "not-say" }
+            ]
+          },
+          {
+            "id": "primary-language",
+            "type": "select",
+            "label": "Primary Language",
+            "required": true,
+            "options": [
+              { "label": "English", "value": "english" },
+              { "label": "Spanish", "value": "spanish" },
+              { "label": "French", "value": "french" },
+              { "label": "Chinese", "value": "chinese" },
+              { "label": "Vietnamese", "value": "vietnamese" },
+              { "label": "Arabic", "value": "arabic" },
+              { "label": "Other", "value": "other" }
+            ]
+          },
+          {
+            "id": "primary-language-other",
+            "type": "text",
+            "label": "Other Primary Language",
+            "placeholder": "Please specify",
+            "required": false,
+            "conditional": {
+              "dependsOn": "primary-language",
+              "operator": "equals",
+              "value": "other"
+            }
+          },
+          {
+            "id": "interpreter-needed",
+            "type": "radio",
+            "label": "Interpreter Needed?",
+            "required": true,
+            "options": [
+              { "label": "Yes", "value": "yes" },
+              { "label": "No", "value": "no" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "insurance-information",
+        "title": "Insurance Information",
+        "fields": [
+          {
+            "id": "insurance-status",
+            "type": "select",
+            "label": "Insurance Status",
+            "required": true,
+            "options": [
+              { "label": "Medicaid", "value": "medicaid" },
+              { "label": "Medicare", "value": "medicare" },
+              { "label": "Private Insurance", "value": "private" },
+              { "label": "No Insurance", "value": "none" },
+              { "label": "Other", "value": "other" }
+            ]
+          },
+          {
+            "id": "insurance-other",
+            "type": "text",
+            "label": "Other Insurance",
+            "placeholder": "Please specify",
+            "required": false,
+            "conditional": {
+              "dependsOn": "insurance-status",
+              "operator": "equals",
+              "value": "other"
+            }
+          },
+          {
+            "id": "insurance-provider",
+            "type": "text",
+            "label": "Insurance Provider",
+            "placeholder": "Enter insurance provider name",
+            "required": false,
+            "conditional": {
+              "dependsOn": "insurance-status",
+              "operator": "notEquals",
+              "value": "none"
+            }
+          },
+          {
+            "id": "insurance-id",
+            "type": "text",
+            "label": "Insurance ID Number",
+            "placeholder": "Enter insurance ID number",
+            "required": false,
+            "conditional": {
+              "dependsOn": "insurance-status",
+              "operator": "notEquals",
+              "value": "none"
+            }
+          },
+          {
+            "id": "insurance-group",
+            "type": "text",
+            "label": "Group Number",
+            "placeholder": "Enter group number",
+            "required": false,
+            "conditional": {
+              "dependsOn": "insurance-status",
+              "operator": "notEquals",
+              "value": "none"
+            }
+          },
+          {
+            "id": "insurance-upload",
+            "type": "file",
+            "label": "Upload Insurance Card (Front and Back)",
+            "required": false,
+            "multiple": true,
+            "acceptedFileTypes": ".pdf,.jpg,.jpeg,.png",
+            "conditional": {
+              "dependsOn": "insurance-status",
+              "operator": "notEquals",
+              "value": "none"
+            }
+          }
+        ]
+      },
+      {
+        "id": "needs-assessment",
+        "title": "Needs Assessment",
+        "fields": [
+          {
+            "id": "service-needs",
+            "type": "multiselect",
+            "label": "Service Needs (select all that apply)",
+            "required": true,
+            "options": [
+              { "label": "Healthcare Access", "value": "healthcare" },
+              { "label": "Food Assistance", "value": "food" },
+              { "label": "Housing Support", "value": "housing" },
+              { "label": "Transportation", "value": "transportation" },
+              { "label": "Employment Assistance", "value": "employment" },
+              { "label": "Education Resources", "value": "education" },
+              { "label": "Mental Health Support", "value": "mental-health" },
+              { "label": "Substance Use Support", "value": "substance-use" },
+              { "label": "Childcare", "value": "childcare" },
+              { "label": "Financial Assistance", "value": "financial" },
+              { "label": "Legal Aid", "value": "legal" },
+              { "label": "Other", "value": "other" }
+            ]
+          },
+          {
+            "id": "service-needs-other",
+            "type": "text",
+            "label": "Other Service Needs",
+            "placeholder": "Please specify",
+            "required": false,
+            "conditional": {
+              "dependsOn": "service-needs",
+              "operator": "contains",
+              "value": "other"
+            }
+          },
+          {
+            "id": "priority-needs",
+            "type": "textarea",
+            "label": "Priority Needs",
+            "placeholder": "Please describe the client's most urgent needs",
+            "required": true
+          },
+          {
+            "id": "current-resources",
+            "type": "textarea",
+            "label": "Current Resources and Supports",
+            "placeholder": "Please describe any resources or supports the client currently has",
+            "required": false
+          },
+          {
+            "id": "barriers",
+            "type": "textarea",
+            "label": "Barriers to Accessing Services",
+            "placeholder": "Please describe any barriers the client faces in accessing services",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "referral-information",
+        "title": "Referral Information",
+        "fields": [
+          {
+            "id": "referral-source",
+            "type": "select",
+            "label": "Referral Source",
+            "required": true,
+            "options": [
+              { "label": "Self-referred", "value": "self" },
+              { "label": "Healthcare Provider", "value": "healthcare" },
+              { "label": "Social Services", "value": "social-services" },
+              { "label": "Community Organization", "value": "community" },
+              { "label": "Family/Friend", "value": "family-friend" },
+              { "label": "School", "value": "school" },
+              { "label": "Other", "value": "other" }
+            ]
+          },
+          {
+            "id": "referral-source-other",
+            "type": "text",
+            "label": "Other Referral Source",
+            "placeholder": "Please specify",
+            "required": false,
+            "conditional": {
+              "dependsOn": "referral-source",
+              "operator": "equals",
+              "value": "other"
+            }
+          },
+          {
+            "id": "referral-organization",
+            "type": "text",
+            "label": "Referring Organization",
+            "placeholder": "Enter organization name",
+            "required": false,
+            "conditional": {
+              "dependsOn": "referral-source",
+              "operator": "notEquals",
+              "value": "self"
+            }
+          },
+          {
+            "id": "referral-contact-name",
+            "type": "text",
+            "label": "Referring Contact Name",
+            "placeholder": "Enter contact name",
+            "required": false,
+            "conditional": {
+              "dependsOn": "referral-source",
+              "operator": "notEquals",
+              "value": "self"
+            }
+          },
+          {
+            "id": "referral-contact-phone",
+            "type": "text",
+            "label": "Referring Contact Phone",
+            "placeholder": "Enter contact phone",
+            "required": false,
+            "conditional": {
+              "dependsOn": "referral-source",
+              "operator": "notEquals",
+              "value": "self"
+            }
+          },
+          {
+            "id": "referral-contact-email",
+            "type": "text",
+            "label": "Referring Contact Email",
+            "placeholder": "Enter contact email",
+            "required": false,
+            "validation": {
+              "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "customMessage": "Please enter a valid email address"
+            },
+            "conditional": {
+              "dependsOn": "referral-source",
+              "operator": "notEquals",
+              "value": "self"
+            }
+          }
+        ]
+      },
+      {
+        "id": "consent-and-authorization",
+        "title": "Consent and Authorization",
+        "fields": [
+          {
+            "id": "hipaa-acknowledgment",
+            "type": "checkbox",
+            "label": "I acknowledge that I have received a copy of the Notice of Privacy Practices (HIPAA).",
+            "required": true
+          },
+          {
+            "id": "consent-to-services",
+            "type": "checkbox",
+            "label": "I consent to receive services from the Community Health Worker program.",
+            "required": true
+          },
+          {
+            "id": "information-release",
+            "type": "checkbox",
+            "label": "I authorize the release of my information to appropriate service providers for the purpose of referrals and coordination of care.",
+            "required": true
+          },
+          {
+            "id": "client-rights",
+            "type": "checkbox",
+            "label": "I acknowledge that I have been informed of my rights and responsibilities as a client.",
+            "required": true
+          },
+          {
+            "id": "client-signature",
+            "type": "signature",
+            "label": "Client Signature",
+            "required": true
+          },
+          {
+            "id": "client-signature-date",
+            "type": "date",
+            "label": "Date",
+            "required": true
+          },
+          {
+            "id": "guardian-signature",
+            "type": "signature",
+            "label": "Parent/Guardian Signature (if applicable)",
+            "required": false
+          },
+          {
+            "id": "guardian-signature-date",
+            "type": "date",
+            "label": "Date",
+            "required": false
+          },
+          {
+            "id": "chw-signature",
+            "type": "signature",
+            "label": "CHW Signature",
+            "required": true
+          },
+          {
+            "id": "chw-signature-date",
+            "type": "date",
+            "label": "Date",
+            "required": true
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "submitButtonText": "Submit Client Onboarding",
+      "showProgressBar": true,
+      "allowSave": true,
+      "requireAuthentication": true,
+      "notifyOnSubmission": true,
+      "confirmationMessage": "Client onboarding form has been submitted successfully."
+    }
+  },
+  "metadata": {
+    "tags": ["onboarding", "client", "intake", "assessment", "referral"],
+    "usageCount": 0,
+    "rating": 5,
+    "reviewCount": 0,
+    "thumbnailUrl": "/images/templates/onboarding-client.png"
+  },
+  "createdAt": "2025-10-17T00:00:00.000Z",
+  "updatedAt": "2025-10-17T00:00:00.000Z"
+}

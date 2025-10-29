@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clearing Offline Flags...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 { color: #1a365d; }
+        .status { color: #2d3748; margin: 20px 0; }
+        .success { color: #38a169; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clearing Offline Flags</h1>
+        <div class="status" id="status">Removing all offline mode flags...</div>
+    </div>
+    
+    <script>
+        // Clear ALL offline mode related flags
+        localStorage.removeItem('forceOfflineMode');
+        localStorage.removeItem('firebaseNetworkError');
+        localStorage.removeItem('authSession');
+        
+        // Clear all session storage
+        sessionStorage.clear();
+        
+        console.log('All offline flags cleared');
+        
+        // Show success and redirect
+        setTimeout(() => {
+            document.getElementById('status').innerHTML = '<span class="success">✓ Offline mode completely disabled!</span><br>Redirecting to home...';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }, 500);
+    </script>
+</body>
+</html>

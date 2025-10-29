@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Auto-Login Settings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    button {
+      background-color: #1a365d;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clear Auto-Login Settings</h1>
+  
+  <div class="card">
+    <h2>Auto-Login Status</h2>
+    <div id="status"></div>
+    <button onclick="clearAutoLogin()">Clear Auto-Login Settings</button>
+  </div>
+  
+  <div class="card">
+    <h2>LocalStorage Contents</h2>
+    <div id="localStorage"></div>
+  </div>
+
+  <script>
+    // Check auto-login status
+    function checkAutoLogin() {
+      const bypassAuth = localStorage.getItem('BYPASS_AUTH');
+      const status = document.getElementById('status');
+      
+      if (bypassAuth === 'true') {
+        status.innerHTML = '<p class="error">Auto-login is ENABLED</p>';
+      } else {
+        status.innerHTML = '<p class="success">Auto-login is DISABLED</p>';
+      }
+      
+      // Display localStorage contents
+      displayLocalStorage();
+    }
+    
+    // Clear auto-login settings
+    function clearAutoLogin() {
+      localStorage.removeItem('BYPASS_AUTH');
+      checkAutoLogin();
+      
+      // Add message
+      const status = document.getElementById('status');
+      status.innerHTML += '<p class="success">Auto-login settings cleared successfully!</p>';
+    }
+    
+    // Display localStorage contents
+    function displayLocalStorage() {
+      const localStorageDiv = document.getElementById('localStorage');
+      localStorageDiv.innerHTML = '';
+      
+      if (localStorage.length === 0) {
+        localStorageDiv.innerHTML = '<p>LocalStorage is empty</p>';
+        return;
+      }
+      
+      const items = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        items.push({ key, value });
+      }
+      
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      
+      // Add header
+      const header = table.createTHead();
+      const headerRow = header.insertRow();
+      const keyHeader = headerRow.insertCell();
+      const valueHeader = headerRow.insertCell();
+      keyHeader.textContent = 'Key';
+      valueHeader.textContent = 'Value';
+      keyHeader.style.fontWeight = 'bold';
+      valueHeader.style.fontWeight = 'bold';
+      keyHeader.style.borderBottom = '1px solid #ddd';
+      valueHeader.style.borderBottom = '1px solid #ddd';
+      
+      // Add items
+      const body = table.createTBody();
+      items.forEach(item => {
+        const row = body.insertRow();
+        const keyCell = row.insertCell();
+        const valueCell = row.insertCell();
+        keyCell.textContent = item.key;
+        valueCell.textContent = item.value;
+        keyCell.style.padding = '5px';
+        valueCell.style.padding = '5px';
+        keyCell.style.borderBottom = '1px solid #eee';
+        valueCell.style.borderBottom = '1px solid #eee';
+      });
+      
+      localStorageDiv.appendChild(table);
+    }
+    
+    // Run on page load
+    window.addEventListener('DOMContentLoaded', checkAutoLogin);
+  </script>
+</body>
+</html>

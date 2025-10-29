@@ -1,0 +1,56 @@
+import type { Metadata } from "next";
+import './globals.css';
+import { Providers } from "@/components/Providers";
+import ThemeRegistry from '@/components/ThemeRegistry';
+import { FirebaseInitializer } from '@/components';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+
+export const metadata: Metadata = {
+  title: 'CHWOne - Community Health Worker Management Platform',
+  description: 'Women Leading for Wellness and Justice Community Health Worker Management Platform',
+  keywords: 'community health workers, CHW, healthcare, North Carolina, wellness, justice',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Add script to clear auto-login settings
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('BYPASS_AUTH');
+      console.log('Auto-login settings cleared');
+    } catch (e) {
+      console.error('Error clearing auto-login settings:', e);
+    }
+  }
+  
+  return (
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+        {/* Preload the first carousel image for faster initial load */}
+        <link 
+          rel="preload" 
+          href="/images/carousel/community-health-workers.webp" 
+          as="image" 
+          type="image/webp"
+          fetchPriority="high"
+        />
+      </head>
+      <body>
+        <ThemeRegistry>
+          <LanguageProvider>
+            <Providers>
+              <FirebaseInitializer />
+                {/* Test Mode Toggle and Auth Debugger removed */}
+                {children}
+            </Providers>
+          </LanguageProvider>
+        </ThemeRegistry>
+      </body>
+    </html>
+  );
+}

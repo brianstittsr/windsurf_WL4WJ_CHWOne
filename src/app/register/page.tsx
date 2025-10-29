@@ -40,7 +40,7 @@ import { UserRole } from '@/types/firebase/schema';
 
 // Inner component that uses the auth context
 function RegisterContent() {
-  const { createUser } = useAuth();
+  const { signUp } = useAuth();
   const router = useRouter();
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -101,7 +101,7 @@ function RegisterContent() {
 
     try {
       // Create user in Firebase Authentication
-      await createUser(formData.email, formData.password);
+      await signUp(formData.email, formData.password);
       
       // Store additional user data in Firestore with approval status
       // This would be implemented in your Firebase service

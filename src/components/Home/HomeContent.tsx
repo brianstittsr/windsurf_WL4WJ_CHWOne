@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 function HomeContentInner() {
   const { currentUser, loading } = useAuth();
-
+  
   return (
     <Box sx={{ 
       minHeight: '100vh',
@@ -107,3 +107,4 @@ export default function HomeContent() {
     </AuthProvider>
   );
 }
+

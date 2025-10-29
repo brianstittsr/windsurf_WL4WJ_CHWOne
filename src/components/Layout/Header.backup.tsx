@@ -12,12 +12,12 @@ interface HeaderProps {
 }
 
 export default function Header({ variant = 'default' }: HeaderProps) {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
     } catch (error) {
       console.error('Error logging out:', error);
     }

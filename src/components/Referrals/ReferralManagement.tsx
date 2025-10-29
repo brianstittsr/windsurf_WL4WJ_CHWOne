@@ -37,7 +37,7 @@ import {
   Cancel as CancelIcon
 } from '@mui/icons-material';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
 import { Referral, ReferralResource, Client, ReferralStatus, ReferralUrgency, ResourceCategory } from '@/types/platform.types';
 
 export default function ReferralManagement() {

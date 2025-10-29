@@ -1,0 +1,20 @@
+'use client';
+
+import React from 'react';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
+// [KEEP_IMPORTS]
+
+// Inner component that uses the auth context
+function COMPONENT_NAMEContent() {
+  const { currentUser, loading } = useAuth();
+  // [KEEP_CONTENT]
+}
+
+// Export the wrapped component with AuthProvider
+export default function COMPONENT_NAME() {
+  return (
+    <AuthProvider>
+      <COMPONENT_NAMEContent />
+    </AuthProvider>
+  );
+}

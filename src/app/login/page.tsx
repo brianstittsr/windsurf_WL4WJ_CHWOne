@@ -1,29 +1,26 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { log, logError, timeOperation } from '@/utils/logger';
+import { initializeSchemaIfNeeded } from '@/lib/schema/initialize-schema';
 import { useThemeMode } from '@/components/ThemeProvider';
 import Link from 'next/link';
 import { 
   Container, 
   TextField, 
   Button, 
-  Paper, 
   CircularProgress, 
   Alert, 
   Box, 
   Typography,
   InputAdornment,
   IconButton,
-  Divider,
   Checkbox,
   FormControlLabel,
-  Tabs,
-  Tab,
   Card,
-  CardContent,
-  Grid
+  CardContent
 } from '@mui/material';
 import { 
   Email as EmailIcon, 
@@ -32,15 +29,6 @@ import {
   VisibilityOff,
   Login as LoginIcon
 } from '@mui/icons-material';
-import Image from 'next/image';
-
-interface RoleOption {
-  role: string;
-  label: string;
-  email: string;
-  password: string;
-  description: string;
-}
 
 // Login form component that uses the auth context
 function LoginFormContent() {
@@ -48,6 +36,34 @@ function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { mode } = useThemeMode();
+  const [isOnline, setIsOnline] = useState(true);
+  const [networkStatus, setNetworkStatus] = useState('online');
+  
+  // Network status detection
+  useEffect(() => {
+    const updateNetworkStatus = () => {
+      const online = navigator.onLine;
+      setIsOnline(online);
+      setNetworkStatus(online ? 'online' : 'offline');
+      
+      // Update localStorage for offline mode detection
+      if (!online) {
+        localStorage.setItem('firebaseNetworkError', 'true');
+      }
+    };
+    
+    // Initial check
+    updateNetworkStatus();
+    
+    // Add event listeners
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    
+    return () => {
+      window.removeEventListener('online', updateNetworkStatus);
+      window.removeEventListener('offline', updateNetworkStatus);
+    };
+  }, []);
   
   // Force light theme for login page
   useEffect(() => {
@@ -65,30 +81,6 @@ function LoginFormContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [tabValue, setTabValue] = useState(0);
-  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([
-    {
-      role: 'admin',
-      label: 'Administrator',
-      email: 'admin@example.com',
-      password: 'password123',
-      description: 'Full access to all features and settings'
-    },
-    {
-      role: 'chw_coordinator',
-      label: 'CHW Coordinator',
-      email: 'coordinator@example.com',
-      password: 'password123',
-      description: 'Manage CHWs and resources'
-    },
-    {
-      role: 'chw',
-      label: 'Community Health Worker',
-      email: 'chw@example.com',
-      password: 'password123',
-      description: 'Access to client management and resources'
-    }
-  ]);
 
   // Check for redirect parameter
   useEffect(() => {
@@ -97,42 +89,61 @@ function LoginFormContent() {
       // Store the redirect URL in session storage
       sessionStorage.setItem('redirectAfterLogin', redirect);
     }
-  }, [searchParams, roleOptions]);
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (loading) {
+      console.log('%c[LOGIN] Login already in progress, ignoring submit', 'background: #2c5282; color: white;');
+      return;
+    }
+    
     setLoading(true);
     setError('');
-
+    
+    console.log('%c[LOGIN] Submit started', 'background: #2c5282; color: white;', { email });
+    
     try {
-      await signIn(email, password);
+      console.time('[LOGIN] Sign in duration');
+      const user = await signIn(email, password);
+      console.timeEnd('[LOGIN] Sign in duration');
       
-      // Check if there's a redirect URL in session storage
-      const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-      if (redirectUrl) {
-        sessionStorage.removeItem('redirectAfterLogin');
-        router.push(redirectUrl);
-      } else {
-        router.push('/dashboard');
+      console.log('%c[LOGIN] Login successful', 'background: #2c5282; color: white;', { 
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName
+      });
+      
+      // Determine redirect URL
+      const redirectUrl = searchParams?.get('redirect') || '/dashboard/region-5';
+      console.log('%c[LOGIN] Redirect URL:', 'color: #2c5282;', redirectUrl);
+      
+      // Navigate immediately
+      router.push(redirectUrl);
+    } catch (error) {
+      console.error('%c[LOGIN] Login error', 'background: red; color: white;', error);
+      
+      // Provide more user-friendly error messages
+      let errorMessage = error.message || 'Failed to sign in';
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed login attempts. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network connection error. Please check your internet connection.';
       }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Failed to login');
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDemoLogin = (role: string) => {
-    const selectedRole = roleOptions.find(option => option.role === role);
-    if (selectedRole) {
-      setEmail(selectedRole.email);
-      setPassword(selectedRole.password);
-    }
+  // Helper function to fill in demo credentials
+  const fillDemoCredentials = () => {
+    setEmail('admin@example.com');
+    setPassword('admin123');
   };
 
   return (
@@ -162,186 +173,145 @@ function LoginFormContent() {
         </Box>
 
         <CardContent sx={{ p: 4 }}>
-          <Tabs 
-            value={tabValue} 
-            onChange={handleTabChange} 
-            variant="fullWidth" 
-            sx={{ mb: 3 }}
-          >
-            <Tab label="Sign In" />
-            <Tab label="Demo Access" />
-          </Tabs>
-
-          {tabValue === 0 && (
-            <Box component="form" onSubmit={handleSubmit} noValidate>
-              {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-              
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 2 }}
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+            
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ mb: 2 }}
+            />
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={rememberMe} 
+                    onChange={(e) => setRememberMe(e.target.checked)} 
+                    color="primary" 
+                  />
+                }
+                label="Remember me"
               />
-              
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 2 }}
-              />
-              
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      checked={rememberMe} 
-                      onChange={(e) => setRememberMe(e.target.checked)} 
-                      color="primary" 
-                    />
-                  }
-                  label="Remember me"
-                />
-                <Link href="/forgot-password" style={{ textDecoration: 'none' }}>
-                  <Typography variant="body2" color="primary">
-                    Forgot password?
-                  </Typography>
+              <Link href="/forgot-password" style={{ textDecoration: 'none' }}>
+                <Typography variant="body2" color="primary">
+                  Forgot password?
+                </Typography>
+              </Link>
+            </Box>
+            
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={20} /> : <LoginIcon />}
+              sx={{ 
+                mt: 2, 
+                mb: 2, 
+                py: 1.5,
+                backgroundColor: '#1a365d',
+                '&:hover': {
+                  backgroundColor: '#0f2942'
+                }
+              }}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+            
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Don&apos;t have an account?{' '}
+                <Link href="/register" style={{ textDecoration: 'none', color: '#1a365d', fontWeight: 500 }}>
+                  Register here
                 </Link>
-              </Box>
+              </Typography>
               
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                disabled={loading}
-                startIcon={loading ? <CircularProgress size={20} /> : <LoginIcon />}
-                sx={{ 
-                  mt: 2, 
-                  mb: 2, 
-                  py: 1.5,
-                  backgroundColor: '#1a365d',
-                  '&:hover': {
-                    backgroundColor: '#0f2942'
-                  }
-                }}
-              >
-                {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
-              
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Don&apos;t have an account?{' '}
-                  <Link href="/register" style={{ textDecoration: 'none', color: '#1a365d', fontWeight: 500 }}>
-                    Register here
-                  </Link>
+              {/* Network status indicator */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 1 }}>
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: networkStatus === 'online' ? 'success.main' : 
+                             networkStatus === 'firebase-available' ? 'success.main' : 'error.main',
+                    mr: 1
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {networkStatus === 'online' ? 'Online' : 
+                   networkStatus === 'firebase-available' ? 'Firebase Connected' : 
+                   networkStatus === 'firebase-unavailable' ? 'Firebase Unavailable (Offline Mode)' : 'Offline'}
                 </Typography>
               </Box>
             </Box>
-          )}
 
-          {tabValue === 1 && (
-            <Box>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Select a role to try out the platform with demo credentials:
+            <Box sx={{ textAlign: 'center', mt: 3, pt: 3, borderTop: '1px solid rgba(0, 0, 0, 0.1)' }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Need quick access? Use demo credentials:
               </Typography>
-              
-              <Grid container spacing={2}>
-                {roleOptions.map((option) => (
-                  <Grid item xs={12} key={option.role}>
-                    <Paper 
-                      elevation={1} 
-                      sx={{ 
-                        p: 2, 
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          transform: 'translateY(-2px)',
-                          boxShadow: 3
-                        }
-                      }}
-                      onClick={() => handleDemoLogin(option.role)}
-                    >
-                      <Typography variant="subtitle1" fontWeight={500}>
-                        {option.label}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {option.description}
-                      </Typography>
-                      <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          Email: {option.email}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          •
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Password: {option.password}
-                        </Typography>
-                      </Box>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-              
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                disabled={!email || !password || loading}
-                onClick={handleSubmit}
-                startIcon={loading ? <CircularProgress size={20} /> : <LoginIcon />}
-                sx={{ 
-                  mt: 3, 
-                  py: 1.5,
-                  backgroundColor: '#1a365d',
-                  '&:hover': {
-                    backgroundColor: '#0f2942'
-                  }
-                }}
+              <Button 
+                variant="outlined" 
+                size="small" 
+                onClick={fillDemoCredentials}
+                sx={{ mt: 1 }}
               >
-                {loading ? 'Signing in...' : 'Sign In with Demo Account'}
+                Use Demo Account
               </Button>
+              <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                Email: admin@example.com | Password: admin123
+              </Typography>
             </Box>
-          )}
+          </Box>
         </CardContent>
       </Card>
     </Container>

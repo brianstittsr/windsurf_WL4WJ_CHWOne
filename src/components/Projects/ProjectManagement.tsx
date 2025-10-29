@@ -41,7 +41,7 @@ import {
   CalendarToday as CalendarIcon
 } from '@mui/icons-material';
 import { collection, getDocs, addDoc, updateDoc, doc, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
 import { Project, ProjectStatus, ProjectOutcome, Grant, GrantStatus } from '@/types/platform.types';
 
 export default function ProjectManagement() {

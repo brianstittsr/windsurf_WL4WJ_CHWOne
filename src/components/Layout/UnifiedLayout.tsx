@@ -25,9 +25,10 @@ import AnimatedLoading from '../Common/AnimatedLoading';
 import { Menu as MenuIcon, Close as CloseIcon, Settings as SettingsIcon, Logout as LogoutIcon } from '@mui/icons-material';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
-import Link from 'next/link';
+import ClickableLink from './ClickableLink';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -42,17 +43,8 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const pathname = usePathname();
-  const [isTestModeActive, setIsTestModeActive] = useState(false);
   
   const isHomePage = pathname === '/';
-  
-  // Check if test mode is active
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-      const testModeActive = localStorage.getItem('BYPASS_AUTH') === 'true';
-      setIsTestModeActive(testModeActive);
-    }
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -73,22 +65,28 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
 
   const menuItems = [
     { 
+      href: '/rbac-test', 
+      icon: 'security', 
+      label: 'RBAC Test', 
+      roles: [UserRole.ADMIN] 
+    },
+    { 
       href: '/dashboard', 
       icon: 'computer', 
       label: 'Main Dashboard', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/dashboard/region-5', 
       icon: 'location', 
       label: 'Region 5', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/dashboard/wl4wj', 
       icon: 'favorite', 
       label: 'WL4WJ', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/admin', 
@@ -100,73 +98,81 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
       href: '/chws', 
       icon: 'person', 
       label: 'CHWs', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
+      roles: [UserRole.ADMIN] 
+    },
+    { 
+      href: '/chws/mock-profiles', 
+      icon: 'person', 
+      label: 'CHW Profiles', 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/projects', 
       icon: 'sparkle', 
       label: 'Projects', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/grants', 
       icon: 'security', 
       label: 'Grants', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/referrals', 
       icon: 'openLink', 
       label: 'Referrals', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/resources', 
       icon: 'search', 
       label: 'Resources', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/forms', 
       icon: 'clipboard', 
       label: 'Forms', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/datasets', 
       icon: 'database', 
       label: 'Datasets', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/reports', 
       icon: 'analytics', 
       label: 'Reports', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
+    },
+    { 
+      href: '/ai-assistant', 
+      icon: 'psychology', 
+      label: 'AI Assistant', 
+      roles: [UserRole.ADMIN],
+      highlight: true // Add highlight to show it's new
     },
     { 
       href: '/civicrm', 
       icon: 'people', 
       label: 'CiviCRM', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/ai-assistant', 
-      icon: 'chat', 
-      label: 'AI Assistant', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/profile', 
       icon: 'person', 
       label: 'My Profile', 
-      roles: [UserRole.CHW] 
+      roles: [UserRole.ADMIN] 
     },
   ];
 
-  // Mock user role for testing - replace with actual auth context
-  const userRole = currentUser?.role === 'chw' ? UserRole.CHW : (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR);
-  const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
+  // RBAC DISABLED: All users have admin role
+  const userRole = UserRole.ADMIN;
+  // RBAC DISABLED: Show all menu items regardless of role
+      const filteredMenuItems = menuItems; // No filtering
 
   return (
     <Box sx={{ 
@@ -192,6 +198,7 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
           backdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
           color: 'text.primary',
+          zIndex: (theme) => theme.zIndex.drawer + 1, // Ensure AppBar is above other content
         }}
       >
         <Toolbar>
@@ -204,41 +211,44 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
               style={{ borderRadius: '50%', marginRight: 8 }}
             />
             <Box component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem', color: '#1a365d' }}>CHWOne</Box>
-            
-            {/* Test Mode Indicator */}
-            {isTestModeActive && process.env.NODE_ENV === 'development' && (
-              <Box 
-                component="span" 
-                sx={{ 
-                  ml: 2, 
-                  px: 1, 
-                  py: 0.5, 
-                  borderRadius: 1, 
-                  fontSize: '0.75rem', 
-                  fontWeight: 'bold', 
-                  backgroundColor: 'error.main', 
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                TEST MODE
-              </Box>
-            )}
           </Link>
 
-          {/* Desktop Menu - Only show when logged in */}
-          {!isMobile && currentUser && (
-            <Box sx={{ flexGrow: 1, display: 'flex', ml: 4, gap: 2, flexWrap: 'wrap' }}>
+          {/* AUTHENTICATION DISABLED: Always show desktop menu */}
+          {!isMobile && (
+            <Box sx={{ 
+              flexGrow: 1, 
+              display: 'flex', 
+              ml: 4, 
+              gap: 2, 
+              flexWrap: 'wrap', 
+              position: 'relative', 
+              zIndex: 99999, // Ultra high z-index
+              pointerEvents: 'all !important', // Force pointer events
+              '& > *': { // Apply to all children
+                pointerEvents: 'all !important',
+                cursor: 'pointer !important'
+              }
+            }}>
               {filteredMenuItems.map((item) => (
                 <Button
                   key={item.href}
-                  component={Link}
+                  component="a"
                   href={item.href}
+                  onClick={(e) => {
+                    console.log(`[BUTTON] Clicked navigation button to: ${item.href}`, {
+                      label: item.label,
+                      timestamp: new Date().toISOString()
+                    });
+                  }}
                   sx={{ 
                     color: '#333333',
                     fontWeight: pathname === item.href ? 600 : 400,
                     position: 'relative',
+                    zIndex: 99999, // Ultra high z-index
+                    pointerEvents: 'all !important', // Force pointer events
+                    cursor: 'pointer !important', // Force cursor
+                    padding: '8px 16px', // Increase clickable area
+                    margin: '0 -4px', // Compensate for increased padding
                     '&::after': pathname === item.href ? {
                       content: '""',
                       position: 'absolute',
@@ -251,7 +261,8 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
                       borderRadius: '3px'
                     } : {},
                     '&:hover': {
-                      color: '#000000'
+                      color: '#000000',
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)'
                     }
                   }}
                 >
@@ -264,8 +275,8 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
           {/* Always use spacer when not logged in to push content to right */}
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* Mobile Menu Button - Only show when logged in */}
-          {isMobile && currentUser && (
+          {/* AUTHENTICATION DISABLED: Always show mobile menu button */}
+          {isMobile && (
             <IconButton
               edge="start"
               color="inherit"
@@ -276,9 +287,9 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
             </IconButton>
           )}
 
-          {/* Login Button or User Menu */}
+          {/* AUTHENTICATION DISABLED: Always show user menu */}
           <Box sx={{ ml: 2 }}>
-            {currentUser ? (
+            {true ? ( // Always true to show user menu
               // User Menu when logged in
               <>
                 <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
@@ -293,7 +304,7 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 >
-                  <MenuItem component={Link} href="/settings" onClick={handleUserMenuClose}>
+                  <MenuItem component="a" href="/settings" onClick={handleUserMenuClose}>
                     <SettingsIcon sx={{ mr: 1 }} /> Settings
                   </MenuItem>
                   <Divider />
@@ -308,7 +319,7 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
                 <Button 
                   variant="outlined" 
                   color="primary"
-                  component={Link}
+                  component="a"
                   href="/register"
                   sx={{ 
                     borderRadius: 2,
@@ -326,7 +337,7 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
                 </Button>
                 <Button 
                   variant="contained" 
-                  component={Link}
+                  component="a"
                   href="/login"
                   sx={{ 
                     borderRadius: 2,
@@ -363,7 +374,7 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
             {filteredMenuItems.map((item) => (
               <ListItem key={item.href} disablePadding>
                 <ListItemButton 
-                  component={Link} 
+                  component="a" 
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   selected={pathname === item.href}
@@ -427,7 +438,9 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
               flexDirection: 'column',
               overflow: 'visible',
               height: 'auto',
-              color: '#333333' // Ensuring dark text for contrast
+              color: '#333333', // Ensuring dark text for contrast
+              position: 'relative',
+              zIndex: 0 // Even lower z-index to prevent blocking navigation
             }}
           >
             {children}
@@ -438,7 +451,6 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
   );
 }
 
-// Export the wrapped component with AuthProvider
 export default function UnifiedLayout(props: UnifiedLayoutProps) {
   return (
     <AuthProvider>

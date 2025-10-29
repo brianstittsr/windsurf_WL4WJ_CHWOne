@@ -1,0 +1,151 @@
+{
+  "id": "template-attendance-basic",
+  "name": "Basic Attendance Sheet",
+  "description": "Standard attendance tracking form for meetings, trainings, and events",
+  "category": "attendance",
+  "isDefault": true,
+  "schema": {
+    "title": "Attendance Sheet",
+    "description": "Please complete this form to record attendance",
+    "sections": [
+      {
+        "id": "event-details",
+        "title": "Event Details",
+        "fields": [
+          {
+            "id": "event-name",
+            "type": "text",
+            "label": "Event Name",
+            "placeholder": "Enter event name",
+            "required": true
+          },
+          {
+            "id": "event-date",
+            "type": "date",
+            "label": "Date",
+            "required": true
+          },
+          {
+            "id": "event-time-start",
+            "type": "time",
+            "label": "Start Time",
+            "required": true
+          },
+          {
+            "id": "event-time-end",
+            "type": "time",
+            "label": "End Time",
+            "required": true
+          },
+          {
+            "id": "event-location",
+            "type": "text",
+            "label": "Location",
+            "placeholder": "Enter location",
+            "required": true
+          },
+          {
+            "id": "event-facilitator",
+            "type": "text",
+            "label": "Facilitator/Presenter",
+            "placeholder": "Enter name of facilitator",
+            "required": false
+          }
+        ]
+      },
+      {
+        "id": "attendance-list",
+        "title": "Attendees",
+        "fields": [
+          {
+            "id": "attendees-table",
+            "type": "table",
+            "label": "Attendee List",
+            "required": true,
+            "columns": [
+              {
+                "id": "name",
+                "label": "Full Name",
+                "type": "text",
+                "required": true
+              },
+              {
+                "id": "organization",
+                "label": "Organization",
+                "type": "text",
+                "required": false
+              },
+              {
+                "id": "email",
+                "label": "Email",
+                "type": "text",
+                "validation": {
+                  "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+                  "customMessage": "Please enter a valid email address"
+                },
+                "required": false
+              },
+              {
+                "id": "phone",
+                "label": "Phone",
+                "type": "text",
+                "required": false
+              },
+              {
+                "id": "time-in",
+                "label": "Time In",
+                "type": "time",
+                "required": true
+              },
+              {
+                "id": "time-out",
+                "label": "Time Out",
+                "type": "time",
+                "required": false
+              },
+              {
+                "id": "signature",
+                "label": "Signature",
+                "type": "signature",
+                "required": true
+              }
+            ],
+            "minRows": 1,
+            "maxRows": 50,
+            "addRowLabel": "Add Attendee"
+          }
+        ]
+      },
+      {
+        "id": "notes-section",
+        "title": "Notes",
+        "fields": [
+          {
+            "id": "notes",
+            "type": "textarea",
+            "label": "Additional Notes",
+            "placeholder": "Enter any additional information about the event",
+            "required": false
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "submitButtonText": "Save Attendance",
+      "showProgressBar": true,
+      "allowSave": true,
+      "requireAuthentication": true,
+      "notifyOnSubmission": true,
+      "confirmationMessage": "Attendance has been recorded successfully."
+    }
+  },
+  "metadata": {
+    "tags": ["attendance", "meeting", "event", "sign-in"],
+    "usageCount": 0,
+    "rating": 5,
+    "reviewCount": 0,
+    "thumbnailUrl": "/images/templates/attendance-basic.png"
+  },
+  "createdAt": "2025-10-17T00:00:00.000Z",
+  "updatedAt": "2025-10-17T00:00:00.000Z"
+}

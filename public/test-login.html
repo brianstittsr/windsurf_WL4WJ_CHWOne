@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Authentication Test</title>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #1a365d;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+    .card {
+      background-color: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .success {
+      background-color: #d1fae5;
+      border-left: 4px solid #10b981;
+    }
+    .error {
+      background-color: #fee2e2;
+      border-left: 4px solid #ef4444;
+    }
+    button {
+      background-color: #1a365d;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #2c5282;
+    }
+    input {
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 300px;
+    }
+    pre {
+      background-color: #1a202c;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Firebase Authentication Test</h1>
+  
+  <div class="card">
+    <h2>Firebase Configuration</h2>
+    <p>Enter your Firebase configuration values below:</p>
+    <div>
+      <label for="apiKey">API Key:</label>
+      <input type="text" id="apiKey" placeholder="Your Firebase API Key">
+    </div>
+    <div>
+      <label for="authDomain">Auth Domain:</label>
+      <input type="text" id="authDomain" placeholder="your-project-id.firebaseapp.com">
+    </div>
+    <div>
+      <label for="projectId">Project ID:</label>
+      <input type="text" id="projectId" placeholder="your-project-id">
+    </div>
+    <button id="initializeFirebase">Initialize Firebase</button>
+    <div id="configStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Email/Password Authentication</h2>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" value="admin@example.com">
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" value="admin123">
+    </div>
+    <button id="signIn">Sign In</button>
+    <button id="signOut">Sign Out</button>
+    <div id="authStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Current User</h2>
+    <div id="userInfo">Not signed in</div>
+  </div>
+
+  <script>
+    // Load configuration from URL parameters or localStorage
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Try to load from localStorage first
+        const savedConfig = localStorage.getItem('firebaseConfig');
+        if (savedConfig) {
+          const config = JSON.parse(savedConfig);
+          document.getElementById('apiKey').value = config.apiKey || '';
+          document.getElementById('authDomain').value = config.authDomain || '';
+          document.getElementById('projectId').value = config.projectId || '';
+        }
+        
+        // Then try to load from URL parameters (overrides localStorage)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('apiKey')) document.getElementById('apiKey').value = urlParams.get('apiKey');
+        if (urlParams.has('authDomain')) document.getElementById('authDomain').value = urlParams.get('authDomain');
+        if (urlParams.has('projectId')) document.getElementById('projectId').value = urlParams.get('projectId');
+        
+        // If we have all parameters, initialize Firebase automatically
+        if (document.getElementById('apiKey').value && 
+            document.getElementById('authDomain').value && 
+            document.getElementById('projectId').value) {
+          document.getElementById('initializeFirebase').click();
+        }
+      } catch (e) {
+        console.error('Error loading configuration:', e);
+      }
+    });
+
+    // Initialize Firebase
+    document.getElementById('initializeFirebase').addEventListener('click', () => {
+      const configStatus = document.getElementById('configStatus');
+      configStatus.innerHTML = '';
+      
+      try {
+        const firebaseConfig = {
+          apiKey: document.getElementById('apiKey').value.trim(),
+          authDomain: document.getElementById('authDomain').value.trim(),
+          projectId: document.getElementById('projectId').value.trim()
+        };
+        
+        // Validate configuration
+        const missingFields = Object.entries(firebaseConfig)
+          .filter(([key, value]) => !value)
+          .map(([key]) => key);
+        
+        if (missingFields.length > 0) {
+          configStatus.innerHTML = `<div class="card error">
+            <p>Missing required fields: ${missingFields.join(', ')}</p>
+          </div>`;
+          return;
+        }
+        
+        // Save configuration to localStorage
+        localStorage.setItem('firebaseConfig', JSON.stringify(firebaseConfig));
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        configStatus.innerHTML = `<div class="card success">
+          <p>Firebase initialized successfully!</p>
+        </div>`;
+        
+        // Update UI to show current user
+        updateUserInfo();
+        
+        // Set up auth state change listener
+        firebase.auth().onAuthStateChanged(user => {
+          updateUserInfo();
+        });
+      } catch (error) {
+        configStatus.innerHTML = `<div class="card error">
+          <p>Error initializing Firebase: ${error.message}</p>
+        </div>`;
+        console.error('Firebase initialization error:', error);
+      }
+    });
+
+    // Sign In
+    document.getElementById('signIn').addEventListener('click', async () => {
+      const authStatus = document.getElementById('authStatus');
+      authStatus.innerHTML = '<div class="card">Signing in...</div>';
+      
+      if (!firebase.auth) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Firebase not initialized. Please initialize Firebase first.</p>
+        </div>`;
+        return;
+      }
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Email and password are required.</p>
+        </div>`;
+        return;
+      }
+      
+      try {
+        const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+        authStatus.innerHTML = `<div class="card success">
+          <p>Sign-in successful!</p>
+          <p>User ID: ${result.user.uid}</p>
+          <p>Email: ${result.user.email}</p>
+        </div>`;
+      } catch (error) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Error signing in: ${error.code} - ${error.message}</p>
+          <p>Possible solutions:</p>
+          <ul>
+            <li>Check if the email and password are correct</li>
+            <li>Verify that the user exists in Firebase Authentication</li>
+            <li>Check if the Authentication service is enabled in Firebase Console</li>
+          </ul>
+        </div>`;
+        console.error('Sign-in error:', error);
+      }
+    });
+
+    // Sign Out
+    document.getElementById('signOut').addEventListener('click', async () => {
+      const authStatus = document.getElementById('authStatus');
+      authStatus.innerHTML = '<div class="card">Signing out...</div>';
+      
+      if (!firebase.auth) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Firebase not initialized. Please initialize Firebase first.</p>
+        </div>`;
+        return;
+      }
+      
+      try {
+        await firebase.auth().signOut();
+        authStatus.innerHTML = `<div class="card success">
+          <p>Sign-out successful!</p>
+        </div>`;
+      } catch (error) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Error signing out: ${error.code} - ${error.message}</p>
+        </div>`;
+        console.error('Sign-out error:', error);
+      }
+    });
+
+    // Update User Info
+    function updateUserInfo() {
+      const userInfo = document.getElementById('userInfo');
+      
+      if (!firebase.auth) {
+        userInfo.innerHTML = 'Firebase not initialized';
+        return;
+      }
+      
+      const user = firebase.auth().currentUser;
+      
+      if (user) {
+        userInfo.innerHTML = `
+          <p><strong>Signed in as:</strong></p>
+          <ul>
+            <li><strong>UID:</strong> ${user.uid}</li>
+            <li><strong>Email:</strong> ${user.email}</li>
+            <li><strong>Email Verified:</strong> ${user.emailVerified ? 'Yes' : 'No'}</li>
+            <li><strong>Display Name:</strong> ${user.displayName || 'Not set'}</li>
+            <li><strong>Provider:</strong> ${user.providerData[0]?.providerId || 'Unknown'}</li>
+          </ul>
+        `;
+      } else {
+        userInfo.innerHTML = 'Not signed in';
+      }
+    }
+  </script>
+</body>
+</html>

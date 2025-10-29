@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Authentication Test</title>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #1a365d;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+    .card {
+      background-color: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .success {
+      background-color: #d1fae5;
+      border-left: 4px solid #10b981;
+    }
+    .error {
+      background-color: #fee2e2;
+      border-left: 4px solid #ef4444;
+    }
+    .warning {
+      background-color: #fef3c7;
+      border-left: 4px solid #f59e0b;
+    }
+    button {
+      background-color: #1a365d;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #2c5282;
+    }
+    input {
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 300px;
+    }
+    pre {
+      background-color: #1a202c;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .hidden {
+      display: none;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .tab {
+      padding: 10px 15px;
+      cursor: pointer;
+      margin-right: 5px;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active {
+      border-bottom: 2px solid #1a365d;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Firebase Authentication Test</h1>
+  
+  <div class="card">
+    <h2>Firebase Configuration</h2>
+    <p>Enter your Firebase configuration values below:</p>
+    <div>
+      <label for="apiKey">API Key:</label>
+      <input type="text" id="apiKey" placeholder="Your Firebase API Key">
+    </div>
+    <div>
+      <label for="authDomain">Auth Domain:</label>
+      <input type="text" id="authDomain" placeholder="your-project-id.firebaseapp.com">
+    </div>
+    <div>
+      <label for="projectId">Project ID:</label>
+      <input type="text" id="projectId" placeholder="your-project-id">
+    </div>
+    <div>
+      <label for="storageBucket">Storage Bucket:</label>
+      <input type="text" id="storageBucket" placeholder="your-project-id.appspot.com">
+    </div>
+    <div>
+      <label for="messagingSenderId">Messaging Sender ID:</label>
+      <input type="text" id="messagingSenderId" placeholder="1234567890">
+    </div>
+    <div>
+      <label for="appId">App ID:</label>
+      <input type="text" id="appId" placeholder="1:1234567890:web:abcdef1234567890">
+    </div>
+    <button id="initializeFirebase">Initialize Firebase</button>
+    <div id="configStatus"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="auth-test">Authentication Test</div>
+    <div class="tab" data-tab="admin-user">Admin User</div>
+    <div class="tab" data-tab="firestore-test">Firestore Test</div>
+    <div class="tab" data-tab="troubleshooting">Troubleshooting</div>
+  </div>
+
+  <div id="auth-test" class="tab-content active">
+    <div class="card">
+      <h2>Authentication Test</h2>
+      <p>Test Firebase Authentication with anonymous sign-in:</p>
+      <button id="testAnonymous">Test Anonymous Sign-In</button>
+      <div id="anonymousStatus"></div>
+    </div>
+    
+    <div class="card">
+      <h2>Email/Password Authentication</h2>
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" value="admin@example.com">
+      </div>
+      <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" value="admin123">
+      </div>
+      <button id="signIn">Sign In</button>
+      <button id="createUser">Create User</button>
+      <div id="authStatus"></div>
+    </div>
+  </div>
+
+  <div id="admin-user" class="tab-content">
+    <div class="card">
+      <h2>Admin User Setup</h2>
+      <p>Create or verify the admin user:</p>
+      <div>
+        <label for="adminEmail">Admin Email:</label>
+        <input type="email" id="adminEmail" value="admin@example.com">
+      </div>
+      <div>
+        <label for="adminPassword">Admin Password:</label>
+        <input type="password" id="adminPassword" value="admin123">
+      </div>
+      <div>
+        <label for="adminDisplayName">Display Name:</label>
+        <input type="text" id="adminDisplayName" value="Admin User">
+      </div>
+      <button id="createAdmin">Create Admin User</button>
+      <button id="verifyAdmin">Verify Admin User</button>
+      <div id="adminStatus"></div>
+    </div>
+  </div>
+
+  <div id="firestore-test" class="tab-content">
+    <div class="card">
+      <h2>Firestore Test</h2>
+      <p>Test Firestore database connection:</p>
+      <button id="testFirestore">Test Firestore Connection</button>
+      <div id="firestoreStatus"></div>
+    </div>
+    
+    <div class="card">
+      <h2>Schema Initialization</h2>
+      <p>Check if the schema is initialized:</p>
+      <button id="checkSchema">Check Schema</button>
+      <div id="schemaStatus"></div>
+    </div>
+  </div>
+
+  <div id="troubleshooting" class="tab-content">
+    <div class="card">
+      <h2>Common Issues</h2>
+      <h3>Authentication Not Found Error</h3>
+      <p>If you're seeing "auth/configuration-not-found" error:</p>
+      <ol>
+        <li>Go to the <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a></li>
+        <li>Select your project</li>
+        <li>Go to Authentication (Build → Authentication)</li>
+        <li>Click "Get started" if you haven't enabled Authentication yet</li>
+        <li>Enable Email/Password authentication method</li>
+        <li>Save changes</li>
+      </ol>
+      
+      <h3>Firestore Permission Denied</h3>
+      <p>If you're seeing "permission-denied" errors:</p>
+      <ol>
+        <li>Go to the <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a></li>
+        <li>Select your project</li>
+        <li>Go to Firestore Database (Build → Firestore Database)</li>
+        <li>Go to Rules tab</li>
+        <li>Update rules to allow read/write during development:</li>
+      </ol>
+      <pre>
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      // Allow read/write access during development
+      allow read, write: if true;
+    }
+  }
+}
+      </pre>
+      <p><strong>Note:</strong> These rules are for development only. Use proper security rules in production.</p>
+    </div>
+  </div>
+
+  <script>
+    let firebaseApp = null;
+    let firebaseAuth = null;
+    let firestore = null;
+
+    // Tab functionality
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Try to load configuration from localStorage
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const savedConfig = localStorage.getItem('firebaseConfig');
+        if (savedConfig) {
+          const config = JSON.parse(savedConfig);
+          document.getElementById('apiKey').value = config.apiKey || '';
+          document.getElementById('authDomain').value = config.authDomain || '';
+          document.getElementById('projectId').value = config.projectId || '';
+          document.getElementById('storageBucket').value = config.storageBucket || '';
+          document.getElementById('messagingSenderId').value = config.messagingSenderId || '';
+          document.getElementById('appId').value = config.appId || '';
+        }
+      } catch (e) {
+        console.error('Error loading saved configuration:', e);
+      }
+    });
+
+    // Initialize Firebase
+    document.getElementById('initializeFirebase').addEventListener('click', () => {
+      const configStatus = document.getElementById('configStatus');
+      configStatus.innerHTML = '';
+      
+      try {
+        const firebaseConfig = {
+          apiKey: document.getElementById('apiKey').value.trim(),
+          authDomain: document.getElementById('authDomain').value.trim(),
+          projectId: document.getElementById('projectId').value.trim(),
+          storageBucket: document.getElementById('storageBucket').value.trim(),
+          messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+          appId: document.getElementById('appId').value.trim()
+        };
+        
+        // Validate configuration
+        const missingFields = Object.entries(firebaseConfig)
+          .filter(([key, value]) => !value)
+          .map(([key]) => key);
+        
+        if (missingFields.length > 0) {
+          configStatus.innerHTML = `<div class="card error">
+            <p>Missing required fields: ${missingFields.join(', ')}</p>
+          </div>`;
+          return;
+        }
+        
+        // Save configuration to localStorage
+        localStorage.setItem('firebaseConfig', JSON.stringify(firebaseConfig));
+        
+        // Initialize Firebase
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+        firebaseAuth = firebase.auth();
+        
+        configStatus.innerHTML = `<div class="card success">
+          <p>Firebase initialized successfully!</p>
+        </div>`;
+      } catch (error) {
+        configStatus.innerHTML = `<div class="card error">
+          <p>Error initializing Firebase: ${error.message}</p>
+        </div>`;
+        console.error('Firebase initialization error:', error);
+      }
+    });
+
+    // Test Anonymous Sign-In
+    document.getElementById('testAnonymous').addEventListener('click', async () => {
+      const anonymousStatus = document.getElementById('anonymousStatus');
+      anonymousStatus.innerHTML = '<div class="card">Testing anonymous sign-in...</div>';
+      
+      if (!firebaseAuth) {
+        anonymousStatus.innerHTML = `<div class="card error">
+          <p>Firebase not initialized. Please initialize Firebase first.</p>
+        </div>`;
+        return;
+      }
+      
+      try {
+        const result = await firebaseAuth.signInAnonymously();
+        anonymousStatus.innerHTML = `<div class="card success">
+          <p>Anonymous sign-in successful!</p>
+          <p>User ID: ${result.user.uid}</p>
+        </div>`;
+      } catch (error) {
+        anonymousStatus.innerHTML = `<div class="card error">
+          <p>Error signing in anonymously: ${error.code} - ${error.message}</p>
+        </div>`;
+        console.error('Anonymous sign-in error:', error);
+      }
+    });
+
+    // Email/Password Sign In
+    document.getElementById('signIn').addEventListener('click', async () => {
+      const authStatus = document.getElementById('authStatus');
+      authStatus.innerHTML = '<div class="card">Signing in...</div>';
+      
+      if (!firebaseAuth) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Firebase not initialized. Please initialize Firebase first.</p>
+        </div>`;
+        return;
+      }
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Email and password are required.</p>
+        </div>`;
+        return;
+      }
+      
+      try {
+        const result = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        authStatus.innerHTML = `<div class="card success">
+          <p>Sign-in successful!</p>
+          <p>User ID: ${result.user.uid}</p>
+          <p>Email: ${result.user.email}</p>
+          <p>Display Name: ${result.user.displayName || 'Not set'}</p>
+        </div>`;
+      } catch (error) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Error signing in: ${error.code} - ${error.message}</p>
+        </div>`;
+        console.error('Sign-in error:', error);
+      }
+    });
+
+    // Create User
+    document.getElementById('createUser').addEventListener('click', async () => {
+      const authStatus = document.getElementById('authStatus');
+      authStatus.innerHTML = '<div class="card">Creating user...</div>';
+      
+      if (!firebaseAuth) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Firebase not initialized. Please initialize Firebase first.</p>
+        </div>`;
+        return;
+      }
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Email and password are required.</p>
+        </div>`;
+        return;
+      }
+      
+      try {
+        const result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        authStatus.innerHTML = `<div class="card success">
+          <p>User created successfully!</p>
+          <p>User ID: ${result.user.uid}</p>
+          <p>Email: ${result.user.email}</p>
+        </div>`;
+      } catch (error) {
+        authStatus.innerHTML = `<div class="card error">
+          <p>Error creating user: ${error.code} - ${error.message}</p>
+        </div>`;
+        console.error('Create user error:', error);
+      }
+    });
+
+    // Create Admin User
+    document.getElementById('createAdmin').addEventListener('click', async () => {
+      const adminStatus = document.getElementById('adminStatus');
+      adminStatus.innerHTML = '<div class="card">Creating admin user...</div>';
+      
+      if (!firebaseAuth) {
+        adminStatus.innerHTML = `<div class="card error">
+          <p>Firebase not initialized. Please initialize Firebase first.</p>
+        </div>`;
+        return;
+      }
+      
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const displayName = document.getElementById('adminDisplayName').value.trim();
+      
+      if (!email || !password) {
+        adminStatus.innerHTML = `<div class="card error">
+          <p>Email and password are required.</p>
+        </div>`;
+        return;
+      }
+      
+      try {
+        // Create user
+        let userCredential;
+        try {
+          userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        } catch (error) {
+          if (error.code === 'auth/email-already-in-use') {
+            adminStatus.innerHTML = `<div class="card warning">
+              <p>User already exists. Signing in...</p>
+            </div>`;
+            userCredential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+          } else {
+            throw error;
+          }
+        }
+        
+        // Update profile
+        await userCredential.user.updateProfile({ displayName });
+        
+        adminStatus.innerHTML = `<div class="card success">
+          <p>Admin user setup successful!</p>
+          <p>User ID: ${userCredential.user.uid}</p>
+          <p>Email: ${userCredential.user.email}</p>
+          <p>Display Name: ${userCredential.user.displayName}</p>
+          <p><strong>Note:</strong> To complete setup, you need to create a document in the 'users' collection with this user's UID.</p>
+        </div>`;
+      } catch (error) {
+        adminStatus.innerHTML = `<div class="card error">
+          <p>Error setting up admin user: ${error.code} - ${error.message}</p>
+        </div>`;
+        console.error('Admin user setup error:', error);
+      }
+    });
+
+    // Verify Admin User
+    document.getElementById('verifyAdmin').addEventListener('click', async () => {
+      const adminStatus = document.getElementById('adminStatus');
+      adminStatus.innerHTML = '<div class="card">Verifying admin user...</div>';
+      
+      if (!firebaseAuth) {
+        adminStatus.innerHTML = `<div class="card error">
+          <p>Firebase not initialized. Please initialize Firebase first.</p>
+        </div>`;
+        return;
+      }
+      
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      
+      if (!email || !password) {
+        adminStatus.innerHTML = `<div class="card error">
+          <p>Email and password are required.</p>
+        </div>`;
+        return;
+      }
+      
+      try {
+        const userCredential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        adminStatus.innerHTML = `<div class="card success">
+          <p>Admin user exists and credentials are valid!</p>
+          <p>User ID: ${userCredential.user.uid}</p>
+          <p>Email: ${userCredential.user.email}</p>
+          <p>Display Name: ${userCredential.user.displayName || 'Not set'}</p>
+        </div>`;
+      } catch (error) {
+        adminStatus.innerHTML = `<div class="card error">
+          <p>Error verifying admin user: ${error.code} - ${error.message}</p>
+        </div>`;
+        console.error('Admin verification error:', error);
+      }
+    });
+  </script>
+</body>
+</html>

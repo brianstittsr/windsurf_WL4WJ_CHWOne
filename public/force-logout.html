@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Force Logout</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    button {
+      background-color: #1a365d;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Force Logout</h1>
+  
+  <div class="card">
+    <h2>1. Initialize Firebase</h2>
+    <div>
+      <label for="apiKey">API Key:</label>
+      <input type="text" id="apiKey" placeholder="Your Firebase API Key">
+    </div>
+    <div>
+      <label for="authDomain">Auth Domain:</label>
+      <input type="text" id="authDomain" placeholder="your-project.firebaseapp.com">
+    </div>
+    <div>
+      <label for="projectId">Project ID:</label>
+      <input type="text" id="projectId" placeholder="your-project-id">
+    </div>
+    <button onclick="initializeFirebase()">Initialize Firebase</button>
+    <div id="initStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>2. Force Logout</h2>
+    <button onclick="forceLogout()">Force Logout</button>
+    <div id="logoutStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>3. Clear LocalStorage</h2>
+    <button onclick="clearLocalStorage()">Clear LocalStorage</button>
+    <div id="clearStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>4. Current Status</h2>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    // Initialize Firebase
+    function initializeFirebase() {
+      const apiKey = document.getElementById('apiKey').value;
+      const authDomain = document.getElementById('authDomain').value;
+      const projectId = document.getElementById('projectId').value;
+      
+      if (!apiKey || !authDomain || !projectId) {
+        document.getElementById('initStatus').innerHTML = '<p class="error">Please fill in all Firebase configuration fields</p>';
+        return;
+      }
+      
+      try {
+        // Initialize Firebase
+        firebase.initializeApp({
+          apiKey,
+          authDomain,
+          projectId
+        });
+        
+        document.getElementById('initStatus').innerHTML = '<p class="success">Firebase initialized successfully!</p>';
+        updateStatus();
+      } catch (error) {
+        document.getElementById('initStatus').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      }
+    }
+    
+    // Force logout
+    function forceLogout() {
+      if (!firebase.auth) {
+        document.getElementById('logoutStatus').innerHTML = '<p class="error">Firebase not initialized</p>';
+        return;
+      }
+      
+      firebase.auth().signOut()
+        .then(() => {
+          document.getElementById('logoutStatus').innerHTML = '<p class="success">Logged out successfully!</p>';
+          updateStatus();
+        })
+        .catch(error => {
+          document.getElementById('logoutStatus').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+        });
+    }
+    
+    // Clear localStorage
+    function clearLocalStorage() {
+      try {
+        localStorage.clear();
+        document.getElementById('clearStatus').innerHTML = '<p class="success">LocalStorage cleared successfully!</p>';
+      } catch (error) {
+        document.getElementById('clearStatus').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      }
+    }
+    
+    // Update status
+    function updateStatus() {
+      const statusDiv = document.getElementById('status');
+      
+      if (!firebase.auth) {
+        statusDiv.innerHTML = '<p>Firebase not initialized</p>';
+        return;
+      }
+      
+      const user = firebase.auth().currentUser;
+      
+      if (user) {
+        statusDiv.innerHTML = `
+          <p><strong>Currently logged in as:</strong></p>
+          <p>Email: ${user.email}</p>
+          <p>UID: ${user.uid}</p>
+          <p class="error">You are still logged in. Click "Force Logout" to log out.</p>
+        `;
+      } else {
+        statusDiv.innerHTML = '<p class="success">Not logged in. You have been successfully logged out.</p>';
+      }
+    }
+    
+    // Load configuration from URL parameters if available
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('apiKey')) document.getElementById('apiKey').value = urlParams.get('apiKey');
+      if (urlParams.has('authDomain')) document.getElementById('authDomain').value = urlParams.get('authDomain');
+      if (urlParams.has('projectId')) document.getElementById('projectId').value = urlParams.get('projectId');
+      
+      // Auto-initialize if all params are present
+      if (document.getElementById('apiKey').value && 
+          document.getElementById('authDomain').value && 
+          document.getElementById('projectId').value) {
+        initializeFirebase();
+      }
+    });
+  </script>
+</body>
+</html>

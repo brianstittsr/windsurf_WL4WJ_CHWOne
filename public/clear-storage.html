@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clearing Storage...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 { color: #1a365d; }
+        .status { color: #2d3748; margin: 20px 0; }
+        button {
+            background: #1a365d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover { background: #0f2942; }
+        .success { color: #38a169; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Storage Cleanup</h1>
+        <div class="status" id="status">Clearing offline mode flags...</div>
+        <button onclick="clearAndRedirect()" id="clearBtn" style="display:none">Go to Login</button>
+    </div>
+    
+    <script>
+        // Clear all offline mode flags
+        localStorage.removeItem('forceOfflineMode');
+        localStorage.removeItem('firebaseNetworkError');
+        sessionStorage.clear();
+        
+        // Show success message
+        setTimeout(() => {
+            document.getElementById('status').innerHTML = '<span class="success">✓ Storage cleared successfully!</span><br>You can now log in normally.';
+            document.getElementById('clearBtn').style.display = 'inline-block';
+        }, 500);
+        
+        function clearAndRedirect() {
+            window.location.href = '/login';
+        }
+        
+        // Auto-redirect after 2 seconds
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
+    </script>
+</body>
+</html>

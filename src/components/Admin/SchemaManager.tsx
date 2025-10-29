@@ -45,7 +45,7 @@ import {
   Storage as StorageIcon
 } from '@mui/icons-material';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase/firebaseConfig';
 import { COLLECTIONS } from '@/lib/schema/unified-schema';
 import { runMigration, generateMigrationReport } from '@/lib/schema/migration-tool';
 import { validate } from '@/lib/schema/validation';
