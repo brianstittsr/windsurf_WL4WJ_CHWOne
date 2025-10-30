@@ -49,7 +49,15 @@ import {
 import { Chart } from 'react-chartjs-2';
 import * as d3 from 'd3';
 import Plot from 'react-plotly.js';
-import { ProcessedDataset } from '@/services/DataProcessingService';
+
+interface ProcessedDataset {
+  id: string;
+  name: string;
+  rowCount: number;
+  type: string;
+  columns: string[];
+  data: any[];
+}
 
 ChartJS.register(
   CategoryScale,

@@ -116,7 +116,7 @@ function LoginFormContent() {
       });
       
       // Determine redirect URL
-      const redirectUrl = searchParams?.get('redirect') || '/dashboard/region-5';
+      const redirectUrl = searchParams?.get('redirect') || '/dashboard/regions';
       console.log('%c[LOGIN] Redirect URL:', 'color: #2c5282;', redirectUrl);
       
       // Navigate immediately
@@ -125,13 +125,19 @@ function LoginFormContent() {
       console.error('%c[LOGIN] Login error', 'background: red; color: white;', error);
       
       // Provide more user-friendly error messages
-      let errorMessage = error.message || 'Failed to sign in';
-      if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many failed login attempts. Please try again later.';
-      } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = 'Network connection error. Please check your internet connection.';
+      let errorMessage = 'Failed to sign in';
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const firebaseError = error as { code: string; message: string };
+        errorMessage = firebaseError.message;
+        if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/user-not-found') {
+          errorMessage = 'Invalid email or password. Please try again.';
+        } else if (firebaseError.code === 'auth/too-many-requests') {
+          errorMessage = 'Too many failed login attempts. Please try again later.';
+        } else if (firebaseError.code === 'auth/network-request-failed') {
+          errorMessage = 'Network connection error. Please check your internet connection.';
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
       
       setError(errorMessage);

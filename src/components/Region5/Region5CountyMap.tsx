@@ -26,7 +26,13 @@ import {
   Business,
   TrendingUp
 } from '@mui/icons-material';
-import { ProcessedDataset } from '@/services/DataProcessingService';
+
+interface ProcessedDataset {
+  id: string;
+  name: string;
+  data: any[];
+  columns: string[];
+}
 
 interface CountyData {
   name: string;

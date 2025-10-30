@@ -10,7 +10,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText
+  FormHelperText,
+  SelectChangeEvent
 } from '@mui/material';
 
 interface OrganizationBasicInfoFormProps {
@@ -22,7 +23,12 @@ const currentYear = new Date().getFullYear();
 const yearOptions = Array.from({ length: 100 }, (_, i) => currentYear - i);
 
 export default function OrganizationBasicInfoForm({ data, onChange }: OrganizationBasicInfoFormProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    onChange({ [name as string]: value });
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent<any>) => {
     const { name, value } = e.target;
     onChange({ [name as string]: value });
   };
@@ -85,7 +91,7 @@ export default function OrganizationBasicInfoForm({ data, onChange }: Organizati
               labelId="legal-status-label"
               name="legalStatus"
               value={data.legalStatus}
-              onChange={handleChange}
+              onChange={handleSelectChange}
               label="Legal Status"
             >
               <MenuItem value="nonprofit">501(c)(3) Nonprofit</MenuItem>
@@ -104,7 +110,7 @@ export default function OrganizationBasicInfoForm({ data, onChange }: Organizati
               labelId="founding-year-label"
               name="foundingYear"
               value={data.foundingYear}
-              onChange={handleChange}
+              onChange={handleSelectChange}
               label="Founding Year"
             >
               {yearOptions.map(year => (
@@ -122,7 +128,7 @@ export default function OrganizationBasicInfoForm({ data, onChange }: Organizati
               labelId="size-label"
               name="size"
               value={data.size}
-              onChange={handleChange}
+              onChange={handleSelectChange}
               label="Organization Size"
             >
               <MenuItem value="small">Small (1-10 employees)</MenuItem>
@@ -140,7 +146,7 @@ export default function OrganizationBasicInfoForm({ data, onChange }: Organizati
               labelId="budget-label"
               name="budget"
               value={data.budget}
-              onChange={handleChange}
+              onChange={handleSelectChange}
               label="Annual Budget"
             >
               <MenuItem value="under100k">Under $100,000</MenuItem>

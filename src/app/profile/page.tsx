@@ -229,11 +229,11 @@ function ProfileContent() {
     if (daysUntilRenewal < 0) {
       return { status: 'expired', color: 'error', text: 'Expired' };
     } else if (daysUntilRenewal <= 30) {
-      return { status: 'urgent', color: 'warning', text: `${daysUntilRenewal} days` };
+      return { status: 'urgent', color: 'warning', text: `${daysUntilRenewal} days remaining` };
     } else if (daysUntilRenewal <= 90) {
-      return { status: 'soon', color: 'info', text: `${daysUntilRenewal} days` };
+      return { status: 'soon', color: 'info', text: `${daysUntilRenewal} days remaining` };
     } else {
-      return { status: 'active', color: 'success', text: 'Active' };
+      return { status: 'active', color: 'success', text: `${daysUntilRenewal} days remaining` };
     }
   };
 

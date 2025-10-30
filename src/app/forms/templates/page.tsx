@@ -418,9 +418,9 @@ function TemplatesContent() {
                       <Box component="li" key={field.id} sx={{ mb: 1 }}>
                         <Typography variant="body2">
                           {field.label} {field.required && <span style={{ color: 'red' }}>*</span>}
-                          <span style={{ color: 'text.secondary', ml: 1 }}>
+                          <Box component="span" sx={{ color: 'text.secondary', ml: 1 }}>
                             ({field.type})
-                          </span>
+                          </Box>
                         </Typography>
                       </Box>
                     ))}

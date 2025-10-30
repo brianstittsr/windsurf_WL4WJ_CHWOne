@@ -22,7 +22,8 @@ import {
   CircularProgress,
   Divider,
   Alert,
-  Grid
+  Grid,
+  SelectChangeEvent
 } from '@mui/material';
 import { 
   ArrowForward as ArrowForwardIcon, 
@@ -186,12 +187,29 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
   });
   
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-    
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+
     setWizardData(prev => ({
       ...prev,
-      [name as string]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setWizardData(prev => ({
+      ...prev,
+      [name as string]: value
+    }));
+  };
+
+  const handleRadioGroupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setWizardData(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
   
@@ -398,7 +416,7 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
                 labelId="form-layout-label"
                 name="formLayout"
                 value={wizardData.formLayout}
-                onChange={handleInputChange}
+                onChange={handleSelectChange}
                 label="Form Layout"
               >
                 <MenuItem value="standard">Standard (Single Page)</MenuItem>
@@ -414,7 +432,7 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
                 labelId="section-organization-label"
                 name="sectionOrganization"
                 value={wizardData.sectionOrganization}
-                onChange={handleInputChange}
+                onChange={handleSelectChange}
                 label="Section Organization"
               >
                 <MenuItem value="logical">Logical Grouping</MenuItem>
@@ -472,7 +490,7 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
                 labelId="color-scheme-label"
                 name="colorScheme"
                 value={wizardData.colorScheme}
-                onChange={handleInputChange}
+                onChange={handleSelectChange}
                 label="Color Scheme"
               >
                 <MenuItem value="default">Default (Platform Colors)</MenuItem>
@@ -500,7 +518,7 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
                 labelId="font-preference-label"
                 name="fontPreference"
                 value={wizardData.fontPreference}
-                onChange={handleInputChange}
+                onChange={handleSelectChange}
                 label="Font Preference"
               >
                 <MenuItem value="default">Default (System Fonts)</MenuItem>
@@ -525,7 +543,7 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
                 labelId="delivery-method-label"
                 name="deliveryMethod"
                 value={wizardData.deliveryMethod}
-                onChange={handleInputChange}
+                onChange={handleSelectChange}
                 label="Delivery Method"
               >
                 <MenuItem value="email">Email Link</MenuItem>
@@ -542,7 +560,7 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
                 labelId="response-collection-label"
                 name="responseCollection"
                 value={wizardData.responseCollection}
-                onChange={handleInputChange}
+                onChange={handleSelectChange}
                 label="Response Collection"
               >
                 <MenuItem value="database">Store in Database</MenuItem>

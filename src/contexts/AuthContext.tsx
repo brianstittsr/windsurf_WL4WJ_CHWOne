@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase/firebaseConfig';
+import { UserProfile } from '@/types/firebase/schema';
 
 // Auto-login control - disabled to prevent auto-login
 const DISABLE_AUTO_LOGIN = false; // Enable auto-login
@@ -10,6 +12,7 @@ const DISABLE_AUTO_LOGIN = false; // Enable auto-login
 // Define the shape of our auth context
 interface AuthContextType {
   currentUser: User | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   error: string | null;
   signIn: (email: string, password: string) => Promise<User>;
@@ -32,6 +35,7 @@ export function useAuth() {
 // Simplified auth state interface
 interface AuthState {
   user: User | null;
+  profile: UserProfile | null;
   loading: boolean;
   error: string | null;
 }
@@ -40,6 +44,7 @@ interface AuthState {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
+    profile: null,
     loading: true,
     error: null
   });
@@ -120,25 +125,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [setError, setLoading, setCurrentUser]);
 
-  // Listen for auth state changes
+    // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('[AUTH] Auth state changed:', user ? 'User signed in' : 'No user');
-      
-      // Auto-login enabled
-      console.log('[AUTH] Auto-login enabled');
-      
-      setCurrentUser(user);
-      setLoading(false);
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setState(prev => ({ ...prev, user: user, profile: userDoc.data() as UserProfile, loading: false }));
+        } else {
+          // Handle case where user exists in Auth but not in Firestore
+          setState(prev => ({ ...prev, user: user, profile: null, loading: false }));
+        }
+      } else {
+        setState({ user: null, profile: null, loading: false, error: null });
+      }
     });
     
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [setCurrentUser, setLoading]);
+  }, []);
 
-  // Context value
+    // Context value
   const contextValue = {
     currentUser: state.user,
+    userProfile: state.profile,
     loading: state.loading,
     error: state.error,
     signIn,

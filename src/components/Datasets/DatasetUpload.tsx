@@ -66,14 +66,20 @@ export default function DatasetUpload({ onUploadComplete }: DatasetUploadProps) 
     setError(null);
     
     try {
-      const dataset = await dataProcessingService.processFile(
-        file,
-        name,
-        description,
-        currentUser.uid
-      );
-      
-      onUploadComplete(dataset);
+      const result = await dataProcessingService.processFile(file);
+
+      if (result.success) {
+        const newDataset: Dataset = {
+          ...result.data,
+          name: name,
+          description: description,
+          createdBy: currentUser.uid,
+          createdAt: new Date(),
+        };
+        onUploadComplete(newDataset);
+      } else {
+        throw new Error('Processing failed');
+      }
     } catch (err) {
       setError(`Failed to process file: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {

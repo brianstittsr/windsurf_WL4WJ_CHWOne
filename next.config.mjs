@@ -33,6 +33,11 @@ const nextConfig = {
         hostname: "avatars.githubusercontent.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "i0.wp.com",
+        pathname: "**",
+      },
     ],
   },
   // Optimize static asset handling

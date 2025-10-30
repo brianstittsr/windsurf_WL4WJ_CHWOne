@@ -14,7 +14,7 @@ export interface UserProfile {
   phoneNumber?: string;
   photoURL?: string;
   role: UserRole;
-  organization: 'general' | 'region5' | 'wl4wj';
+  organization: 'general' | 'region1' | 'region2' | 'region3' | 'region4' | 'region5' | 'region6' | 'wl4wj';
   permissions: UserPermissions;
   isActive: boolean;
   createdAt: Timestamp;
@@ -124,7 +124,7 @@ export interface Form {
   description: string;
   category: FormCategory;
   tags: string[];
-  organization: 'general' | 'region5' | 'wl4wj';
+  organization: 'general' | 'region1' | 'region2' | 'region3' | 'region4' | 'region5' | 'region6' | 'wl4wj';
   status: FormStatus;
   version: number;
   fields: FormField[];
@@ -298,7 +298,7 @@ export interface FileDocument {
   thumbnailUrl?: string;
   category: FileCategory;
   tags: string[];
-  organization: 'general' | 'region5' | 'wl4wj';
+  organization: 'general' | 'region1' | 'region2' | 'region3' | 'region4' | 'region5' | 'region6' | 'wl4wj';
   uploadedBy: string; // User UID
   uploadedAt: Timestamp;
   lastModified: Timestamp;
@@ -343,7 +343,7 @@ export interface FileMetadata {
 
 export interface DashboardMetrics {
   id: string;
-  organization: 'general' | 'region5' | 'wl4wj';
+  organization: 'general' | 'region1' | 'region2' | 'region3' | 'region4' | 'region5' | 'region6' | 'wl4wj';
   date: string; // YYYY-MM-DD
   metrics: OrganizationMetrics;
   updatedAt: Timestamp;

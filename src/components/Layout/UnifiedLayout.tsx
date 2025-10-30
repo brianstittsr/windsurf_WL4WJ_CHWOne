@@ -77,10 +77,10 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
       roles: [UserRole.ADMIN] 
     },
     { 
-      href: '/dashboard/region-5', 
+      href: '/dashboard/regions', 
       icon: 'location', 
-      label: 'Region 5', 
-      roles: [UserRole.ADMIN] 
+      label: 'Regions', 
+      roles: [UserRole.ADMIN, UserRole.CHW] 
     },
     { 
       href: '/dashboard/wl4wj', 

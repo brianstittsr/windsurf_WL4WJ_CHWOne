@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessingService, ProcessedDataset } from '@/services/DataProcessingService';
+import { DataProcessingService } from '@/services/DataProcessingService';
+
+interface ProcessedDataset {
+  id: string;
+  data: any[];
+  columns: string[];
+}
 
 const dataProcessingService = new DataProcessingService();
 
@@ -26,7 +32,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const mergedDataset = await dataProcessingService.mergeDatasets(datasets as ProcessedDataset[]);
+        // Mock the merge functionality for now
+    const mergedData = datasets.flatMap(d => d.data);
+    const mergedColumns = [...new Set(datasets.flatMap(d => d.columns))];
+    const mergedDataset = {
+      id: 'merged-' + Date.now(),
+      data: mergedData,
+      columns: mergedColumns
+    };
 
     return NextResponse.json({
       success: true,

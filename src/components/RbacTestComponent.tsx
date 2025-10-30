@@ -20,7 +20,7 @@ export default function RbacTestComponent() {
     // Check if RBAC is disabled based on user profile
     if (userProfile) {
       const isAdmin = userProfile.role === 'ADMIN';
-      const isApproved = userProfile.approved === true;
+      const isApproved = userProfile.isActive === true;
       const hasAllPermissions = Array.isArray(userProfile.permissions) && 
         userProfile.permissions.includes('*');
       
@@ -86,9 +86,9 @@ export default function RbacTestComponent() {
         <ListItem>
           <ListItemText 
             primary="Approved" 
-            secondary={userProfile.approved === true ? 'Yes' : 'No'}
+            secondary={userProfile.isActive === true ? 'Yes' : 'No'}
             secondaryTypographyProps={{
-              color: userProfile.approved === true ? 'success.main' : 'error.main',
+              color: userProfile.isActive === true ? 'success.main' : 'error.main',
               fontWeight: 'bold'
             }}
           />

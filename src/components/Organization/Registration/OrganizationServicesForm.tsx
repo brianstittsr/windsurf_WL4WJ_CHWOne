@@ -156,9 +156,10 @@ export default function OrganizationServicesForm({ data, onChange }: Organizatio
             value={data.serviceCategories}
             onChange={(_, newValue) => handleMultiSelectChange('serviceCategories', newValue)}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={`service-area-${index}`} label={option} {...getTagProps({ index })} />
-              ))
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField
@@ -180,9 +181,10 @@ export default function OrganizationServicesForm({ data, onChange }: Organizatio
             value={data.serviceAreas}
             onChange={(_, newValue) => handleMultiSelectChange('serviceAreas', newValue)}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={`service-area-${index}`} label={option} {...getTagProps({ index })} />
-              ))
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField
@@ -281,9 +283,10 @@ export default function OrganizationServicesForm({ data, onChange }: Organizatio
             value={data.primaryLanguages}
             onChange={(_, newValue) => handleMultiSelectChange('primaryLanguages', newValue)}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={`service-area-${index}`} label={option} {...getTagProps({ index })} />
-              ))
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField
@@ -304,9 +307,10 @@ export default function OrganizationServicesForm({ data, onChange }: Organizatio
             value={data.accessibilityOptions}
             onChange={(_, newValue) => handleMultiSelectChange('accessibilityOptions', newValue)}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={`service-area-${index}`} label={option} {...getTagProps({ index })} />
-              ))
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField
@@ -327,9 +331,10 @@ export default function OrganizationServicesForm({ data, onChange }: Organizatio
             value={data.insuranceAccepted}
             onChange={(_, newValue) => handleMultiSelectChange('insuranceAccepted', newValue)}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={`service-area-${index}`} label={option} {...getTagProps({ index })} />
-              ))
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField
@@ -350,9 +355,10 @@ export default function OrganizationServicesForm({ data, onChange }: Organizatio
             value={data.paymentOptions}
             onChange={(_, newValue) => handleMultiSelectChange('paymentOptions', newValue)}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={`service-area-${index}`} label={option} {...getTagProps({ index })} />
-              ))
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField

@@ -141,8 +141,7 @@ export default function DatasetMergeAssistant({ datasets, onMergeComplete }: Dat
       try {
         const preview = await dataProcessingService.previewMerge(
           selectedDatasets[0].id,
-          selectedDatasets[1].id,
-          mergeStrategy
+          selectedDatasets[1].id
         );
         setPreviewData(preview);
         setLoading(false);
@@ -172,9 +171,7 @@ export default function DatasetMergeAssistant({ datasets, onMergeComplete }: Dat
     try {
       const mergedDataset = await dataProcessingService.mergeDatasets(
         selectedDatasets[0].id,
-        selectedDatasets[1].id,
-        mergeStrategy,
-        currentUser.uid
+        selectedDatasets[1].id
       );
       
       onMergeComplete(mergedDataset);

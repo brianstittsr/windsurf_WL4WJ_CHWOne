@@ -16,7 +16,15 @@ import {
   Refresh as RefreshIcon,
   Storage as StorageIcon
 } from '@mui/icons-material';
-import { dashboardService, DatabaseConnectionStatus } from '@/services/dashboard/DashboardService';
+import { dashboardService } from '@/services/dashboard/DashboardService';
+
+interface DatabaseConnectionStatus {
+  isConnected: boolean;
+  lastChecked: Date;
+  latency?: number;
+  error?: string;
+  isPermissionsError?: boolean;
+}
 
 export default function DatabaseStatusCard() {
   const [status, setStatus] = useState<DatabaseConnectionStatus>({

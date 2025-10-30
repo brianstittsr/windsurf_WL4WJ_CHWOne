@@ -11,7 +11,7 @@ import { Button, Box, Typography } from '@mui/material';
  */
 export default function DebugButton({ href, label, ...props }) {
   const [clickCount, setClickCount] = React.useState(0);
-  const [lastClick, setLastClick] = React.useState(null);
+  const [lastClick, setLastClick] = React.useState<string | null>(null);
   const [isHovering, setIsHovering] = React.useState(false);
   
   const handleClick = (e) => {
