@@ -1,0 +1,50 @@
+central_topic: CHW Tools
+main_branches:
+  - name: Data Field Collection
+    sub_branches:
+      - name: Reduce Manual Entry
+        points:
+          - Voice-to-text for dictation.
+          - City/County lookup to minimize typing and spelling errors.
+          - AI-powered response standardization.
+      - name: Improve User Experience (UX)
+        points:
+          - Wizard-style forms (one question at a time).
+          - Large, easy-to-press buttons for navigation.
+      - name: Enhance Accessibility & Reach
+        points:
+          - Full offline functionality.
+          - Cross-platform support (Apple, Android, Web, Tablet).
+          - In-app Spanish-to-English translation for data normalization.
+  - name: Data Processing & Enrichment
+    sub_branches:
+      - name: Data Normalization & Cleaning
+        points:
+          - Translate Spanish to English, including removing special characters.
+      - name: Data Enrichment
+        points:
+          - Use zipcode lookup to automatically populate city and county fields.
+      - name: Data Validation
+        points:
+          - Validate zip codes to ensure accuracy.
+          - Enforce contact information rules (e.g., must have a phone number or email).
+      - name: Automated Analysis
+        points:
+          - Analyze free-text fields (like descriptions) to identify keywords that can trigger automated actions or workflows.
+  - name: Report Generation
+    sub_branches:
+      - name: Grant-Aware Reporting System
+        points:
+          - Grant Document Ingestion:
+              - Upload grant documents directly into the system.
+              - AI-powered analysis to extract key requirements:
+                  - Data collection mandates.
+                  - Report formatting rules.
+                  - Reporting frequency (e.g., monthly, quarterly).
+          - Automated Report Generation:
+              - AI analyzes extracted requirements to automatically design and generate compliant report formats.
+          - Automated Survey Creation:
+              - AI uses grant requirements to generate relevant survey questions within the survey builder tool.
+          - Dynamic Grant Dashboards:
+              - Automatically create a dedicated page for each grant project.
+              - Display key metrics and outcomes in a dashboard format, tailored to the grant's objectives.

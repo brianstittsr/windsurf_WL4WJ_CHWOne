@@ -1,0 +1,41 @@
+central_topic: CHW Employer Needs
+main_branches:
+  - name: Nonprofits
+    sub_branches:
+      - name: Unified Platform
+        points:
+          - Eliminate the need for separate desktop or cloud productivity applications.
+          - Provide a single, integrated solution for forms, data wrangling, and reporting.
+      - name: Intelligent Grant Management
+        points:
+          - Automate report generation by analyzing uploaded grant documents.
+      - name: Advanced Data Management
+        points:
+          - Convert form data into datasets that can be merged with other data sources.
+      - name: Operational Efficiency
+        points:
+          - Streamlined event attendee registration.
+          - Simplified onboarding process for new CHWs.
+      - name: Collaborative Network
+        points:
+          - Built-in tools for referring clients between different nonprofit organizations.
+  - name: Hospitals
+    sub_branches:
+      - name: Clinical Workflow Integration
+        points:
+          - Streamlined patient intake process.
+          - Seamless integration for updating Electronic Health Record (EHR) fields.
+      - name: Post-Discharge Patient Management
+        points:
+          - Dedicated discharge tracking system.
+          - Tools to monitor patient follow-up and ensure adherence to treatment orders.
+  - name: Churches
+    sub_branches:
+      - name: Virtual CHW Access
+        points:
+          - Implement kiosks in churches for community members to connect with virtual CHWs.
+          - Provide on-demand support, treatment option recommendations, and resource navigation.
+          - Enable a single CHW to serve multiple locations simultaneously.
+      - name: Community Wellness & Education
+        points:
+          - Platform to host virtual wellness seminars led by CHWs.

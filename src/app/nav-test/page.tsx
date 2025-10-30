@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Container, Typography, Box, Button, List, ListItem, Paper, Alert } from '@mui/material';
 import { Check as CheckIcon, Error as ErrorIcon } from '@mui/icons-material';
@@ -10,6 +10,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 function NavTestContent() {
   const router = useRouter();
   const [testResults, setTestResults] = useState<{[key: string]: boolean}>({});
+  const [debugInfo, setDebugInfo] = useState({});
   
   const routes = [
     { path: '/', label: 'Home' },
@@ -32,6 +33,15 @@ function NavTestContent() {
     }
   };
   
+  useEffect(() => {
+    setDebugInfo({
+      currentPath: window.location.pathname,
+      offlineMode: localStorage.getItem('forceOfflineMode'),
+      networkError: localStorage.getItem('firebaseNetworkError'),
+      testResults
+    });
+  }, [testResults]);
+
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -80,12 +90,7 @@ function NavTestContent() {
         </Typography>
         <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
           <Typography variant="body2" component="pre" sx={{ fontFamily: 'monospace' }}>
-            {JSON.stringify({
-              currentPath: window.location.pathname,
-              offlineMode: localStorage.getItem('forceOfflineMode'),
-              networkError: localStorage.getItem('firebaseNetworkError'),
-              testResults
-            }, null, 2)}
+            {JSON.stringify(debugInfo, null, 2)}
           </Typography>
         </Paper>
       </Box>

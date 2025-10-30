@@ -17,16 +17,30 @@ global.fetch = async function(input, init) {
   } catch (error) {
     // Get the URL being fetched
     const url = typeof input === 'string' ? input : input.url;
+
+    let errorMessage = 'An unknown fetch error occurred';
+    let errorStack: string | undefined = undefined;
+
+    if (error instanceof Error) {
+        errorMessage = error.message;
+        errorStack = error.stack;
+    } else {
+        try {
+            errorMessage = JSON.stringify(error);
+        } catch {
+            errorMessage = 'Could not stringify the error object.';
+        }
+    }
     
     // Log detailed error information
     console.error(
-      `%c[FETCH ERROR] Failed to fetch ${url}`, 
+      `%c[FETCH ERROR] Failed to fetch ${url}`,
       'background: #ff5252; color: white; padding: 2px 4px; border-radius: 2px;',
       {
         url,
         method: init?.method || 'GET',
-        error: error.message,
-        stack: error.stack,
+        error: errorMessage,
+        stack: errorStack,
         timestamp: new Date().toISOString()
       }
     );

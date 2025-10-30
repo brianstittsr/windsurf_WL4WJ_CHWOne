@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { log, logError, timeOperation } from '@/utils/logger';
@@ -337,7 +337,9 @@ export default function LoginPage() {
       }}
     >
       <AuthProvider>
-        <LoginFormContent />
+        <Suspense fallback={<CircularProgress />}>
+          <LoginFormContent />
+        </Suspense>
       </AuthProvider>
     </Box>
   );
