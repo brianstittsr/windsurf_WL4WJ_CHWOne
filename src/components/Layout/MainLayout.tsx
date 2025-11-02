@@ -34,7 +34,7 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { currentUser, signOut } = useAuth();
+  const { currentUser, userProfile, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
@@ -81,6 +81,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
       href: '/admin', 
       icon: 'settings', 
       label: t('navigation.admin'), 
+      roles: [UserRole.ADMIN] 
+    },
+    { 
+      href: '/setup-demo-users', 
+      icon: 'settings', 
+      label: 'Setup Demo Users', 
       roles: [UserRole.ADMIN] 
     },
     { 
@@ -151,11 +157,16 @@ export default function MainLayout({ children }: MainLayoutProps) {
     },
   ];
 
-  // Mock user role for testing - replace with actual auth context
-  const userRole = currentUser?.email?.includes('chw') ? UserRole.CHW : 
-                 (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR);
-  // RBAC DISABLED: Show all menu items regardless of role
-      const filteredMenuItems = menuItems; // No filtering
+  const userRole = userProfile?.role;
+
+  const filteredMenuItems = menuItems.filter(item => {
+    // If no roles are specified for an item, show it to everyone.
+    if (!item.roles || item.roles.length === 0) {
+      return true;
+    }
+    // If roles are specified, check if the current user's role is included.
+    return userRole && item.roles.includes(userRole);
+  });
 
   return (
     <Box sx={{ 

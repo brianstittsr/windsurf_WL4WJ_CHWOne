@@ -17,62 +17,74 @@ const { initializeApp, getApps, cert } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore } = require('firebase-admin/firestore');
 
+// Manually define UserRole to avoid TypeScript import issues in a JS script
+const UserRole = {
+  ADMIN: 'admin',
+  CHW: 'chw',
+  CHW_COORDINATOR: 'chw_coordinator',
+  NONPROFIT_STAFF: 'nonprofit_staff',
+  CHW_ASSOCIATION: 'chw_association',
+  WL4WJ_CHW: 'wl4wj_chw',
+  CLIENT: 'client',
+  VIEWER: 'viewer',
+  DEMO: 'demo'
+};
+
 // Demo user credentials
-const demoUsers = [
-  {
-    email: 'admin@example.com',
-    password: 'password123',
-    displayName: 'Administrator',
-    role: 'admin',
-    organizationId: 'general',
-    isActive: true,
-    isApproved: true
-  },
-  {
-    email: 'coordinator@example.com',
-    password: 'password123',
-    displayName: 'CHW Coordinator',
-    role: 'chw_coordinator',
-    organizationId: 'general',
-    isActive: true,
-    isApproved: true
-  },
-  {
-    email: 'chw@example.com',
-    password: 'password123',
-    displayName: 'Community Health Worker',
-    role: 'chw',
-    organizationId: 'general',
-    isActive: true,
-    isApproved: true
-  }
-];
+const demoUsers = Object.values(UserRole).map(role => ({
+  email: `demo-${role}@example.com`,
+  password: 'pass123',
+  displayName: `Demo ${role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
+  role: role,
+  organizationId: 'general',
+  isActive: true,
+  isApproved: true
+}));
 
 // Initialize Firebase Admin SDK
 let admin;
 try {
   admin = require('firebase-admin');
-  
-  // Check if Firebase is already initialized
+
+  const sanitizePrivateKey = (key) => {
+    if (!key) return null;
+    return key.replace(/\n/g, '\n');
+  };
+
   if (getApps().length === 0) {
-    // Initialize with service account
-    const serviceAccount = {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // Handle the private key format (replace \\n with \n)
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-    };
-    
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    
+    const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    let credential;
+
+    if (serviceAccountPath) {
+      console.log(`Initializing Firebase with service account from: ${serviceAccountPath}`);
+      credential = admin.credential.applicationDefault();
+    } else {
+      console.log('Initializing Firebase with credentials from .env.local');
+      const privateKey = sanitizePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
+
+      if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !privateKey) {
+        throw new Error('Missing required Firebase Admin credentials in .env.local. Please provide FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.');
+      }
+
+      const serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: privateKey,
+      };
+      credential = admin.credential.cert(serviceAccount);
+    }
+
+    admin.initializeApp({ credential });
     console.log('Firebase Admin SDK initialized successfully');
   } else {
     console.log('Firebase Admin SDK already initialized');
   }
 } catch (error) {
   console.error('Error initializing Firebase Admin SDK:', error);
+  console.error('\n\n--- Firebase Admin SDK Initialization Failed ---');
+  console.error('This is likely due to an incorrectly formatted FIREBASE_PRIVATE_KEY in your .env.local file.');
+  console.error('Please ensure your private key is wrapped in double quotes and contains literal \\n characters for newlines, like this:');
+  console.error('FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\n[KEY_CONTENT]\\n-----END PRIVATE KEY-----\\n"');
   process.exit(1);
 }
 

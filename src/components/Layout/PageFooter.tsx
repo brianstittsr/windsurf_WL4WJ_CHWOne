@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Grid, Box, Typography, Link as MuiLink } from '@mui/material';
 import Link from 'next/link';
 
 interface PageFooterProps {
@@ -12,90 +12,64 @@ export default function PageFooter({ variant = 'default' }: PageFooterProps) {
   const currentYear = new Date().getFullYear();
 
   if (variant === 'magic') {
-    return null; // Magic variant typically doesn't show footer
+    return null;
   }
 
   if (variant === 'minimal') {
     return (
-      <footer className="border-top py-3 mt-auto">
-        <Container className="text-center">
-          <small className="text-muted">
+      <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', py: 3, mt: 'auto' }}>
+        <Container sx={{ textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
             © {currentYear} CHWOne Platform. All rights reserved.
-          </small>
+          </Typography>
         </Container>
-      </footer>
+      </Box>
     );
   }
 
   return (
-    <footer className="border-top py-4 mt-auto bg-light">
+    <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', py: 4, mt: 'auto', bgcolor: 'grey.100' }}>
       <Container>
-        <Row className="mb-4">
-          {/* Brand Section */}
-          <Col md={4} className="mb-4 mb-md-0">
-            <h5 className="text-primary mb-3">CHWOne Platform</h5>
-            <p className="text-muted small">
-              Community Health Worker Management Platform for Women Leading for Wellness and Justice
-            </p>
-          </Col>
-
-          {/* Quick Links */}
-          <Col md={4} className="mb-4 mb-md-0">
-            <h6 className="mb-3">Quick Links</h6>
-            <ul className="list-unstyled">
-              <li className="mb-2">
-                <Link href="/dashboard" className="text-muted text-decoration-none">
+        <Grid container spacing={4} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="h6" color="primary" gutterBottom>
+              CHWOne Platform
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Community Health Worker Management Platform
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle1" gutterBottom>
+              Quick Links
+            </Typography>
+            <Box component="ul" sx={{ listStyle: 'none', p: 0 }}>
+              <Box component="li" sx={{ mb: 1 }}>
+                <MuiLink component={Link} href="/dashboard" color="text.secondary" underline="hover">
                   Dashboard
-                </Link>
-              </li>
-              <li className="mb-2">
-                <Link href="/resources" className="text-muted text-decoration-none">
-                  Resources
-                </Link>
-              </li>
-              <li className="mb-2">
-                <Link href="/api-access" className="text-muted text-decoration-none">
-                  API Access
-                </Link>
-              </li>
-            </ul>
-          </Col>
-
-          {/* Support */}
-          <Col md={4}>
-            <h6 className="mb-3">Support</h6>
-            <ul className="list-unstyled">
-              <li className="mb-2">
-                <Link href="/settings" className="text-muted text-decoration-none">
-                  Settings
-                </Link>
-              </li>
-              <li className="mb-2 text-muted">
+                </MuiLink>
+              </Box>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle1" gutterBottom>
+              Support
+            </Typography>
+            <Box component="ul" sx={{ listStyle: 'none', p: 0 }}>
+              <Box component="li" sx={{ mb: 1, color: 'text.secondary' }}>
                 HIPAA Compliant Platform
-              </li>
-              <li className="text-success">
-                ✓ Secure & Encrypted
-              </li>
-            </ul>
-          </Col>
-        </Row>
-
-        {/* Bottom Bar */}
-        <Row className="pt-4 border-top">
-          <Col md={6} className="mb-3 mb-md-0">
-            <small className="text-muted">
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+        <Grid container sx={{ pt: 4, borderTop: 1, borderColor: 'divider' }}>
+          <Grid item xs={12}>
+            <Typography variant="body2" color="text.secondary" align="center">
               © {currentYear} CHWOne Platform. All rights reserved.
-            </small>
-          </Col>
-          <Col md={6}>
-            <div className="d-flex justify-content-md-end gap-4">
-              <small className="text-muted">Privacy Policy</small>
-              <small className="text-muted">Terms of Service</small>
-              <small className="text-muted">HIPAA Compliance</small>
-            </div>
-          </Col>
-        </Row>
+            </Typography>
+          </Grid>
+        </Grid>
       </Container>
-    </footer>
+    </Box>
   );
 }

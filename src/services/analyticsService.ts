@@ -31,13 +31,56 @@ class AnalyticsService {
   }
 
   async getOrganizationMetrics(organization: 'general' | 'region5' | 'wl4wj'): Promise<OrganizationMetrics> {
-    // DATA OPERATIONS DISABLED - Return mock data immediately for navigation testing
-    console.log('[ANALYTICS] Data operations disabled - returning mock data');
-    return this.getDefaultMetrics(organization);
+    // Check cache first
+    const cacheKey = `metrics_${organization}`;
+    const cached = this.getCachedData<OrganizationMetrics>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      // Fetch real data with timeout protection
+      const timeoutPromise = new Promise<OrganizationMetrics>((resolve) => {
+        setTimeout(() => {
+          console.log('[ANALYTICS] Timeout reached, returning default metrics');
+          resolve(this.getDefaultMetrics(organization));
+        }, 3000); // 3 second timeout
+      });
+
+      const metricsPromise = this.fetchRealMetrics(organization);
+      const metrics = await Promise.race([metricsPromise, timeoutPromise]);
+
+      // Cache the result
+      this.setCachedData(cacheKey, metrics);
+      return metrics;
+    } catch (error) {
+      console.error('[ANALYTICS] Error fetching metrics:', error);
+      return this.getDefaultMetrics(organization);
+    }
   }
 
-  // DISABLED FOR NAVIGATION TESTING
-  /* private async getUsersMetrics(organization: string) {
+  private async fetchRealMetrics(organization: string): Promise<OrganizationMetrics> {
+    try {
+      const [usersMetrics, formsMetrics, submissionsMetrics, activityMetrics] = await Promise.all([
+        this.getUsersMetrics(organization),
+        this.getFormsMetrics(organization),
+        this.getSubmissionsMetrics(organization),
+        this.getActivityMetrics(organization)
+      ]);
+
+      return {
+        ...usersMetrics,
+        ...formsMetrics,
+        ...submissionsMetrics,
+        ...activityMetrics
+      };
+    } catch (error) {
+      console.error('[ANALYTICS] Error in fetchRealMetrics:', error);
+      throw error;
+    }
+  }
+
+  private async getUsersMetrics(organization: string) {
     try {
       // Simple query without composite index requirement
       const usersQuery = query(
@@ -56,8 +99,7 @@ class AnalyticsService {
       };
     } catch (error) {
       console.error('Error fetching users metrics:', error);
-      // Return mock data immediately on any error
-      return { totalUsers: 15, activeUsers: 12 };
+      return { totalUsers: 0, activeUsers: 0 };
     }
   }
 
@@ -198,7 +240,7 @@ class AnalyticsService {
       console.error('Error fetching activity metrics:', error);
       return this.getDefaultActivityMetrics();
     }
-  } */
+  }
 
   private getDefaultMetrics(organization: 'general' | 'region5' | 'wl4wj'): OrganizationMetrics {
     return {

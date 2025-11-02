@@ -57,6 +57,7 @@ export enum UserRole {
   CHW = 'chw',                          // Community health worker
   CHW_COORDINATOR = 'chw_coordinator',  // CHW supervisor/manager
   NONPROFIT_STAFF = 'nonprofit_staff',  // Partner organization staff
+  CHW_ASSOCIATION = 'chw_association',    // Community Health Worker Association
   WL4WJ_CHW = 'wl4wj_chw',              // WL4WJ-specific CHW
   CLIENT = 'client',                    // Service recipient
   VIEWER = 'viewer',                    // Limited read-only access
