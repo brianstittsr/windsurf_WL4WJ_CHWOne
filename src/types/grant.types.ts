@@ -46,6 +46,83 @@ export interface AnalysisRecommendation {
   implementationSteps: string[];
 }
 
+export interface FormField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'select' | 'checkbox' | 'radio' | 'textarea' | 'file' | 'signature';
+  required: boolean;
+  placeholder?: string;
+  helpText?: string;
+  options?: string[];
+  defaultValue?: any;
+  validation?: string;
+  width?: 'full' | 'half' | 'third';
+}
+
+export interface FormSection {
+  id: string;
+  title: string;
+  description?: string;
+  fields: FormField[];
+}
+
+export interface FormTemplate {
+  id: string;
+  name: string;
+  description: string;
+  purpose: 'intake' | 'progress' | 'assessment' | 'feedback' | 'reporting' | 'data';
+  sections: FormSection[];
+  createdAt: string;
+  updatedBy?: string;
+  status: 'draft' | 'active' | 'archived';
+  submissionCount?: number;
+  completionTime?: number; // Average in minutes
+  entityResponsible: string;
+  frequency?: 'once' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
+  dueDate?: string;
+  contractDeliverable?: boolean;
+}
+
+export interface ReportTemplate {
+  id: string;
+  name: string;
+  description: string;
+  format: 'pdf' | 'dashboard' | 'excel' | 'presentation';
+  sections: {
+    id: string;
+    title: string;
+    description?: string;
+    dataSource: string;
+    visualizationType?: 'table' | 'chart' | 'metric' | 'text';
+    chartType?: 'line' | 'bar' | 'pie' | 'scatter' | 'area';
+  }[];
+  deliverySchedule: {
+    frequency: 'once' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
+    dayOfMonth?: number;
+    dayOfWeek?: string;
+    recipients: string[];
+  };
+  contractDeliverable: boolean;
+  dueDate?: string;
+}
+
+export interface DashboardMetric {
+  id: string;
+  name: string;
+  description?: string;
+  value: number | string;
+  previousValue?: number | string;
+  target?: number | string;
+  unit?: string;
+  status?: 'success' | 'warning' | 'danger' | 'info';
+  trend?: 'up' | 'down' | 'flat';
+  trendPercentage?: number;
+  dataSource: string;
+  visualization: 'number' | 'percentage' | 'currency' | 'ratio';
+  aiInsight?: string;
+}
+
 export interface Grant {
   id?: string;
   name: string;
@@ -67,6 +144,28 @@ export interface Grant {
   projectMilestones?: ProjectMilestone[];
   analysisRecommendations?: AnalysisRecommendation[];
   entityRelationshipNotes?: string;
+  
+  // Form generation and management
+  formTemplates?: FormTemplate[];
+  reportTemplates?: ReportTemplate[];
+  
+  // AI-driven project tracking
+  dashboardMetrics?: DashboardMetric[];
+  aiInsights?: {
+    id: string;
+    category: 'risk' | 'opportunity' | 'trend' | 'recommendation';
+    title: string;
+    description: string;
+    confidence: number; // 0-100
+    dataPoints: string[];
+    createdAt: string;
+    status: 'new' | 'acknowledged' | 'addressed' | 'dismissed';
+  }[];
+  
+  // Real-time tracking
+  lastDataRefresh?: string;
+  trackingEnabled?: boolean;
+  trackingFrequency?: 'hourly' | 'daily' | 'weekly';
   
   createdAt?: Date;
   updatedAt?: Date;
