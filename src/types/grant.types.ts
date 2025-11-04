@@ -1,3 +1,12 @@
+export interface GrantDocument {
+  name: string;
+  size: number;
+  type: string;
+  uploadedAt: string;
+  url?: string;
+  id?: string;
+}
+
 export interface Grant {
   id?: string;
   name: string;
@@ -11,6 +20,7 @@ export interface Grant {
   keyContacts: KeyContact[];
   organizationId: string;
   status: 'active' | 'inactive' | 'draft' | 'completed';
+  documents?: GrantDocument[];
   createdAt?: Date;
   updatedAt?: Date;
 }

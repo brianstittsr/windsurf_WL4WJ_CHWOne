@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Grant, Organization, KeyContact, ReportingRequirement } from '@/types/grant.types';
+import { Grant, Organization, KeyContact, ReportingRequirement, GrantDocument } from '@/types/grant.types';
 
 type GrantWizardContextType = {
   currentStep: number;
@@ -31,6 +31,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
     status: 'draft',
     reportingRequirements: [],
     keyContacts: [],
+    documents: [],
   });
   const [organization, setOrganization] = useState<Organization | null>(null);
 
@@ -87,6 +88,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       status: 'draft',
       reportingRequirements: [],
       keyContacts: [],
+      documents: [],
     });
   };
 

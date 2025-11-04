@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  IconButton,
   TextField,
   MenuItem,
   Table,
@@ -39,7 +40,8 @@ import {
   AttachMoney as MoneyIcon,
   CalendarToday as CalendarIcon,
   Business as BusinessIcon,
-  Assessment as AssessmentIcon
+  Assessment as AssessmentIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { createGrant, getActiveGrantsCount } from '@/lib/schema/data-access';
 import { Grant } from '@/lib/schema/unified-schema';
@@ -603,14 +605,41 @@ export default function GrantManagement() {
       <Dialog 
         open={showWizardDialog} 
         onClose={() => setShowWizardDialog(false)} 
-        maxWidth="lg" 
+        maxWidth="xl" 
         fullWidth
+        sx={{
+          '& .MuiDialog-paper': { 
+            borderRadius: '12px', 
+            overflow: 'hidden',
+            backgroundColor: '#f8fafc' // Light background for better contrast with wizard content
+          }
+        }}
       >
-        <DialogTitle>
-          Grant Analyzer Wizard
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
+        {/* No DialogTitle for cleaner look - title is inside the wizard */}
+        <DialogContent sx={{ p: 0, overflow: 'hidden' }}>
+          <Box sx={{ 
+            position: 'relative',
+            pt: 2, 
+            px: 2, 
+            pb: 2,
+          }}>
+            {/* Close button in top-right corner */}
+            <IconButton 
+              onClick={() => setShowWizardDialog(false)}
+              sx={{ 
+                position: 'absolute', 
+                top: 16, 
+                right: 16, 
+                bgcolor: 'white',
+                boxShadow: 1,
+                zIndex: 10,
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } 
+              }}
+              size="small"
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+
             <GrantWizard 
               organizationId="general"
               onComplete={(grantId) => {
@@ -621,9 +650,6 @@ export default function GrantManagement() {
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowWizardDialog(false)}>Close</Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );
