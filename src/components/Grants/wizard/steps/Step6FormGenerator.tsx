@@ -30,7 +30,11 @@ import {
   Tab,
   FormControlLabel,
   Switch,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import { 
   Add as AddIcon,
@@ -51,6 +55,21 @@ export function Step6FormGenerator() {
   const [formTemplates, setFormTemplates] = useState<FormTemplate[]>(grantData.formTemplates || []);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [tabIndex, setTabIndex] = useState(0);
+  
+  // Field editing state
+  const [fieldDialogOpen, setFieldDialogOpen] = useState(false);
+  const [editingField, setEditingField] = useState<{field: FormField | null; sectionId: string; isNew: boolean}>({ 
+    field: null, 
+    sectionId: '', 
+    isNew: false 
+  });
+  
+  // Section editing state
+  const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<{section: FormSection | null; isNew: boolean}>({ 
+    section: null, 
+    isNew: false 
+  });
   
   // Generate form templates based on data collection methods
   useEffect(() => {
@@ -261,7 +280,164 @@ export function Step6FormGenerator() {
     );
   };
   
-  // Function to render form template editor
+  // Add a new section to the form
+  const addFormSection = (templateId: string) => {
+    const newSection: FormSection = {
+      id: `section-${Date.now()}`,
+      title: "New Section",
+      fields: []
+    };
+    
+    const updatedTemplates = formTemplates.map(template => 
+      template.id === templateId ? 
+        { ...template, sections: [...template.sections, newSection] } : 
+        template
+    );
+    
+    setFormTemplates(updatedTemplates);
+  };
+  
+  // Update a section in the form
+  const updateFormSection = (templateId: string, sectionId: string, updates: Partial<FormSection>) => {
+    const updatedTemplates = formTemplates.map(template => {
+      if (template.id === templateId) {
+        const updatedSections = template.sections.map(section => 
+          section.id === sectionId ? { ...section, ...updates } : section
+        );
+        return { ...template, sections: updatedSections };
+      }
+      return template;
+    });
+    
+    setFormTemplates(updatedTemplates);
+  };
+  
+  // Delete a section from the form
+  const deleteFormSection = (templateId: string, sectionId: string) => {
+    const updatedTemplates = formTemplates.map(template => {
+      if (template.id === templateId) {
+        return { 
+          ...template, 
+          sections: template.sections.filter(section => section.id !== sectionId)
+        };
+      }
+      return template;
+    });
+    
+    setFormTemplates(updatedTemplates);
+  };
+  
+  // Add a field to a section
+  const addFieldToSection = (templateId: string, sectionId: string, field: FormField) => {
+    const updatedTemplates = formTemplates.map(template => {
+      if (template.id === templateId) {
+        const updatedSections = template.sections.map(section => {
+          if (section.id === sectionId) {
+            return {
+              ...section,
+              fields: [...section.fields, field]
+            };
+          }
+          return section;
+        });
+        return { ...template, sections: updatedSections };
+      }
+      return template;
+    });
+    
+    setFormTemplates(updatedTemplates);
+  };
+  
+  // Update a field in a section
+  const updateFieldInSection = (templateId: string, sectionId: string, fieldId: string, updates: Partial<FormField>) => {
+    const updatedTemplates = formTemplates.map(template => {
+      if (template.id === templateId) {
+        const updatedSections = template.sections.map(section => {
+          if (section.id === sectionId) {
+            const updatedFields = section.fields.map(field => 
+              field.id === fieldId ? { ...field, ...updates } : field
+            );
+            return { ...section, fields: updatedFields };
+          }
+          return section;
+        });
+        return { ...template, sections: updatedSections };
+      }
+      return template;
+    });
+    
+    setFormTemplates(updatedTemplates);
+  };
+  
+  // Delete a field from a section
+  const deleteFieldFromSection = (templateId: string, sectionId: string, fieldId: string) => {
+    const updatedTemplates = formTemplates.map(template => {
+      if (template.id === templateId) {
+        const updatedSections = template.sections.map(section => {
+          if (section.id === sectionId) {
+            return {
+              ...section,
+              fields: section.fields.filter(field => field.id !== fieldId)
+            };
+          }
+          return section;
+        });
+        return { ...template, sections: updatedSections };
+      }
+      return template;
+    });
+    
+    setFormTemplates(updatedTemplates);
+  };
+  
+  // Open field editor dialog
+  const openFieldEditor = (sectionId: string, field: FormField | null = null, isNew: boolean = false) => {
+    setEditingField({ field, sectionId, isNew });
+    setFieldDialogOpen(true);
+  };
+  
+  // Handle field save
+  const handleFieldSave = (field: FormField) => {
+    if (selectedTemplate) {
+      if (editingField.isNew) {
+        addFieldToSection(selectedTemplate.id, editingField.sectionId, field);
+      } else if (editingField.field) {
+        updateFieldInSection(selectedTemplate.id, editingField.sectionId, editingField.field.id, field);
+      }
+    }
+    setFieldDialogOpen(false);
+  };
+  
+  // Open section editor dialog
+  const openSectionEditor = (section: FormSection | null = null, isNew: boolean = false) => {
+    setEditingSection({ section, isNew });
+    setSectionDialogOpen(true);
+  };
+  
+  // Handle section save
+  const handleSectionSave = (section: FormSection) => {
+    if (selectedTemplate) {
+      if (editingSection.isNew) {
+        const newSection = {
+          ...section,
+          id: `section-${Date.now()}`,
+          fields: []
+        };
+        updateFormTemplate(selectedTemplate.id, {
+          sections: [...selectedTemplate.sections, newSection]
+        });
+      } else if (editingSection.section) {
+        updateFormSection(
+          selectedTemplate.id, 
+          editingSection.section.id, 
+          section
+        );
+      }
+    }
+    setSectionDialogOpen(false);
+  };
+
+  // Function to render form builder
   const renderFormTemplateEditor = () => {
     if (!selectedTemplate) {
       return (
@@ -407,11 +583,11 @@ export function Step6FormGenerator() {
               <br />
               <Button 
                 size="small" 
-                onClick={() => alert('Field editing dialog would appear here')} 
+                onClick={() => openSectionEditor(null, true)} 
                 sx={{ mt: 1 }}
               >
                 <AddIcon fontSize="small" sx={{ mr: 0.5 }} />
-                Add Field
+                Add Section
               </Button>
             </Alert>
             
@@ -420,8 +596,19 @@ export function Step6FormGenerator() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                   <Typography variant="h6">{section.title || `Section ${sectionIndex + 1}`}</Typography>
                   <Box>
-                    <IconButton size="small">
+                    <IconButton size="small" onClick={() => openSectionEditor(section, false)}>
                       <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton 
+                      size="small"
+                      onClick={() => {
+                        if (selectedTemplate && window.confirm('Are you sure you want to delete this section?')) {
+                          deleteFormSection(selectedTemplate.id, section.id);
+                        }
+                      }}
+                      disabled={selectedTemplate?.sections.length === 1}
+                    >
+                      <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Box>
                 </Box>
@@ -463,10 +650,17 @@ export function Step6FormGenerator() {
                           Field name: {field.name}
                         </Typography>
                       </Box>
-                      <IconButton size="small">
+                      <IconButton size="small" onClick={() => openFieldEditor(section.id, field, false)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small">
+                      <IconButton 
+                        size="small"
+                        onClick={() => {
+                          if (selectedTemplate && window.confirm('Are you sure you want to delete this field?')) {
+                            deleteFieldFromSection(selectedTemplate.id, section.id, field.id);
+                          }
+                        }}
+                      >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Paper>
@@ -484,6 +678,7 @@ export function Step6FormGenerator() {
                     variant="outlined" 
                     size="small"
                     startIcon={<AddIcon />}
+                    onClick={() => openFieldEditor(section.id, null, true)}
                   >
                     Add Field
                   </Button>
@@ -495,6 +690,7 @@ export function Step6FormGenerator() {
               <Button 
                 variant="outlined"
                 startIcon={<AddIcon />}
+                onClick={() => openSectionEditor(null, true)}
               >
                 Add Section
               </Button>
@@ -597,8 +793,265 @@ export function Step6FormGenerator() {
     );
   };
 
+  // Field editing dialog
+  const renderFieldEditDialog = () => {
+    const isNewField = editingField.isNew;
+    const initialField = editingField.field || {
+      id: `field-${Date.now()}`,
+      name: '',
+      label: '',
+      type: 'text',
+      required: true,
+      placeholder: '',
+      width: 'full',
+      helpText: ''
+    };
+    
+    // Local state for field form
+    const [fieldForm, setFieldForm] = useState<FormField>(initialField);
+    
+    // Update field form
+    const updateFieldForm = (updates: Partial<FormField>) => {
+      setFieldForm(prev => ({
+        ...prev,
+        ...updates
+      }));
+    };
+    
+    // Generate field name from label
+    const generateFieldName = (label: string) => {
+      return label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    };
+    
+    useEffect(() => {
+      // Reset field form when dialog opens
+      if (fieldDialogOpen) {
+        setFieldForm(initialField);
+      }
+    }, [fieldDialogOpen, editingField]);
+    
+    return (
+      <Dialog 
+        open={fieldDialogOpen} 
+        onClose={() => setFieldDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          {isNewField ? 'Add New Field' : 'Edit Field'}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Field Label"
+                required
+                value={fieldForm.label}
+                onChange={(e) => {
+                  const newLabel = e.target.value;
+                  updateFieldForm({
+                    label: newLabel,
+                    // Auto-generate name when label changes, but only if name is empty or matches old pattern
+                    name: !fieldForm.name || fieldForm.name === generateFieldName(fieldForm.label || '') ?
+                      generateFieldName(newLabel) : fieldForm.name
+                  });
+                }}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Field Name (Technical ID)"
+                required
+                value={fieldForm.name}
+                onChange={(e) => updateFieldForm({ name: e.target.value })}
+                helperText="Used for data collection. Should be lowercase with underscores."
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Field Type</InputLabel>
+                <Select
+                  value={fieldForm.type}
+                  label="Field Type"
+                  onChange={(e) => updateFieldForm({ type: e.target.value as FormField['type'] })}
+                >
+                  <MenuItem value="text">Text</MenuItem>
+                  <MenuItem value="textarea">Text Area</MenuItem>
+                  <MenuItem value="number">Number</MenuItem>
+                  <MenuItem value="date">Date</MenuItem>
+                  <MenuItem value="select">Dropdown</MenuItem>
+                  <MenuItem value="checkbox">Checkbox</MenuItem>
+                  <MenuItem value="file">File Upload</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Field Width</InputLabel>
+                <Select
+                  value={fieldForm.width}
+                  label="Field Width"
+                  onChange={(e) => updateFieldForm({ width: e.target.value as FormField['width'] })}
+                >
+                  <MenuItem value="full">Full Width</MenuItem>
+                  <MenuItem value="half">Half Width</MenuItem>
+                  <MenuItem value="third">One Third</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Placeholder"
+                value={fieldForm.placeholder || ''}
+                onChange={(e) => updateFieldForm({ placeholder: e.target.value })}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Help Text"
+                value={fieldForm.helpText || ''}
+                onChange={(e) => updateFieldForm({ helpText: e.target.value })}
+                helperText="Additional instructions shown below the field"
+              />
+            </Grid>
+            
+            {fieldForm.type === 'select' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Options"
+                  multiline
+                  rows={3}
+                  value={(fieldForm.options || []).join('\n')}
+                  onChange={(e) => {
+                    const options = e.target.value.split('\n')
+                      .map(option => option.trim())
+                      .filter(option => option.length > 0);
+                    updateFieldForm({ options });
+                  }}
+                  helperText="Enter each option on a new line"
+                />
+              </Grid>
+            )}
+            
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={Boolean(fieldForm.required)}
+                    onChange={(e) => updateFieldForm({ required: e.target.checked })}
+                  />
+                }
+                label="Required field"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFieldDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => handleFieldSave(fieldForm)}
+            disabled={!fieldForm.label || !fieldForm.name}
+          >
+            {isNewField ? 'Add' : 'Update'} Field
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+  
+  // Section editing dialog
+  const renderSectionEditDialog = () => {
+    const isNewSection = editingSection.isNew;
+    const initialSection = editingSection.section || {
+      id: '',
+      title: '',
+      description: '',
+      fields: []
+    };
+    
+    // Local state for section form
+    const [sectionForm, setSectionForm] = useState<Partial<FormSection>>({...initialSection});
+    
+    // Update section form
+    const updateSectionForm = (updates: Partial<FormSection>) => {
+      setSectionForm(prev => ({
+        ...prev,
+        ...updates
+      }));
+    };
+    
+    useEffect(() => {
+      // Reset section form when dialog opens
+      if (sectionDialogOpen) {
+        setSectionForm({...initialSection});
+      }
+    }, [sectionDialogOpen, editingSection]);
+    
+    return (
+      <Dialog 
+        open={sectionDialogOpen} 
+        onClose={() => setSectionDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          {isNewSection ? 'Add New Section' : 'Edit Section'}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Section Title"
+                required
+                value={sectionForm.title || ''}
+                onChange={(e) => updateSectionForm({ title: e.target.value })}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Section Description"
+                multiline
+                rows={2}
+                value={sectionForm.description || ''}
+                onChange={(e) => updateSectionForm({ description: e.target.value })}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSectionDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => handleSectionSave(sectionForm as FormSection)}
+            disabled={!sectionForm.title}
+          >
+            {isNewSection ? 'Add' : 'Update'} Section
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+
   return (
     <Box sx={{ mb: 4 }}>
+      {/* Render dialogs */}
+      {renderFieldEditDialog()}
+      {renderSectionEditDialog()}
+      
       <Box sx={{ mb: 3 }}>
         <Alert severity="info" sx={{ mb: 3 }}>
           The Form Generator automatically creates data collection forms based on your grant requirements. 
