@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button as MuiButton, Box, Typography, Grid, Card, CardContent } from '@mui/material';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Upload, FileText, PieChart, Users, CheckCircle } from 'lucide-react';
-import { GrantWizardProvider } from '@/contexts/GrantWizardContext';
+import { GrantWizardProvider, useGrantWizard } from '@/contexts/GrantWizardContext';
 import { Step1BasicInfo } from './steps/Step1BasicInfo';
 import { Step2FundingDetails } from './steps/Step2FundingDetails';
 import { Step3ReportingRequirements } from './steps/Step3ReportingRequirements';
@@ -22,13 +22,34 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  
+  // Create a component for the prepopulate button to use the context
+  const PrepopulateButton = () => {
+    const { generatePrepopulatedData, hasPrepopulatedData } = useGrantWizard();
+    
+    return (
+      <MuiButton
+        variant="outlined"
+        color="secondary"
+        onClick={() => {
+          if (!hasPrepopulatedData) {
+            generatePrepopulatedData();
+          }
+        }}
+        sx={{ px: 3 }}
+        startIcon={<CheckCircle style={{ height: 16, width: 16 }} />}
+      >
+        Prepopulate Form with Sample Data
+      </MuiButton>
+    );
+  };
 
   const steps = [
     { title: 'Upload & Info', component: Step1BasicInfo, icon: <Upload className="h-5 w-5" />, description: 'Upload grant documents and enter basic information' },
-    { title: 'Funding Details', component: Step2FundingDetails, icon: <FileText className="h-5 w-5" />, description: 'Enter financial information and funding sources' },
-    { title: 'Reporting Setup', component: Step3ReportingRequirements, icon: <PieChart className="h-5 w-5" />, description: 'Configure reporting requirements and schedules' },
-    { title: 'Key Contacts', component: Step4KeyContacts, icon: <Users className="h-5 w-5" />, description: 'Add team members and grant contacts' },
-    { title: 'Review & Process', component: Step5Review, icon: <CheckCircle className="h-5 w-5" />, description: 'Review information and submit for processing' },
+    { title: 'Entity Details', component: Step2FundingDetails, icon: <FileText className="h-5 w-5" />, description: 'Identify collaborating organizations and entity roles' },
+    { title: 'Data Collection', component: Step3ReportingRequirements, icon: <PieChart className="h-5 w-5" />, description: 'Define data collection methods and requirements' },
+    { title: 'Project Planning', component: Step4KeyContacts, icon: <Users className="h-5 w-5" />, description: 'Outline project management approach and milestones' },
+    { title: 'Analysis & Setup', component: Step5Review, icon: <CheckCircle className="h-5 w-5" />, description: 'Review analysis and finalize implementation plan' },
   ];
 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -67,13 +88,18 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
     <GrantWizardProvider organizationId={organizationId}>
       <Box sx={{ maxWidth: '1000px', mx: 'auto', p: 2 }}>
         {/* Heading */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
             Grant Analyzer Wizard
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Complete the steps below to upload, process, and set up your grant
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Complete the steps below to create a project management plan for grant collaboration
           </Typography>
+          
+          {/* Demo Prepopulate Button */}
+          <Box sx={{ mt: 2, mb: 3 }}>
+            <PrepopulateButton />
+          </Box>
         </Box>
 
         {/* Progress Bar */}
