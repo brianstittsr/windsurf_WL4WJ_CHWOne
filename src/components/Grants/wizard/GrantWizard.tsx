@@ -206,7 +206,7 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
 
         {/* Current Step Content */}
         <Card sx={{ mb: 4, boxShadow: 3, borderRadius: 2 }}>
-          <CardContent sx={{ p: 3, maxHeight: '65vh', overflow: 'auto' }}>
+          <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Box sx={{ mr: 1.5, color: 'primary.main' }}>
                 {steps[currentStep].icon}

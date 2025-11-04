@@ -6,6 +6,8 @@ import {
   Typography, 
   Grid, 
   Button,
+  Menu,
+  MenuItem as MuiMenuItem,
   TextField,
   Paper,
   Table,
@@ -29,12 +31,14 @@ import {
   Tabs,
   Tab,
   FormControlLabel,
+  FormHelperText,
   Switch,
   Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  ListItemText
 } from '@mui/material';
 import { 
   Add as AddIcon,
@@ -47,6 +51,9 @@ import {
   Settings as SettingsIcon,
   Save as SaveIcon
 } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { saveAs } from 'file-saver';
+import { jsPDF } from 'jspdf';
 import { useGrantWizard } from '@/contexts/GrantWizardContext';
 import { FormField, FormSection, FormTemplate, DataCollectionMethod, FieldValidation } from '@/types/grant.types';
 
@@ -56,6 +63,9 @@ export function Step6FormGenerator() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [tabIndex, setTabIndex] = useState(0);
   const [fieldTabIndex, setFieldTabIndex] = useState(0);
+  
+  // Export menu state
+  const [exportMenuAnchorEl, setExportMenuAnchorEl] = useState<null | HTMLElement>(null);
   
   // Field editing state
   const [fieldDialogOpen, setFieldDialogOpen] = useState(false);
@@ -642,49 +652,74 @@ export function Step6FormGenerator() {
                 <Divider sx={{ mb: 2 }} />
                 
                 <Box sx={{ pl: 1 }}>
-                  {section.fields.map((field, fieldIndex) => (
-                    <Paper 
-                      key={field.id} 
-                      variant="outlined"
-                      sx={{ 
-                        p: 1, 
-                        mb: 1, 
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderLeft: '4px solid',
-                        borderLeftColor: 'primary.main'
-                      }}
-                    >
-                      <DragIcon sx={{ color: 'action.disabled', mr: 1 }} />
-                      <Box sx={{ flex: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography variant="subtitle2">{field.label}</Typography>
-                          {field.required && <Typography variant="caption" color="error" sx={{ ml: 0.5 }}>*</Typography>}
-                          <Chip 
-                            label={field.type} 
-                            size="small" 
-                            sx={{ ml: 1, height: 20, fontSize: '0.6rem' }}
-                          />
-                        </Box>
-                        <Typography variant="caption" color="text.secondary">
-                          Field name: {field.name}
-                        </Typography>
-                      </Box>
-                      <IconButton size="small" onClick={() => openFieldEditor(section.id, field, false)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton 
-                        size="small"
-                        onClick={() => {
-                          if (selectedTemplate && window.confirm('Are you sure you want to delete this field?')) {
-                            deleteFieldFromSection(selectedTemplate.id, section.id, field.id);
-                          }
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Paper>
-                  ))}
+                  <DragDropContext onDragEnd={handleFieldDragEnd}>
+                    <Droppable droppableId={`droppable-fields-${section.id}`}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                        >
+                          {section.fields.map((field, fieldIndex) => (
+                            <Draggable
+                              key={field.id}
+                              draggableId={field.id}
+                              index={fieldIndex}
+                            >
+                              {(provided, snapshot) => (
+                                <Paper 
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  variant="outlined"
+                                  sx={{ 
+                                    p: 1, 
+                                    mb: 1, 
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    borderLeft: '4px solid',
+                                    borderLeftColor: 'primary.main',
+                                    backgroundColor: snapshot.isDragging ? 'rgba(0, 0, 0, 0.04)' : 'inherit',
+                                    boxShadow: snapshot.isDragging ? '0 5px 10px rgba(0, 0, 0, 0.2)' : 'inherit'
+                                  }}
+                                >
+                                  <div {...provided.dragHandleProps}>
+                                    <DragIcon sx={{ color: 'action.disabled', mr: 1 }} />
+                                  </div>
+                                  <Box sx={{ flex: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                      <Typography variant="subtitle2">{field.label}</Typography>
+                                      {field.required && <Typography variant="caption" color="error" sx={{ ml: 0.5 }}>*</Typography>}
+                                      <Chip 
+                                        label={field.type} 
+                                        size="small" 
+                                        sx={{ ml: 1, height: 20, fontSize: '0.6rem' }}
+                                      />
+                                    </Box>
+                                    <Typography variant="caption" color="text.secondary">
+                                      Field name: {field.name}
+                                    </Typography>
+                                  </Box>
+                                  <IconButton size="small" onClick={() => openFieldEditor(section.id, field, false)}>
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton 
+                                    size="small"
+                                    onClick={() => {
+                                      if (selectedTemplate && window.confirm('Are you sure you want to delete this field?')) {
+                                        deleteFieldFromSection(selectedTemplate.id, section.id, field.id);
+                                      }
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Paper>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </DragDropContext>
                   
                   {section.fields.length === 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
@@ -721,8 +756,20 @@ export function Step6FormGenerator() {
         {tabIndex === 2 && (
           <Box>
             <Alert severity="success" icon={<PreviewIcon />} sx={{ mb: 3 }}>
-              This is a preview of how your form will appear to users.
+              This is a real-time preview of how your form will appear to users.
             </Alert>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight={500}>
+                Live Preview
+              </Typography>
+              <Chip
+                label="Real-time updates"
+                color="success"
+                size="small"
+                icon={<CheckCircleIcon />}
+              />
+            </Box>
             
             <Paper variant="outlined" sx={{ p: 3 }}>
               <Typography variant="h5" gutterBottom>{selectedTemplate.name}</Typography>
@@ -742,57 +789,80 @@ export function Step6FormGenerator() {
                   )}
                   
                   <Grid container spacing={2}>
-                    {section.fields.map((field) => (
-                      <Grid 
-                        item 
-                        xs={12} 
-                        md={field.width === 'half' ? 6 : field.width === 'third' ? 4 : 12}
-                        key={field.id}
-                      >
-                        {field.type === 'textarea' ? (
-                          <TextField
-                            fullWidth
-                            multiline
-                            rows={3}
-                            label={field.label}
-                            placeholder={field.placeholder}
-                            helperText={field.helpText}
-                            required={field.required}
-                            disabled
-                          />
-                        ) : field.type === 'select' ? (
-                          <FormControl fullWidth>
-                            <InputLabel>{field.label}{field.required && ' *'}</InputLabel>
-                            <Select
-                              label={field.label + (field.required ? ' *' : '')}
-                              disabled
-                              value=""
-                            >
-                              {field.options?.map((option, i) => (
-                                <MenuItem key={i} value={option}>{option}</MenuItem>
-                              )) || (
-                                <MenuItem value="option">Sample Option</MenuItem>
-                              )}
-                            </Select>
-                          </FormControl>
-                        ) : field.type === 'checkbox' ? (
-                          <FormControlLabel
-                            control={<Switch disabled />}
-                            label={field.label}
-                          />
-                        ) : (
-                          <TextField
-                            fullWidth
-                            label={field.label}
-                            placeholder={field.placeholder}
-                            helperText={field.helpText}
-                            required={field.required}
-                            type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
-                            disabled
-                          />
-                        )}
-                      </Grid>
-                    ))}
+                    {section.fields.map((field) => {
+                      // Determine field validation properties
+                      const hasValidation = field.validation && Object.keys(field.validation).length > 0;
+                      let helperTextFromValidation = '';
+                      
+                      if (hasValidation) {
+                        if (field.validation?.minLength && field.validation?.maxLength) {
+                          helperTextFromValidation = `${field.helpText || ''} (${field.validation.minLength}-${field.validation.maxLength} characters)`;
+                        } else if (field.validation?.minLength) {
+                          helperTextFromValidation = `${field.helpText || ''} (Min: ${field.validation.minLength} characters)`;
+                        } else if (field.validation?.maxLength) {
+                          helperTextFromValidation = `${field.helpText || ''} (Max: ${field.validation.maxLength} characters)`;
+                        }
+                        
+                        if (field.validation?.phoneFormat) {
+                          helperTextFromValidation = `${field.helpText || ''} (${field.validation.phoneFormat === 'us' ? 'US format' : 
+                            field.validation.phoneFormat === 'international' ? 'International format' : 'Custom format'})`;
+                        }
+                        
+                        if (field.validation?.emailFormat) {
+                          helperTextFromValidation = `${field.helpText || ''} (Valid email required)`;
+                        }
+                      }
+                      
+                      return (
+                        <Grid 
+                          item 
+                          xs={12} 
+                          md={field.width === 'half' ? 6 : field.width === 'third' ? 4 : 12}
+                          key={field.id}
+                        >
+                          {field.type === 'textarea' ? (
+                            <TextField
+                              fullWidth
+                              multiline
+                              rows={3}
+                              label={field.label}
+                              placeholder={field.placeholder}
+                              helperText={helperTextFromValidation || field.helpText}
+                              required={field.required}
+                            />
+                          ) : field.type === 'select' ? (
+                            <FormControl fullWidth>
+                              <InputLabel>{field.label}{field.required && ' *'}</InputLabel>
+                              <Select
+                                label={field.label + (field.required ? ' *' : '')}
+                                value=""
+                              >
+                                {field.options?.map((option, i) => (
+                                  <MenuItem key={i} value={option}>{option}</MenuItem>
+                                )) || (
+                                  <MenuItem value="option">Sample Option</MenuItem>
+                                )}
+                              </Select>
+                              {field.helpText && <FormHelperText>{field.helpText}</FormHelperText>}
+                            </FormControl>
+                          ) : field.type === 'checkbox' ? (
+                            <FormControlLabel
+                              control={<Switch />}
+                              label={field.label}
+                            />
+                          ) : (
+                            <TextField
+                              fullWidth
+                              label={field.label}
+                              placeholder={field.placeholder}
+                              helperText={helperTextFromValidation || field.helpText}
+                              required={field.required}
+                              type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+                            />
+                          )}
+                        </Grid>
+                      );
+                    })}
                   </Grid>
                 </Box>
               ))}
@@ -801,7 +871,6 @@ export function Step6FormGenerator() {
                 <Button 
                   variant="contained" 
                   color="primary"
-                  disabled
                 >
                   Submit Form
                 </Button>
@@ -813,12 +882,125 @@ export function Step6FormGenerator() {
     );
   };
 
+  // Handle drag end event for field reordering
+  const handleFieldDragEnd = (result: DropResult) => {
+    // If dropped outside the droppable area
+    if (!result.destination) return;
+    
+    // Parse the droppable ID to get the section ID
+    const sectionId = result.destination.droppableId.replace('droppable-fields-', '');
+    
+    // Find the template and section
+    if (selectedTemplate) {
+      const updatedSections = [...selectedTemplate.sections];
+      const sectionIndex = updatedSections.findIndex(section => section.id === sectionId);
+      
+      if (sectionIndex !== -1) {
+        const section = {...updatedSections[sectionIndex]};
+        const fields = [...section.fields];
+        
+        // Reorder the fields array
+        const [removed] = fields.splice(result.source.index, 1);
+        fields.splice(result.destination.index, 0, removed);
+        
+        // Update the section with the new fields order
+        section.fields = fields;
+        updatedSections[sectionIndex] = section;
+        
+        // Update the template
+        updateFormTemplate(selectedTemplate.id, { sections: updatedSections });
+      }
+    }
+  };
+  
   // Update field form
   const updateFieldForm = (updates: Partial<FormField>) => {
     setFieldForm(prev => ({
       ...prev,
       ...updates
     }));
+  };
+  
+  // Export form template as JSON
+  const exportAsJson = () => {
+    if (!selectedTemplate) return;
+    
+    const dataStr = JSON.stringify(selectedTemplate, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    saveAs(dataBlob, `${selectedTemplate.name.replace(/\s+/g, '_')}_template.json`);
+  };
+  
+  // Export form template as PDF
+  const exportAsPdf = () => {
+    if (!selectedTemplate) return;
+    
+    const doc = new jsPDF();
+    let y = 20;
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text(selectedTemplate.name, 20, y);
+    y += 10;
+    
+    // Add description
+    if (selectedTemplate.description) {
+      doc.setFontSize(12);
+      doc.text(`Description: ${selectedTemplate.description}`, 20, y);
+      y += 10;
+    }
+    
+    // Add metadata
+    doc.setFontSize(10);
+    doc.text(`Purpose: ${selectedTemplate.purpose}`, 20, y);
+    y += 5;
+    doc.text(`Status: ${selectedTemplate.status}`, 20, y);
+    y += 5;
+    doc.text(`Responsible Entity: ${selectedTemplate.entityResponsible}`, 20, y);
+    y += 10;
+    
+    // Add sections and fields
+    selectedTemplate.sections.forEach((section, index) => {
+      // Check if we need a new page
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.text(`Section ${index + 1}: ${section.title}`, 20, y);
+      y += 7;
+      
+      if (section.description) {
+        doc.setFontSize(10);
+        doc.text(`${section.description}`, 20, y);
+        y += 7;
+      }
+      
+      // Add fields
+      doc.setFontSize(11);
+      section.fields.forEach((field, fieldIndex) => {
+        // Check if we need a new page
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        const required = field.required ? ' (Required)' : '';
+        doc.text(`Field ${fieldIndex + 1}: ${field.label}${required} - Type: ${field.type}`, 25, y);
+        y += 5;
+        
+        if (field.helpText) {
+          doc.setFontSize(9);
+          doc.text(`Help text: ${field.helpText}`, 30, y);
+          y += 5;
+          doc.setFontSize(11);
+        }
+      });
+      
+      y += 10;
+    });
+    
+    doc.save(`${selectedTemplate.name.replace(/\s+/g, '_')}_template.pdf`);
   };
   
   // Generate field name from label

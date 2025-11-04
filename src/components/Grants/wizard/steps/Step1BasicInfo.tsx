@@ -189,7 +189,7 @@ export function Step1BasicInfo() {
                   alignItems: 'center',
                   bgcolor: 'white'
                 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <FileIcon sx={{ color: 'primary.main', mr: 1, fontSize: 20 }} />
                     <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
                       {file.name}

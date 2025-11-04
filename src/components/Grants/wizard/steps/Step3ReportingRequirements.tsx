@@ -448,7 +448,7 @@ export function Step3ReportingRequirements() {
                 </Button>
               </Box>
               
-              <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f9f9f9', height: 200, overflow: 'auto' }}>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f9f9f9' }}>
                 {formData.dataPoints && formData.dataPoints.length > 0 ? (
                   <List dense>
                     {formData.dataPoints.map((point, index) => (
@@ -498,7 +498,7 @@ export function Step3ReportingRequirements() {
                 </Button>
               </Box>
               
-              <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f9f9f9', height: 200, overflow: 'auto' }}>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f9f9f9' }}>
                 {formData.tools && formData.tools.length > 0 ? (
                   <List dense>
                     {formData.tools.map((tool, index) => (
