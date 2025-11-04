@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Box, 
   Typography, 
@@ -59,6 +59,9 @@ import {
 } from '@mui/icons-material';
 import { useGrantWizard } from '@/contexts/GrantWizardContext';
 import { DashboardMetric, ReportTemplate } from '@/types/grant.types';
+import { AIInsightsPanel, Insight } from '../dashboard/AIInsightsPanel';
+import { ReportScheduler } from '../dashboard/ReportScheduler';
+import { ChartVisualizer, ChartDataPoint } from '../dashboard/ChartVisualizer';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend,
@@ -71,8 +74,17 @@ export function Step7AIDashboard() {
   const [dashboardMetrics, setDashboardMetrics] = useState<DashboardMetric[]>(grantData.dashboardMetrics || []);
   const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>(grantData.reportTemplates || []);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [reportPreviewOpen, setReportPreviewOpen] = useState(false);
+  
+  // Generate sample insights
+  useEffect(() => {
+    if (insights.length === 0) {
+      const sampleInsights = generateSampleInsights(grantData);
+      setInsights(sampleInsights);
+    }
+  }, [grantData, insights.length]);
   
   // Generate sample metrics and report templates if none exist
   useEffect(() => {
@@ -98,7 +110,7 @@ export function Step7AIDashboard() {
     if (reportTemplates.length > 0) {
       updateGrantData({ reportTemplates });
     }
-  }, [dashboardMetrics, reportTemplates]);
+  }, [dashboardMetrics, reportTemplates, updateGrantData]);
 
   // Function to generate sample metrics from grant data
   const generateSampleMetrics = (grant: Partial<any>): DashboardMetric[] => {
@@ -557,6 +569,120 @@ export function Step7AIDashboard() {
     ];
     
     return insights[Math.floor(Math.random() * insights.length)];
+  };
+
+  // Function to generate sample AI insights for the dashboard
+  const generateSampleInsights = (grant: any): Insight[] => {
+    const insights: Insight[] = [];
+    
+    // Trend insights
+    insights.push({
+      id: `trend-1-${Date.now()}`,
+      type: 'trend',
+      title: 'Increasing Progress Rate',
+      description: 'Project milestone completion rate has increased by 15% over the last month.',
+      source: 'milestone_tracking',
+      confidence: 92,
+      impact: 'high',
+      timestamp: new Date().toISOString(),
+      relatedMetrics: ['Overall Project Progress'],
+      suggestedActions: ['Continue current project management approach']
+    });
+    
+    insights.push({
+      id: `trend-2-${Date.now()}`,
+      type: 'trend',
+      title: 'Data Collection Improvement',
+      description: 'Data submission compliance has been consistently high for the last 3 weeks.',
+      source: 'form_submissions',
+      confidence: 88,
+      impact: 'medium',
+      timestamp: new Date().toISOString(),
+      relatedMetrics: ['Data Collection Compliance']
+    });
+    
+    // Risk insights
+    if (grant.projectMilestones && grant.projectMilestones.some((m: any) => m.status === 'delayed')) {
+      insights.push({
+        id: `risk-1-${Date.now()}`,
+        type: 'risk',
+        title: 'Milestone Delay Risk',
+        description: 'Several milestones are currently delayed which may impact overall project timeline.',
+        source: 'milestone_tracking',
+        confidence: 85,
+        impact: 'high',
+        timestamp: new Date().toISOString(),
+        relatedMetrics: ['Upcoming Milestones'],
+        suggestedActions: ['Review project timeline', 'Reallocate resources to critical path activities']
+      });
+    }
+    
+    insights.push({
+      id: `risk-2-${Date.now()}`,
+      type: 'risk',
+      title: 'Budget Allocation Warning',
+      description: 'Current spend rate will deplete budget before project completion if maintained.',
+      source: 'financial_data',
+      confidence: 76,
+      impact: 'medium',
+      timestamp: new Date().toISOString(),
+      relatedMetrics: ['Budget Utilization'],
+      suggestedActions: ['Review budget allocation', 'Identify cost-saving opportunities']
+    });
+    
+    // Opportunity insights
+    insights.push({
+      id: `opportunity-1-${Date.now()}`,
+      type: 'opportunity',
+      title: 'Collaboration Enhancement',
+      description: 'Increasing coordination between entities could improve overall project efficiency.',
+      source: 'entity_activities',
+      confidence: 79,
+      impact: 'high',
+      timestamp: new Date().toISOString(),
+      relatedMetrics: ['Entity Collaboration Score'],
+      suggestedActions: ['Schedule regular cross-entity meetings', 'Implement shared project tracking']
+    });
+    
+    insights.push({
+      id: `opportunity-2-${Date.now()}`,
+      type: 'opportunity',
+      title: 'Data Insight Potential',
+      description: 'Collected data contains patterns that could yield additional project insights.',
+      source: 'data_analysis',
+      confidence: 82,
+      impact: 'medium',
+      timestamp: new Date().toISOString(),
+      suggestedActions: ['Apply advanced analytics to collected data', 'Review data collection methods']
+    });
+    
+    // Recommendations
+    insights.push({
+      id: `recommendation-1-${Date.now()}`,
+      type: 'recommendation',
+      title: 'Optimize Data Collection Forms',
+      description: 'Simplifying data collection forms could increase submission rate and data quality.',
+      source: 'ai_analysis',
+      confidence: 90,
+      impact: 'medium',
+      timestamp: new Date().toISOString(),
+      suggestedActions: ['Review form complexity', 'Pre-populate fields where possible']
+    });
+    
+    insights.push({
+      id: `recommendation-2-${Date.now()}`,
+      type: 'recommendation',
+      title: 'Reallocate Resources',
+      description: 'Shifting resources to focus on high-impact milestones could improve overall progress.',
+      source: 'ai_analysis',
+      confidence: 87,
+      impact: 'high',
+      timestamp: new Date().toISOString(),
+      suggestedActions: ['Identify critical path activities', 'Reassess resource allocation']
+    });
+    
+    // Shuffle the insights to get different ones each time
+    return insights.sort(() => Math.random() - 0.5).slice(0, 6);
   };
   
   // Generate data for project trend chart
@@ -1024,74 +1150,50 @@ export function Step7AIDashboard() {
               
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" textAlign="center" gutterBottom>Reports by Type</Typography>
-                  <Box sx={{ height: 250 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: 'PDF', value: reportTemplates.filter(r => r.format === 'pdf').length || 1 },
-                            { name: 'Dashboard', value: reportTemplates.filter(r => r.format === 'dashboard').length || 1 },
-                            { name: 'Excel', value: reportTemplates.filter(r => r.format === 'excel').length || 0 },
-                            { name: 'Other', value: reportTemplates.filter(r => !['pdf', 'dashboard', 'excel'].includes(r.format)).length || 0 }
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                          label
-                        >
-                          <Cell fill="#d32f2f" />
-                          <Cell fill="#2196f3" />
-                          <Cell fill="#388e3c" />
-                          <Cell fill="#ff9800" />
-                        </Pie>
-                        <RechartsTooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </Box>
+                  <ChartVisualizer
+                    title="Reports by Type"
+                    data={[
+                      { name: 'PDF', value: reportTemplates.filter(r => r.format === 'pdf').length || 1 },
+                      { name: 'Dashboard', value: reportTemplates.filter(r => r.format === 'dashboard').length || 1 },
+                      { name: 'Excel', value: reportTemplates.filter(r => r.format === 'excel').length || 0 },
+                      { name: 'Other', value: reportTemplates.filter(r => !['pdf', 'dashboard', 'excel'].includes(r.format)).length || 0 }
+                    ]}
+                    chartType="pie"
+                    height={250}
+                  />
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" textAlign="center" gutterBottom>Reports by Frequency</Typography>
-                  <Box sx={{ height: 250 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          { frequency: 'Daily', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'daily').length || 0 },
-                          { frequency: 'Weekly', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'weekly').length || 1 },
-                          { frequency: 'Monthly', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'monthly').length || 1 },
-                          { frequency: 'Quarterly', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'quarterly').length || 1 },
-                          { frequency: 'Annually', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'annually').length || 0 }
-                        ]}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="frequency" />
-                        <YAxis />
-                        <RechartsTooltip />
-                        <Bar dataKey="count" fill="#3f51b5" name="Reports" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
+                  <ChartVisualizer
+                    title="Reports by Frequency"
+                    data={[
+                      { name: 'Daily', value: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'daily').length || 0 },
+                      { name: 'Weekly', value: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'weekly').length || 1 },
+                      { name: 'Monthly', value: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'monthly').length || 1 },
+                      { name: 'Quarterly', value: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'quarterly').length || 1 },
+                      { name: 'Annually', value: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'annually').length || 0 }
+                    ]}
+                    chartType="bar"
+                    height={250}
+                  />
                 </Grid>
               </Grid>
             </Paper>
             
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
-              <Typography variant="h6">Automated Reports</Typography>
-              <Button 
-                variant="contained" 
-                startIcon={<AddIcon />}
-                onClick={addReportTemplate}
-              >
-                Create New Report
-              </Button>
-            </Box>
-            
-            {renderReportTemplates()}
+            <ReportScheduler
+              reportTemplates={reportTemplates}
+              onAddReport={(report) => {
+                setReportTemplates([...reportTemplates, report]);
+              }}
+              onDeleteReport={(reportId) => {
+                const updatedReports = reportTemplates.filter(r => r.id !== reportId);
+                setReportTemplates(updatedReports);
+              }}
+              onUpdateReport={(report) => {
+                const updatedReports = reportTemplates.map(r => r.id === report.id ? report : r);
+                setReportTemplates(updatedReports);
+              }}
+            />
             
             <Box sx={{ mt: 3 }}>
               <Alert severity="info">
@@ -1208,6 +1310,20 @@ export function Step7AIDashboard() {
                 </Card>
               </Grid>
             </Grid>
+            
+            <Box sx={{ mt: 4 }}>
+              <AIInsightsPanel 
+                insights={insights}
+                onRefresh={() => {
+                  setIsRefreshing(true);
+                  setTimeout(() => {
+                    const refreshedInsights = generateSampleInsights(grantData);
+                    setInsights(refreshedInsights);
+                    setIsRefreshing(false);
+                  }, 1000);
+                }}
+              />
+            </Box>
             
             {/* Entity collaboration visualization */}
             <Box sx={{ mt: 4, mb: 3 }}>
