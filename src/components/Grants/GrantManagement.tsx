@@ -609,14 +609,15 @@ export default function GrantManagement() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': { 
-            borderRadius: '12px', 
-            overflow: 'hidden',
+            borderRadius: '12px',
+            maxHeight: '90vh', 
+            overflow: 'auto',
             backgroundColor: '#f8fafc' // Light background for better contrast with wizard content
           }
         }}
       >
         {/* No DialogTitle for cleaner look - title is inside the wizard */}
-        <DialogContent sx={{ p: 0, overflow: 'hidden' }}>
+        <DialogContent sx={{ p: 0, overflow: 'auto' }}>
           <Box sx={{ 
             position: 'relative',
             pt: 2, 

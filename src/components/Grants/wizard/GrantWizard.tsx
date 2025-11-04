@@ -2,15 +2,44 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button as MuiButton, Box, Typography, Grid, Card, CardContent } from '@mui/material';
+import { Button as MuiButton, Box, Typography, Grid, Card, CardContent, Alert } from '@mui/material';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, Upload, FileText, PieChart, Users, CheckCircle } from 'lucide-react';
+import { Loader2, Upload, FileText, PieChart, Users, CheckCircle, FilePlus, BarChart, FileStack, Database } from 'lucide-react';
 import { GrantWizardProvider, useGrantWizard } from '@/contexts/GrantWizardContext';
 import { Step1BasicInfo } from './steps/Step1BasicInfo';
 import { Step2FundingDetails } from './steps/Step2FundingDetails';
 import { Step3ReportingRequirements } from './steps/Step3ReportingRequirements';
 import { Step4KeyContacts } from './steps/Step4KeyContacts';
 import { Step5Review } from './steps/Step5Review';
+// Temporarily comment out these imports until we fix the module resolution issues
+// Will use placeholders for now
+// import { Step6FormGenerator } from './steps/Step6FormGenerator';
+// import { Step7AIDashboard } from './steps/Step7AIDashboard';
+
+// Placeholder components until we fix the module resolution
+const Step6FormGenerator = () => (
+  <Box sx={{ p: 3 }}>
+    <Typography variant="h6" gutterBottom>Form Generator</Typography>
+    <Typography variant="body2" color="text.secondary" paragraph>
+      This feature will automatically generate data collection forms based on your grant requirements.
+    </Typography>
+    <Alert severity="info">
+      We're currently finalizing this feature. It will be available in the next update.
+    </Alert>
+  </Box>
+);
+
+const Step7AIDashboard = () => (
+  <Box sx={{ p: 3 }}>
+    <Typography variant="h6" gutterBottom>AI Dashboard</Typography>
+    <Typography variant="body2" color="text.secondary" paragraph>
+      The AI Dashboard will provide real-time tracking and insights for your grant project.
+    </Typography>
+    <Alert severity="info">
+      We're currently finalizing this feature. It will be available in the next update.
+    </Alert>
+  </Box>
+);
 
 type GrantWizardProps = {
   organizationId: string;
@@ -50,6 +79,8 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
     { title: 'Data Collection', component: Step3ReportingRequirements, icon: <PieChart className="h-5 w-5" />, description: 'Define data collection methods and requirements' },
     { title: 'Project Planning', component: Step4KeyContacts, icon: <Users className="h-5 w-5" />, description: 'Outline project management approach and milestones' },
     { title: 'Analysis & Setup', component: Step5Review, icon: <CheckCircle className="h-5 w-5" />, description: 'Review analysis and finalize implementation plan' },
+    { title: 'Form Generator', component: Step6FormGenerator, icon: <FilePlus className="h-5 w-5" />, description: 'Auto-generate data collection forms based on grant requirements' },
+    { title: 'AI Dashboard', component: Step7AIDashboard, icon: <BarChart className="h-5 w-5" />, description: 'Setup AI-driven dashboards and automated reporting' },
   ];
 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -175,7 +206,7 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
 
         {/* Current Step Content */}
         <Card sx={{ mb: 4, boxShadow: 3, borderRadius: 2 }}>
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: 3, maxHeight: '65vh', overflow: 'auto' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <Box sx={{ mr: 1.5, color: 'primary.main' }}>
                 {steps[currentStep].icon}
