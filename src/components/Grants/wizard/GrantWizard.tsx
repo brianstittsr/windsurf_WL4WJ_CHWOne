@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button as MuiButton, Box, Typography, Grid, Card, CardContent } from '@mui/material';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Upload, FileText, PieChart, Users, CheckCircle } from 'lucide-react';
 import { GrantWizardProvider } from '@/contexts/GrantWizardContext';
@@ -65,97 +65,150 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
 
   return (
     <GrantWizardProvider organizationId={organizationId}>
-      <div className="space-y-8 max-w-4xl mx-auto">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Grant Analyzer Wizard</h2>
-          <p className="text-gray-600">Complete the steps below to upload, process, and set up your grant</p>
-        </div>
+      <Box sx={{ maxWidth: '1000px', mx: 'auto', p: 2 }}>
+        {/* Heading */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            Grant Analyzer Wizard
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Complete the steps below to upload, process, and set up your grant
+          </Typography>
+        </Box>
 
         {/* Progress Bar */}
-        <div className="w-full bg-gray-100 rounded-full h-3 mb-6">
-          <div
-            className="bg-blue-600 h-3 rounded-full transition-all duration-500 shadow-sm"
-            style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+        <Box sx={{ width: '100%', bgcolor: '#f0f0f0', borderRadius: 5, height: 10, mb: 4 }}>
+          <Box
+            sx={{
+              width: `${((currentStep + 1) / steps.length) * 100}%`,
+              bgcolor: 'primary.main',
+              height: '100%',
+              borderRadius: 5,
+              transition: 'width 0.5s',
+            }}
           />
-        </div>
+        </Box>
 
         {/* Step Indicator */}
-        <div className="grid grid-cols-5 gap-2 mb-8">
+        <Grid container spacing={2} sx={{ mb: 4 }}>
           {steps.map((step, index) => (
-            <div 
-              key={index} 
-              className={`flex flex-col items-center ${index === currentStep ? 'scale-110 transition-transform duration-300' : ''}`}
-              onClick={() => index < currentStep && setCurrentStep(index)}
-              style={{ cursor: index < currentStep ? 'pointer' : 'default' }}
-            >
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md mb-2 transition-all duration-300 ${
-                  index < currentStep ? 'bg-green-500 text-white' :
-                  index === currentStep ? 'bg-blue-600 text-white border-2 border-blue-300' : 
-                  'bg-gray-100 text-gray-400'
-                }`}
+            <Grid item xs={12/steps.length} key={index}>
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center',
+                  transform: index === currentStep ? 'scale(1.1)' : 'none',
+                  transition: 'transform 0.3s',
+                  cursor: index < currentStep ? 'pointer' : 'default',
+                }}
+                onClick={() => index < currentStep && setCurrentStep(index)}
               >
-                {step.icon || (index + 1)}
-              </div>
-              <span className={`text-sm font-medium text-center ${index === currentStep ? 'text-blue-600' : 'text-gray-600'}`}>
-                {step.title}
-              </span>
-              {index === currentStep && (
-                <span className="text-xs text-gray-500 text-center mt-1 max-w-[120px]">{step.description}</span>
-              )}
-            </div>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    mb: 1,
+                    boxShadow: 2,
+                    bgcolor: index < currentStep ? 'success.main' : 
+                              index === currentStep ? 'primary.main' : '#f5f5f5',
+                    color: index <= currentStep ? 'white' : 'text.secondary',
+                    border: index === currentStep ? '2px solid' : 'none',
+                    borderColor: 'primary.light',
+                  }}
+                >
+                  {step.icon}
+                </Box>
+                <Typography 
+                  variant="subtitle2" 
+                  sx={{ 
+                    textAlign: 'center', 
+                    fontWeight: index === currentStep ? 600 : 400,
+                    color: index === currentStep ? 'primary.main' : 'text.primary',
+                  }}
+                >
+                  {step.title}
+                </Typography>
+                {index === currentStep && (
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    sx={{ textAlign: 'center', mt: 0.5, maxWidth: 120 }}
+                  >
+                    {step.description}
+                  </Typography>
+                )}
+              </Box>
+            </Grid>
           ))}
-        </div>
+        </Grid>
 
         {/* Current Step Content */}
-        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-          <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-800">
-            {steps[currentStep].icon && <span className="mr-2">{steps[currentStep].icon}</span>}
-            Step {currentStep + 1}: {steps[currentStep].title}
-          </h3>
-          <p className="text-gray-600 mb-6">{steps[currentStep].description}</p>
-          <div className="border-t border-gray-100 pt-6">
-            <CurrentStepComponent />
-          </div>
-        </div>
+        <Card sx={{ mb: 4, boxShadow: 3, borderRadius: 2 }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ mr: 1.5, color: 'primary.main' }}>
+                {steps[currentStep].icon}
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                Step {currentStep + 1}: {steps[currentStep].title}
+              </Typography>
+            </Box>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              {steps[currentStep].description}
+            </Typography>
+            <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+              <CurrentStepComponent />
+            </Box>
+          </CardContent>
+        </Card>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between pt-2">
-          <Button
-            variant="outline"
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 2 }}>
+          <MuiButton
+            variant="outlined"
             onClick={prevStep}
             disabled={currentStep === 0 || isSubmitting}
-            className="px-6 py-2 text-gray-700 hover:bg-gray-100"
+            startIcon={<span>←</span>}
+            sx={{ px: 3, py: 1 }}
           >
-            ← Previous
-          </Button>
+            Previous
+          </MuiButton>
 
           {currentStep < steps.length - 1 ? (
-            <Button 
+            <MuiButton 
+              variant="contained"
               onClick={nextStep} 
               disabled={isSubmitting}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700"
+              endIcon={<span>→</span>}
+              sx={{ px: 3, py: 1 }}
             >
-              Next →
-            </Button>
+              Next
+            </MuiButton>
           ) : (
-            <Button 
+            <MuiButton 
+              variant="contained"
+              color="success"
               onClick={handleComplete} 
               disabled={isSubmitting}
-              className="px-6 py-2 bg-green-600 hover:bg-green-700"
+              sx={{ px: 3, py: 1 }}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Box component={Loader2} sx={{ mr: 1, height: 20, width: 20 }} className="animate-spin" />
                   Processing...
                 </>
               ) : (
                 'Complete & Process'
               )}
-            </Button>
+            </MuiButton>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </GrantWizardProvider>
   );
 }
