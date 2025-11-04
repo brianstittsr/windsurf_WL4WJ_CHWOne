@@ -26,7 +26,8 @@ import {
   IntegrationInstructions as IntegrationIcon,
   Analytics as AnalyticsIcon,
   Notifications as NotificationsIcon,
-  Backup as BackupIcon
+  Backup as BackupIcon,
+  Paid as PaidIcon
 } from '@mui/icons-material';
 import MainLayout from '@/components/Layout/MainLayout';
 import AdminSettings from '@/components/Admin/AdminSettings';
@@ -34,6 +35,7 @@ import AdminUsers from '@/components/Admin/AdminUsers';
 import AdminIntegrations from '@/components/Admin/AdminIntegrations';
 import AdminAnalytics from '@/components/Admin/AdminAnalytics';
 import AdminSecurity from '@/components/Admin/AdminSecurity';
+import AdminGrants from '@/components/Admin/AdminGrants';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -135,6 +137,11 @@ function AdminDashboardContent() {
       label: 'Security',
       icon: <SecurityIcon />,
       component: <AdminSecurity />
+    },
+    {
+      label: 'Grants',
+      icon: <PaidIcon />,
+      component: <AdminGrants />
     }
   ];
 
