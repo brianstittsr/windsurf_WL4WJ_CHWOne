@@ -15,7 +15,10 @@ import {
   FormControl,
   Chip,
   FormHelperText,
-  Stack
+  Stack,
+  Alert,
+  AlertTitle,
+  CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
 import { 
@@ -28,12 +31,13 @@ import {
 } from '@mui/icons-material';
 
 export function Step1BasicInfo() {
-  const { grantData, updateGrantData } = useGrantWizard();
+  const { grantData, updateGrantData, analyzeDocument, isAnalyzingDocument } = useGrantWizard();
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showAnalysisSuccess, setShowAnalysisSuccess] = useState(false);
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
       setUploadedFiles([...uploadedFiles, ...newFiles]);
@@ -48,12 +52,22 @@ export function Step1BasicInfo() {
         if (progress >= 100) {
           clearInterval(interval);
           setUploadStatus('success');
+          
           // Store document reference in grant data
           updateGrantData({
             documents: [...(grantData.documents || []), 
               ...newFiles.map(file => ({ name: file.name, size: file.size, type: file.type, uploadedAt: new Date().toISOString() }))
             ]
           });
+          
+          // Start AI analysis of the document
+          analyzeDocument(newFiles[0]);
+          
+          // Show success message after analysis completes
+          setTimeout(() => {
+            setShowAnalysisSuccess(true);
+            setTimeout(() => setShowAnalysisSuccess(false), 5000); // Hide after 5 seconds
+          }, 2500);
         }
       }, 300);
     }
@@ -90,15 +104,37 @@ export function Step1BasicInfo() {
         borderRadius: 2,
         bgcolor: '#f8f9fa'
       }}>
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <UploadIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-          <Typography variant="h6" gutterBottom>
-            Upload Grant Documents
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Upload RFP documents, guidelines, and requirements
-          </Typography>
-        </Box>
+        {isAnalyzingDocument ? (
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <CircularProgress size={40} sx={{ mb: 1 }} />
+            <Typography variant="h6" gutterBottom>
+              Analyzing Document with AI...
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Extracting grant data, collaboration requirements, and project structure
+            </Typography>
+            <LinearProgress sx={{ mt: 2, mb: 1, mx: 'auto', width: '80%', height: 8, borderRadius: 4 }} />
+            <Typography variant="caption" color="text.secondary">
+              This may take a few moments
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <UploadIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+            <Typography variant="h6" gutterBottom>
+              Upload Grant Documents
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Upload RFP documents, guidelines, and requirements. We'll automatically analyze and extract key information.
+            </Typography>
+            {showAnalysisSuccess && (
+              <Alert severity="success" sx={{ mt: 2, mx: 'auto', maxWidth: 500 }}>
+                <AlertTitle>Document Analyzed Successfully</AlertTitle>
+                Form fields have been pre-populated based on document analysis. Review and adjust as needed.
+              </Alert>
+            )}
+          </Box>
+        )}
         
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
           <label>
@@ -113,6 +149,7 @@ export function Step1BasicInfo() {
                   bgcolor: 'rgba(25, 118, 210, 0.15)'
                 }
               }}
+              disabled={isAnalyzingDocument}
             >
               Browse Files
             </Button>
@@ -122,6 +159,7 @@ export function Step1BasicInfo() {
               multiple
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
               onChange={handleFileChange}
+              disabled={isAnalyzingDocument}
             />
           </label>
         </Box>
@@ -164,6 +202,7 @@ export function Step1BasicInfo() {
                     size="small" 
                     onClick={() => removeFile(index)}
                     aria-label="Remove file"
+                    disabled={isAnalyzingDocument}
                   >
                     <CloseIcon fontSize="small" />
                   </IconButton>

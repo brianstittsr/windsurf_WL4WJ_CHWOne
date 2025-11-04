@@ -22,6 +22,10 @@ type GrantWizardContextType = {
   updateGrantData: (data: Partial<Grant>) => void;
   updateOrganization: (org: Organization) => void;
   
+  // Document analysis methods
+  analyzeDocument: (file: File) => Promise<void>;
+  isAnalyzingDocument: boolean;
+  
   // Key Contacts methods
   addKeyContact: (contact: KeyContact) => void;
   removeKeyContact: (contactId: string) => void;
@@ -76,13 +80,17 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
     dataCollectionMethods: [],
     projectMilestones: [],
     analysisRecommendations: [],
-    entityRelationshipNotes: ''
+    entityRelationshipNotes: '',
+    formTemplates: [],
+    reportTemplates: [],
+    dashboardMetrics: []
   });
   
+  const [isAnalyzingDocument, setIsAnalyzingDocument] = useState(false);
   const [hasPrepopulatedData, setHasPrepopulatedData] = useState(false);
   const [organization, setOrganization] = useState<Organization | null>(null);
 
-  const totalSteps = 5;
+  const totalSteps = 7; // Updated for all 7 wizard steps
 
   const updateGrantData = (data: Partial<Grant>) => {
     setGrantData((prev) => ({
@@ -252,16 +260,185 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
     }));
   };
 
+  // Document Analysis Function
+  const analyzeDocument = async (file: File): Promise<void> => {
+    try {
+      setIsAnalyzingDocument(true);
+      
+      // In a real implementation, this would send the file to a backend service
+      // for AI analysis. For this demo, we'll simulate the analysis with a delay
+      console.log('Analyzing document:', file.name);
+      
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Extract data based on filename patterns (simulated AI extraction)
+      const extractedData = extractDataFromDocument(file);
+      
+      // Update the grant data with the extracted information
+      updateGrantData(extractedData);
+      setHasPrepopulatedData(true);
+    } catch (error) {
+      console.error('Error analyzing document:', error);
+    } finally {
+      setIsAnalyzingDocument(false);
+    }
+  };
+
+  // Helper function to extract data from document (simulated AI extraction)
+  const extractDataFromDocument = (file: File): Partial<Grant> => {
+    const fileName = file.name.toLowerCase();
+    
+    // Extract type and focus area based on filename
+    const isFederal = fileName.includes('federal') || fileName.includes('govt');
+    const isState = fileName.includes('state');
+    const isFoundation = fileName.includes('foundation');
+    const isHealth = fileName.includes('health') || fileName.includes('medical');
+    const isEducation = fileName.includes('education') || fileName.includes('school');
+    const isCommunity = fileName.includes('community');
+    
+    // Create collaborating entities
+    const collabEntities: CollaboratingEntity[] = [
+      {
+        id: `entity-${Date.now()}-1`,
+        name: isHealth ? 'Regional Health Alliance' : 
+              isEducation ? 'Education Foundation' :
+              isCommunity ? 'Community Partners Coalition' : 'Lead Organization',
+        role: 'lead',
+        description: 'Primary grant administrator responsible for overall grant management',
+        contactName: 'Alex Johnson',
+        contactEmail: 'alex@example.org',
+        contactPhone: '555-123-4567',
+        responsibilities: ['Grant administration', 'Financial oversight', 'Progress reporting']
+      },
+      {
+        id: `entity-${Date.now()}-2`,
+        name: isHealth ? 'Community Health Center' : 
+              isEducation ? 'Local School District' :
+              isCommunity ? 'Neighborhood Association' : 'Partner Organization',
+        role: 'partner',
+        description: 'Service delivery partner responsible for implementation',
+        contactName: 'Sam Rivera',
+        contactEmail: 'sam@example.org',
+        contactPhone: '555-987-6543',
+        responsibilities: ['Service delivery', 'Data collection', 'Community engagement']
+      }
+    ];
+    
+    // Create data collection methods
+    const methods: DataCollectionMethod[] = [
+      {
+        id: `method-${Date.now()}-1`,
+        name: 'Participant Tracking System',
+        description: 'Digital system for monitoring program participation',
+        frequency: 'weekly',
+        responsibleEntity: collabEntities[1].name,
+        dataPoints: ['Participant name', 'Service date', 'Service type', 'Duration'],
+        tools: ['Database application', 'Mobile app', 'Paper forms']
+      },
+      {
+        id: `method-${Date.now()}-2`,
+        name: 'Outcome Assessment',
+        description: 'Quarterly evaluation of program outcomes',
+        frequency: 'quarterly',
+        responsibleEntity: collabEntities[0].name,
+        dataPoints: ['Key indicators', 'Satisfaction metrics', 'Impact measures'],
+        tools: ['Survey platform', 'Data analytics tool']
+      }
+    ];
+    
+    // Create project milestones
+    const today = new Date();
+    const milestones: ProjectMilestone[] = [
+      {
+        id: `milestone-${Date.now()}-1`,
+        name: 'Project Kickoff',
+        description: 'Initial planning meeting with all stakeholders',
+        dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 14).toISOString().split('T')[0],
+        status: 'not_started',
+        responsibleParties: [collabEntities[0].name],
+        dependencies: []
+      },
+      {
+        id: `milestone-${Date.now()}-2`,
+        name: 'Staff Training',
+        description: 'Training for all staff involved in grant implementation',
+        dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30).toISOString().split('T')[0],
+        status: 'not_started',
+        responsibleParties: [collabEntities[0].name, collabEntities[1].name],
+        dependencies: ['Project Kickoff']
+      },
+      {
+        id: `milestone-${Date.now()}-3`,
+        name: 'Service Launch',
+        description: 'Begin service delivery to participants',
+        dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 45).toISOString().split('T')[0],
+        status: 'not_started',
+        responsibleParties: [collabEntities[1].name],
+        dependencies: ['Staff Training']
+      }
+    ];
+    
+    // Create analysis recommendations
+    const recommendations: AnalysisRecommendation[] = [
+      {
+        id: `rec-${Date.now()}-1`,
+        area: 'governance',
+        description: 'Establish bi-weekly coordination meetings between all partner organizations',
+        priority: 'high',
+        implementationSteps: [
+          'Set up recurring calendar invites',
+          'Create agenda template',
+          'Assign roles for meeting facilitation',
+          'Establish documentation process'
+        ]
+      },
+      {
+        id: `rec-${Date.now()}-2`,
+        area: 'data_collection',
+        description: 'Implement standardized data collection protocols across all partners',
+        priority: 'medium',
+        implementationSteps: [
+          'Develop data dictionary',
+          'Create shared data collection forms',
+          'Train staff on protocols',
+          'Establish quality control process'
+        ]
+      }
+    ];
+    
+    // Set grant details
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setFullYear(endDate.getFullYear() + 1);
+    
+    // Return all extracted data
+    return {
+      name: file.name.split('.')[0],
+      description: `This grant focuses on ${isHealth ? 'health services' : isEducation ? 'education programs' : 'community development'} and aims to improve outcomes for target populations through collaborative implementation.`,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      fundingSource: isFederal ? 'Federal Government' : isState ? 'State Government' : isFoundation ? 'Private Foundation' : 'Corporate Sponsor',
+      grantNumber: `G-${Date.now().toString().substring(7, 13)}`,
+      totalBudget: Math.floor(Math.random() * 500000) + 100000,
+      collaboratingEntities: collabEntities,
+      dataCollectionMethods: methods,
+      projectMilestones: milestones,
+      analysisRecommendations: recommendations,
+      entityRelationshipNotes: 'Partners will coordinate through regular meetings and shared project management tools.'
+    };
+  };
+
   // Generate prepopulated data for demo purposes
   const generatePrepopulatedData = () => {
     // Sample data for demonstration
     const sampleData: Partial<Grant> = {
       name: "Community Health Worker Training Initiative",
-      description: "A collaborative project to train and deploy community health workers in underserved areas",
+      description: "A collaborative program to train and deploy community health workers in underserved areas",
       startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 31536000000).toISOString().split('T')[0], // One year from now
-      fundingSource: "National Health Foundation",
-      grantNumber: "CHW-2025-038",
+      endDate: new Date(Date.now() + 31536000000).toISOString().split('T')[0], // 1 year from now
+      fundingSource: "Federal Health Resources Administration",
+      grantNumber: "CHW-2025-1234",
       totalBudget: 450000,
       
       // Collaborating entities
@@ -270,21 +447,21 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
           id: "entity-1",
           name: "Regional Health Department",
           role: "lead",
-          description: "Primary grant administrator and program overseer",
-          contactName: "Dr. Sarah Johnson",
-          contactEmail: "sjohnson@regionalhd.org",
+          description: "Primary grant administrator",
+          contactName: "Alex Johnson",
+          contactEmail: "alex@rhd.org",
           contactPhone: "555-123-4567",
-          responsibilities: ["Program administration", "Reporting", "Financial oversight"]
+          responsibilities: ["Grant administration", "Financial oversight", "Reporting"]
         },
         {
           id: "entity-2",
           name: "Community Outreach Partners",
           role: "partner",
-          description: "Local non-profit focused on community health education",
-          contactName: "Michael Rodriguez",
-          contactEmail: "mrodriguez@cop.org",
+          description: "Service delivery partner",
+          contactName: "Maria Rodriguez",
+          contactEmail: "maria@cop.org",
           contactPhone: "555-987-6543",
-          responsibilities: ["CHW recruitment", "Training delivery", "Community engagement"]
+          responsibilities: ["Service delivery", "Data collection", "Community engagement"]
         }
       ],
       
@@ -292,7 +469,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       dataCollectionMethods: [
         {
           id: "method-1",
-          name: "Training Attendance Records",
+          name: "Training Attendance Tracking",
           description: "Digital check-in system for all training sessions",
           frequency: "weekly",
           responsibleEntity: "Community Outreach Partners",
@@ -421,6 +598,8 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         submitGrant,
         hasPrepopulatedData,
         generatePrepopulatedData,
+        analyzeDocument,
+        isAnalyzingDocument,
       }}
     >
       {children}
