@@ -1276,4 +1276,5 @@ export function Step7AIDashboard() {
         )}
       </Box>
     </Box>
+  );
 }
