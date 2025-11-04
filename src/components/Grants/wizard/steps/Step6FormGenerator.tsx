@@ -91,27 +91,6 @@ export function Step6FormGenerator() {
     fields: []
   });
   
-  // Generate form templates based on data collection methods
-  useEffect(() => {
-    // Only auto-generate if no templates exist yet and we have data collection methods
-    if ((formTemplates.length === 0) && (grantData.dataCollectionMethods?.length || 0) > 0) {
-      const generatedTemplates: FormTemplate[] = generateFormsFromDataCollection(grantData.dataCollectionMethods || []);
-      setFormTemplates(generatedTemplates);
-      updateGrantData({ formTemplates: generatedTemplates });
-      
-      if (generatedTemplates.length > 0) {
-        setSelectedTemplateId(generatedTemplates[0].id);
-      }
-    }
-  }, [grantData.dataCollectionMethods]);
-
-  // Save form templates to grant data when they change
-  useEffect(() => {
-    if (formTemplates.length > 0) {
-      updateGrantData({ formTemplates });
-    }
-  }, [formTemplates]);
-
   // Function to generate form templates from data collection methods
   const generateFormsFromDataCollection = (methods: DataCollectionMethod[]): FormTemplate[] => {
     return methods.map((method, index) => {
@@ -151,7 +130,7 @@ export function Step6FormGenerator() {
       };
     });
   };
-
+  
   // Helper function to infer field type based on data point name
   const inferFieldType = (dataPoint: string): FormField['type'] => {
     const point = dataPoint.toLowerCase();
@@ -182,6 +161,26 @@ export function Step6FormGenerator() {
     
     return 'data' as any; // Default purpose
   };
+  
+  // Generate form templates based on data collection methods
+  useEffect(() => {
+    // Only auto-generate if no templates exist yet and we have data collection methods
+    if ((formTemplates.length === 0) && (grantData.dataCollectionMethods?.length || 0) > 0) {
+      const generatedTemplates: FormTemplate[] = generateFormsFromDataCollection(grantData.dataCollectionMethods || []);
+      setFormTemplates(generatedTemplates);
+      updateGrantData({ formTemplates: generatedTemplates });
+      
+      if (generatedTemplates.length > 0) {
+        setSelectedTemplateId(generatedTemplates[0].id);
+      }
+    }
+  }, [grantData.dataCollectionMethods, formTemplates.length, updateGrantData]);
+
+  // Save form templates to grant data when they change
+  useEffect(() => {
+    updateGrantData({ formTemplates });
+  }, [formTemplates, updateGrantData]);
+
   
   // Function to add a new form template
   const addFormTemplate = () => {
