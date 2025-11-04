@@ -1,0 +1,155 @@
+
+        body {
+          font-family: 'Arial', sans-serif;
+          line-height: 1.6;
+          font-size: 12pt;
+          color: #333;
+          padding: 20px;
+          max-width: 100%;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+          font-weight: 600;
+          margin-top: 1.5em;
+          margin-bottom: 0.8em;
+          color: #222;
+        }
+        
+        h1 {
+          font-size: 24pt;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 10px;
+        }
+        
+        h2 {
+          font-size: 20pt;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 8px;
+        }
+        
+        h3 {
+          font-size: 18pt;
+        }
+        
+        h4 {
+          font-size: 16pt;
+        }
+        
+        h5, h6 {
+          font-size: 14pt;
+        }
+        
+        p, ul, ol, table {
+          margin-bottom: 16px;
+        }
+        
+        ul, ol {
+          padding-left: 2em;
+        }
+        
+        a {
+          color: #0366d6;
+          text-decoration: none;
+        }
+        
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 16px;
+          margin-bottom: 16px;
+          page-break-inside: avoid;
+        }
+        
+        table, th, td {
+          border: 1px solid #ddd;
+        }
+        
+        th, td {
+          padding: 8px;
+          text-align: left;
+        }
+        
+        th {
+          background-color: #f2f2f2;
+          font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+          background-color: #f9f9f9;
+        }
+        
+        code {
+          font-family: 'Courier New', monospace;
+          padding: 0.2em 0.4em;
+          background-color: #f6f8fa;
+          border-radius: 3px;
+        }
+        
+        pre {
+          background-color: #f6f8fa;
+          border-radius: 3px;
+          padding: 16px;
+          overflow: auto;
+          page-break-inside: avoid;
+        }
+        
+        blockquote {
+          margin-left: 0;
+          padding: 0 1em;
+          color: #6a737d;
+          border-left: 0.25em solid #dfe2e5;
+        }
+        
+        img {
+          max-width: 100%;
+          page-break-inside: avoid;
+        }
+        
+        hr {
+          height: 0.25em;
+          padding: 0;
+          margin: 24px 0;
+          background-color: #e1e4e8;
+          border: 0;
+        }
+        
+        /* Cover page styles */
+        .cover {
+          text-align: center;
+          page-break-after: always;
+          margin-bottom: 60px;
+        }
+        
+        .cover h1 {
+          font-size: 32pt;
+          margin-top: 30%;
+          border-bottom: none;
+        }
+        
+        /* Table of Contents styles */
+        .toc {
+          page-break-after: always;
+        }
+        
+        /* Handle page breaks */
+        .page-break {
+          page-break-before: always;
+        }
+        
+        /* Important sections */
+        .important {
+          background-color: #f8f8f8;
+          border-left: 4px solid #0366d6;
+          padding: 15px;
+          margin: 20px 0;
+        }
+        
+        /* Special client note */
+        .client-note {
+          background-color: #fffbdd;
+          border: 1px solid #ffe58f;
+          border-radius: 3px;
+          padding: 16px;
+          margin: 20px 0;
+        }
+      
