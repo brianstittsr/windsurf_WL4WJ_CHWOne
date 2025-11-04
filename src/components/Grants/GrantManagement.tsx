@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { GrantWizard } from '@/components/Grants/wizard/GrantWizard';
 import {
   Grid,
   Card,
@@ -48,6 +49,7 @@ export default function GrantManagement() {
   const [grants, setGrants] = useState<Grant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showWizardDialog, setShowWizardDialog] = useState(false);
   const [selectedGrant, setSelectedGrant] = useState<Grant | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -260,14 +262,25 @@ export default function GrantManagement() {
             Manage funding sources and track grant utilization
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setShowModal(true)}
-          size="large"
-        >
-          New Grant
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<AssessmentIcon />}
+            onClick={() => setShowWizardDialog(true)}
+            size="large"
+          >
+            Launch Grant Analyzer Wizard
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setShowModal(true)}
+            size="large"
+          >
+            New Grant
+          </Button>
+        </Box>
       </Box>
 
       {/* Metrics Cards */}
@@ -585,6 +598,33 @@ export default function GrantManagement() {
       >
         <AddIcon />
       </Fab>
+
+      {/* Grant Analyzer Wizard Dialog */}
+      <Dialog 
+        open={showWizardDialog} 
+        onClose={() => setShowWizardDialog(false)} 
+        maxWidth="lg" 
+        fullWidth
+      >
+        <DialogTitle>
+          Grant Analyzer Wizard
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <GrantWizard 
+              organizationId="general"
+              onComplete={(grantId) => {
+                console.log('Grant created:', grantId);
+                setShowWizardDialog(false);
+                fetchGrants();
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowWizardDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
