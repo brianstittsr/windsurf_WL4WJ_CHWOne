@@ -46,6 +46,40 @@ export interface AnalysisRecommendation {
   implementationSteps: string[];
 }
 
+export interface FieldValidation {
+  minLength?: number;
+  maxLength?: number;
+  minValue?: number;
+  maxValue?: number;
+  pattern?: string;
+  patternMessage?: string;
+  customValidation?: string;
+  dateRange?: {
+    min?: string;
+    max?: string;
+  };
+  fileTypes?: string[];
+  maxFileSize?: number; // in bytes
+  
+  // Phone validation
+  phoneFormat?: 'us' | 'international' | 'custom';
+  phonePattern?: string;
+  
+  // Email validation
+  emailFormat?: 'standard' | 'strict' | 'loose';
+  emailDomainCheck?: boolean;
+  
+  // Address lookup
+  enableAddressLookup?: boolean;
+  addressLookupType?: 'postal' | 'zipcode';
+  populateFields?: {
+    city?: string;
+    state?: string;
+    county?: string;
+    zipCode?: string;
+  };
+}
+
 export interface FormField {
   id: string;
   name: string;
@@ -56,7 +90,7 @@ export interface FormField {
   helpText?: string;
   options?: string[];
   defaultValue?: any;
-  validation?: string;
+  validation?: FieldValidation;
   width?: 'full' | 'half' | 'third';
 }
 

@@ -48,13 +48,14 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import { useGrantWizard } from '@/contexts/GrantWizardContext';
-import { FormField, FormSection, FormTemplate, DataCollectionMethod } from '@/types/grant.types';
+import { FormField, FormSection, FormTemplate, DataCollectionMethod, FieldValidation } from '@/types/grant.types';
 
 export function Step6FormGenerator() {
   const { grantData, updateGrantData } = useGrantWizard();
   const [formTemplates, setFormTemplates] = useState<FormTemplate[]>(grantData.formTemplates || []);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [tabIndex, setTabIndex] = useState(0);
+  const [fieldTabIndex, setFieldTabIndex] = useState(0);
   
   // Field editing state
   const [fieldDialogOpen, setFieldDialogOpen] = useState(false);
@@ -839,6 +840,7 @@ export function Step6FormGenerator() {
         helpText: ''
       };
       setFieldForm(initialField);
+      setFieldTabIndex(0); // Reset to basic settings tab
     }
   }, [fieldDialogOpen, editingField]);
   
@@ -984,6 +986,472 @@ export function Step6FormGenerator() {
               />
             </Grid>
           </Grid>
+          )}
+          
+          {fieldTabIndex === 1 && (
+            <Grid container spacing={2}>
+              {/* Phone number validation */}
+              {fieldForm.name?.includes('phone') && (
+                <>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
+                      Phone Number Validation
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Format Type</InputLabel>
+                      <Select
+                        value={fieldForm.validation?.phoneFormat || 'us'}
+                        label="Format Type"
+                        onChange={(e) => {
+                          updateFieldForm({
+                            validation: {
+                              ...fieldForm.validation || {},
+                              phoneFormat: e.target.value as 'us' | 'international' | 'custom',
+                              // Set default pattern based on format
+                              phonePattern: e.target.value === 'us' 
+                                ? '^\\(\\d{3}\\)\\s?\\d{3}-\\d{4}$' 
+                                : e.target.value === 'international'
+                                ? '^\\+[1-9]\\d{1,14}$'
+                                : fieldForm.validation?.phonePattern
+                            }
+                          });
+                        }}
+                      >
+                        <MenuItem value="us">US Format (XXX) XXX-XXXX</MenuItem>
+                        <MenuItem value="international">International</MenuItem>
+                        <MenuItem value="custom">Custom Format</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  {fieldForm.validation?.phoneFormat === 'custom' && (
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Custom Pattern"
+                        value={fieldForm.validation?.phonePattern || ''}
+                        onChange={(e) => {
+                          updateFieldForm({
+                            validation: {
+                              ...fieldForm.validation || {},
+                              phonePattern: e.target.value
+                            }
+                          });
+                        }}
+                        helperText="Regular expression for phone validation"
+                      />
+                    </Grid>
+                  )}
+                </>
+              )}
+              
+              {/* Email validation */}
+              {fieldForm.name?.includes('email') && (
+                <>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
+                      Email Validation
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Email Validation</InputLabel>
+                      <Select
+                        value={fieldForm.validation?.emailFormat || 'standard'}
+                        label="Email Validation"
+                        onChange={(e) => {
+                          updateFieldForm({
+                            validation: {
+                              ...fieldForm.validation || {},
+                              emailFormat: e.target.value as 'standard' | 'strict' | 'loose'
+                            }
+                          });
+                        }}
+                      >
+                        <MenuItem value="standard">Standard (name@domain.com)</MenuItem>
+                        <MenuItem value="strict">Strict Validation</MenuItem>
+                        <MenuItem value="loose">Basic Format Check</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={Boolean(fieldForm.validation?.emailDomainCheck)}
+                          onChange={(e) => updateFieldForm({
+                            validation: {
+                              ...fieldForm.validation || {},
+                              emailDomainCheck: e.target.checked
+                            }
+                          })}
+                        />
+                      }
+                      label="Verify domain exists"
+                    />
+                  </Grid>
+                </>
+              )}
+              
+              {/* Address lookup */}
+              {(fieldForm.name?.includes('address') || fieldForm.name?.includes('zip') || fieldForm.name?.includes('postal')) && (
+                <>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
+                      Address Lookup
+                    </Typography>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={Boolean(fieldForm.validation?.enableAddressLookup)}
+                          onChange={(e) => updateFieldForm({
+                            validation: {
+                              ...fieldForm.validation || {},
+                              enableAddressLookup: e.target.checked
+                            }
+                          })}
+                        />
+                      }
+                      label="Enable address lookup"
+                    />
+                  </Grid>
+                  
+                  {fieldForm.validation?.enableAddressLookup && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <InputLabel>Lookup Method</InputLabel>
+                          <Select
+                            value={fieldForm.validation?.addressLookupType || 'zipcode'}
+                            label="Lookup Method"
+                            onChange={(e) => {
+                              updateFieldForm({
+                                validation: {
+                                  ...fieldForm.validation || {},
+                                  addressLookupType: e.target.value as 'postal' | 'zipcode'
+                                }
+                              });
+                            }}
+                          >
+                            <MenuItem value="zipcode">ZIP Code Lookup (US)</MenuItem>
+                            <MenuItem value="postal">Postal Code (International)</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      
+                      <Grid item xs={12}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                          Fields to populate from lookup:
+                        </Typography>
+                        
+                        <Grid container spacing={1}>
+                          <Grid item xs={6} sm={3}>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={Boolean(fieldForm.validation?.populateFields?.city)}
+                                  onChange={(e) => updateFieldForm({
+                                    validation: {
+                                      ...fieldForm.validation || {},
+                                      populateFields: {
+                                        ...fieldForm.validation?.populateFields || {},
+                                        city: e.target.checked ? 'city' : undefined
+                                      }
+                                    }
+                                  })}
+                                  size="small"
+                                />
+                              }
+                              label="City"
+                            />
+                          </Grid>
+                          
+                          <Grid item xs={6} sm={3}>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={Boolean(fieldForm.validation?.populateFields?.state)}
+                                  onChange={(e) => updateFieldForm({
+                                    validation: {
+                                      ...fieldForm.validation || {},
+                                      populateFields: {
+                                        ...fieldForm.validation?.populateFields || {},
+                                        state: e.target.checked ? 'state' : undefined
+                                      }
+                                    }
+                                  })}
+                                  size="small"
+                                />
+                              }
+                              label="State"
+                            />
+                          </Grid>
+                          
+                          <Grid item xs={6} sm={3}>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={Boolean(fieldForm.validation?.populateFields?.county)}
+                                  onChange={(e) => updateFieldForm({
+                                    validation: {
+                                      ...fieldForm.validation || {},
+                                      populateFields: {
+                                        ...fieldForm.validation?.populateFields || {},
+                                        county: e.target.checked ? 'county' : undefined
+                                      }
+                                    }
+                                  })}
+                                  size="small"
+                                />
+                              }
+                              label="County"
+                            />
+                          </Grid>
+                          
+                          <Grid item xs={6} sm={3}>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={Boolean(fieldForm.validation?.populateFields?.zipCode)}
+                                  onChange={(e) => updateFieldForm({
+                                    validation: {
+                                      ...fieldForm.validation || {},
+                                      populateFields: {
+                                        ...fieldForm.validation?.populateFields || {},
+                                        zipCode: e.target.checked ? 'zipCode' : undefined
+                                      }
+                                    }
+                                  })}
+                                  size="small"
+                                />
+                              }
+                              label="ZIP"
+                            />
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    </>
+                  )}
+                </>
+              )}
+              
+              {/* Text and Textarea validation */}
+              {(fieldForm.type === 'text' || fieldForm.type === 'textarea') && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Min Length"
+                      value={fieldForm.validation?.minLength || ''}
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            minLength: value
+                          }
+                        });
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Max Length"
+                      value={fieldForm.validation?.maxLength || ''}
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : undefined;
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            maxLength: value
+                          }
+                        });
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Regular Expression Pattern"
+                      value={fieldForm.validation?.pattern || ''}
+                      onChange={(e) => {
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            pattern: e.target.value || undefined
+                          }
+                        });
+                      }}
+                      helperText="For example: ^[A-Za-z0-9]+$ for alphanumeric only"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Pattern Error Message"
+                      value={fieldForm.validation?.patternMessage || ''}
+                      onChange={(e) => {
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            patternMessage: e.target.value || undefined
+                          }
+                        });
+                      }}
+                      helperText="Message to display when pattern validation fails"
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {/* Number field validation */}
+              {fieldForm.type === 'number' && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Minimum Value"
+                      value={fieldForm.validation?.minValue ?? ''}
+                      onChange={(e) => {
+                        const value = e.target.value ? parseFloat(e.target.value) : undefined;
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            minValue: value
+                          }
+                        });
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Maximum Value"
+                      value={fieldForm.validation?.maxValue ?? ''}
+                      onChange={(e) => {
+                        const value = e.target.value ? parseFloat(e.target.value) : undefined;
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            maxValue: value
+                          }
+                        });
+                      }}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {/* Date field validation */}
+              {fieldForm.type === 'date' && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Minimum Date"
+                      InputLabelProps={{ shrink: true }}
+                      value={fieldForm.validation?.dateRange?.min || ''}
+                      onChange={(e) => {
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            dateRange: {
+                              ...fieldForm.validation?.dateRange || {},
+                              min: e.target.value || undefined
+                            }
+                          }
+                        });
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Maximum Date"
+                      InputLabelProps={{ shrink: true }}
+                      value={fieldForm.validation?.dateRange?.max || ''}
+                      onChange={(e) => {
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            dateRange: {
+                              ...fieldForm.validation?.dateRange || {},
+                              max: e.target.value || undefined
+                            }
+                          }
+                        });
+                      }}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {/* File upload validation */}
+              {fieldForm.type === 'file' && (
+                <>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Allowed File Types"
+                      value={(fieldForm.validation?.fileTypes || []).join(', ')}
+                      onChange={(e) => {
+                        const fileTypes = e.target.value.split(',')
+                          .map(type => type.trim())
+                          .filter(type => type.length > 0);
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            fileTypes: fileTypes.length > 0 ? fileTypes : undefined
+                          }
+                        });
+                      }}
+                      helperText="Comma-separated list of file extensions (e.g., .pdf, .doc, .jpg)"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Maximum File Size (KB)"
+                      value={fieldForm.validation?.maxFileSize ? Math.round(fieldForm.validation.maxFileSize / 1024) : ''}
+                      onChange={(e) => {
+                        const sizeInKB = e.target.value ? parseInt(e.target.value) : undefined;
+                        const sizeInBytes = sizeInKB ? sizeInKB * 1024 : undefined;
+                        updateFieldForm({
+                          validation: {
+                            ...fieldForm.validation || {},
+                            maxFileSize: sizeInBytes
+                          }
+                        });
+                      }}
+                      helperText="Maximum file size in kilobytes"
+                    />
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setFieldDialogOpen(false)}>Cancel</Button>

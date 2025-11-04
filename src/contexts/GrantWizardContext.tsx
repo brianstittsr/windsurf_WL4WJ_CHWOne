@@ -273,7 +273,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Extract data based on filename patterns (simulated AI extraction)
-      const extractedData = extractDataFromDocument(file);
+      const extractedData = await extractDataFromDocument(file);
       
       // Update the grant data with the extracted information
       updateGrantData(extractedData);
@@ -285,65 +285,150 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
     }
   };
 
-  // Helper function to extract data from document (simulated AI extraction)
-  const extractDataFromDocument = (file: File): Partial<Grant> => {
+  // Helper function to extract data from document  // Simulated document analysis for demo purposes
+  const extractDataFromDocument = async (file: File): Promise<Partial<Grant>> => {
+    // Simulate analysis delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    // Check for key terms in the filename to determine grant type
     const fileName = file.name.toLowerCase();
+    const isHealth = fileName.includes('health') || Math.random() > 0.6;
+    const isEducation = !isHealth && (fileName.includes('education') || Math.random() > 0.5);
+    const isCommunity = !isHealth && !isEducation;
     
-    // Extract type and focus area based on filename
-    const isFederal = fileName.includes('federal') || fileName.includes('govt');
-    const isState = fileName.includes('state');
-    const isFoundation = fileName.includes('foundation');
-    const isHealth = fileName.includes('health') || fileName.includes('medical');
-    const isEducation = fileName.includes('education') || fileName.includes('school');
-    const isCommunity = fileName.includes('community');
+    // Check for key terms to determine funding source type
+    const isFederal = fileName.includes('federal') || Math.random() > 0.6;
+    const isState = !isFederal && (fileName.includes('state') || Math.random() > 0.5);
+    const isFoundation = !isFederal && !isState;
     
-    // Create collaborating entities
+    // Create more comprehensive collaborating entities
     const collabEntities: CollaboratingEntity[] = [
       {
         id: `entity-${Date.now()}-1`,
-        name: isHealth ? 'Regional Health Alliance' : 
-              isEducation ? 'Education Foundation' :
-              isCommunity ? 'Community Partners Coalition' : 'Lead Organization',
+        name: isHealth ? 'Regional Health Department' : 
+              isEducation ? 'State Education Agency' :
+              isCommunity ? 'Community Development Corporation' : 'Lead Organization',
         role: 'lead',
-        description: 'Primary grant administrator responsible for overall grant management',
-        contactName: 'Alex Johnson',
-        contactEmail: 'alex@example.org',
-        contactPhone: '555-123-4567',
-        responsibilities: ['Grant administration', 'Financial oversight', 'Progress reporting']
+        description: 'Primary grant administrator responsible for overall program management, financial oversight, and compliance with funding requirements.',
+        contactName: 'Dr. Alexandra Johnson',
+        contactEmail: 'alexandra.johnson@rhd.org',
+        contactPhone: '(555) 123-4567',
+        responsibilities: ['Grant administration', 'Financial oversight', 'Compliance reporting', 'Program evaluation', 'Stakeholder coordination']
       },
       {
         id: `entity-${Date.now()}-2`,
-        name: isHealth ? 'Community Health Center' : 
-              isEducation ? 'Local School District' :
-              isCommunity ? 'Neighborhood Association' : 'Partner Organization',
+        name: isHealth ? 'Community Health Worker Association' : 
+              isEducation ? 'Metropolitan School District' :
+              isCommunity ? 'Neighborhood Development Alliance' : 'Implementation Partner',
         role: 'partner',
-        description: 'Service delivery partner responsible for implementation',
-        contactName: 'Sam Rivera',
-        contactEmail: 'sam@example.org',
-        contactPhone: '555-987-6543',
-        responsibilities: ['Service delivery', 'Data collection', 'Community engagement']
+        description: 'Primary service delivery partner responsible for direct implementation of grant activities and community engagement strategies.',
+        contactName: 'Samuel Rivera, MPH',
+        contactEmail: 'srivera@chwa.org',
+        contactPhone: '(555) 987-6543',
+        responsibilities: ['Service delivery', 'Community outreach', 'Data collection', 'Staff training', 'Direct participant engagement']
+      },
+      {
+        id: `entity-${Date.now()}-3`,
+        name: isHealth ? 'Health Metrics Institute' : 
+              isEducation ? 'Educational Research Consortium' :
+              isCommunity ? 'Urban Planning Analytics' : 'Evaluation Partner',
+        role: 'evaluator',
+        description: 'Independent evaluator responsible for measuring outcomes and providing analysis of program effectiveness.',
+        contactName: 'Dr. Priya Sharma',
+        contactEmail: 'psharma@hmi.edu',
+        contactPhone: '(555) 456-7890',
+        responsibilities: ['Outcome measurement', 'Data analysis', 'Evaluation report development', 'Research methodology design']
+      },
+      {
+        id: `entity-${Date.now()}-4`,
+        name: isHealth ? 'Patient Advocacy Coalition' : 
+              isEducation ? 'Parent-Teacher Association' :
+              isCommunity ? 'Resident Advisory Council' : 'Stakeholder Representative',
+        role: 'stakeholder',
+        description: 'Representative organization for program beneficiaries, providing community voice and feedback in program implementation.',
+        contactName: 'Maria Gonzalez',
+        contactEmail: 'mgonzalez@pacadvocacy.org',
+        contactPhone: '(555) 234-5678',
+        responsibilities: ['Community feedback collection', 'Beneficiary representation', 'Advisory committee participation', 'Program accessibility review']
       }
     ];
     
-    // Create data collection methods
+    // Create more detailed data collection methods
     const methods: DataCollectionMethod[] = [
       {
         id: `method-${Date.now()}-1`,
-        name: 'Participant Tracking System',
-        description: 'Digital system for monitoring program participation',
-        frequency: 'weekly',
+        name: isHealth ? 'Patient Encounter Tracking' :
+              isEducation ? 'Student Performance Monitoring' :
+              'Participant Service Tracking',
+        description: 'Comprehensive system for recording all participant interactions, services provided, and immediate outcomes.',
+        frequency: 'daily',
         responsibleEntity: collabEntities[1].name,
-        dataPoints: ['Participant name', 'Service date', 'Service type', 'Duration'],
-        tools: ['Database application', 'Mobile app', 'Paper forms']
+        dataPoints: [
+          'Participant ID', 
+          'Service date', 
+          'Service duration', 
+          'Service type', 
+          'Provider information',
+          'Service location',
+          'Immediate outcomes',
+          'Follow-up needed'
+        ],
+        tools: ['Mobile data collection app', 'Electronic records system', 'Backup paper forms']
       },
       {
         id: `method-${Date.now()}-2`,
-        name: 'Outcome Assessment',
-        description: 'Quarterly evaluation of program outcomes',
+        name: isHealth ? 'Health Outcome Assessments' :
+              isEducation ? 'Academic Progress Evaluation' :
+              'Program Impact Measurement',
+        description: 'Structured evaluation of key program outcomes measured against established baselines and targets.',
+        frequency: 'monthly',
+        responsibleEntity: collabEntities[2].name,
+        dataPoints: [
+          'Outcome indicators', 
+          'Baseline measurements', 
+          'Target metrics', 
+          'Variance analysis',
+          'Demographic breakdown',
+          'Geographic distribution',
+          'Comparative benchmarks'
+        ],
+        tools: ['Statistical analysis software', 'Survey platform', 'Visualization tools']
+      },
+      {
+        id: `method-${Date.now()}-3`,
+        name: isHealth ? 'Community Health Surveys' :
+              isEducation ? 'Stakeholder Feedback Collection' :
+              'Participant Experience Assessment',
+        description: 'Regular collection of feedback from program participants and stakeholders regarding service quality and impact.',
         frequency: 'quarterly',
+        responsibleEntity: collabEntities[3].name,
+        dataPoints: [
+          'Satisfaction scores', 
+          'Qualitative feedback', 
+          'Service improvement suggestions', 
+          'Reported impact',
+          'Unmet needs identification',
+          'Accessibility barriers'
+        ],
+        tools: ['Online survey tool', 'Focus group protocols', 'Interview guides', 'Feedback management system']
+      },
+      {
+        id: `method-${Date.now()}-4`,
+        name: isHealth ? 'Cost-Benefit Analysis' :
+              isEducation ? 'Resource Utilization Assessment' :
+              'Program Efficiency Evaluation',
+        description: 'Systematic analysis of program costs relative to measured outcomes and benefits.',
+        frequency: 'annually',
         responsibleEntity: collabEntities[0].name,
-        dataPoints: ['Key indicators', 'Satisfaction metrics', 'Impact measures'],
-        tools: ['Survey platform', 'Data analytics tool']
+        dataPoints: [
+          'Program expenditures', 
+          'Cost per participant', 
+          'Return on investment', 
+          'Cost-effectiveness ratio',
+          'Resource allocation efficiency',
+          'Comparative cost analysis'
+        ],
+        tools: ['Financial analysis software', 'Economic modeling tools', 'Cost tracking system']
       }
     ];
     

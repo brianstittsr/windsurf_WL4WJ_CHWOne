@@ -70,33 +70,73 @@ export function ReportScheduler({
     contractDeliverable: false
   });
   
-  // Helper function to generate new report section
+  // Helper function to generate new report section based on standards
   const generateNewSection = () => ({
     id: `section-${Date.now()}`,
     title: 'New Section',
     description: 'Enter description here',
-    dataSource: 'manual_entry',
-    visualizationType: 'text' as 'text' | 'table' | 'chart' | 'metric'
+    dataSource: 'project_milestones',
+    visualizationType: 'chart' as 'text' | 'table' | 'chart' | 'metric',
+    chartType: 'bar' as 'line' | 'bar' | 'pie' | 'scatter' | 'area'
   });
   
-  // Open create/edit dialog
+  // Open create/edit dialog with standardized templates
   const openReportDialog = (report?: ReportTemplate) => {
     if (report) {
       setReportForm({...report});
       setSelectedReport(report);
     } else {
-      // Create new report template
+      // Create new report template with standardized sections
       setReportForm({
         id: `report-${Date.now()}`,
-        name: '',
-        description: '',
+        name: 'Quarterly Performance Report',
+        description: 'Standardized performance report covering key metrics and outcomes',
         format: 'pdf',
-        sections: [generateNewSection()],
+        sections: [
+          {
+            id: `section-${Date.now()}-1`,
+            title: 'Executive Summary',
+            description: 'Overview of key findings and recommendations',
+            dataSource: 'ai_analysis',
+            visualizationType: 'text'
+          },
+          {
+            id: `section-${Date.now()}-2`,
+            title: 'Milestone Progress',
+            description: 'Status of project milestones and timeline adherence',
+            dataSource: 'project_milestones',
+            visualizationType: 'chart',
+            chartType: 'bar'
+          },
+          {
+            id: `section-${Date.now()}-3`,
+            title: 'Budget Utilization',
+            description: 'Financial performance against projections',
+            dataSource: 'budget_data',
+            visualizationType: 'chart',
+            chartType: 'line'
+          },
+          {
+            id: `section-${Date.now()}-4`,
+            title: 'Participant Demographics',
+            description: 'Breakdown of program participants by key demographics',
+            dataSource: 'form_submissions',
+            visualizationType: 'chart',
+            chartType: 'pie'
+          },
+          {
+            id: `section-${Date.now()}-5`,
+            title: 'Key Performance Indicators',
+            description: 'Metrics tracking for core program objectives',
+            dataSource: 'performance_metrics',
+            visualizationType: 'table'
+          }
+        ],
         deliverySchedule: {
-          frequency: 'monthly',
-          recipients: []
+          frequency: 'quarterly',
+          recipients: ['Program Director', 'Funding Agency Representative']
         },
-        contractDeliverable: false
+        contractDeliverable: true
       });
       setSelectedReport(null);
     }
