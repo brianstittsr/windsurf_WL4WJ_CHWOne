@@ -33,7 +33,11 @@ import {
   Switch,
   Tooltip,
   LinearProgress,
-  Stack
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import { 
   Add as AddIcon,
@@ -48,16 +52,27 @@ import {
   ArrowUpward as TrendUpIcon,
   ArrowDownward as TrendDownIcon,
   Remove as TrendFlatIcon,
-  InsertDriveFile as FileTextIcon
+  InsertDriveFile as FileTextIcon,
+  TableChart as TableChartIcon,
+  PieChart as PieChartIcon,
+  RemoveRedEye as PreviewIcon
 } from '@mui/icons-material';
 import { useGrantWizard } from '@/contexts/GrantWizardContext';
 import { DashboardMetric, ReportTemplate } from '@/types/grant.types';
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend,
+  ResponsiveContainer, AreaChart, Area
+} from 'recharts';
 
 export function Step7AIDashboard() {
   const { grantData, updateGrantData } = useGrantWizard();
   const [tabIndex, setTabIndex] = useState(0);
   const [dashboardMetrics, setDashboardMetrics] = useState<DashboardMetric[]>(grantData.dashboardMetrics || []);
   const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>(grantData.reportTemplates || []);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [reportPreviewOpen, setReportPreviewOpen] = useState(false);
   
   // Generate sample metrics and report templates if none exist
   useEffect(() => {
@@ -500,6 +515,122 @@ export function Step7AIDashboard() {
     );
   };
   
+  // Function to refresh metrics with animation
+  const refreshMetrics = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      // Update metrics with slightly changed values to simulate real data refresh
+      const refreshedMetrics = dashboardMetrics.map(metric => {
+        const randomChange = Math.random() * 10 - 5; // Random change between -5 and 5
+        const newValue = typeof metric.value === 'number' ? 
+          Math.max(0, Math.min(100, metric.value + randomChange)) : 
+          metric.value;
+          
+        const previousValue = metric.value;
+        const trendValue = newValue > previousValue ? 'up' : newValue < previousValue ? 'down' : 'flat';
+        const trendPercentage = typeof previousValue === 'number' ? 
+          Math.abs(Math.round(((newValue as number - previousValue as number) / (previousValue as number)) * 100)) : 0;
+        
+        return {
+          ...metric,
+          value: newValue,
+          previousValue,
+          trend: trendValue as 'up' | 'down' | 'flat',
+          trendPercentage,
+          aiInsight: generateAIInsight(metric.name, newValue as number, trendValue)
+        };
+      });
+      
+      setDashboardMetrics(refreshedMetrics);
+      updateGrantData({ dashboardMetrics: refreshedMetrics });
+      setIsRefreshing(false);
+    }, 1500); // Simulate processing delay
+  };
+  
+  // Function to generate AI insights based on metric name and value
+  const generateAIInsight = (name: string, value: number, trend: string): string => {
+    const insights = [
+      `${name} is trending ${trend === 'up' ? 'positively' : trend === 'down' ? 'negatively' : 'steadily'}.`,
+      `Recent changes in ${name.toLowerCase()} suggest ${trend === 'up' ? 'improvement' : trend === 'down' ? 'potential issues' : 'stability'}.`,
+      `Based on historical patterns, ${name.toLowerCase()} is ${value > 80 ? 'performing exceptionally well' : value > 60 ? 'performing well' : value > 40 ? 'performing adequately' : 'needs attention'}.`,
+      `${trend === 'up' ? 'Improvement' : trend === 'down' ? 'Decline' : 'Stability'} in ${name.toLowerCase()} correlates with recent project activities.`
+    ];
+    
+    return insights[Math.floor(Math.random() * insights.length)];
+  };
+  
+  // Generate data for project trend chart
+  const generateProjectTrendData = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    return months.map((month, index) => {
+      const progressFactor = Math.min(100, (index + 1) * 16); // Progressive increase
+      const randomFactor = Math.random() * 10;
+      
+      return {
+        month,
+        progress: Math.min(100, progressFactor + randomFactor - 5),
+        budget: Math.min(100, (index + 1) * 15 + randomFactor),
+        dataCollection: Math.min(100, progressFactor - 5 + randomFactor)
+      };
+    });
+  };
+  
+  // Generate entity contribution data for pie chart
+  const generateEntityContributionData = () => {
+    const entities = grantData.collaboratingEntities || [];
+    if (entities.length === 0) {
+      return [
+        { name: 'Lead Organization', value: 60 },
+        { name: 'Partner A', value: 25 },
+        { name: 'Partner B', value: 15 }
+      ];
+    }
+    
+    return entities.map(entity => {
+      const baseValue = entity.role === 'lead' ? 50 : 
+                        entity.role === 'partner' ? 25 :
+                        entity.role === 'evaluator' ? 15 : 10;
+      const randomFactor = Math.random() * 10;
+      
+      return {
+        name: entity.name,
+        value: baseValue + randomFactor
+      };
+    });
+  };
+  
+  // Generate milestone status data for bar chart
+  const generateMilestoneStatusData = () => {
+    const statuses = ['completed', 'in_progress', 'not_started', 'delayed'];
+    const milestones = grantData.projectMilestones || [];
+    
+    if (milestones.length === 0) {
+      return [
+        { status: 'Completed', count: 2 },
+        { status: 'In Progress', count: 3 },
+        { status: 'Not Started', count: 4 },
+        { status: 'Delayed', count: 1 }
+      ];
+    }
+    
+    const counts = statuses.map(status => {
+      return {
+        status: status === 'completed' ? 'Completed' : 
+                status === 'in_progress' ? 'In Progress' : 
+                status === 'not_started' ? 'Not Started' : 'Delayed',
+        count: milestones.filter(m => m.status === status).length || 0
+      };
+    });
+    
+    return counts;
+  };
+
+  // Function to open report preview
+  const openReportPreview = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setReportPreviewOpen(true);
+  };
+
   // Function to render the report templates
   const renderReportTemplates = () => {
     if (reportTemplates.length === 0) {
@@ -532,9 +663,9 @@ export function Step7AIDashboard() {
                     ) : report.format === 'dashboard' ? (
                       <DashboardIcon style={{ color: '#2196f3', marginRight: 8 }} />
                     ) : report.format === 'excel' ? (
-                      <TableChart style={{ color: '#388e3c', marginRight: 8 }} />
+                      <TableChartIcon style={{ color: '#388e3c', marginRight: 8 }} />
                     ) : (
-                      <Presentation style={{ color: '#ff9800', marginRight: 8 }} />
+                      <ChartIcon style={{ color: '#ff9800', marginRight: 8 }} />
                     )}
                     <div>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>{report.name}</Typography>
@@ -576,7 +707,10 @@ export function Step7AIDashboard() {
                   )}
                 </TableCell>
                 <TableCell>
-                  <IconButton size="small" onClick={() => deleteReportTemplate(report.id)}>
+                  <IconButton size="small" onClick={() => openReportPreview(report.id)} sx={{ mr: 1 }} title="Preview Report">
+                    <PreviewIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => deleteReportTemplate(report.id)} title="Delete Report">
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
@@ -588,8 +722,184 @@ export function Step7AIDashboard() {
     );
   };
 
+  // Create mock report preview dialog
+  const renderReportPreview = () => {
+    const report = reportTemplates.find(r => r.id === selectedReportId);
+    if (!report) return null;
+    
+    return (
+      <Dialog
+        open={reportPreviewOpen}
+        onClose={() => setReportPreviewOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="h6">{report.name} - Preview</Typography>
+            <Chip 
+              label={report.format.toUpperCase()}
+              color={report.format === 'pdf' ? 'error' : report.format === 'dashboard' ? 'primary' : 'default'}
+              size="small"
+            />
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          {report.sections.map((section, index) => (
+            <Box key={section.id} sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>{section.title}</Typography>
+              <Typography variant="body2" paragraph color="text.secondary">{section.description}</Typography>
+              
+              {section.visualizationType === 'chart' && section.chartType === 'bar' && (
+                <Box sx={{ height: 250, mb: 2 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={generateMilestoneStatusData()}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="status" />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Bar dataKey="count" fill="#8884d8" name="Milestones" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
+              
+              {section.visualizationType === 'chart' && section.chartType === 'pie' && (
+                <Box sx={{ height: 250, mb: 2 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={generateEntityContributionData()}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={(entry) => entry.name}
+                      >
+                        {generateEntityContributionData().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c'][index % 5]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
+              
+              {section.visualizationType === 'chart' && section.chartType === 'line' && (
+                <Box sx={{ height: 250, mb: 2 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={generateProjectTrendData()}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="progress" stroke="#8884d8" activeDot={{ r: 8 }} name="Progress" />
+                      <Line type="monotone" dataKey="budget" stroke="#82ca9d" name="Budget" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
+              
+              {section.visualizationType === 'table' && (
+                <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell><strong>Name</strong></TableCell>
+                        <TableCell><strong>Status</strong></TableCell>
+                        <TableCell><strong>Due Date</strong></TableCell>
+                        <TableCell><strong>Responsible</strong></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {grantData.projectMilestones?.slice(0, 5).map((milestone) => (
+                        <TableRow key={milestone.id}>
+                          <TableCell>{milestone.name}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={milestone.status}
+                              size="small"
+                              color={
+                                milestone.status === 'completed' ? 'success' :
+                                milestone.status === 'in_progress' ? 'primary' :
+                                milestone.status === 'delayed' ? 'error' : 'default'
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>{milestone.dueDate}</TableCell>
+                          <TableCell>{milestone.responsibleParties?.[0] || 'N/A'}</TableCell>
+                        </TableRow>
+                      )) || (
+                        <TableRow>
+                          <TableCell colSpan={4} align="center">No milestone data available</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+              
+              {section.visualizationType === 'text' && (
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#fafafa', mb: 2 }}>
+                  <Typography variant="body2">
+                    {index === 0 ? 
+                      'Executive summary content would appear here, generated automatically from project data and supplemented with AI analysis of trends and patterns.' :
+                      'Content for this text section would be populated from project data and prepared for the report.'}
+                  </Typography>
+                </Paper>
+              )}
+              
+              {section.visualizationType === 'metric' && (
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid item xs={12} md={4}>
+                    <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                      <Typography variant="h4" color="primary.main">{dashboardMetrics[0]?.value || 75}%</Typography>
+                      <Typography variant="body2">Overall Progress</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                      <Typography variant="h4" color="success.main">{dashboardMetrics[3]?.value || 95}%</Typography>
+                      <Typography variant="body2">Data Compliance</Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                      <Typography variant="h4" color="warning.main">{dashboardMetrics[1]?.value || 35}%</Typography>
+                      <Typography variant="body2">Budget Used</Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              )}
+              
+              {index < report.sections.length - 1 && <Divider sx={{ my: 2 }} />}
+            </Box>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReportPreviewOpen(false)}>Close</Button>
+          <Button variant="contained" color="primary" startIcon={<FileTextIcon />}>
+            Download {report.format.toUpperCase()}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+
   return (
     <Box sx={{ mb: 4 }}>
+      {/* Render report preview dialog */}
+      {renderReportPreview()}
+      
       <Box sx={{ mb: 3 }}>
         <Alert severity="success" sx={{ mb: 3 }}>
           <AlertTitle>AI-Powered Project Tracking</AlertTitle>
@@ -609,6 +919,36 @@ export function Step7AIDashboard() {
         
         {tabIndex === 0 && (
           <Box>
+            {/* Real-time project overview chart */}
+            <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+              <Typography variant="h6" gutterBottom>Project Overview</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Real-time visualization of project progress, budget utilization, and key performance indicators.
+              </Typography>
+              <Box sx={{ height: 300, mb: 2 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={generateProjectTrendData()}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Legend />
+                    <Area type="monotone" dataKey="progress" stackId="1" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} name="Progress" />
+                    <Area type="monotone" dataKey="budget" stackId="2" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} name="Budget Utilization" />
+                    <Area type="monotone" dataKey="dataCollection" stackId="3" stroke="#ffc658" fill="#ffc658" fillOpacity={0.6} name="Data Collection" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Box>
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="body2" color="text.secondary">Last updated: Today at 09:45 AM</Typography>
+                <Button size="small" startIcon={<UpdateIcon />}>Refresh</Button>
+              </Box>
+            </Paper>
+            
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
               <Typography variant="h6">Dashboard Metrics</Typography>
               <Box>
@@ -616,6 +956,7 @@ export function Step7AIDashboard() {
                   variant="outlined" 
                   startIcon={<UpdateIcon />}
                   sx={{ mr: 1 }}
+                  onClick={() => refreshMetrics()}
                 >
                   Refresh Data
                 </Button>
@@ -665,6 +1006,80 @@ export function Step7AIDashboard() {
         
         {tabIndex === 1 && (
           <Box>
+            {/* Report analytics visualization */}
+            <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box>
+                  <Typography variant="h6">Report Analytics</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Distribution of automated reports by type and delivery frequency.
+                  </Typography>
+                </Box>
+                <Chip 
+                  label={`${reportTemplates.length} Total Reports`}
+                  color="primary"
+                  variant="outlined"
+                />
+              </Box>
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" textAlign="center" gutterBottom>Reports by Type</Typography>
+                  <Box sx={{ height: 250 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'PDF', value: reportTemplates.filter(r => r.format === 'pdf').length || 1 },
+                            { name: 'Dashboard', value: reportTemplates.filter(r => r.format === 'dashboard').length || 1 },
+                            { name: 'Excel', value: reportTemplates.filter(r => r.format === 'excel').length || 0 },
+                            { name: 'Other', value: reportTemplates.filter(r => !['pdf', 'dashboard', 'excel'].includes(r.format)).length || 0 }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                          label
+                        >
+                          <Cell fill="#d32f2f" />
+                          <Cell fill="#2196f3" />
+                          <Cell fill="#388e3c" />
+                          <Cell fill="#ff9800" />
+                        </Pie>
+                        <RechartsTooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" textAlign="center" gutterBottom>Reports by Frequency</Typography>
+                  <Box sx={{ height: 250 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[
+                          { frequency: 'Daily', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'daily').length || 0 },
+                          { frequency: 'Weekly', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'weekly').length || 1 },
+                          { frequency: 'Monthly', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'monthly').length || 1 },
+                          { frequency: 'Quarterly', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'quarterly').length || 1 },
+                          { frequency: 'Annually', count: reportTemplates.filter(r => r.deliverySchedule?.frequency === 'annually').length || 0 }
+                        ]}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="frequency" />
+                        <YAxis />
+                        <RechartsTooltip />
+                        <Bar dataKey="count" fill="#3f51b5" name="Reports" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
+            
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
               <Typography variant="h6">Automated Reports</Typography>
               <Button 
@@ -794,7 +1209,62 @@ export function Step7AIDashboard() {
               </Grid>
             </Grid>
             
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
+            {/* Entity collaboration visualization */}
+            <Box sx={{ mt: 4, mb: 3 }}>
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>Entity Collaboration Analysis</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  AI analysis of contribution and coordination between collaborating entities.
+                </Typography>
+                
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" textAlign="center" gutterBottom>Entity Contribution</Typography>
+                    <Box sx={{ height: 300 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={generateEntityContributionData()}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={(entry) => entry.name}
+                          >
+                            {generateEntityContributionData().map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c'][index % 5]} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle2" textAlign="center" gutterBottom>Milestone Status</Typography>
+                    <Box sx={{ height: 300 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={generateMilestoneStatusData()}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="status" />
+                          <YAxis />
+                          <RechartsTooltip />
+                          <Bar dataKey="count" fill="#8884d8" name="Milestones" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Box>
+            
+            <Box sx={{ textAlign: 'center', mt: 3 }}>
               <Button 
                 variant="contained"
                 color="primary"
@@ -806,14 +1276,5 @@ export function Step7AIDashboard() {
         )}
       </Box>
     </Box>
-  );
 }
 
-// Mock components for missing icons
-function TableChart(props: any) {
-  return <div style={props.style}>📊</div>;
-}
-
-function Presentation(props: any) {
-  return <div style={props.style}>🎯</div>;
-}
