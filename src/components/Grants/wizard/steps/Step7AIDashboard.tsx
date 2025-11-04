@@ -494,7 +494,7 @@ export function Step7AIDashboard() {
                     </Box>
                     <LinearProgress 
                       variant="determinate" 
-                      value={Math.min(((metric.value as number / metric.target as number) * 100), 100)} 
+                      value={Math.min(((typeof metric.value === 'number' && typeof metric.target === 'number') ? (metric.value / metric.target * 100) : 0), 100)} 
                       sx={{ mt: 0.5 }}
                     />
                   </Box>
@@ -1277,4 +1277,3 @@ export function Step7AIDashboard() {
       </Box>
     </Box>
 }
-

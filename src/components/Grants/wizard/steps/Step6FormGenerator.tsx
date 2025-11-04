@@ -71,6 +71,26 @@ export function Step6FormGenerator() {
     isNew: false 
   });
   
+  // Local state for field form
+  const [fieldForm, setFieldForm] = useState<FormField>({
+    id: '',
+    name: '',
+    label: '',
+    type: 'text',
+    required: true,
+    placeholder: '',
+    width: 'full',
+    helpText: ''
+  });
+  
+  // Local state for section form
+  const [sectionForm, setSectionForm] = useState<Partial<FormSection>>({
+    id: '',
+    title: '',
+    description: '',
+    fields: []
+  });
+  
   // Generate form templates based on data collection methods
   useEffect(() => {
     // Only auto-generate if no templates exist yet and we have data collection methods
@@ -793,42 +813,52 @@ export function Step6FormGenerator() {
     );
   };
 
+  // Update field form
+  const updateFieldForm = (updates: Partial<FormField>) => {
+    setFieldForm(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
+  
+  // Generate field name from label
+  const generateFieldName = (label: string) => {
+    return label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+  };
+  
+  // Reset field form when dialog opens
+  useEffect(() => {
+    if (fieldDialogOpen) {
+      const initialField = editingField.field || {
+        id: `field-${Date.now()}`,
+        name: '',
+        label: '',
+        type: 'text',
+        required: true,
+        placeholder: '',
+        width: 'full',
+        helpText: ''
+      };
+      setFieldForm(initialField);
+    }
+  }, [fieldDialogOpen, editingField]);
+  
+  // Reset section form when dialog opens
+  useEffect(() => {
+    if (sectionDialogOpen) {
+      const initialSection = editingSection.section || {
+        id: '',
+        title: '',
+        description: '',
+        fields: []
+      };
+      setSectionForm({...initialSection});
+    }
+  }, [sectionDialogOpen, editingSection]);
+  
   // Field editing dialog
   const renderFieldEditDialog = () => {
     const isNewField = editingField.isNew;
-    const initialField = editingField.field || {
-      id: `field-${Date.now()}`,
-      name: '',
-      label: '',
-      type: 'text',
-      required: true,
-      placeholder: '',
-      width: 'full',
-      helpText: ''
-    };
-    
-    // Local state for field form
-    const [fieldForm, setFieldForm] = useState<FormField>(initialField);
-    
-    // Update field form
-    const updateFieldForm = (updates: Partial<FormField>) => {
-      setFieldForm(prev => ({
-        ...prev,
-        ...updates
-      }));
-    };
-    
-    // Generate field name from label
-    const generateFieldName = (label: string) => {
-      return label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    };
-    
-    useEffect(() => {
-      // Reset field form when dialog opens
-      if (fieldDialogOpen) {
-        setFieldForm(initialField);
-      }
-    }, [fieldDialogOpen, editingField]);
     
     return (
       <Dialog 
@@ -970,33 +1000,17 @@ export function Step6FormGenerator() {
     );
   };
   
+  // Update section form
+  const updateSectionForm = (updates: Partial<FormSection>) => {
+    setSectionForm(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
+  
   // Section editing dialog
   const renderSectionEditDialog = () => {
     const isNewSection = editingSection.isNew;
-    const initialSection = editingSection.section || {
-      id: '',
-      title: '',
-      description: '',
-      fields: []
-    };
-    
-    // Local state for section form
-    const [sectionForm, setSectionForm] = useState<Partial<FormSection>>({...initialSection});
-    
-    // Update section form
-    const updateSectionForm = (updates: Partial<FormSection>) => {
-      setSectionForm(prev => ({
-        ...prev,
-        ...updates
-      }));
-    };
-    
-    useEffect(() => {
-      // Reset section form when dialog opens
-      if (sectionDialogOpen) {
-        setSectionForm({...initialSection});
-      }
-    }, [sectionDialogOpen, editingSection]);
     
     return (
       <Dialog 

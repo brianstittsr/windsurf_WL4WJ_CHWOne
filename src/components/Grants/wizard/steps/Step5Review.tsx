@@ -41,7 +41,7 @@ import {
 import { useGrantWizard } from '@/contexts/GrantWizardContext';
 
 export function Step5Review() {
-  const { grantData } = useGrantWizard();
+  const { grantData, updateGrantData } = useGrantWizard();
   const [relationshipNotes, setRelationshipNotes] = useState(grantData.entityRelationshipNotes || '');
   interface Recommendation {
     id: string;
@@ -70,11 +70,11 @@ export function Step5Review() {
   useEffect(() => {
     if (relationshipNotes !== grantData.entityRelationshipNotes) {
       const debounce = setTimeout(() => {
-        useGrantWizard().updateGrantData({ entityRelationshipNotes: relationshipNotes });
+        updateGrantData({ entityRelationshipNotes: relationshipNotes });
       }, 500);
       return () => clearTimeout(debounce);
     }
-  }, [relationshipNotes]);
+  }, [relationshipNotes, updateGrantData, grantData.entityRelationshipNotes]);
 
   // Generate recommendations based on grant data
   useEffect(() => {
