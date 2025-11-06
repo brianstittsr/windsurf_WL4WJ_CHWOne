@@ -255,17 +255,22 @@ export default function AdminCHWAssociations() {
       }
       
       // Create association via service
-      await CHWAssociationService.createAssociation({
+      const newAssociation = await CHWAssociationService.createAssociation({
         name: associationFormData.name,
         description: associationFormData.description,
         stateId: associationFormData.stateId,
         contactInfo: associationFormData.contactInfo,
         logo: associationFormData.logo,
         primaryColor: associationFormData.primaryColor,
-        isActive: associationFormData.isActive,
+        // isActive will be set to true by default in the service
         approvalStatus: associationFormData.approvalStatus,
         administrators: [], // No admins initially
       });
+      
+      // Update active status if needed (the default is already true, so we only need to change if false)
+      if (!associationFormData.isActive) {
+        await CHWAssociationService.setUserActiveStatus(newAssociation.id, false);
+      }
       
       // Close dialog and refresh list
       handleCloseDialog();
@@ -298,9 +303,15 @@ export default function AdminCHWAssociations() {
         contactInfo: associationFormData.contactInfo,
         logo: associationFormData.logo,
         primaryColor: associationFormData.primaryColor,
-        isActive: associationFormData.isActive,
+        // isActive is handled separately since it's part of BaseEntity
         approvalStatus: associationFormData.approvalStatus,
       });
+      
+      // Update the isActive status separately
+      if (associationFormData.isActive !== undefined) {
+        // This is a custom method in our service specifically for active status
+        await CHWAssociationService.setUserActiveStatus(editingAssociationId, associationFormData.isActive);
+      }
       
       // Close dialog and refresh list
       handleCloseDialog();
@@ -331,9 +342,8 @@ export default function AdminCHWAssociations() {
   // Function to toggle association active status
   const handleToggleActive = async (association: WithDate<CHWAssociation>) => {
     try {
-      await CHWAssociationService.updateAssociation(association.id, {
-        isActive: !association.isActive,
-      });
+      // Use the dedicated method for toggling active status
+      await CHWAssociationService.setUserActiveStatus(association.id, !association.isActive);
       fetchData();
     } catch (err: any) {
       console.error('Error toggling association status:', err);

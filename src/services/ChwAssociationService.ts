@@ -196,6 +196,15 @@ class CHWAssociationService {
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
   }
+  
+  // Set active status for an association
+  static async setUserActiveStatus(associationId: string, isActive: boolean): Promise<void> {
+    const docRef = doc(db, this.COLLECTION_NAME, associationId);
+    await updateDoc(docRef, {
+      isActive: isActive,
+      updatedAt: serverTimestamp()
+    });
+  }
 }
 
 export default CHWAssociationService;
