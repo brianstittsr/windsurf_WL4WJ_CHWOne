@@ -397,20 +397,18 @@ export function ReportScheduler({
                 options={['Project Manager', 'Grant Administrator', 'Evaluator', 'Stakeholder', 'Partner Organization']}
                 value={reportForm.deliverySchedule?.recipients || []}
                 onChange={(_, value) => handleScheduleChange('recipients', value)}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => {
-                    // getTagProps already includes a key prop
-                    const tagProps = getTagProps({ index });
-                    return (
-                      <Chip
-                        variant="outlined"
-                        label={option}
-                        size="small"
-                        {...tagProps}
-                      />
-                    );
-                  })
-                }
+                renderTags={(value, getTagProps) => {
+                  // Explicitly create array of chip components with keys
+                  return value.map((option, index) => (
+                    <Chip
+                      key={`recipient-tag-${index}`}
+                      variant="outlined"
+                      label={option}
+                      size="small"
+                      onDelete={getTagProps({ index }).onDelete}
+                    />
+                  ));
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
