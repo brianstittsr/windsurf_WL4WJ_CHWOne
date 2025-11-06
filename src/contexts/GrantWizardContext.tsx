@@ -93,10 +93,13 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
   const totalSteps = 7; // Updated for all 7 wizard steps
 
   const updateGrantData = (data: Partial<Grant>) => {
-    setGrantData((prev) => ({
-      ...prev,
-      ...data,
-    }));
+    console.log('Updating grant data with:', data);
+    // Use a callback to ensure we're working with the latest state
+    setGrantData(prev => {
+      const updatedData = { ...prev, ...data };
+      console.log('Updated grant data:', updatedData);
+      return updatedData;
+    });
   };
 
   const updateOrganization = (org: Organization) => {
@@ -278,20 +281,25 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       });
       
       if (!response.ok) {
+        console.error(`API Error: ${response.status} ${response.statusText}`);
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
       
       const result = await response.json();
+      console.log('API Response:', result); // Log the full response for debugging
       
       if (!result.success) {
+        console.error(`Analysis failed: ${result.error || 'Unknown error'}`);
         throw new Error(`Analysis failed: ${result.error || 'Unknown error'}`);
       }
       
       // Process the analyzed data
       const extractedData = processAnalyzedData(result.analyzedData);
+      console.log('Processed data for form population:', extractedData); // Log processed data
       
       // Update the grant data with the extracted information
       updateGrantData(extractedData);
+      console.log('Updated grant data:', extractedData); // Log updated data
       setHasPrepopulatedData(true);
     } catch (error) {
       console.error('Error analyzing document:', error);
@@ -299,6 +307,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       if (process.env.NODE_ENV === 'development') {
         console.warn('Falling back to mock data due to OpenAI API error');
         const extractedData = await extractDataFromDocument(file);
+        console.log('Using fallback mock data:', extractedData);
         updateGrantData(extractedData);
         setHasPrepopulatedData(true);
       }

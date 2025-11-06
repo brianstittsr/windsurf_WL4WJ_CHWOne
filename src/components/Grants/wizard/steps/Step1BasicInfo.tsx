@@ -36,9 +36,11 @@ export function Step1BasicInfo() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showAnalysisSuccess, setShowAnalysisSuccess] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      setAnalysisError(null); // Reset any previous errors
       const newFiles = Array.from(e.target.files);
       setUploadedFiles([...uploadedFiles, ...newFiles]);
       
@@ -63,11 +65,19 @@ export function Step1BasicInfo() {
           // Start AI analysis of the document
           analyzeDocument(newFiles[0]);
           
-          // Show success message after analysis completes
+          // Show success message after a delay
+          // This is a temporary solution until we implement proper async handling
           setTimeout(() => {
-            setShowAnalysisSuccess(true);
-            setTimeout(() => setShowAnalysisSuccess(false), 5000); // Hide after 5 seconds
-          }, 2500);
+            console.log('Checking grant data after analysis:', grantData);
+            // Check if data was populated
+            if (grantData.name || grantData.description || grantData.fundingSource) {
+              setShowAnalysisSuccess(true);
+              setTimeout(() => setShowAnalysisSuccess(false), 5000); // Hide after 5 seconds
+            } else {
+              setAnalysisError('Document was processed but no grant data was extracted. Please try a different document.');
+              setUploadStatus('error');
+            }
+          }, 3000); // Give it 3 seconds to process
         }
       }, 300);
     }
@@ -144,6 +154,58 @@ export function Step1BasicInfo() {
                 <AlertTitle>Document Analyzed Successfully</AlertTitle>
                 Form fields have been pre-populated based on document analysis. Review and adjust as needed.
               </Alert>
+            )}
+            {analysisError && (
+              <Alert severity="error" sx={{ mt: 2, mx: 'auto', maxWidth: 500 }}>
+                <AlertTitle>Analysis Error</AlertTitle>
+                {analysisError}
+              </Alert>
+            )}
+            {/* Debug view */}
+            {process.env.NODE_ENV === 'development' && (
+              <Box sx={{ mt: 2, textAlign: 'left', p: 1, bgcolor: '#f5f5f5', borderRadius: 1, fontSize: '12px' }}>
+                <Typography variant="caption" component="div" sx={{ fontWeight: 'bold' }}>
+                  Debug - Grant Data:
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    onClick={() => console.log('Current grant data:', grantData)}
+                  >
+                    Log Data to Console
+                  </Button>
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    color="secondary"
+                    onClick={() => {
+                      // Test update with mock data
+                      updateGrantData({
+                        name: 'Test Grant ' + new Date().toLocaleTimeString(),
+                        description: 'This is a test description',
+                        fundingSource: 'Test Source',
+                        startDate: '2023-01-01',
+                        endDate: '2023-12-31'
+                      });
+                    }}
+                  >
+                    Test Update
+                  </Button>
+                </Box>
+                <pre style={{ fontSize: '10px', overflow: 'auto', maxHeight: '150px' }}>
+                  {JSON.stringify({
+                    name: grantData.name, 
+                    description: grantData.description, 
+                    fundingSource: grantData.fundingSource, 
+                    startDate: grantData.startDate, 
+                    endDate: grantData.endDate,
+                    isAnalyzing: isAnalyzingDocument,
+                    uploadStatus: uploadStatus,
+                    error: analysisError
+                  }, null, 2)}
+                </pre>
+              </Box>
             )}
           </Box>
         )}
