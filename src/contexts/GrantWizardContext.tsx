@@ -313,37 +313,11 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         };
       }
       
-      // Special handling for PDF files
+      // We'll now handle PDFs through the API with the improved PDF.js-extract library
+      // No special client-side handling needed anymore
       if (isPdf) {
         addAnalysisStep('Processing PDF document');
-        addAnalysisStep('Attempting to extract text from PDF');
-        
-        try {
-          addAnalysisStep('PDF text extraction in progress...');
-          // Give some time to show the steps in the modal
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          addAnalysisStep('PDF text extraction completed');
-          addAnalysisStep('Analyzing document content');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          addAnalysisStep('Generating structured data from document');
-          const extractedData = await extractDataFromDocument(file);
-          
-          addAnalysisStep('✅ Data extraction successful');
-          addAnalysisStep('Populating form fields with extracted data');
-          updateGrantData(extractedData);
-          setHasPrepopulatedData(true);
-          
-          return { 
-            success: true, 
-            note: 'Using locally generated data for PDF files', 
-            steps: analysisSteps 
-          };
-        } catch (error) {
-          addAnalysisStep(`❌ Error during PDF processing: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          throw error;
-        }
+        addAnalysisStep('Using pdf.js-extract for text extraction');
       }
       
       // Prepare for API call
