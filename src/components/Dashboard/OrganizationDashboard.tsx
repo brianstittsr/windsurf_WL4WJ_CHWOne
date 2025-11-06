@@ -293,6 +293,15 @@ export default function OrganizationDashboard() {
     return baseActions;
   };
   
+  // Helper function to ensure direction is a valid literal
+  const ensureValidDirection = (direction: string): 'up' | 'down' | 'neutral' => {
+    if (direction === 'up' || direction === 'down' || direction === 'neutral') {
+      return direction as 'up' | 'down' | 'neutral';
+    }
+    // Default to neutral for invalid strings
+    return 'neutral';
+  };
+
   // Get metric cards based on organization type
   const getMetricCards = () => {
     const baseMetrics = [
@@ -301,7 +310,7 @@ export default function OrganizationDashboard() {
         value: 14,
         subtitle: 'This month',
         icon: <AssignmentIcon />,
-        trend: { value: 8, label: 'since last month', direction: 'up' }
+        trend: { value: 8, label: 'since last month', direction: ensureValidDirection('up') }
       }
     ];
     
@@ -314,14 +323,14 @@ export default function OrganizationDashboard() {
             value: 7,
             subtitle: 'Requiring action',
             icon: <AssignmentIcon />,
-            trend: { value: 2, label: 'since yesterday', direction: 'down' }
+            trend: { value: 2, label: 'since yesterday', direction: ensureValidDirection('down') }
           },
           {
             title: 'Clients Served',
             value: 24,
             subtitle: 'This month',
             icon: <UsersIcon />,
-            trend: { value: 12, label: 'since last month', direction: 'up' }
+            trend: { value: 12, label: 'since last month', direction: ensureValidDirection('up') }
           }
         ];
       
@@ -333,14 +342,14 @@ export default function OrganizationDashboard() {
             value: 5,
             subtitle: 'Closing this month',
             icon: <GrantsIcon />,
-            trend: { value: 2, label: 'since last week', direction: 'up' }
+            trend: { value: 2, label: 'since last week', direction: ensureValidDirection('up') }
           },
           {
             title: 'Team Members',
             value: 18,
             subtitle: 'Active this week',
             icon: <UsersIcon />,
-            trend: { value: 5, label: 'since last month', direction: 'up' }
+            trend: { value: 5, label: 'since last month', direction: ensureValidDirection('up') }
           }
         ];
       
@@ -352,14 +361,14 @@ export default function OrganizationDashboard() {
             value: 3,
             subtitle: 'Next 30 days',
             icon: <EventIcon />,
-            trend: { value: 1, label: 'since last month', direction: 'up' }
+            trend: { value: 1, label: 'since last month', direction: ensureValidDirection('up') }
           },
           {
             title: 'CHW Members',
             value: 42,
             subtitle: 'Active members',
             icon: <UsersIcon />,
-            trend: { value: 8, label: 'since last quarter', direction: 'up' }
+            trend: { value: 8, label: 'since last quarter', direction: ensureValidDirection('up') }
           }
         ];
       
@@ -371,14 +380,14 @@ export default function OrganizationDashboard() {
             value: 16,
             subtitle: 'Registered entities',
             icon: <UsersIcon />,
-            trend: { value: 3, label: 'since last month', direction: 'up' }
+            trend: { value: 3, label: 'since last month', direction: ensureValidDirection('up') }
           },
           {
             title: 'Active Grants',
             value: 8,
             subtitle: 'In progress',
             icon: <GrantsIcon />,
-            trend: { value: 2, label: 'since last quarter', direction: 'up' }
+            trend: { value: 2, label: 'since last quarter', direction: ensureValidDirection('up') }
           }
         ];
       
