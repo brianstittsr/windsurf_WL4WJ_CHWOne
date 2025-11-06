@@ -179,6 +179,7 @@ export interface UserProfile extends BaseEntity {
   chwAssociationId?: string;
   nonprofitId?: string;
   stateId?: string;
+  regionId?: string; // Region the user belongs to
   chwId?: string; // If the user is a CHW
   permissions: Record<string, boolean>;
   phoneNumber?: string;
