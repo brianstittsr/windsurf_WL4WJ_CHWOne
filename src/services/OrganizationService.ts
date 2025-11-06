@@ -100,6 +100,7 @@ const toAppOrganization = (id: string, data: any): WithDate<Organization> => {
 class OrganizationService {
   private static readonly COLLECTION_NAME = 'organizations';
 
+  // Using CreateEntity<Organization> to include optional isActive and id properties from the BaseEntity
   static async createOrganization(orgData: CreateEntity<Organization> & { regionId?: string; chwAssociationId?: string }): Promise<WithDate<Organization>> {
     // Validate organization type and required fields
     if (orgData.type === 'nonprofit' && !orgData.regionId) {
