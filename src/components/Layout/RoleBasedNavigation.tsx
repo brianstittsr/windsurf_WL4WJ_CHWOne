@@ -157,21 +157,22 @@ export default function RoleBasedNavigation({ onNavigate, showOrgLabel = true }:
                   title={toolConfig.description} 
                   placement="right"
                 >
-                  <NavButton
-                    component={ClickableLink}
-                    href={`/${tool}`}
-                    startIcon={iconMap[tool] || null}
-                    fullWidth
-                    color="inherit"
-                    onClick={handleNavClick}
-                    sx={{
-                      '&:hover': {
-                        bgcolor: 'rgba(25, 118, 210, 0.08)', // Light blue hover
-                      }
-                    }}
-                  >
-                    {toolConfig.label}
-                  </NavButton>
+                  <ClickableLink href={`/${tool}`}>
+                    <NavButton
+                      startIcon={iconMap[tool] || null}
+                      fullWidth
+                      color="inherit"
+                      onClick={handleNavClick}
+                      sx={{
+                        '&:hover': {
+                          bgcolor: 'rgba(25, 118, 210, 0.08)', // Light blue hover
+                        },
+                        width: '100%' // Ensure button takes full width
+                      }}
+                    >
+                      {toolConfig.label}
+                    </NavButton>
+                  </ClickableLink>
                 </Tooltip>
               );
             })}
@@ -215,18 +216,17 @@ export default function RoleBasedNavigation({ onNavigate, showOrgLabel = true }:
       
       {/* Dashboard Button - Always first */}
       <NavSection>
-        <NavButton
-          component={ClickableLink}
-          href="/dashboard"
-          startIcon={<DashboardIcon />}
-          fullWidth
-          color="primary"
-          variant="contained"
-          onClick={handleNavClick}
-          sx={{ mb: 2 }}
-        >
-          Dashboard
-        </NavButton>
+        <ClickableLink href="/dashboard">
+          <NavButton
+            startIcon={<DashboardIcon />}
+            fullWidth
+            color="inherit"
+            onClick={handleNavClick}
+            sx={{ mb: 2, width: '100%' }}
+          >
+            Dashboard
+          </NavButton>
+        </ClickableLink>
       </NavSection>
       
       <Divider sx={{ my: 1 }} />
