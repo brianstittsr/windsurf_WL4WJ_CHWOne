@@ -1168,8 +1168,8 @@ export function Step6FormGenerator() {
               />
             </Grid>
           </Grid>
-          )}
           
+          {/* Validation tab */}
           {fieldTabIndex === 1 && (
             <Grid container spacing={2}>
               {/* Phone number validation */}
