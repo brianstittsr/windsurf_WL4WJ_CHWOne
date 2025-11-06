@@ -92,7 +92,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    setCookie('NEXT_LOCALE', lang, { maxAge: 60 * 60 * 24 * 365 }); // 1 year
+    // Use max-age (seconds) for cookies-next v4.x
+    setCookie('NEXT_LOCALE', lang, { 
+      expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+    });
   };
 
   const toggleLanguage = () => {
