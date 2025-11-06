@@ -31,6 +31,8 @@ const toAppUserProfile = (id: string, data: any): WithDate<UserProfile> => ({
   chwAssociationId: data.chwAssociationId,
   regionId: data.regionId,
   nonprofitId: data.nonprofitId,
+  // Add required permissions field with default empty object if missing
+  permissions: data.permissions || {},
   isActive: data.isActive !== undefined ? data.isActive : true,
   createdAt: data.createdAt?.toDate() || new Date(),
   updatedAt: data.updatedAt?.toDate() || new Date(),
