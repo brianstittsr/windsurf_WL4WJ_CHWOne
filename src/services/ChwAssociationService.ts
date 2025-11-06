@@ -243,7 +243,7 @@ class CHWAssociationService {
    * @returns Array of created association IDs
    */
   static async createAssociationsBatch(
-    associations: Array<Omit<CHWAssociation, keyof BaseEntity | 'id'> & { id?: string }>,
+    associations: Array<CreateEntity<CHWAssociation>>,
     stateIds: Record<string, string> = {}
   ): Promise<string[]> {
     const batch = writeBatch(db);

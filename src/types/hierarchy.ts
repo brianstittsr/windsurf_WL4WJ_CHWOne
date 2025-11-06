@@ -8,7 +8,7 @@ export interface BaseEntity {
   isActive: boolean;
 }
 
-export type CreateEntity<T> = Omit<T, keyof BaseEntity> & { isActive?: boolean };
+export type CreateEntity<T> = Omit<T, keyof BaseEntity> & { isActive?: boolean; id?: string };
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
