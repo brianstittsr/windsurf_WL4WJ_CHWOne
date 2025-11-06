@@ -3,12 +3,9 @@ import IdeaService from '@/services/IdeaService';
 import { getServerSession } from '@/lib/auth';
 
 // POST /api/ideas/[id]/vote - Vote on an idea
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: Request, context: { params: { id: string } }) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     
     // Check authentication
     const session = await getServerSession();
@@ -28,7 +25,7 @@ export async function POST(
 
     return NextResponse.json({ message: 'Vote recorded successfully' });
   } catch (error: any) {
-    console.error(`Error voting on idea ${params.id}:`, error);
+    console.error(`Error voting on idea ${context.params.id}:`, error);
     return NextResponse.json({ error: error.message || 'Failed to record vote' }, { status: 500 });
   }
 }

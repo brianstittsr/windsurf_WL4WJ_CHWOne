@@ -6,7 +6,7 @@ import { IdeaComment } from '@/types/idea.types';
 // GET /api/ideas/[id] - Get a specific idea
 export async function GET(req: Request, context: { params: { id: string } }) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     
     if (!id) {
       return NextResponse.json({ error: 'Idea ID is required' }, { status: 400 });
@@ -28,7 +28,7 @@ export async function GET(req: Request, context: { params: { id: string } }) {
 // PATCH /api/ideas/[id] - Update idea status (admin only)
 export async function PATCH(req: Request, context: { params: { id: string } }) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     
     // Check authentication and authorization
     const session = await getServerSession();
@@ -69,7 +69,7 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
 // POST /api/ideas/[id]/comments - Add a comment to an idea
 export async function POST(req: Request, context: { params: { id: string } }) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     
     // Check authentication
     const session = await getServerSession();
