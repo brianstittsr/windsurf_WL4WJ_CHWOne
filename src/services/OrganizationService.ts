@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebaseConfig';
 import type { Organization as FirebaseOrganization } from '@/types/firebase/organizationSchema';
-import { WithDate, BaseEntity } from '@/types/hierarchy';
+import { WithDate, BaseEntity, CreateEntity } from '@/types/hierarchy';
 
 // Define our custom organization type for this service
 export type OrganizationType = 'nonprofit' | 'chw_association' | 'admin';
@@ -100,9 +100,7 @@ const toAppOrganization = (id: string, data: any): WithDate<Organization> => {
 class OrganizationService {
   private static readonly COLLECTION_NAME = 'organizations';
 
-  static async createOrganization(
-    orgData: Omit<Organization, keyof BaseEntity | 'id'> & { regionId?: string; chwAssociationId?: string }
-  ): Promise<WithDate<Organization>> {
+  static async createOrganization(orgData: CreateEntity<Organization> & { regionId?: string; chwAssociationId?: string }): Promise<WithDate<Organization>> {
     // Validate organization type and required fields
     if (orgData.type === 'nonprofit' && !orgData.regionId) {
       throw new Error('Nonprofit organizations must be associated with a region');
