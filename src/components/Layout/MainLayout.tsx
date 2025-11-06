@@ -102,6 +102,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
       roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
     },
     { 
+      href: '/ideas', 
+      icon: 'lightbulb', 
+      label: 'Platform Ideas', 
+      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+    },
+    { 
       href: '/referrals', 
       icon: 'openLink', 
       label: t('navigation.referrals'), 

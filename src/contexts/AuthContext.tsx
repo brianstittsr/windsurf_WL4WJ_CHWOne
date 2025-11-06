@@ -2,9 +2,10 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/firebaseConfig';
-import { UserProfile } from '@/types/firebase/schema';
+import { UserProfile, OrganizationType } from '@/types/firebase/schema';
+import { ensureOrganizationType } from '@/utils/organizationTypeMapping';
 
 // Auto-login control - disabled to prevent auto-login
 const DISABLE_AUTO_LOGIN = false; // Enable auto-login
@@ -18,6 +19,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<User>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<User>;
+  updateOrganizationType: (orgType: OrganizationType) => Promise<void>;
 }
 
 // Create the auth context
@@ -133,7 +135,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-          setState(prev => ({ ...prev, user: user, profile: userDoc.data() as UserProfile, loading: false }));
+          // Get user profile data and ensure it has an organizationType
+          const profileData = userDoc.data() as UserProfile;
+          const updatedProfile = ensureOrganizationType(profileData);
+          
+          // If the profile needed to be updated with an organizationType, save it back
+          if (profileData.organizationType !== updatedProfile.organizationType) {
+            try {
+              await updateDoc(userDocRef, {
+                organizationType: updatedProfile.organizationType
+              });
+              console.log(`[AUTH] Updated user ${user.uid} with organization type: ${updatedProfile.organizationType}`);
+            } catch (error) {
+              console.error('[AUTH] Error updating organization type:', error);
+            }
+          }
+          
+          setState(prev => ({ ...prev, user: user, profile: updatedProfile, loading: false }));
         } else {
           // Handle case where user exists in Auth but not in Firestore
           setState(prev => ({ ...prev, user: user, profile: null, loading: false }));
@@ -147,7 +165,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-    // Context value
+    // Update user's organization type
+  const updateOrganizationType = useCallback(async (orgType: OrganizationType) => {
+    if (!state.user) {
+      throw new Error('No user is currently signed in');
+    }
+    
+    try {
+      const userDocRef = doc(db, 'users', state.user.uid);
+      await updateDoc(userDocRef, {
+        organizationType: orgType
+      });
+      
+      // Update local state
+      if (state.profile) {
+        setState(prev => ({
+          ...prev, 
+          profile: {
+            ...prev.profile as UserProfile,
+            organizationType: orgType
+          }
+        }));
+      }
+      
+      return;
+    } catch (error) {
+      console.error('Error updating organization type:', error);
+      throw new Error('Failed to update organization type');
+    }
+  }, [state.user, state.profile]);
+
+  // Context value
   const contextValue = {
     currentUser: state.user,
     userProfile: state.profile,
@@ -156,6 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     signUp,
+    updateOrganizationType,
   };
 
   return (

@@ -13,26 +13,89 @@ import {
   arrayRemove
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebaseConfig';
-import { 
-  Organization, 
-  WithDate, 
-  BaseEntity, 
-  OrganizationType 
-} from '@/types/hierarchy';
+import type { Organization as FirebaseOrganization } from '@/types/firebase/organizationSchema';
+import { WithDate, BaseEntity } from '@/types/hierarchy';
+
+// Define our custom organization type for this service
+export type OrganizationType = 'nonprofit' | 'chw_association' | 'admin';
+
+// Extend the Firebase organization with our additional fields
+export interface Organization extends FirebaseOrganization {
+  type: OrganizationType;
+  regionId?: string;
+  chwAssociationId?: string;
+}
 import RegionService from './RegionService';
 import ChwAssociationService from './ChwAssociationService';
 
 // Helper function to convert Firestore data to app data
-const toAppOrganization = (id: string, data: any): WithDate<Organization> => ({
-  id,
-  name: data.name,
-  type: data.type,
-  regionId: data.regionId,
-  chwAssociationId: data.chwAssociationId,
-  isActive: data.isActive ?? true,
-  createdAt: data.createdAt?.toDate() || new Date(),
-  updatedAt: data.updatedAt?.toDate() || new Date(),
-});
+const toAppOrganization = (id: string, data: any): WithDate<Organization> => {
+  // Convert from Firestore format to our Organization type
+  return {
+    // Base FirebaseOrganization fields
+    id,
+    name: data.name || '',
+    slug: data.slug || '',
+    description: data.description || '',
+    mission: data.mission || '',
+    logo: data.logo || '',
+    coverImage: data.coverImage || '',
+    website: data.website || '',
+    email: data.email || '',
+    phone: data.phone || '',
+    address: data.address || {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      county: ''
+    },
+    socialMedia: data.socialMedia || {},
+    operatingHours: data.operatingHours || {
+      monday: { open: '09:00', close: '17:00', closed: false },
+      tuesday: { open: '09:00', close: '17:00', closed: false },
+      wednesday: { open: '09:00', close: '17:00', closed: false },
+      thursday: { open: '09:00', close: '17:00', closed: false },
+      friday: { open: '09:00', close: '17:00', closed: false },
+      saturday: { open: '09:00', close: '17:00', closed: true },
+      sunday: { open: '09:00', close: '17:00', closed: true }
+    },
+    serviceAreas: data.serviceAreas || [],
+    serviceCategories: data.serviceCategories || [],
+    eligibilityCriteria: data.eligibilityCriteria || '',
+    applicationProcess: data.applicationProcess || '',
+    capacity: data.capacity || {
+      currentCapacity: 0,
+      maxCapacity: 0,
+      acceptingReferrals: false
+    },
+    verificationStatus: data.verificationStatus || 'pending',
+    taxId: data.taxId || '',
+    legalStatus: data.legalStatus || 'nonprofit',
+    foundingYear: data.foundingYear || new Date().getFullYear(),
+    size: data.size || 'small',
+    budget: data.budget || 'under100k',
+    primaryLanguages: data.primaryLanguages || ['English'],
+    accessibilityOptions: data.accessibilityOptions || [],
+    insuranceAccepted: data.insuranceAccepted || [],
+    paymentOptions: data.paymentOptions || [],
+    tags: data.tags || [],
+    adminUsers: data.adminUsers || [],
+    staffUsers: data.staffUsers || [],
+    isActive: data.isActive ?? true,
+    
+    // Our custom fields
+    type: data.type as OrganizationType || 'nonprofit',
+    regionId: data.regionId,
+    chwAssociationId: data.chwAssociationId,
+    
+    // Convert timestamps to dates
+    createdAt: data.createdAt?.toDate() || new Date(),
+    updatedAt: data.updatedAt?.toDate() || new Date(),
+    lastActivityAt: data.lastActivityAt?.toDate() || new Date(),
+    verificationDate: data.verificationDate?.toDate(),
+  } as WithDate<Organization>;
+};
 
 class OrganizationService {
   private static readonly COLLECTION_NAME = 'organizations';
@@ -83,12 +146,29 @@ class OrganizationService {
       await RegionService.addNonprofitToRegion(orgData.regionId, docRef.id);
     }
 
-    return {
+    // Need to construct a complete Organization object
+    const newOrg: any = {
       id: docRef.id,
       ...orgData,
       createdAt: new Date(),
       updatedAt: new Date(),
-    } as WithDate<Organization>;
+      lastActivityAt: new Date(),
+      
+      // Set defaults for required FirebaseOrganization fields that might not be in orgData
+      name: orgData.name || '',
+      slug: orgData.slug || orgData.name?.toLowerCase().replace(/\s+/g, '-') || '',
+      description: orgData.description || '',
+      mission: orgData.mission || '',
+      logo: orgData.logo || '',
+      coverImage: orgData.coverImage || '',
+      website: orgData.website || '',
+      email: orgData.email || '',
+      phone: orgData.phone || '',
+      isActive: orgData.isActive !== undefined ? orgData.isActive : true
+    };
+    
+    // Use type assertion to satisfy TypeScript
+    return newOrg as WithDate<Organization>;
   }
 
   static async getOrganization(id: string): Promise<WithDate<Organization> | null> {

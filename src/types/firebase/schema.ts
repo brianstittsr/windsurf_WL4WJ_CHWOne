@@ -15,6 +15,8 @@ export interface UserProfile {
   photoURL?: string;
   role: UserRole;
   organization: 'general' | 'region1' | 'region2' | 'region3' | 'region4' | 'region5' | 'region6' | 'wl4wj';
+  // Organization type for role-based navigation and permissions
+  organizationType?: OrganizationType;
   permissions: UserPermissions;
   isActive: boolean;
   createdAt: Timestamp;
@@ -102,6 +104,17 @@ export enum UserRole {
   CHW_COORDINATOR = 'CHW_COORDINATOR',
   CHW = 'CHW',
   NONPROFIT_STAFF = 'NONPROFIT_STAFF'
+}
+
+/**
+ * Organization types for role-based navigation and permissions
+ */
+export enum OrganizationType {
+  CHW = 'CHW',
+  NONPROFIT = 'Nonprofit',
+  CHW_ASSOCIATION = 'CHWAssociation',
+  STATE = 'State',
+  ADMIN = 'Admin'
 }
 
 export interface UserPermissions {

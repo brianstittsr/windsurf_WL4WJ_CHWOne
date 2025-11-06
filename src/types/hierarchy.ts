@@ -45,9 +45,27 @@ export interface State extends BaseEntity {
   contactInfo: ContactInfo;
 }
 
+export type ClaimStatus = 'unclaimed' | 'claim-pending' | 'claimed' | 'verified';
+
+export interface ClaimAttempt {
+  requestId: string; // Unique identifier for this claim attempt
+  requestedBy: string; // User ID
+  requestedAt: Date | Timestamp;
+  requestorName: string;
+  requestorTitle: string;
+  requestorEmail: string;
+  requestorPhone?: string;
+  verificationDocuments?: string[]; // URLs to uploaded documents
+  status: 'pending' | 'approved' | 'rejected';
+  reviewedBy?: string; // Admin User ID
+  reviewedAt?: Date | Timestamp;
+  reviewNotes?: string;
+}
+
 // Community Health Worker Association Entity
 export interface CHWAssociation extends BaseEntity {
   name: string;
+  abbreviation: string; // Common abbreviation (e.g., AzCHOW)
   stateId: string; // Reference to parent State
   description?: string;
   contactInfo: ContactInfo;
@@ -55,6 +73,11 @@ export interface CHWAssociation extends BaseEntity {
   primaryColor?: string; // For UI customization
   administrators: string[]; // Array of admin user IDs
   approvalStatus?: ApprovalStatus; // For new associations
+  
+  // Association claiming fields
+  claimStatus: ClaimStatus;
+  claimToken?: string; // Unique token for verification
+  claimHistory?: ClaimAttempt[];
 }
 
 // Nonprofit Organization Entity
