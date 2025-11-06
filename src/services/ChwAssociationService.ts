@@ -8,64 +8,79 @@ import {
   query, 
   where, 
   getDocs, 
+  orderBy,
+  limit,
   serverTimestamp, 
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  Timestamp,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebaseConfig';
-import { ChwAssociation, WithDate, BaseEntity } from '@/types/hierarchy';
+import { CHWAssociation, WithDate, BaseEntity, CreateEntity, ApprovalStatus } from '@/types/hierarchy';
 import StateService from './StateService';
 
 // Helper function to convert Firestore data to app data
-const toAppChwAssociation = (id: string, data: any): WithDate<ChwAssociation> => ({
+const toAppAssociation = (id: string, data: any): WithDate<CHWAssociation> => ({
   id,
-  name: data.name,
-  stateId: data.stateId,
-  contactEmail: data.contactEmail,
-  contactPhone: data.contactPhone,
-  regionIds: data.regionIds || [],
+  name: data.name || '',
+  stateId: data.stateId || '',
+  description: data.description || '',
+  contactInfo: data.contactInfo || {
+    email: '',
+    phone: '',
+    website: ''
+  },
+  logo: data.logo || undefined,
+  primaryColor: data.primaryColor || undefined,
+  administrators: data.administrators || [],
+  approvalStatus: data.approvalStatus || 'approved',
+  isActive: data.isActive !== undefined ? data.isActive : true,
   createdAt: data.createdAt?.toDate() || new Date(),
   updatedAt: data.updatedAt?.toDate() || new Date(),
 });
 
-class ChwAssociationService {
+class CHWAssociationService {
   private static readonly COLLECTION_NAME = 'chwAssociations';
 
   static async createAssociation(
-    associationData: Omit<ChwAssociation, keyof BaseEntity | 'regionIds'>,
-    stateId: string
-  ): Promise<WithDate<ChwAssociation>> {
+    associationData: CreateEntity<CHWAssociation>
+  ): Promise<WithDate<CHWAssociation>> {
     // Verify state exists
-    const state = await StateService.getState(stateId);
+    const state = await StateService.getState(associationData.stateId);
     if (!state) {
-      throw new Error(`State with ID ${stateId} does not exist`);
+      throw new Error(`State with ID ${associationData.stateId} does not exist`);
     }
 
     const now = serverTimestamp();
-    const docRef = await addDoc(collection(db, this.COLLECTION_NAME), {
+    
+    // Prepare data with required fields
+    const newAssociation = {
       ...associationData,
-      stateId,
-      regionIds: [],
+      isActive: associationData.isActive ?? true,
+      approvalStatus: associationData.approvalStatus || 'pending',
+      administrators: associationData.administrators || [],
       createdAt: now,
       updatedAt: now,
-    });
-
-    // Update the state with this association
-    await StateService.updateState(stateId, {
-      chwAssociationId: docRef.id
-    });
-
+    };
+    
+    // Generate a custom ID for easier reference
+    const customId = `assoc-${Date.now()}`;
+    await setDoc(doc(db, this.COLLECTION_NAME, customId), newAssociation);
+    
+    // Return the created association
     return {
-      id: docRef.id,
+      id: customId,
       ...associationData,
-      stateId,
-      regionIds: [],
+      isActive: associationData.isActive ?? true,
+      approvalStatus: associationData.approvalStatus || 'pending',
+      administrators: associationData.administrators || [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
   }
 
-  static async getAssociation(id: string): Promise<WithDate<ChwAssociation> | null> {
+  static async getAssociation(id: string): Promise<WithDate<CHWAssociation> | null> {
     const docRef = doc(db, this.COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
     
@@ -73,12 +88,12 @@ class ChwAssociationService {
       return null;
     }
 
-    return toAppChwAssociation(docSnap.id, docSnap.data());
+    return toAppAssociation(docSnap.id, docSnap.data());
   }
 
   static async updateAssociation(
     id: string, 
-    updates: Partial<Omit<ChwAssociation, keyof BaseEntity | 'regionIds'>>
+    updates: Partial<Omit<CHWAssociation, keyof BaseEntity>>
   ): Promise<void> {
     const docRef = doc(db, this.COLLECTION_NAME, id);
     await updateDoc(docRef, {
@@ -88,54 +103,99 @@ class ChwAssociationService {
   }
 
   static async deleteAssociation(id: string): Promise<void> {
-    // First get the association to update the state
-    const association = await this.getAssociation(id);
-    if (!association) return;
-
+    // First check if the association has any nonprofits
+    const hasNonprofits = await this.hasNonprofits(id);
+    if (hasNonprofits) {
+      throw new Error('Cannot delete association with linked nonprofits');
+    }
+    
     // Delete the association
     const docRef = doc(db, this.COLLECTION_NAME, id);
     await deleteDoc(docRef);
-
-    // Update the state to remove the association reference
-    await StateService.updateState(association.stateId, {
-      chwAssociationId: ''
-    });
   }
 
-  static async addRegionToAssociation(associationId: string, regionId: string): Promise<void> {
-    const docRef = doc(db, this.COLLECTION_NAME, associationId);
-    await updateDoc(docRef, {
-      regionIds: arrayUnion(regionId),
-      updatedAt: serverTimestamp(),
-    });
+  static async updateApprovalStatus(id: string, status: ApprovalStatus): Promise<void> {
+    const association = await this.getAssociation(id);
+    if (!association) {
+      throw new Error(`Association with ID ${id} not found`);
+    }
+    
+    const updates: any = {
+      approvalStatus: status,
+      updatedAt: serverTimestamp()
+    };
+    
+    // If approving, also set isActive to true
+    if (status === 'approved') {
+      updates.isActive = true;
+    }
+    
+    const docRef = doc(db, this.COLLECTION_NAME, id);
+    await updateDoc(docRef, updates);
   }
 
-  static async removeRegionFromAssociation(associationId: string, regionId: string): Promise<void> {
-    const docRef = doc(db, this.COLLECTION_NAME, associationId);
-    await updateDoc(docRef, {
-      regionIds: arrayRemove(regionId),
-      updatedAt: serverTimestamp(),
-    });
-  }
-
-  static async getAssociationsByState(stateId: string): Promise<WithDate<ChwAssociation>[]> {
+  static async getAssociationsByState(stateId: string): Promise<WithDate<CHWAssociation>[]> {
     const q = query(
       collection(db, this.COLLECTION_NAME),
-      where('stateId', '==', stateId)
+      where('stateId', '==', stateId),
+      orderBy('name', 'asc')
     );
     
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => 
-      toAppChwAssociation(doc.id, doc.data())
+      toAppAssociation(doc.id, doc.data())
+    );
+  }
+  
+  static async getActiveAssociations(): Promise<WithDate<CHWAssociation>[]> {
+    const q = query(
+      collection(db, this.COLLECTION_NAME),
+      where('isActive', '==', true),
+      orderBy('name', 'asc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => 
+      toAppAssociation(doc.id, doc.data())
+    );
+  }
+  
+  static async getPendingAssociations(): Promise<WithDate<CHWAssociation>[]> {
+    const q = query(
+      collection(db, this.COLLECTION_NAME),
+      where('approvalStatus', '==', 'pending'),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => 
+      toAppAssociation(doc.id, doc.data())
     );
   }
 
-  static async getAllAssociations(): Promise<WithDate<ChwAssociation>[]> {
-    const querySnapshot = await getDocs(collection(db, this.COLLECTION_NAME));
-    return querySnapshot.docs.map(doc => 
-      toAppChwAssociation(doc.id, doc.data())
+  static async getAllAssociations(): Promise<WithDate<CHWAssociation>[]> {
+    const q = query(
+      collection(db, this.COLLECTION_NAME),
+      orderBy('name', 'asc')
     );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => 
+      toAppAssociation(doc.id, doc.data())
+    );
+  }
+  
+  // Check if an association has any nonprofits
+  static async hasNonprofits(associationId: string): Promise<boolean> {
+    const q = query(
+      collection(db, 'nonprofits'),
+      where('chwAssociationId', '==', associationId),
+      limit(1)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
   }
 }
 
-export default ChwAssociationService;
+export default CHWAssociationService;

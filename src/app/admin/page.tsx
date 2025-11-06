@@ -38,6 +38,7 @@ import AdminAnalytics from '@/components/Admin/AdminAnalytics';
 import AdminSecurity from '@/components/Admin/AdminSecurity';
 import AdminGrants from '@/components/Admin/AdminGrants';
 import AdminStates from '@/components/Admin/AdminStates';
+import AdminCHWAssociations from '@/components/Admin/AdminCHWAssociations';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -129,6 +130,11 @@ function AdminDashboardContent() {
       label: 'States',
       icon: <MapIcon />,
       component: <AdminStates />
+    },
+    {
+      label: 'CHW Associations',
+      icon: <StorageIcon />,
+      component: <AdminCHWAssociations />
     },
     {
       label: 'Integrations',
