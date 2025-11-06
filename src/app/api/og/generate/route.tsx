@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { baseURL } from "@/resources";
 
 export const runtime = "nodejs";
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   let url = new URL(request.url);

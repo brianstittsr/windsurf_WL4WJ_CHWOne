@@ -7,7 +7,7 @@ import { baseURL, blog, person } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { getPosts } from "@/utils/utils";
 import { Metadata } from "next";
-import React, { use } from "react";
+import React from "react";
 import { Posts } from "@/components/blog/Posts";
 import { ShareSection } from "@/components/blog/ShareSection";
 
@@ -21,12 +21,11 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string | string[] }>;
+  params: { slug: string | string[] };
 }): Promise<Metadata> {
-  const routeParams = await params;
-  const slugPath = Array.isArray(routeParams.slug)
-    ? routeParams.slug.join("/")
-    : routeParams.slug || "";
+  const slugPath = Array.isArray(params.slug)
+    ? params.slug.join("/")
+    : params.slug || "";
 
   const posts = getPosts(["src", "app", "blog", "posts"]);
   let post = posts.find((post) => post.slug === slugPath);
@@ -45,12 +44,10 @@ export async function generateMetadata({
   };
 }
 
-export default function Blog({ params }: { params: Promise<{ slug: string | string[] }> }) {
-  // Use React.use() to unwrap the params promise as recommended by Next.js 15+
-  const routeParams = use(params);
-  const slugPath = Array.isArray(routeParams.slug)
-    ? routeParams.slug.join("/")
-    : routeParams.slug || "";
+export default function Blog({ params }: { params: { slug: string | string[] } }) {
+  const slugPath = Array.isArray(params.slug)
+    ? params.slug.join("/")
+    : params.slug || "";
 
   let post = getPosts(["src", "app", "blog", "posts"]).find((post) => post.slug === slugPath);
 
