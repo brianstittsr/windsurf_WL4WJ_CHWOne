@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+// Use CommonJS require for pdf-parse since it doesn't have a proper ESM export
+const pdfParse = require('pdf-parse');
 
 export const dynamic = 'force-dynamic';
 
@@ -131,12 +133,33 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Extract file content as text
+    // Extract file content as text with better PDF handling
     let fileContent = '';
     try {
-      // Simple text extraction - in production you would use a PDF parsing library
-      // like pdf-parse or a service like Google Document AI
-      fileContent = await file.text();
+      // Check if file is a PDF
+      const isPdf = fileName.toLowerCase().endsWith('.pdf') || 
+                   fileType === 'application/pdf';
+      
+      if (isPdf) {
+        console.log('Detected PDF file, using pdf-parse for extraction');
+        // Convert File to Buffer for pdf-parse
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        try {
+          // Use pdf-parse to extract text
+          const pdfData = await pdfParse(buffer);
+          fileContent = pdfData.text || '';
+          console.log(`PDF parse successful, extracted ${fileContent.length} characters`);
+        } catch (pdfError) {
+          console.error('Error parsing PDF:', pdfError);
+          // If PDF parsing fails, try basic text extraction as fallback
+          fileContent = await file.text();
+        }
+      } else {
+        // For non-PDF files, use simple text extraction
+        fileContent = await file.text();
+      }
       
       // Log a sample of the extracted text for debugging
       console.log(`Extracted ${fileContent.length} characters from file`);
@@ -145,36 +168,48 @@ export async function POST(request: NextRequest) {
       // If we couldn't extract meaningful text, provide fallback
       if (fileContent.length < 100) {
         console.warn('Extracted text is very short, might be a parsing issue');
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG === 'true') {
           return NextResponse.json({
             success: true,
-            analyzedData: getMockGrantData()
+            analyzedData: getMockGrantData(),
+            note: 'Using mock data due to insufficient text extraction'
           });
         }
       }
     } catch (error) {
       console.error('Error extracting text from file:', error);
+      
+      // Provide fallback in development
+      if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG === 'true') {
+        return NextResponse.json({
+          success: true,
+          analyzedData: getMockGrantData(),
+          note: 'Using mock data due to text extraction error'
+        });
+      }
+      
       return NextResponse.json(
         { error: 'Failed to read file content', details: String(error) },
         { status: 500 }
       );
     }
     
-    // Prepare prompt for OpenAI
+    // Prepare prompt for OpenAI with improved instructions
     const prompt = `
       You are an AI assistant specialized in analyzing grant documents. 
-      Please extract the following information from this grant document:
+      You will be given text extracted from a grant document, which may be poorly formatted due to PDF extraction.
+      Please do your best to extract the following information from the document:
       
-      1. Grant name/title
-      2. Description of the grant purpose
-      3. Funding source
-      4. Grant number (if available)
-      5. Start and end dates
-      6. Total budget (if available)
-      7. Key entities involved in the grant
-      8. Required data collection methods
-      9. Key project milestones
-      10. Any special requirements or notes
+      1. Grant name/title - Look for prominent headings or title sections
+      2. Description of the grant purpose - Look for sections about objectives, purpose, or introduction
+      3. Funding source - Look for organization names associated with funding
+      4. Grant number - Look for alphanumeric codes or identifiers labeled as grant/contract numbers
+      5. Start and end dates - Look for date ranges, periods of performance, or project timelines
+      6. Total budget - Look for dollar amounts associated with funding or total awards
+      7. Key entities involved - Look for organizations mentioned as partners, recipients, or stakeholders
+      8. Required data collection methods - Look for reporting requirements, metrics, or evaluation methods
+      9. Key project milestones - Look for deadlines, deliverables, or project phases
+      10. Any special requirements or notes - Look for unique conditions or important disclaimers
       
       For each collaborating entity, identify:
       - Entity name

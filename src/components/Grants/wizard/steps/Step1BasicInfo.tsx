@@ -62,22 +62,25 @@ export function Step1BasicInfo() {
             ]
           });
           
-          // Start AI analysis of the document
-          analyzeDocument(newFiles[0]);
-          
-          // Show success message after a delay
-          // This is a temporary solution until we implement proper async handling
-          setTimeout(() => {
+          // Start AI analysis of the document and handle the result
+          analyzeDocument(newFiles[0]).then(result => {
+            console.log('Document analysis result:', result);
             console.log('Checking grant data after analysis:', grantData);
-            // Check if data was populated
-            if (grantData.name || grantData.description || grantData.fundingSource) {
+            
+            if (result.success) {
+              // Analysis was successful
               setShowAnalysisSuccess(true);
               setTimeout(() => setShowAnalysisSuccess(false), 5000); // Hide after 5 seconds
             } else {
-              setAnalysisError('Document was processed but no grant data was extracted. Please try a different document.');
+              // Analysis failed, show error
+              setAnalysisError(result.error || 'Document was processed but no grant data was extracted. Please try a different document.');
               setUploadStatus('error');
             }
-          }, 3000); // Give it 3 seconds to process
+          }).catch(error => {
+            console.error('Error during document analysis:', error);
+            setAnalysisError('An unexpected error occurred while analyzing the document. Please try again.');
+            setUploadStatus('error');
+          });
         }
       }, 300);
     }

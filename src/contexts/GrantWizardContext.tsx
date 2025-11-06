@@ -23,7 +23,7 @@ type GrantWizardContextType = {
   updateOrganization: (org: Organization) => void;
   
   // Document analysis methods
-  analyzeDocument: (file: File) => Promise<void>;
+  analyzeDocument: (file: File) => Promise<{success: boolean; error?: string}>;
   isAnalyzingDocument: boolean;
   
   // Key Contacts methods
@@ -264,44 +264,94 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
   };
 
   // Document Analysis Function using OpenAI API
-  const analyzeDocument = async (file: File): Promise<void> => {
+  const analyzeDocument = async (file: File): Promise<{success: boolean; error?: string}> => {
     try {
       setIsAnalyzingDocument(true);
+      
+      // Validate file
+      if (!file) {
+        throw new Error('No file provided for analysis');
+      }
+      
+      // Check file type
+      const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+      const isDoc = file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx');
+      const isTxt = file.name.toLowerCase().endsWith('.txt');
+      
+      if (!isPdf && !isDoc && !isTxt) {
+        return {
+          success: false,
+          error: 'Unsupported file format. Please upload a PDF, Word document, or text file.'
+        };
+      }
       
       // Prepare form data for API call
       const formData = new FormData();
       formData.append('file', file);
       
-      console.log('Sending document for AI analysis:', file.name);
+      console.log('Sending document for AI analysis:', file.name, 'type:', file.type, 'size:', Math.round(file.size / 1024), 'KB');
       
-      // Call the OpenAI API endpoint
-      const response = await fetch('/api/ai/analyze-grant', {
-        method: 'POST',
-        body: formData,
-      });
+      // Call the OpenAI API endpoint with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
       
-      if (!response.ok) {
-        console.error(`API Error: ${response.status} ${response.statusText}`);
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      try {
+        // Call API with timeout controller
+        const response = await fetch('/api/ai/analyze-grant', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          console.error(`API Error: ${response.status} ${response.statusText}`);
+          throw new Error(`API Error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('API Response:', result); // Log the full response for debugging
+        
+        if (!result.success) {
+          console.error(`Analysis failed: ${result.error || 'Unknown error'}`);
+          return { success: false, error: result.error || 'The document could not be analyzed. Please try a different document.' };
+        }
+        
+        // If there's a note, it means we're using mock data
+        if (result.note) {
+          console.warn(result.note);
+        }
+        
+        // Check if we got meaningful data
+        if (!result.analyzedData || Object.keys(result.analyzedData).length === 0) {
+          return { success: false, error: 'Document was processed but no grant data was extracted. Please try a different document.' };
+        }
+        
+        // Process the analyzed data
+        const extractedData = processAnalyzedData(result.analyzedData);
+        console.log('Processed data for form population:', extractedData);
+        
+        // Check if we got meaningful fields
+        if (!extractedData.name && !extractedData.description && !extractedData.fundingSource) {
+          return { success: false, error: 'Document was processed but no grant data could be extracted. Please try a different document.' };
+        }
+        
+        // Update the grant data with the extracted information
+        updateGrantData(extractedData);
+        console.log('Updated grant data:', extractedData);
+        setHasPrepopulatedData(true);
+        return { success: true };
+        
+      } catch (fetchError: unknown) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          return { success: false, error: 'Analysis request timed out. Please try a smaller document or try again later.' };
+        }
+        throw fetchError;
       }
       
-      const result = await response.json();
-      console.log('API Response:', result); // Log the full response for debugging
-      
-      if (!result.success) {
-        console.error(`Analysis failed: ${result.error || 'Unknown error'}`);
-        throw new Error(`Analysis failed: ${result.error || 'Unknown error'}`);
-      }
-      
-      // Process the analyzed data
-      const extractedData = processAnalyzedData(result.analyzedData);
-      console.log('Processed data for form population:', extractedData); // Log processed data
-      
-      // Update the grant data with the extracted information
-      updateGrantData(extractedData);
-      console.log('Updated grant data:', extractedData); // Log updated data
-      setHasPrepopulatedData(true);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error analyzing document:', error);
       // Fall back to mock data for testing if OpenAI fails
       if (process.env.NODE_ENV === 'development') {
@@ -310,7 +360,10 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         console.log('Using fallback mock data:', extractedData);
         updateGrantData(extractedData);
         setHasPrepopulatedData(true);
+        return { success: true };
       }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: `Error analyzing document: ${errorMessage}` };
     } finally {
       setIsAnalyzingDocument(false);
     }
