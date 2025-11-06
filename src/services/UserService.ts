@@ -42,7 +42,7 @@ class UserService {
   private static readonly COLLECTION_NAME = 'users';
 
   static async createUser(
-    userData: Omit<UserProfile, keyof BaseEntity | 'id'>
+    userData: Omit<UserProfile, Exclude<keyof BaseEntity, 'isActive'> | 'id'>
   ): Promise<WithDate<UserProfile>> {
     // Validate user's organization hierarchy
     await this.validateAndSetHierarchy(userData);
@@ -92,7 +92,7 @@ class UserService {
 
   static async updateUser(
     id: string, 
-    updates: Partial<Omit<UserProfile, keyof BaseEntity>>
+    updates: Partial<Omit<UserProfile, Exclude<keyof BaseEntity, 'isActive'>>>
   ): Promise<void> {
     // If updating organization-related fields, validate the hierarchy
     if (updates.nonprofitId || updates.regionId || updates.chwAssociationId) {
