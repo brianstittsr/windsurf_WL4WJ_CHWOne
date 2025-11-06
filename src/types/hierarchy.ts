@@ -1,4 +1,8 @@
 import { Timestamp } from 'firebase/firestore';
+import { Organization as FirebaseOrganization } from '@/types/firebase/organizationSchema';
+
+// Re-export Organization type
+export type { Organization } from '@/services/OrganizationService';
 
 // Common base types
 export interface BaseEntity {
