@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { PDFExtract } from 'pdf.js-extract';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+
+// Patch for pdfjs-dist to work in Node.js environment
+if (typeof window === 'undefined') {
+  const { JSDOM } = require('jsdom');
+  const dom = new JSDOM();
+  global.document = dom.window.document;
+  // For PDFJS
+  global.window = dom.window;
+  global.navigator = dom.window.navigator;
+}
+
+// Set the PDF.js worker source path
+const pdfjsWorker = require('pdfjs-dist/legacy/build/pdf.worker.entry');
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export const dynamic = 'force-dynamic';
 
@@ -79,14 +93,40 @@ function getMockGrantData() {
   };
 }
 
-// Initialize PDF extractor
-const pdfExtract = new PDFExtract();
-const extractOptions = {};
-
 // Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// Helper function to extract text from PDF using pdfjs-dist
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  try {
+    // Load the PDF document
+    const data = new Uint8Array(buffer);
+    const pdf = await pdfjsLib.getDocument({ data }).promise;
+    
+    console.log(`PDF loaded with ${pdf.numPages} pages`);
+    let extractedText = '';
+    
+    // Extract text from each page
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      
+      // Concatenate the text items
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      
+      extractedText += pageText + '\n\n';
+    }
+    
+    return extractedText;
+  } catch (error) {
+    console.error('Error extracting PDF text:', error);
+    throw error;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -131,39 +171,14 @@ export async function POST(request: NextRequest) {
       const isPdf = fileName.toLowerCase().endsWith('.pdf') || fileType === 'application/pdf';
       
       if (isPdf) {
-        console.log('Detected PDF file, using pdf.js-extract');
+        console.log('Detected PDF file, using pdfjs-dist');
         try {
-          // Convert File to ArrayBuffer for PDF.js-extract
+          // Convert File to ArrayBuffer for PDF processing
           const arrayBuffer = await file.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
           
-          // Use pdf.js-extract to get text content
-          const data = await new Promise<any>((resolve, reject) => {
-            pdfExtract.extractBuffer(buffer, extractOptions, (err, data) => {
-              if (err) {
-                console.error('Error extracting PDF:', err);
-                reject(err);
-                return;
-              }
-              resolve(data);
-            });
-          });
-          
-          console.log(`PDF extraction successful, ${data.pages.length} pages found`);
-          
-          // Extract text from each page
-          let pdfText = '';
-          if (data && data.pages) {
-            data.pages.forEach((page: any, i: number) => {
-              console.log(`Extracting text from page ${i+1}`);
-              if (page.content) {
-                const pageContent = page.content.map((item: any) => item.str).join(' ');
-                pdfText += pageContent + '\n\n';
-              }
-            });
-          }
-          
-          fileContent = pdfText;
+          // Use our PDF extraction helper function
+          fileContent = await extractPdfText(buffer);
           console.log(`PDF text extraction complete, ${fileContent.length} characters extracted`);
           
           // If we got very little text, provide sample in logs
