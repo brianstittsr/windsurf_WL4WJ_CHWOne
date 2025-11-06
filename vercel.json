@@ -5,6 +5,11 @@
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
   "outputDirectory": ".next",
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
   "env": {
     "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "chwone-platform",
     "NEXT_PUBLIC_AUTH_PROVIDER": "firebase"
