@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import { promises as fs } from 'fs';
+import path from 'path';
+import os from 'os';
 
-// Patch for pdfjs-dist to work in Node.js environment
-if (typeof window === 'undefined') {
-  const { JSDOM } = require('jsdom');
-  const dom = new JSDOM();
-  global.document = dom.window.document;
-  // For PDFJS
-  global.window = dom.window;
-  global.navigator = dom.window.navigator;
-}
-
-// Set the PDF.js worker source path
-const pdfjsWorker = require('pdfjs-dist/legacy/build/pdf.worker.entry');
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+// Use pdf-parse as a CommonJS module (PDF.js has browser dependencies)
+const pdfParse = require('pdf-parse');
 
 export const dynamic = 'force-dynamic';
 
@@ -93,40 +84,10 @@ function getMockGrantData() {
   };
 }
 
-// Initialize OpenAI client
+// Initialize OpenAI client with API key from environment variables
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-// Helper function to extract text from PDF using pdfjs-dist
-async function extractPdfText(buffer: Buffer): Promise<string> {
-  try {
-    // Load the PDF document
-    const data = new Uint8Array(buffer);
-    const pdf = await pdfjsLib.getDocument({ data }).promise;
-    
-    console.log(`PDF loaded with ${pdf.numPages} pages`);
-    let extractedText = '';
-    
-    // Extract text from each page
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      
-      // Concatenate the text items
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      
-      extractedText += pageText + '\n\n';
-    }
-    
-    return extractedText;
-  } catch (error) {
-    console.error('Error extracting PDF text:', error);
-    throw error;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -171,24 +132,40 @@ export async function POST(request: NextRequest) {
       const isPdf = fileName.toLowerCase().endsWith('.pdf') || fileType === 'application/pdf';
       
       if (isPdf) {
-        console.log('Detected PDF file, using pdfjs-dist');
+        console.log('Detected PDF file, using pdf-parse');
         try {
-          // Convert File to ArrayBuffer for PDF processing
+          // Need to save the file temporarily to use pdf-parse in server environment
+          const tempDir = os.tmpdir();
+          const uniqueId = Date.now().toString();
+          const tempFilePath = path.join(tempDir, `temp-${uniqueId}.pdf`);
+          
+          // Convert to Buffer and save to temp file
           const arrayBuffer = await file.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
+          await fs.writeFile(tempFilePath, buffer);
           
-          // Use our PDF extraction helper function
-          fileContent = await extractPdfText(buffer);
-          console.log(`PDF text extraction complete, ${fileContent.length} characters extracted`);
+          console.log(`Saved PDF to temporary file: ${tempFilePath}`);
           
-          // If we got very little text, provide sample in logs
-          if (fileContent.length < 500 && fileContent.length > 0) {
-            console.log('Sample extracted text:', fileContent);
-          }
-          
-          // If we got nothing, fall back to simple extraction as last resort
-          if (fileContent.length === 0) {
-            console.warn('PDF extraction returned no text, trying fallback method');
+          try {
+            // Read the file with pdf-parse
+            console.log('Extracting text with pdf-parse...');
+            const fileBuffer = await fs.readFile(tempFilePath);
+            const data = await pdfParse(fileBuffer);
+            fileContent = data.text || '';
+            
+            console.log(`PDF extraction complete, ${fileContent.length} characters extracted`);
+            
+            // Clean up temp file
+            try {
+              await fs.unlink(tempFilePath);
+              console.log('Temporary PDF file deleted');
+            } catch (cleanupError) {
+              console.warn('Failed to delete temporary file:', cleanupError);
+            }
+            
+          } catch (parseError) {
+            console.error('PDF parsing failed:', parseError);
+            // Fall back to basic extraction
             try {
               fileContent = await file.text();
               console.log(`Fallback extraction got ${fileContent.length} characters`);
@@ -196,9 +173,8 @@ export async function POST(request: NextRequest) {
               console.error('Fallback extraction also failed:', e);
             }
           }
-        } catch (pdfError) {
-          console.error('Error processing PDF:', pdfError);
-          // Fall back to basic text extraction
+        } catch (fileError) {
+          console.error('Error handling PDF file:', fileError);
           try {
             fileContent = await file.text();
             console.log(`Using fallback text extraction: ${fileContent.length} characters`);
