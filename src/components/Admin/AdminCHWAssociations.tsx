@@ -257,6 +257,12 @@ export default function AdminCHWAssociations() {
       // Create association via service
       const newAssociation = await CHWAssociationService.createAssociation({
         name: associationFormData.name,
+        // Generate abbreviation from name if not provided
+        abbreviation: associationFormData.name
+          .split(' ')
+          .map(word => word[0])
+          .join('')
+          .toUpperCase(),
         description: associationFormData.description,
         stateId: associationFormData.stateId,
         contactInfo: associationFormData.contactInfo,
@@ -265,6 +271,8 @@ export default function AdminCHWAssociations() {
         // isActive will be set to true by default in the service
         approvalStatus: associationFormData.approvalStatus,
         administrators: [], // No admins initially
+        // Required claim fields
+        claimStatus: 'unclaimed',
       });
       
       // Update active status if needed (the default is already true, so we only need to change if false)
