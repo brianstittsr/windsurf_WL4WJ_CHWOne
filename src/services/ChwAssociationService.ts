@@ -433,6 +433,32 @@ class CHWAssociationService {
   static async getUnclaimedAssociations(): Promise<WithDate<CHWAssociation>[]> {
     return this.getAssociationsByClaimStatus('unclaimed');
   }
+
+  /**
+   * Add a region to an association
+   * @param chwAssociationId Association ID
+   * @param regionId Region ID
+   */
+  static async addRegionToAssociation(chwAssociationId: string, regionId: string): Promise<void> {
+    const docRef = doc(db, this.COLLECTION_NAME, chwAssociationId);
+    await updateDoc(docRef, {
+      regionIds: arrayUnion(regionId),
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  /**
+   * Remove a region from an association
+   * @param chwAssociationId Association ID
+   * @param regionId Region ID
+   */
+  static async removeRegionFromAssociation(chwAssociationId: string, regionId: string): Promise<void> {
+    const docRef = doc(db, this.COLLECTION_NAME, chwAssociationId);
+    await updateDoc(docRef, {
+      regionIds: arrayRemove(regionId),
+      updatedAt: serverTimestamp(),
+    });
+  }
 }
 
 export default CHWAssociationService;

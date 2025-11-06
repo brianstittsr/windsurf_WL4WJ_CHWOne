@@ -24,6 +24,7 @@ const toAppRegion = (id: string, data: any): WithDate<Region> => ({
   stateId: data.stateId,
   chwAssociationId: data.chwAssociationId,
   nonprofitIds: data.nonprofitIds || [],
+  isActive: data.isActive !== undefined ? data.isActive : true,
   createdAt: data.createdAt?.toDate() || new Date(),
   updatedAt: data.updatedAt?.toDate() || new Date(),
 });
@@ -60,6 +61,7 @@ class RegionService {
       stateId: association.stateId,
       chwAssociationId,
       nonprofitIds: [],
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
