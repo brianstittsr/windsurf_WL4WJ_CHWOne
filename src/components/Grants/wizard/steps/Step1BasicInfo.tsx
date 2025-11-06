@@ -108,14 +108,20 @@ export function Step1BasicInfo() {
           <Box sx={{ textAlign: 'center', mb: 3 }}>
             <CircularProgress size={40} sx={{ mb: 1 }} />
             <Typography variant="h6" gutterBottom>
-              Analyzing Document with AI...
+              Analyzing Document with OpenAI...
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Extracting grant data, collaboration requirements, and project structure
+              Extracting grant data, collaboration requirements, and project structure using OpenAI API
             </Typography>
-            <LinearProgress sx={{ mt: 2, mb: 1, mx: 'auto', width: '80%', height: 8, borderRadius: 4 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 1, mb: 2 }}>
+              <img src="/openai-logo.svg" alt="OpenAI Logo" width={20} height={20} style={{ marginRight: 8 }} />
+              <Typography variant="caption" fontWeight="medium" color="primary">
+                Powered by OpenAI GPT-4
+              </Typography>
+            </Box>
+            <LinearProgress sx={{ mt: 1, mb: 1, mx: 'auto', width: '80%', height: 8, borderRadius: 4 }} />
             <Typography variant="caption" color="text.secondary">
-              This may take a few moments
+              This may take a few moments as the document is being processed
             </Typography>
           </Box>
         ) : (
@@ -125,8 +131,14 @@ export function Step1BasicInfo() {
               Upload Grant Documents
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Upload RFP documents, guidelines, and requirements. We'll automatically analyze and extract key information.
+              Upload RFP documents, guidelines, and requirements. We'll use OpenAI to analyze and extract key information.
             </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 1 }}>
+              <img src="/openai-logo.svg" alt="OpenAI Logo" width={16} height={16} style={{ marginRight: 6 }} />
+              <Typography variant="caption" color="primary.main">
+                Powered by OpenAI GPT-4
+              </Typography>
+            </Box>
             {showAnalysisSuccess && (
               <Alert severity="success" sx={{ mt: 2, mx: 'auto', maxWidth: 500 }}>
                 <AlertTitle>Document Analyzed Successfully</AlertTitle>

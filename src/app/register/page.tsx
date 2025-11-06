@@ -37,6 +37,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
+import UserManagementService from '@/services/UserManagementService';
 
 // Inner component that uses the auth context
 function RegisterContent() {
@@ -100,21 +101,30 @@ function RegisterContent() {
     setLoading(true);
 
     try {
-      // Create user in Firebase Authentication
-      await signUp(formData.email, formData.password);
+      // Create user using UserManagementService
+      await UserManagementService.createUser({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        displayName: `${formData.firstName} ${formData.lastName}`,
+        role: formData.role,
+        organization: formData.organization,
+        title: formData.title,
+        isActive: false, // Accounts start as inactive until approved
+        pendingApproval: true, // New accounts require approval
+      });
       
-      // Store additional user data in Firestore with approval status
-      // This would be implemented in your Firebase service
-      // For now, we'll just simulate success
-      
+      // Self-registration flow complete
       setSuccess(true);
       setLoading(false);
       
-      // In a real implementation, you would redirect after a delay
+      // Redirect after a delay
       setTimeout(() => {
         router.push('/login');
       }, 5000);
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred during registration');
       setLoading(false);
     }

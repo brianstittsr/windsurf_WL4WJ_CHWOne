@@ -260,32 +260,150 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
     }));
   };
 
-  // Document Analysis Function
+  // Document Analysis Function using OpenAI API
   const analyzeDocument = async (file: File): Promise<void> => {
     try {
       setIsAnalyzingDocument(true);
       
-      // In a real implementation, this would send the file to a backend service
-      // for AI analysis. For this demo, we'll simulate the analysis with a delay
-      console.log('Analyzing document:', file.name);
+      // Prepare form data for API call
+      const formData = new FormData();
+      formData.append('file', file);
       
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Sending document for AI analysis:', file.name);
       
-      // Extract data based on filename patterns (simulated AI extraction)
-      const extractedData = await extractDataFromDocument(file);
+      // Call the OpenAI API endpoint
+      const response = await fetch('/api/ai/analyze-grant', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(`Analysis failed: ${result.error || 'Unknown error'}`);
+      }
+      
+      // Process the analyzed data
+      const extractedData = processAnalyzedData(result.analyzedData);
       
       // Update the grant data with the extracted information
       updateGrantData(extractedData);
       setHasPrepopulatedData(true);
     } catch (error) {
       console.error('Error analyzing document:', error);
+      // Fall back to mock data for testing if OpenAI fails
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Falling back to mock data due to OpenAI API error');
+        const extractedData = await extractDataFromDocument(file);
+        updateGrantData(extractedData);
+        setHasPrepopulatedData(true);
+      }
     } finally {
       setIsAnalyzingDocument(false);
     }
   };
 
-  // Helper function to extract data from document  // Simulated document analysis for demo purposes
+  // Process the OpenAI API analysis results into our grant data structure
+  const processAnalyzedData = (apiData: any): Partial<Grant> => {
+    try {
+      console.log('Processing OpenAI analysis data:', apiData);
+      
+      // Initialize the extracted data
+      const extractedData: Partial<Grant> = {
+        name: apiData.grantName || apiData.title || apiData.name || '',
+        description: apiData.description || apiData.purpose || '',
+        startDate: apiData.startDate || '',
+        endDate: apiData.endDate || '',
+        fundingSource: apiData.fundingSource || '',
+        grantNumber: apiData.grantNumber || '',
+        totalBudget: apiData.totalBudget || apiData.budget || 0,
+      };
+      
+      // Process collaborating entities
+      if (apiData.entities || apiData.collaboratingEntities) {
+        const entities = apiData.entities || apiData.collaboratingEntities || [];
+        extractedData.collaboratingEntities = entities.map((entity: any, index: number) => ({
+          id: `entity-${Date.now()}-${index}`,
+          name: entity.name || `Entity ${index + 1}`,
+          role: entity.role || 'partner',
+          description: entity.description || '',
+          contactName: entity.contactName || entity.contact?.name || '',
+          contactEmail: entity.contactEmail || entity.contact?.email || '',
+          contactPhone: entity.contactPhone || entity.contact?.phone || '',
+          responsibilities: entity.responsibilities || []
+        }));
+      }
+      
+      // Process data collection methods
+      if (apiData.dataCollectionMethods || apiData.methods) {
+        const methods = apiData.dataCollectionMethods || apiData.methods || [];
+        extractedData.dataCollectionMethods = methods.map((method: any, index: number) => ({
+          id: `method-${Date.now()}-${index}`,
+          name: method.name || `Method ${index + 1}`,
+          description: method.description || '',
+          frequency: method.frequency || 'monthly',
+          responsibleEntity: method.responsibleEntity || method.responsible || '',
+          dataPoints: method.dataPoints || method.data || [],
+          tools: method.tools || method.instruments || []
+        }));
+      }
+      
+      // Process project milestones
+      if (apiData.milestones || apiData.projectMilestones) {
+        const milestones = apiData.milestones || apiData.projectMilestones || [];
+        extractedData.projectMilestones = milestones.map((milestone: any, index: number) => ({
+          id: `milestone-${Date.now()}-${index}`,
+          name: milestone.name || `Milestone ${index + 1}`,
+          description: milestone.description || '',
+          dueDate: milestone.dueDate || milestone.date || '',
+          status: milestone.status || 'not_started',
+          responsibleParties: milestone.responsibleParties || milestone.responsible || [],
+          dependencies: milestone.dependencies || []
+        }));
+      }
+      
+      // Process analysis recommendations
+      if (apiData.recommendations || apiData.analysisRecommendations) {
+        const recommendations = apiData.recommendations || apiData.analysisRecommendations || [];
+        extractedData.analysisRecommendations = recommendations.map((rec: any, index: number) => ({
+          id: `rec-${Date.now()}-${index}`,
+          area: rec.area || 'general',
+          description: rec.description || '',
+          priority: rec.priority || 'medium',
+          implementationSteps: rec.implementationSteps || rec.steps || []
+        }));
+      }
+      
+      // If API didn't return all expected data, add some minimal placeholder data
+      if (!extractedData.collaboratingEntities?.length) {
+        extractedData.collaboratingEntities = [{
+          id: `entity-${Date.now()}-1`,
+          name: 'Lead Organization',
+          role: 'lead',
+          description: 'Primary grant administrator',
+          contactName: '',
+          contactEmail: '',
+          contactPhone: '',
+          responsibilities: ['Grant administration']
+        }];
+      }
+      
+      return extractedData;
+    } catch (error) {
+      console.error('Error processing API data:', error);
+      // Return a minimal dataset if processing fails
+      return {
+        name: apiData?.name || apiData?.title || 'New Grant',
+        description: apiData?.description || ''
+      };
+    }
+  };
+  
+  // Helper function to extract data from document (fallback for development/testing)
   const extractDataFromDocument = async (file: File): Promise<Partial<Grant>> => {
     // Simulate analysis delay
     await new Promise((resolve) => setTimeout(resolve, 2000));

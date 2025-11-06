@@ -92,22 +92,24 @@ export default function DatabaseStatusCard() {
           </Typography>
         </Box>
         <Tooltip title="Refresh status">
-          <Button 
-            size="small" 
-            onClick={checkConnection} 
-            disabled={loading}
-            sx={{ 
-              minWidth: 'auto', 
-              p: 0.5, 
-              color: 'white', 
-              bgcolor: 'rgba(255, 255, 255, 0.2)',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.3)'
-              }
-            }}
-          >
-            {loading ? <CircularProgress size={20} color="inherit" /> : <RefreshIcon />}
-          </Button>
+          <span>
+            <Button 
+              size="small" 
+              onClick={checkConnection} 
+              disabled={loading}
+              sx={{ 
+                minWidth: 'auto', 
+                p: 0.5, 
+                color: 'white', 
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.3)'
+                }
+              }}
+            >
+              {loading ? <CircularProgress size={20} color="inherit" /> : <RefreshIcon />}
+            </Button>
+          </span>
         </Tooltip>
       </Box>
       
