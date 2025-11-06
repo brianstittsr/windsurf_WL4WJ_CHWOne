@@ -164,8 +164,10 @@ export default function AdminUsers() {
     setError(null);
     
     try {
+      console.log('Fetching all users from Firestore...');
       // Get all users from the service
       const serviceUsers = await UserManagementService.getAllUsers();
+      console.log('Received users from service:', serviceUsers);
       
       // Convert to our component's User type
       const fetchedUsers: User[] = serviceUsers.map(serviceUser => ({
@@ -183,6 +185,7 @@ export default function AdminUsers() {
       // Count pending approvals
       const pendingCount = fetchedUsers.filter(user => user.pendingApproval).length;
       
+      console.log('Setting users state with', fetchedUsers.length, 'users');
       setUsers(fetchedUsers);
       setPendingApprovalCount(pendingCount);
     } catch (err) {
@@ -219,8 +222,43 @@ export default function AdminUsers() {
   });
 
   // Handle tab change
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = async (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+    
+    // When switching to the Admins tab, fetch admin users specifically
+    if (newValue === 1) { // 1 is the Admins tab index
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('Fetching admin users for admin tab...');
+        
+        const adminUsers = await UserManagementService.getAdminUsers();
+        
+        // Convert to our component's User type
+        const fetchedUsers: User[] = adminUsers.map(adminUser => ({
+          id: adminUser.uid,
+          email: adminUser.email,
+          displayName: adminUser.displayName || '',
+          role: adminUser.role,
+          organization: adminUser.organization,
+          isActive: adminUser.isActive,
+          createdAt: adminUser.createdAt,
+          lastLoginAt: adminUser.lastLoginAt,
+          pendingApproval: adminUser.pendingApproval,
+        }));
+        
+        console.log('Found', fetchedUsers.length, 'admin users');
+        setUsers(fetchedUsers); // This will override the main users array, but only when viewing admins tab
+      } catch (err) {
+        console.error('Error fetching admin users:', err);
+        setError('Failed to load admin users. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    } else if (newValue === 0) {
+      // When switching back to All Users tab, refresh the full list
+      fetchUsers();
+    }
   };
 
   // Reset form data for creating a new user
@@ -296,6 +334,7 @@ export default function AdminUsers() {
   const handleCreateUser = async () => {
     try {
       setError(null);
+      console.log('Creating new user with data:', userFormData);
       
       if (!userFormData.email || !userFormData.password || !userFormData.displayName) {
         setError('Email, password, and display name are required.');
@@ -303,7 +342,7 @@ export default function AdminUsers() {
       }
       
       // Create user via the service
-      await UserManagementService.createUser({
+      const newUser = await UserManagementService.createUser({
         email: userFormData.email,
         password: userFormData.password,
         displayName: userFormData.displayName,
@@ -314,9 +353,15 @@ export default function AdminUsers() {
         pendingApproval: false, // Admin-created users don't need approval
       });
       
+      console.log('User created successfully:', newUser);
+      
       // Close dialog and refresh user list
       handleCloseDialog();
-      fetchUsers();
+      
+      // Force a fresh fetch of all users
+      console.log('Fetching updated user list...');
+      await fetchUsers();
+      console.log('User list updated with', users.length, 'users');
       
       alert('User created successfully!');
     } catch (err: any) {

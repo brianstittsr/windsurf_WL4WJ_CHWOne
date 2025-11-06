@@ -72,6 +72,8 @@ export class UserManagementService {
    */
   static async createUser(userData: NewUserData): Promise<UserProfile> {
     try {
+      console.log('Creating new user in Firebase Auth:', userData.email);
+      
       // Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth, 
@@ -80,6 +82,7 @@ export class UserManagementService {
       );
       
       const user = userCredential.user;
+      console.log('Firebase Auth user created with UID:', user.uid);
       
       // Set display name if provided
       const displayName = userData.displayName || 
@@ -91,6 +94,7 @@ export class UserManagementService {
         await updateProfile(user, {
           displayName: displayName
         });
+        console.log('User profile updated with display name:', displayName);
       }
       
       // Prepare default permissions based on role
@@ -115,8 +119,18 @@ export class UserManagementService {
         phoneNumber: user.phoneNumber || undefined,
       };
       
+      console.log('Saving user profile to Firestore with ID:', user.uid);
       // Save user profile to Firestore
       await setDoc(doc(db, 'users', user.uid), userProfile);
+      console.log('User profile saved to Firestore successfully');
+      
+      // Double-check that the user was created properly
+      const savedUser = await this.getUserById(user.uid);
+      if (!savedUser) {
+        console.warn('User was created but could not be retrieved from Firestore - possible data consistency issue');
+      } else {
+        console.log('User retrieval verification successful');
+      }
       
       return {
         ...userProfile,
@@ -179,13 +193,25 @@ export class UserManagementService {
    */
   static async getAllUsers(): Promise<UserProfile[]> {
     try {
-      const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
+      console.log('UserManagementService: Getting all users from Firestore...');
       
-      return querySnapshot.docs.map(doc => {
+      // Add timestamp to query to prevent cached results (dev tool)
+      const timestamp = Date.now();
+      const q = query(
+        collection(db, 'users'),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      console.log(`UserManagementService: Retrieved ${querySnapshot.docs.length} users from Firestore`);
+      
+      const users = querySnapshot.docs.map(doc => {
         const userData = doc.data();
         return this.formatUserProfile(doc.id, userData);
       });
+      
+      console.log('UserManagementService: Processed user data:', users.length);
+      return users;
     } catch (error) {
       console.error('Error getting all users:', error);
       throw error;
@@ -212,6 +238,32 @@ export class UserManagementService {
       });
     } catch (error) {
       console.error('Error getting pending approval users:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all admin users
+   * @returns Array of admin user profiles
+   */
+  static async getAdminUsers(): Promise<UserProfile[]> {
+    try {
+      console.log('Fetching admin users specifically from Firestore...');
+      const q = query(
+        collection(db, 'users'), 
+        where('role', '==', UserRole.ADMIN),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      console.log(`Retrieved ${querySnapshot.size} admin users`);
+      
+      return querySnapshot.docs.map(doc => {
+        const userData = doc.data();
+        return this.formatUserProfile(doc.id, userData);
+      });
+    } catch (error) {
+      console.error('Error getting admin users:', error);
       throw error;
     }
   }
