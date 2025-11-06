@@ -21,6 +21,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
+import AnalysisProcessModal from '../../AnalysisProcessModal';
 import { 
   CloudUpload as UploadIcon,
   InsertDriveFile as FileIcon,
@@ -31,7 +32,15 @@ import {
 } from '@mui/icons-material';
 
 export function Step1BasicInfo() {
-  const { grantData, updateGrantData, analyzeDocument, isAnalyzingDocument } = useGrantWizard();
+  const { 
+    grantData, 
+    updateGrantData, 
+    analyzeDocument, 
+    isAnalyzingDocument, 
+    hasPrepopulatedData, 
+    generatePrepopulatedData,
+    setShowAnalysisModal
+  } = useGrantWizard();
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -61,6 +70,9 @@ export function Step1BasicInfo() {
               ...newFiles.map(file => ({ name: file.name, size: file.size, type: file.type, uploadedAt: new Date().toISOString() }))
             ]
           });
+          
+          // Ensure the analysis modal is shown
+          setShowAnalysisModal(true);
           
           // Start AI analysis of the document and handle the result
           analyzeDocument(newFiles[0]).then(result => {
@@ -109,6 +121,8 @@ export function Step1BasicInfo() {
   
   return (
     <Box sx={{ mb: 4 }}>
+      {/* Analysis Process Modal */}
+      <AnalysisProcessModal />
       {/* Document Upload Section */}
       <Paper variant="outlined" sx={{ 
         p: 3, 

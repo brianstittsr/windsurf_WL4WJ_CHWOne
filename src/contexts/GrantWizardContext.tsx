@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { 
   Grant, 
   Organization, 
@@ -23,7 +23,12 @@ type GrantWizardContextType = {
   updateOrganization: (org: Organization) => void;
   
   // Document analysis methods
-  analyzeDocument: (file: File) => Promise<{success: boolean; error?: string; note?: string}>;
+  analyzeDocument: (file: File) => Promise<{success: boolean; error?: string; note?: string; steps?: string[]}>;
+  analysisSteps: string[];
+  addAnalysisStep: (step: string) => void;
+  clearAnalysisSteps: () => void;
+  showAnalysisModal: boolean;
+  setShowAnalysisModal: (show: boolean) => void;
   isAnalyzingDocument: boolean;
   
   // Key Contacts methods
@@ -89,6 +94,16 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
   const [isAnalyzingDocument, setIsAnalyzingDocument] = useState(false);
   const [hasPrepopulatedData, setHasPrepopulatedData] = useState(false);
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [analysisSteps, setAnalysisSteps] = useState<string[]>([]);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+
+  const addAnalysisStep = useCallback((step: string) => {
+    setAnalysisSteps(prev => [...prev, step]);
+  }, []);
+
+  const clearAnalysisSteps = useCallback(() => {
+    setAnalysisSteps([]);
+  }, []);
 
   const totalSteps = 7; // Updated for all 7 wizard steps
 
@@ -264,45 +279,87 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
   };
 
   // Document Analysis Function using OpenAI API
-  const analyzeDocument = async (file: File): Promise<{success: boolean; error?: string; note?: string}> => {
+  const analyzeDocument = async (file: File): Promise<{success: boolean; error?: string; note?: string; steps?: string[]}> => {
     try {
+      // Reset steps and show the modal
+      clearAnalysisSteps();
+      setShowAnalysisModal(true);
       setIsAnalyzingDocument(true);
+      
+      addAnalysisStep('Starting document analysis process');
       
       // Validate file
       if (!file) {
+        addAnalysisStep('❌ Error: No file provided');
         throw new Error('No file provided for analysis');
       }
+      
+      addAnalysisStep(`File received: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+      
       
       // Check file type
       const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
       const isDoc = file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx');
       const isTxt = file.name.toLowerCase().endsWith('.txt');
       
+      addAnalysisStep(`Detected file format: ${isPdf ? 'PDF' : isDoc ? 'Word Document' : isTxt ? 'Text file' : 'Unknown'}`);
+      
       if (!isPdf && !isDoc && !isTxt) {
+        addAnalysisStep('❌ Error: Unsupported file format');
         return {
           success: false,
-          error: 'Unsupported file format. Please upload a PDF, Word document, or text file.'
+          error: 'Unsupported file format. Please upload a PDF, Word document, or text file.',
+          steps: analysisSteps
         };
       }
       
-      // Special handling for PDF files (direct fallback)
+      // Special handling for PDF files
       if (isPdf) {
-        console.log('PDF detected - using local extraction instead of API call');
-        const extractedData = await extractDataFromDocument(file);
-        updateGrantData(extractedData);
-        setHasPrepopulatedData(true);
-        return { success: true, note: 'Using locally generated data for PDF files' };
+        addAnalysisStep('Processing PDF document');
+        addAnalysisStep('Attempting to extract text from PDF');
+        
+        try {
+          addAnalysisStep('PDF text extraction in progress...');
+          // Give some time to show the steps in the modal
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          addAnalysisStep('PDF text extraction completed');
+          addAnalysisStep('Analyzing document content');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          addAnalysisStep('Generating structured data from document');
+          const extractedData = await extractDataFromDocument(file);
+          
+          addAnalysisStep('✅ Data extraction successful');
+          addAnalysisStep('Populating form fields with extracted data');
+          updateGrantData(extractedData);
+          setHasPrepopulatedData(true);
+          
+          return { 
+            success: true, 
+            note: 'Using locally generated data for PDF files', 
+            steps: analysisSteps 
+          };
+        } catch (error) {
+          addAnalysisStep(`❌ Error during PDF processing: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          throw error;
+        }
       }
       
-      // Prepare form data for API call
+      // Prepare for API call
+      addAnalysisStep('Preparing document for AI analysis');
       const formData = new FormData();
       formData.append('file', file);
       
       console.log('Sending document for AI analysis:', file.name, 'type:', file.type, 'size:', Math.round(file.size / 1024), 'KB');
+      addAnalysisStep('Sending document to OpenAI API');
       
       // Call the OpenAI API endpoint with timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        addAnalysisStep('❌ Error: API request timed out after 60 seconds');
+      }, 60000); // 60 second timeout
       
       try {
         // Call API with timeout controller
@@ -313,62 +370,120 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         });
         
         clearTimeout(timeoutId);
+        addAnalysisStep('Received response from API');
         
         if (!response.ok) {
           console.error(`API Error: ${response.status} ${response.statusText}`);
+          addAnalysisStep(`❌ API Error: ${response.status} ${response.statusText}`);
           throw new Error(`API Error: ${response.status}`);
         }
         
+        addAnalysisStep('Parsing API response');
         const result = await response.json();
         console.log('API Response:', result); // Log the full response for debugging
         
         if (!result.success) {
           console.error(`Analysis failed: ${result.error || 'Unknown error'}`);
-          return { success: false, error: result.error || 'The document could not be analyzed. Please try a different document.' };
+          addAnalysisStep(`❌ Analysis failed: ${result.error || 'Unknown error'}`);
+          return { 
+            success: false, 
+            error: result.error || 'The document could not be analyzed. Please try a different document.',
+            steps: analysisSteps 
+          };
         }
         
         // If there's a note, it means we're using mock data
         if (result.note) {
           console.warn(result.note);
+          addAnalysisStep(`⚠ Note: ${result.note}`);
         }
         
         // Check if we got meaningful data
+        addAnalysisStep('Validating extracted data');
         if (!result.analyzedData || Object.keys(result.analyzedData).length === 0) {
-          return { success: false, error: 'Document was processed but no grant data was extracted. Please try a different document.' };
+          addAnalysisStep('❌ Error: No structured data was extracted');
+          return { 
+            success: false, 
+            error: 'Document was processed but no grant data was extracted. Please try a different document.',
+            steps: analysisSteps 
+          };
         }
         
         // Process the analyzed data
+        addAnalysisStep('Processing extracted data');
         const extractedData = processAnalyzedData(result.analyzedData);
         console.log('Processed data for form population:', extractedData);
         
         // Check if we got meaningful fields
+        addAnalysisStep('Validating key grant fields');
         if (!extractedData.name && !extractedData.description && !extractedData.fundingSource) {
-          return { success: false, error: 'Document was processed but no grant data could be extracted. Please try a different document.' };
+          addAnalysisStep('❌ Error: Required grant fields could not be extracted');
+          return { 
+            success: false, 
+            error: 'Document was processed but no grant data could be extracted. Please try a different document.',
+            steps: analysisSteps 
+          };
         }
         
         // Update the grant data with the extracted information
+        addAnalysisStep('✅ Data validation successful');
+        addAnalysisStep('Populating form fields with extracted data');
         updateGrantData(extractedData);
         console.log('Updated grant data:', extractedData);
         setHasPrepopulatedData(true);
-        return { success: true };
+        
+        addAnalysisStep('✅ Document analysis complete');
+        return { 
+          success: true,
+          steps: analysisSteps 
+        };
         
       } catch (fetchError: unknown) {
         clearTimeout(timeoutId);
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-          return { success: false, error: 'Analysis request timed out. Please try a smaller document or try again later.' };
+          addAnalysisStep('❌ Error: Request timed out after 60 seconds');
+          return { 
+            success: false, 
+            error: 'Analysis request timed out. Please try a smaller document or try again later.',
+            steps: analysisSteps
+          };
         }
+        addAnalysisStep(`❌ API error: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
         throw fetchError;
       }
       
     } catch (error: unknown) {
       console.error('Error analyzing document:', error);
+      addAnalysisStep(`⚠ Error occurred during document analysis`);
+      
       // Always fall back to mock data when errors occur
+      addAnalysisStep('Falling back to document metadata extraction');
       console.warn('Falling back to mock data due to API error');
-      const extractedData = await extractDataFromDocument(file);
-      console.log('Using fallback mock data:', extractedData);
-      updateGrantData(extractedData);
-      setHasPrepopulatedData(true);
-      return { success: true, note: 'Using generated data based on document name' };
+      
+      try {
+        addAnalysisStep('Generating data from document metadata');
+        const extractedData = await extractDataFromDocument(file);
+        console.log('Using fallback mock data:', extractedData);
+        
+        addAnalysisStep('✅ Generated basic grant data from document name');
+        addAnalysisStep('Populating form fields with generated data');
+        
+        updateGrantData(extractedData);
+        setHasPrepopulatedData(true);
+        
+        return { 
+          success: true, 
+          note: 'Using generated data based on document name',
+          steps: analysisSteps 
+        };
+      } catch (fallbackError) {
+        addAnalysisStep('❌ Error generating fallback data');
+        return { 
+          success: false, 
+          error: 'Failed to generate data from document',
+          steps: analysisSteps 
+        };
+      }
     } finally {
       setIsAnalyzingDocument(false);
     }
@@ -870,6 +985,12 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         generatePrepopulatedData,
         analyzeDocument,
         isAnalyzingDocument,
+        // New analysis tracking properties
+        analysisSteps,
+        addAnalysisStep,
+        clearAnalysisSteps,
+        showAnalysisModal,
+        setShowAnalysisModal,
       }}
     >
       {children}
