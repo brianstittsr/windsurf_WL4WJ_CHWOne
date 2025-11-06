@@ -157,6 +157,14 @@ export interface GeoRegion {
   };
 }
 
+// Region entity for organizing nonprofits
+export interface Region extends BaseEntity {
+  name: string;
+  stateId: string;
+  chwAssociationId: string;
+  nonprofitIds: string[];
+}
+
 // User Profile - Extended from existing one
 export interface UserProfile extends BaseEntity {
   email: string;
