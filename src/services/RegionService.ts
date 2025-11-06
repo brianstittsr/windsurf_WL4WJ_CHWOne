@@ -18,18 +18,23 @@ import ChwAssociationService from './ChwAssociationService';
 import StateService from './StateService';
 
 // Helper function to convert Firestore data to app data
-// Explicitly include isActive property required by BaseEntity interface
-const toAppRegion = (id: string, data: any): WithDate<Region> => ({
-  id,
-  name: data.name,
-  stateId: data.stateId,
-  chwAssociationId: data.chwAssociationId,
-  nonprofitIds: data.nonprofitIds || [],
-  // Make sure isActive is included with a default value of true if not present
-  isActive: data.isActive !== undefined ? data.isActive : true,
-  createdAt: data.createdAt?.toDate() || new Date(),
-  updatedAt: data.updatedAt?.toDate() || new Date(),
-});
+// Using a more verbose implementation to ensure all required properties are set
+const toAppRegion = (id: string, data: any): WithDate<Region> => {
+  // Create a new object with all required properties
+  const region: WithDate<Region> = {
+    id,
+    name: data.name,
+    stateId: data.stateId,
+    chwAssociationId: data.chwAssociationId,
+    nonprofitIds: data.nonprofitIds || [],
+    // REQUIRED: isActive from BaseEntity interface
+    isActive: data.isActive !== undefined ? data.isActive : true,
+    createdAt: data.createdAt?.toDate() || new Date(),
+    updatedAt: data.updatedAt?.toDate() || new Date()
+  };
+  
+  return region;
+};
 
 class RegionService {
   private static readonly COLLECTION_NAME = 'regions';
