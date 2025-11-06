@@ -95,6 +95,8 @@
     "openai": "^6.8.1",
     "papaparse": "^5.5.3",
     "pdf-lib": "^1.17.1",
+    "pdf-parse": "^2.4.5",
+    "pdf.js-extract": "^0.2.1",
     "plotly.js": "^3.1.1",
     "pptxgenjs": "^4.0.1",
     "qrcode": "^1.5.4",
