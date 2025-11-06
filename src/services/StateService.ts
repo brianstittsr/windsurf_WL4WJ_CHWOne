@@ -9,10 +9,13 @@ import {
   query, 
   where, 
   getDocs, 
+  orderBy,
   serverTimestamp, 
-  Timestamp 
+  Timestamp,
+  setDoc,
+  limit
 } from 'firebase/firestore';
-import { State, WithDate, BaseEntity } from '@/types/hierarchy';
+import { State, WithDate, BaseEntity, CreateEntity } from '@/types/hierarchy';
 
 // Helper function to convert Firestore data to app data
 const toAppState = (id: string, data: any): WithDate<State> => ({
@@ -25,25 +28,29 @@ const toAppState = (id: string, data: any): WithDate<State> => ({
 class StateService {
   private static readonly COLLECTION_NAME = 'states';
 
-  static async createState(stateData: Omit<State, keyof BaseEntity>): Promise<WithDate<State>> {
+  static async createState(stateData: CreateEntity<State>): Promise<WithDate<State>> {
+    // Generate a custom ID based on state abbreviation (lowercase)
+    const stateId = stateData.abbreviation.toLowerCase();
+    
     const now = serverTimestamp();
-    const docRef = await addDoc(collection(db, this.COLLECTION_NAME), {
+    const stateWithTimestamps = {
       ...stateData,
+      isActive: stateData.isActive ?? true,
       createdAt: now,
       updatedAt: now,
-    });
+    };
+
+    // Use setDoc with custom ID instead of addDoc
+    await setDoc(doc(db, this.COLLECTION_NAME, stateId), stateWithTimestamps);
 
     // Create the return value with proper typing
-    const newState: WithDate<State> = {
-      id: docRef.id,
-      name: stateData.name,
-      code: stateData.code,
-      chwAssociationId: stateData.chwAssociationId,
+    return {
+      id: stateId,
+      ...stateData,
+      isActive: stateData.isActive ?? true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-
-    return newState;
   }
 
   static async getState(id: string): Promise<WithDate<State> | null> {
@@ -55,6 +62,12 @@ class StateService {
     }
 
     return toAppState(docSnap.id, docSnap.data());
+  }
+
+  static async getStateByAbbreviation(abbreviation: string): Promise<WithDate<State> | null> {
+    // Convert to lowercase for consistency
+    const stateId = abbreviation.toLowerCase();
+    return this.getState(stateId);
   }
 
   static async updateState(id: string, updates: Partial<Omit<State, 'id' | 'createdAt' | 'updatedAt'>>): Promise<void> {
@@ -70,10 +83,24 @@ class StateService {
     await deleteDoc(docRef);
   }
 
-  static async getStatesByAssociation(chwAssociationId: string): Promise<WithDate<State>[]> {
+  static async getStatesByRegion(region: string): Promise<WithDate<State>[]> {
     const q = query(
       collection(db, this.COLLECTION_NAME),
-      where('chwAssociationId', '==', chwAssociationId)
+      where('region', '==', region),
+      orderBy('name', 'asc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => 
+      toAppState(doc.id, doc.data())
+    );
+  }
+
+  static async getActiveStates(): Promise<WithDate<State>[]> {
+    const q = query(
+      collection(db, this.COLLECTION_NAME),
+      where('isActive', '==', true),
+      orderBy('name', 'asc')
     );
     
     const querySnapshot = await getDocs(q);
@@ -83,10 +110,28 @@ class StateService {
   }
 
   static async getAllStates(): Promise<WithDate<State>[]> {
-    const querySnapshot = await getDocs(collection(db, this.COLLECTION_NAME));
+    const q = query(
+      collection(db, this.COLLECTION_NAME),
+      orderBy('name', 'asc')
+    );
+    
+    const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => 
       toAppState(doc.id, doc.data())
     );
+  }
+  
+  // Check if any associations are linked to this state
+  static async hasAssociations(stateId: string): Promise<boolean> {
+    const q = query(
+      collection(db, 'chwAssociations'),
+      where('stateId', '==', stateId),
+      // Limit to 1 since we only need to know if any exist
+      limit(1)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
   }
 }
 
