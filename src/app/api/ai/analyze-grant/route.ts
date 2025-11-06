@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
-
-// Use pdf-parse as a CommonJS module (PDF.js has browser dependencies)
-const pdfParse = require('pdf-parse');
 
 export const dynamic = 'force-dynamic';
 
@@ -132,56 +126,16 @@ export async function POST(request: NextRequest) {
       const isPdf = fileName.toLowerCase().endsWith('.pdf') || fileType === 'application/pdf';
       
       if (isPdf) {
-        console.log('Detected PDF file, using pdf-parse');
+        console.log('Detected PDF file');
         try {
-          // Need to save the file temporarily to use pdf-parse in server environment
-          const tempDir = os.tmpdir();
-          const uniqueId = Date.now().toString();
-          const tempFilePath = path.join(tempDir, `temp-${uniqueId}.pdf`);
-          
-          // Convert to Buffer and save to temp file
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          await fs.writeFile(tempFilePath, buffer);
-          
-          console.log(`Saved PDF to temporary file: ${tempFilePath}`);
-          
-          try {
-            // Read the file with pdf-parse
-            console.log('Extracting text with pdf-parse...');
-            const fileBuffer = await fs.readFile(tempFilePath);
-            const data = await pdfParse(fileBuffer);
-            fileContent = data.text || '';
-            
-            console.log(`PDF extraction complete, ${fileContent.length} characters extracted`);
-            
-            // Clean up temp file
-            try {
-              await fs.unlink(tempFilePath);
-              console.log('Temporary PDF file deleted');
-            } catch (cleanupError) {
-              console.warn('Failed to delete temporary file:', cleanupError);
-            }
-            
-          } catch (parseError) {
-            console.error('PDF parsing failed:', parseError);
-            // Fall back to basic extraction
-            try {
-              fileContent = await file.text();
-              console.log(`Fallback extraction got ${fileContent.length} characters`);
-            } catch (e) {
-              console.error('Fallback extraction also failed:', e);
-            }
-          }
-        } catch (fileError) {
-          console.error('Error handling PDF file:', fileError);
-          try {
-            fileContent = await file.text();
-            console.log(`Using fallback text extraction: ${fileContent.length} characters`);
-          } catch (textError) {
-            console.error('Text extraction also failed:', textError);
-            fileContent = '';
-          }
+          // For PDF files, use basic text extraction
+          // This won't be perfect but avoids dependency issues
+          console.log('Using basic text extraction for PDF');
+          fileContent = await file.text();
+          console.log(`Extracted ${fileContent.length} characters from PDF using basic extraction`);
+        } catch (pdfError) {
+          console.error('Error processing PDF:', pdfError);
+          fileContent = '';
         }
       } else {
         // For non-PDF files, use simple text extraction
