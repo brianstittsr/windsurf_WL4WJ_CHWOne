@@ -398,14 +398,18 @@ export function ReportScheduler({
                 value={reportForm.deliverySchedule?.recipients || []}
                 onChange={(_, value) => handleScheduleChange('recipients', value)}
                 renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      variant="outlined"
-                      label={option}
-                      size="small"
-                      {...getTagProps({ index })}
-                    />
-                  ))
+                  value.map((option, index) => {
+                    // getTagProps already includes a key prop
+                    const tagProps = getTagProps({ index });
+                    return (
+                      <Chip
+                        variant="outlined"
+                        label={option}
+                        size="small"
+                        {...tagProps}
+                      />
+                    );
+                  })
                 }
                 renderInput={(params) => (
                   <TextField
