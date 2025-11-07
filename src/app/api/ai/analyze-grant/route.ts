@@ -145,24 +145,28 @@ export async function POST(request: NextRequest) {
       
       console.log(`Content sample: ${fileContent.slice(0, 200)}...`);
       
-      // If we couldn't extract meaningful text, use mock data
+      // If we couldn't extract meaningful text, return an error
       if (fileContent.length < 100) {
-        console.warn('Extracted text is very short or empty, falling back to mock data');
+        console.warn('Extracted text is very short or empty');
         return NextResponse.json({
-          success: true,
-          analyzedData: getMockGrantData(),
-          note: 'Using mock data because text extraction was insufficient'
-        });
+          success: false,
+          error: 'Failed to extract enough text from the document.',
+          details: `Only ${fileContent.length} characters extracted, minimum required is 100`
+        }, { status: 422 });
       }
       
       // For development/testing or if Anthropic key is not set
-      if (!process.env.ANTHROPIC_API_KEY || process.env.NODE_ENV !== 'production') {
-        console.log('Using mock data (Anthropic API key not set or not in production)');
+      if (!process.env.ANTHROPIC_API_KEY) {
+        console.log('Anthropic API key not set - returning error');
         return NextResponse.json({
-          success: true,
-          analyzedData: getMockGrantData(),
-          note: 'Using mock grant data (development mode)'
-        });
+          success: false,
+          error: 'Anthropic API key not configured. Please set up your API key.',
+        }, { status: 400 });
+      }
+      
+      // Even in development mode, attempt to use the API if key is available
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Running in development mode but will attempt to use Anthropic API');
       }
       
       // Prepare system prompt for Anthropic with improved instructions
@@ -232,33 +236,33 @@ export async function POST(request: NextRequest) {
           console.error('Error parsing Anthropic response:', parseError);
           console.error('Raw response:', responseContent);
           return NextResponse.json({
-            success: true,
-            analyzedData: getMockGrantData(),
-            note: 'Using mock data due to response parsing error'
-          });
+            success: false,
+            error: 'Failed to parse response from Anthropic API.',
+            details: responseContent ? `Raw response: ${responseContent.substring(0, 100)}...` : 'No response received'
+          }, { status: 422 });
         }
       } catch (aiError) {
         console.error('Anthropic API error:', aiError);
         return NextResponse.json({
-          success: true,
-          analyzedData: getMockGrantData(),
-          note: 'Using mock data due to Anthropic API error'
-        });
+          success: false,
+          error: 'Error occurred while calling Anthropic API.',
+          details: aiError instanceof Error ? aiError.message : 'Unknown error'
+        }, { status: 500 });
       }
     } catch (textExtractionError) {
       console.error('Error extracting text from file:', textExtractionError);
       return NextResponse.json({
-        success: true,
-        analyzedData: getMockGrantData(),
-        note: 'Using mock data due to text extraction error'
-      });
+        success: false,
+        error: 'Failed to extract text from the document.',
+        details: textExtractionError instanceof Error ? textExtractionError.message : 'Unknown error'
+      }, { status: 422 });
     }
   } catch (error) {
     console.error('Unexpected error in analyze-grant:', error);
     return NextResponse.json({
-      success: true,
-      analyzedData: getMockGrantData(),
-      note: 'Using mock data due to server error'
-    });
+      success: false,
+      error: 'An unexpected server error occurred.',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

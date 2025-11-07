@@ -85,13 +85,28 @@ export function Step1BasicInfo() {
               setTimeout(() => setShowAnalysisSuccess(false), 5000); // Hide after 5 seconds
             } else {
               // Analysis failed, show error
-              setAnalysisError(result.error || 'Document was processed but no grant data was extracted. Please try a different document.');
+              const errorMessage = result.error || 'Document analysis failed. Please check your Anthropic API configuration.';
+              setAnalysisError(errorMessage);
               setUploadStatus('error');
+              
+              // Add an alert in the console for easier debugging
+              console.warn('Anthropic API error:', errorMessage);
             }
           }).catch(error => {
             console.error('Error during document analysis:', error);
-            setAnalysisError('An unexpected error occurred while analyzing the document. Please try again.');
+            let errorMessage = 'An unexpected error occurred while analyzing the document.';
+            
+            // Try to get more details if available
+            if (error instanceof Error) {
+              errorMessage += ' ' + error.message;
+            }
+            
+            // Add API key check suggestion
+            errorMessage += ' Please verify your Anthropic API key is set correctly.';
+            
+            setAnalysisError(errorMessage);
             setUploadStatus('error');
+            console.warn('Grant analysis failed:', errorMessage);
           });
         }
       }, 300);

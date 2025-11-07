@@ -433,45 +433,46 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       
     } catch (error: unknown) {
       console.error('Error analyzing document:', error);
-      addAnalysisStep(`⚠ Error occurred during document analysis`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      addAnalysisStep(`❌ Error during document analysis: ${errorMessage}`);
       
-      // Always fall back to mock data when errors occur
-      addAnalysisStep('Falling back to document metadata extraction');
-      console.warn('Falling back to mock data due to API error');
-      
-      try {
-        addAnalysisStep('Generating data from document metadata');
-        const extractedData = await extractDataFromDocument(file);
-        console.log('Using fallback mock data:', extractedData);
+      // Check if it's an API response error
+      if (error instanceof Response || (error as any)?.status >= 400) {
+        const status = (error as any)?.status || 'unknown';
+        let errorDetail = '';
         
-        addAnalysisStep('✅ Generated basic grant data from document name');
-        addAnalysisStep('Populating form fields with generated data');
+        try {
+          // Try to get the error details from the response
+          const errorData = await (error as Response).json();
+          errorDetail = errorData?.error || errorData?.details || JSON.stringify(errorData);
+          addAnalysisStep(`❌ API error (${status}): ${errorDetail}`);
+        } catch (e) {
+          addAnalysisStep(`❌ API error (${status}): Could not parse error details`);
+        }
         
-        updateGrantData(extractedData);
-        setHasPrepopulatedData(true);
-        
-        return { 
-          success: true, 
-          note: 'Using generated data based on document name',
-          steps: analysisSteps 
-        };
-      } catch (fallbackError) {
-        addAnalysisStep('❌ Error generating fallback data');
-        return { 
-          success: false, 
-          error: 'Failed to generate data from document',
-          steps: analysisSteps 
+        return {
+          success: false,
+          error: `API error: ${errorDetail || 'Document processing failed'}`,
+          steps: analysisSteps
         };
       }
+      
+      // For other errors
+      addAnalysisStep('❌ Document analysis failed - please try again');
+      return {
+        success: false,
+        error: 'Document analysis failed. Please ensure you have a valid Anthropic API key configured.',
+        steps: analysisSteps
+      };
     } finally {
       setIsAnalyzingDocument(false);
     }
   };
 
-  // Process the OpenAI API analysis results into our grant data structure
+  // Process the Anthropic API analysis results into our grant data structure
   const processAnalyzedData = (apiData: any): Partial<Grant> => {
     try {
-      console.log('Processing OpenAI analysis data:', apiData);
+      console.log('Processing Anthropic analysis data:', apiData);
       
       // Initialize the extracted data
       const extractedData: Partial<Grant> = {
