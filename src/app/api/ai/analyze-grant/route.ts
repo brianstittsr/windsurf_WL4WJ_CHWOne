@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 
 export const dynamic = 'force-dynamic';
 
-// Helper function to provide mock data when OpenAI API is unavailable
+// Helper function to provide mock data when Anthropic API is unavailable
 function getMockGrantData() {
   return {
     "grantTitle": "Community Health Worker Program Enhancement",
@@ -78,9 +78,9 @@ function getMockGrantData() {
   };
 }
 
-// Initialize OpenAI client with API key from environment variables
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize Anthropic client with API key from environment variables
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
 export async function POST(request: NextRequest) {
@@ -155,9 +155,9 @@ export async function POST(request: NextRequest) {
         });
       }
       
-      // For development/testing or if OpenAI key is not set
-      if (!process.env.OPENAI_API_KEY || process.env.NODE_ENV !== 'production') {
-        console.log('Using mock data (OpenAI API key not set or not in production)');
+      // For development/testing or if Anthropic key is not set
+      if (!process.env.ANTHROPIC_API_KEY || process.env.NODE_ENV !== 'production') {
+        console.log('Using mock data (Anthropic API key not set or not in production)');
         return NextResponse.json({
           success: true,
           analyzedData: getMockGrantData(),
@@ -165,10 +165,12 @@ export async function POST(request: NextRequest) {
         });
       }
       
-      // Prepare prompt for OpenAI with improved instructions
-      const prompt = `
-        You are an AI assistant specialized in analyzing grant documents. 
-        Please extract key information from this document content:
+      // Prepare system prompt for Anthropic with improved instructions
+      const systemPrompt = "You are a grant analysis assistant that extracts structured information from grant documents.";
+      
+      // Prepare user prompt for Anthropic
+      const userPrompt = `
+        Please extract key information from this grant document content:
         
         ${fileContent.slice(0, 15000)} // Limit content to avoid token limits
         
@@ -184,41 +186,51 @@ export async function POST(request: NextRequest) {
         - dataCollectionMethods: Required data collection methods
         - milestones: Key project milestones and deadlines
         - specialRequirements: Any special requirements or notes
+        
+        Respond with ONLY the JSON object, no other text.
       `;
       
-      // Call OpenAI API
+      // Call Anthropic API
       try {
-        console.log('Sending text to OpenAI for analysis');
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4",
+        console.log('Sending text to Anthropic for analysis');
+        const completion = await anthropic.messages.create({
+          model: "claude-3-haiku-20240307",
+          system: systemPrompt,
           messages: [
             {
-              role: "system",
-              content: "You are a grant analysis assistant that extracts structured information from grant documents."
-            },
-            {
               role: "user",
-              content: prompt
+              content: userPrompt
             }
           ],
-          response_format: { type: "json_object" },
           temperature: 0.3, // Lower temperature for more consistent parsing
+          max_tokens: 4000,
         });
         
-        const responseContent = completion.choices[0].message.content;
-        console.log('OpenAI analysis complete');
+        // Extract the content based on the type of block
+        let responseContent = '';
+        if (completion.content && completion.content.length > 0) {
+          const contentBlock = completion.content[0];
+          // Check if it's a text block
+          if (contentBlock.type === 'text') {
+            responseContent = contentBlock.text;
+          }
+        }
+        console.log('Anthropic analysis complete');
         
         // Parse JSON response
         try {
-          const parsedData = JSON.parse(responseContent || '{}');
-          console.log('Successfully parsed JSON from OpenAI');
+          // Clean the response - some LLMs might add markdown code blocks
+          const cleanedResponse = responseContent.replace(/```json\n|```\n|```json|```/g, '').trim();
+          const parsedData = JSON.parse(cleanedResponse || '{}');
+          console.log('Successfully parsed JSON from Anthropic');
           
           return NextResponse.json({
             success: true,
             analyzedData: parsedData
           });
         } catch (parseError) {
-          console.error('Error parsing OpenAI response:', parseError);
+          console.error('Error parsing Anthropic response:', parseError);
+          console.error('Raw response:', responseContent);
           return NextResponse.json({
             success: true,
             analyzedData: getMockGrantData(),
@@ -226,11 +238,11 @@ export async function POST(request: NextRequest) {
           });
         }
       } catch (aiError) {
-        console.error('OpenAI API error:', aiError);
+        console.error('Anthropic API error:', aiError);
         return NextResponse.json({
           success: true,
           analyzedData: getMockGrantData(),
-          note: 'Using mock data due to OpenAI API error'
+          note: 'Using mock data due to Anthropic API error'
         });
       }
     } catch (textExtractionError) {

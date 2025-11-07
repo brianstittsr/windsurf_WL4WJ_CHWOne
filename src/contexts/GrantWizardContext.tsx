@@ -369,7 +369,12 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         // If there's a note, it means we're using mock data
         if (result.note) {
           console.warn(result.note);
-          addAnalysisStep(`⚠ Note: ${result.note}`);
+          // Check if it's due to an API error
+          if (result.note.includes('Anthropic API error')) {
+            addAnalysisStep(`⚠ Anthropic API error: Check your API key`);
+          } else {
+            addAnalysisStep(`⚠ Note: ${result.note}`);
+          }
         }
         
         // Check if we got meaningful data

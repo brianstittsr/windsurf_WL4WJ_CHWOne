@@ -55,6 +55,7 @@
     "fix-region5-page": "node scripts/fix-region5-page.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
     "@aws-sdk/lib-storage": "^3.908.0",
     "@aws-sdk/s3-request-presigner": "^3.908.0",
     "@dataconnect/generated": "file:src/dataconnect-generated",
