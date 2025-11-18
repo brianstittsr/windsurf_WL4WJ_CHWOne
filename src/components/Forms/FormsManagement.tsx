@@ -50,6 +50,9 @@ import {
   Clear as ClearIcon
 } from '@mui/icons-material';
 import QRCodeGenerator, { FormQRCode } from '@/components/QRCode/QRCodeGenerator';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FormField {
   id: string;
@@ -77,6 +80,7 @@ interface Form {
 }
 
 export default function FormsManagement() {
+  const { currentUser } = useAuth();
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -100,64 +104,41 @@ export default function FormsManagement() {
 
   useEffect(() => {
     fetchForms();
-  }, []);
+  }, [currentUser]);
 
   const fetchForms = async () => {
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Mock data for demonstration
-      setForms([
-        {
-          id: '1',
-          title: 'Client Intake Form',
-          description: 'Initial assessment form for new clients',
-          category: 'intake',
-          tags: ['client', 'assessment', 'initial'],
-          organization: 'general',
-          qrCodeEnabled: false,
-          fields: [
-            { id: '1', name: 'firstName', label: 'First Name', type: 'text', required: true },
-            { id: '2', name: 'lastName', label: 'Last Name', type: 'text', required: true },
-            { id: '3', name: 'email', label: 'Email', type: 'email', required: true }
-          ],
-          status: 'published',
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-01-20')
-        },
-        {
-          id: '2',
-          title: 'Health Assessment',
-          description: 'Comprehensive health assessment questionnaire',
-          category: 'health',
-          tags: ['health', 'assessment', 'comprehensive'],
-          organization: 'region5',
-          qrCodeEnabled: true,
-          publicUrl: `${typeof window !== 'undefined' ? window.location.origin : 'https://chwone.yourdomain.com'}/forms/public/2`,
-          fields: [
-            { id: '4', name: 'height', label: 'Height (inches)', type: 'number', required: true },
-            { id: '5', name: 'weight', label: 'Weight (lbs)', type: 'number', required: true }
-          ],
-          status: 'draft',
-          createdAt: new Date('2024-01-20'),
-          updatedAt: new Date('2024-01-25')
-        },
-        {
-          id: '3',
-          title: 'Training Evaluation',
-          description: 'Feedback form for training sessions',
-          category: 'training',
-          tags: ['training', 'evaluation', 'feedback'],
-          organization: 'wl4wj',
-          qrCodeEnabled: true,
-          publicUrl: `${typeof window !== 'undefined' ? window.location.origin : 'https://chwone.yourdomain.com'}/forms/public/3`,
-          fields: [
-            { id: '6', name: 'rating', label: 'Overall Rating', type: 'select', required: true, options: ['1', '2', '3', '4', '5'] },
-            { id: '7', name: 'comments', label: 'Comments', type: 'textarea', required: false }
-          ],
-          status: 'published',
-          createdAt: new Date('2024-01-10'),
-          updatedAt: new Date('2024-01-18')
-        }
-      ]);
+      setLoading(true);
+      const formsRef = collection(db, 'forms');
+      const q = query(formsRef, where('userId', '==', currentUser.uid));
+      const querySnapshot = await getDocs(q);
+      
+      const fetchedForms: Form[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        fetchedForms.push({
+          id: doc.id,
+          title: data.title || data.name || 'Untitled Form',
+          description: data.description || '',
+          category: data.category || 'general',
+          tags: data.tags || data.metadata?.tags || [],
+          organization: data.organization || 'general',
+          qrCodeEnabled: data.qrCodeEnabled || false,
+          publicUrl: data.publicUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/forms/public/${doc.id}`,
+          fields: data.fields || [],
+          status: data.status || 'draft',
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date()
+        });
+      });
+      
+      setForms(fetchedForms);
+      console.log('Fetched forms:', fetchedForms.length);
     } catch (error) {
       console.error('Error fetching forms:', error);
     } finally {
@@ -167,13 +148,51 @@ export default function FormsManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!currentUser) {
+      alert('Please sign in to save forms');
+      return;
+    }
+
     try {
-      console.log('Saving form:', formData);
+      const formToSave = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        tags: formData.tags,
+        organization: formData.organization,
+        qrCodeEnabled: formData.qrCodeEnabled,
+        publicUrl: formData.publicUrl,
+        fields: formData.fields,
+        status: 'draft' as const,
+        userId: currentUser.uid,
+        updatedAt: serverTimestamp()
+      };
+
+      if (modalType === 'create') {
+        // Create new form
+        const formsRef = collection(db, 'forms');
+        await addDoc(formsRef, {
+          ...formToSave,
+          createdAt: serverTimestamp()
+        });
+        console.log('Form created successfully');
+      } else if (modalType === 'edit' && selectedForm) {
+        // Update existing form
+        const formRef = doc(db, 'forms', selectedForm.id);
+        await updateDoc(formRef, formToSave);
+        console.log('Form updated successfully');
+      }
+
+      // Refresh the forms list
+      await fetchForms();
+      
       setShowModal(false);
       setSelectedForm(null);
       resetForm();
     } catch (error) {
       console.error('Error saving form:', error);
+      alert('Failed to save form. Please try again.');
     }
   };
 
@@ -238,6 +257,24 @@ export default function FormsManagement() {
         field.id === fieldId ? { ...field, ...updates } : field
       )
     });
+  };
+
+  const handleDeleteForm = async (formId: string) => {
+    if (!confirm('Are you sure you want to delete this form?')) {
+      return;
+    }
+
+    try {
+      const formRef = doc(db, 'forms', formId);
+      await deleteDoc(formRef);
+      console.log('Form deleted successfully');
+      
+      // Refresh the forms list
+      await fetchForms();
+    } catch (error) {
+      console.error('Error deleting form:', error);
+      alert('Failed to delete form. Please try again.');
+    }
   };
 
   const getStatusColor = (status: string) => {
