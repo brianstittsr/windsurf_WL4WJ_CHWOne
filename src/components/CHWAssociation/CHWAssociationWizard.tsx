@@ -6,6 +6,8 @@ import {
   Grid, MenuItem, FormControl, InputLabel, Select, Chip, OutlinedInput,
   SelectChangeEvent, FormControlLabel, Checkbox, FormGroup
 } from '@mui/material';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 interface CHWAssociationWizardProps {
   onComplete: (associationId: string) => void;
@@ -129,7 +131,96 @@ export function CHWAssociationWizard({ onComplete }: CHWAssociationWizardProps) 
   const handleSubmit = async () => {
     try {
       console.log('CHW Association registration data:', formData);
-      const associationId = `assoc-${Date.now()}`;
+      
+      // Generate association ID based on state abbreviation
+      const stateAbbr = US_STATES.find(s => s === formData.state)?.substring(0, 2).toUpperCase() || 'XX';
+      const timestamp = Date.now();
+      const associationId = `assoc-${stateAbbr.toLowerCase()}-${timestamp}`;
+      
+      // Create association data for Firestore
+      const associationData = {
+        id: associationId,
+        name: formData.associationName,
+        acronym: formData.acronym,
+        state: formData.state,
+        stateId: `state-${stateAbbr.toLowerCase()}`,
+        yearFounded: parseInt(formData.yearFounded) || new Date().getFullYear(),
+        ein: formData.ein,
+        mission: formData.mission,
+        vision: formData.vision,
+        website: formData.website,
+        
+        leadership: {
+          executiveDirector: {
+            name: formData.executiveDirectorName,
+            email: formData.executiveDirectorEmail,
+            phone: formData.executiveDirectorPhone
+          },
+          boardChair: {
+            name: formData.boardChairName,
+            email: formData.boardChairEmail
+          },
+          primaryContact: {
+            name: formData.primaryContactName,
+            email: formData.primaryContactEmail,
+            phone: formData.primaryContactPhone
+          }
+        },
+        
+        mailingAddress: formData.mailingAddress,
+        
+        serviceArea: {
+          statewideCoverage: formData.statewideCoverage,
+          regionsServed: formData.regionsServed,
+          countiesServed: formData.countiesServed
+        },
+        
+        programs: {
+          programsOffered: formData.programsOffered,
+          certificationProgram: formData.certificationProgram,
+          trainingProgram: formData.trainingProgram,
+          advocacyActivities: formData.advocacyActivities,
+          partnerOrganizations: formData.partnerOrganizations
+        },
+        
+        membership: {
+          membershipTiers: formData.membershipTiers,
+          currentMemberCount: formData.currentMemberCount,
+          chwMemberCount: formData.chwMemberCount,
+          organizationalMemberCount: formData.organizationalMemberCount,
+          annualMembershipFee: formData.annualMembershipFee,
+          governanceStructure: formData.governanceStructure
+        },
+        
+        status: 'pending', // Pending admin approval
+        approvalStatus: 'pending',
+        isActive: false,
+        
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        
+        metadata: {
+          dataSharing: formData.dataSharing,
+          collaboration: formData.collaboration,
+          termsAccepted: formData.termsAccepted
+        }
+      };
+      
+      // Save association to Firestore
+      const associationRef = doc(db, 'chw-associations', associationId);
+      await setDoc(associationRef, associationData);
+      console.log('CHW Association saved to Firestore:', associationId);
+      
+      // Update the state record to link to this association
+      const stateRef = doc(db, 'states', `state-${stateAbbr.toLowerCase()}`);
+      await updateDoc(stateRef, {
+        hasAssociation: true,
+        associationId: associationId,
+        associationName: formData.associationName,
+        updatedAt: serverTimestamp()
+      });
+      console.log('State record updated with association link');
+      
       onComplete(associationId);
     } catch (error) {
       console.error('Error registering association:', error);
