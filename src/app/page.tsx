@@ -567,6 +567,254 @@ function HomeContentInner() {
         </Box>
       </Container>
 
+      {/* Nonprofit Registration Section */}
+      <Container sx={{ py: 12 }}>
+        <Box sx={{ 
+          p: 6,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
+              Are You a Nonprofit Organization?
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 6, textAlign: 'center', opacity: 0.95, maxWidth: 800, mx: 'auto' }}>
+              Register your organization to connect with CHWs, share resources, and expand your community impact
+            </Typography>
+
+            {/* Benefits Grid */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+              gap: 3,
+              mb: 6
+            }}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🤝 Resource Sharing
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Share your services, programs, and resources with Community Health Workers for efficient referrals
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  💡 CHW Partnerships
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Connect directly with certified CHWs in your service area to expand your community reach
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📊 Impact Tracking
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Track referrals, measure outcomes, and demonstrate your organization's community impact
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🌐 Visibility & Reach
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Increase your organization's visibility in the CHW network and reach more community members
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* CTA Button */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Button 
+                variant="contained" 
+                size="large"
+                onClick={() => setShowNonprofitWizard(true)}
+                sx={{ 
+                  py: 2, 
+                  px: 6,
+                  backgroundColor: 'white',
+                  color: '#764ba2',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
+                  }
+                }}
+                endIcon={<ArrowForwardIcon />}
+              >
+                Register Your Organization
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+
+      {/* CHW Association Registration Section */}
+      <Container sx={{ py: 12 }}>
+        <Box sx={{ 
+          p: 6,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
+              Start a CHW Association in Your State
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 6, textAlign: 'center', opacity: 0.95, maxWidth: 800, mx: 'auto' }}>
+              Create a statewide Community Health Worker Association to organize resources, coordinate training, and advocate for CHWs
+            </Typography>
+
+            {/* Benefits Grid */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+              gap: 3,
+              mb: 6
+            }}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🏛️ Statewide Coordination
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Organize and coordinate CHW activities, training programs, and certification across your entire state
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📚 Resource Management
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Centralize nonprofit resources, training materials, and best practices for efficient statewide distribution
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🔔 Alerts & Notifications
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Send important updates, policy changes, and opportunities to all CHWs and organizations in your state
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📊 Data & Analytics
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Track CHW workforce data, training completion, certification status, and statewide impact metrics
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🎓 Training & Certification
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Manage CHW training programs, certification processes, and continuing education requirements
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🤝 Network Building
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Connect CHWs, nonprofits, and healthcare organizations across your state for collaboration and support
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* CTA Button */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Button 
+                variant="contained" 
+                size="large"
+                onClick={() => setShowAssociationWizard(true)}
+                sx={{ 
+                  py: 2, 
+                  px: 6,
+                  backgroundColor: 'white',
+                  color: '#2193b0',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
+                  }
+                }}
+                endIcon={<ArrowForwardIcon />}
+              >
+                Register Your CHW Association
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+
       <Box component="footer" sx={{ p: 4, bgcolor: '#1a365d', color: 'white', textAlign: 'center' }}>
         <Typography variant="body2">
           &copy; {new Date().getFullYear()} CHWOne Platform. All rights reserved.
@@ -808,143 +1056,6 @@ function HomeContentInner() {
         </DialogContent>
       </Dialog>
 
-      {/* CHW Association Registration Section */}
-      <Container sx={{ py: 12 }}>
-        <Box sx={{ 
-          p: 6,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <Box sx={{ position: 'relative', zIndex: 1 }}>
-            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
-              Start a CHW Association in Your State
-            </Typography>
-            <Typography variant="h6" sx={{ mb: 6, textAlign: 'center', opacity: 0.95, maxWidth: 800, mx: 'auto' }}>
-              Create a statewide Community Health Worker Association to organize resources, coordinate training, and advocate for CHWs
-            </Typography>
-
-            {/* Benefits Grid */}
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-              gap: 3,
-              mb: 6
-            }}>
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🏛️ Statewide Coordination
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Organize and coordinate CHW activities, training programs, and certification across your entire state
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  📚 Resource Management
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Centralize nonprofit resources, training materials, and best practices for efficient statewide distribution
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🔔 Alerts & Notifications
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Send important updates, policy changes, and opportunities to all CHWs and organizations in your state
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  📊 Data & Analytics
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Track CHW workforce data, training completion, certification status, and statewide impact metrics
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🎓 Training & Certification
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Manage CHW training programs, certification processes, and continuing education requirements
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🤝 Network Building
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Connect CHWs, nonprofits, and healthcare organizations across your state for collaboration and support
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* CTA Button */}
-            <Box sx={{ textAlign: 'center' }}>
-              <Button 
-                variant="contained" 
-                size="large"
-                onClick={() => setShowAssociationWizard(true)}
-                sx={{ 
-                  py: 2, 
-                  px: 6,
-                  backgroundColor: 'white',
-                  color: '#4facfe',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  '&:hover': {
-                    backgroundColor: '#f8fafc',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
-                  }
-                }}
-                endIcon={<ArrowForwardIcon />}
-              >
-                Register Your CHW Association
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      </Container>
 
       {/* CHW Association Registration Wizard Dialog */}
       <Dialog
