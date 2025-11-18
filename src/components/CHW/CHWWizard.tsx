@@ -23,6 +23,9 @@ import {
   Avatar
 } from '@mui/material';
 import { CHWProfile } from '@/types/chw-profile.types';
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface CHWWizardProps {
   onComplete: (chwId: string) => void;
@@ -180,21 +183,56 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
 
       console.log('Submitting CHW Profile:', formData);
       
-      // Generate a unique ID
-      const newId = `chw-${Date.now()}`;
+      // Create Firebase Authentication user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
       
-      // Create the profile data matching the schema
-      const profileData = {
-        id: newId,
+      const user = userCredential.user;
+      console.log('Firebase user created:', user.uid);
+      
+      // Create user profile in Firestore users collection
+      const userProfileData = {
+        uid: user.uid,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        displayName: `${formData.firstName} ${formData.lastName}`,
+        role: 'CHW', // Community Health Worker role
+        organizationType: 'CHW',
+        phone: formData.phone || '',
+        address: formData.address,
+        profilePicture: profilePhoto || '',
+        status: 'pending', // Pending admin approval
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        permissions: {
+          canAccessDashboard: true,
+          canManageClients: true,
+          canCreateReferrals: true,
+          canAccessResources: true,
+          canUseForms: true,
+          canViewReports: true
+        }
+      };
+      
+      // Save to users collection
+      await setDoc(doc(db, 'users', user.uid), userProfileData);
+      console.log('User profile saved to Firestore');
+      
+      // Create CHW profile data
+      const chwProfileData = {
+        id: user.uid,
+        userId: user.uid,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        password: formData.password, // Store hashed in production
         phone: formData.phone || '',
         address: formData.address,
         profilePicture: profilePhoto || '',
         displayName: `${formData.firstName} ${formData.lastName}`,
-        userId: newId, // Temporary - should be actual user ID
         professional: {
           headline: formData.professional.headline || '',
           bio: formData.professional.bio || '',
@@ -202,19 +240,23 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
           languages: formData.professional.languages || ['English'],
           availableForOpportunities: formData.professional.availableForOpportunities,
           yearsOfExperience: formData.professional.yearsOfExperience || 0,
-          specializations: formData.professional.expertise || []
+          specializations: formData.professional.expertise || [],
+          currentOrganization: formData.professional.currentOrganization || '',
+          currentPosition: formData.professional.currentPosition || ''
         },
         serviceArea: {
           region: formData.serviceArea.region || '',
           countiesWorkedIn: formData.serviceArea.countiesWorkedIn || [],
           countyResideIn: formData.serviceArea.primaryCounty || '',
+          primaryCounty: formData.serviceArea.primaryCounty || '',
           currentOrganization: formData.professional.currentOrganization,
           role: formData.professional.currentPosition
         },
         certification: {
           certificationNumber: formData.certification.certificationNumber || '',
           certificationStatus: formData.certification.certificationStatus || 'not_certified',
-          certificationExpiration: formData.certification.expirationDate
+          certificationExpiration: formData.certification.expirationDate,
+          expirationDate: formData.certification.expirationDate
         },
         contactPreferences: {
           allowDirectMessages: formData.contactPreferences.allowDirectMessages,
@@ -223,19 +265,17 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
           showAddress: formData.contactPreferences.showAddress || false
         },
         membership: {
-          dateRegistered: new Date().toISOString(),
+          dateRegistered: serverTimestamp(),
           includeInDirectory: true
         },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        status: 'pending', // Pending admin approval
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
       
-      // Save to localStorage for now (since we're using mock data)
-      const existingProfiles = JSON.parse(localStorage.getItem('chwProfiles') || '[]');
-      existingProfiles.push(profileData);
-      localStorage.setItem('chwProfiles', JSON.stringify(existingProfiles));
-      
-      console.log('Profile saved:', profileData);
+      // Save CHW profile to chw-profiles collection
+      await setDoc(doc(db, 'chw-profiles', user.uid), chwProfileData);
+      console.log('CHW profile saved to Firestore');
       
       // Send thank you email
       try {
@@ -257,10 +297,18 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
       }
       
       // Call onComplete callback
-      onComplete(newId);
-    } catch (error) {
+      onComplete(user.uid);
+    } catch (error: any) {
       console.error('Error creating CHW profile:', error);
-      alert('Error creating profile. Please try again.');
+      if (error.code === 'auth/email-already-in-use') {
+        alert('This email is already registered. Please use a different email or try logging in.');
+      } else if (error.code === 'auth/invalid-email') {
+        alert('Invalid email address. Please check and try again.');
+      } else if (error.code === 'auth/weak-password') {
+        alert('Password is too weak. Please use a stronger password.');
+      } else {
+        alert('Error creating profile. Please try again.');
+      }
     }
   };
 
