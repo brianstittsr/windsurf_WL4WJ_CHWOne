@@ -34,6 +34,9 @@ import {
 } from '@mui/icons-material';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { BmadFormWizard } from '@/components/Forms';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 // Import template data
 import attendanceSheetTemplate from '@/data/formTemplates/attendanceSheet.json';
@@ -60,10 +63,11 @@ const allTemplates = [
 ];
 
 // Template card component
-function TemplateCard({ template, onUse, onPreview }: { 
+function TemplateCard({ template, onUse, onPreview, copying }: { 
   template: any, 
   onUse: (template: any) => void,
-  onPreview: (template: any) => void
+  onPreview: (template: any) => void,
+  copying: boolean
 }) {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -94,8 +98,9 @@ function TemplateCard({ template, onUse, onPreview }: {
           fullWidth
           onClick={() => onUse(template)}
           startIcon={<FileCopyIcon />}
+          disabled={copying}
         >
-          Use Template
+          {copying ? 'Copying...' : 'Use Template'}
         </Button>
       </Box>
     </Card>
@@ -105,6 +110,7 @@ function TemplateCard({ template, onUse, onPreview }: {
 // Main content component
 function TemplatesContent() {
   const { currentUser } = useAuth();
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTemplates, setFilteredTemplates] = useState(allTemplates);
@@ -112,6 +118,7 @@ function TemplatesContent() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardCategory, setWizardCategory] = useState<string | undefined>(undefined);
+  const [copying, setCopying] = useState(false);
   
   // Filter templates based on category and search query
   useEffect(() => {
@@ -146,10 +153,48 @@ function TemplatesContent() {
   };
   
   // Handle template use
-  const handleUseTemplate = (template: any) => {
-    setSelectedTemplate(template);
-    // In a real implementation, this would redirect to the form editor with the template loaded
-    console.log('Using template:', template.id);
+  const handleUseTemplate = async (template: any) => {
+    if (!currentUser) {
+      alert('Please sign in to use templates');
+      return;
+    }
+
+    setCopying(true);
+    try {
+      // Create a copy of the template for the user
+      const newForm = {
+        ...template,
+        id: undefined, // Remove the template ID so Firestore generates a new one
+        userId: currentUser.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        status: 'draft',
+        isTemplate: false,
+        templateId: template.id, // Reference to the original template
+        metadata: {
+          ...template.metadata,
+          copiedFrom: template.name,
+          copiedAt: new Date().toISOString()
+        }
+      };
+
+      // Save to Firestore
+      const formsRef = collection(db, 'forms');
+      const docRef = await addDoc(formsRef, newForm);
+
+      console.log('Form copied successfully:', docRef.id);
+      
+      // Show success message
+      alert(`Template "${template.name}" has been copied to your forms!`);
+      
+      // Redirect to the form editor
+      router.push(`/forms/${docRef.id}/edit`);
+    } catch (error) {
+      console.error('Error copying template:', error);
+      alert('Failed to copy template. Please try again.');
+    } finally {
+      setCopying(false);
+    }
   };
   
   // Handle template preview
@@ -336,7 +381,8 @@ function TemplatesContent() {
                 <TemplateCard 
                   template={template} 
                   onUse={handleUseTemplate} 
-                  onPreview={handlePreviewTemplate} 
+                  onPreview={handlePreviewTemplate}
+                  copying={copying}
                 />
               </Grid>
             ))}
@@ -429,7 +475,7 @@ function TemplatesContent() {
               ))}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setPreviewOpen(false)}>
+              <Button onClick={() => setPreviewOpen(false)} disabled={copying}>
                 Close
               </Button>
               <Button 
@@ -439,8 +485,9 @@ function TemplatesContent() {
                   setPreviewOpen(false);
                 }}
                 startIcon={<FileCopyIcon />}
+                disabled={copying}
               >
-                Use Template
+                {copying ? 'Copying...' : 'Use Template'}
               </Button>
             </DialogActions>
           </>
