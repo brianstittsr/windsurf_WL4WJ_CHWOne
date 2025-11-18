@@ -58,10 +58,25 @@ interface FormField {
   id: string;
   name: string;
   label: string;
-  type: 'text' | 'number' | 'email' | 'date' | 'select' | 'textarea' | 'checkbox' | 'radio';
+  type: string; // Support all Qualtrics-style field types
   required: boolean;
   placeholder?: string;
   options?: string[];
+  category?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  rows?: number;
+  cols?: number;
+  accept?: string; // For file uploads
+  multiple?: boolean;
+  validation?: {
+    pattern?: string;
+    minLength?: number;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+  };
 }
 
 interface Form {

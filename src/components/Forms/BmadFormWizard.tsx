@@ -34,6 +34,7 @@ import {
   Check as CheckIcon
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
+import { FIELD_TYPES, FIELD_TYPE_CATEGORIES, getAllCategories } from '@/constants/formFieldTypes';
 
 // Define the wizard steps
 const steps = [
@@ -57,20 +58,8 @@ const formPurposeOptions = [
   { value: 'other', label: 'Other' }
 ];
 
-// Field type options
-const fieldTypeOptions = [
-  { value: 'text', label: 'Text Input' },
-  { value: 'textarea', label: 'Multi-line Text' },
-  { value: 'number', label: 'Number' },
-  { value: 'date', label: 'Date' },
-  { value: 'time', label: 'Time' },
-  { value: 'select', label: 'Dropdown Select' },
-  { value: 'radio', label: 'Radio Buttons' },
-  { value: 'checkbox', label: 'Checkboxes' },
-  { value: 'file', label: 'File Upload' },
-  { value: 'signature', label: 'Signature' },
-  { value: 'table', label: 'Table/Grid' }
-];
+// Use field types from constants
+const fieldTypeOptions = FIELD_TYPES;
 
 // Mock function for AI analysis (to be replaced with actual API call)
 const performAiAnalysis = async (wizardData: any) => {
