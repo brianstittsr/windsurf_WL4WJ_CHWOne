@@ -466,7 +466,7 @@ export default function MockCHWProfiles() {
           onClick={() => setShowWizard(true)}
           size="large"
         >
-          Add New Community Health Worker Wizard
+          Register As A Community Health Worker
         </Button>
       </Box>
       

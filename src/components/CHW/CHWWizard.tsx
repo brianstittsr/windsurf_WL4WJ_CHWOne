@@ -845,7 +845,7 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
   return (
     <Box sx={{ width: '100%', p: 3 }}>
       <Typography variant="h4" gutterBottom align="center" sx={{ mb: 4 }}>
-        Add New Community Health Worker
+        Register As A Community Health Worker
       </Typography>
       
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
