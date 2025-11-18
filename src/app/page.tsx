@@ -10,24 +10,30 @@ import { useAuth } from '@/contexts/AuthContext';
 import styles from '@/styles/LogoGlow.module.css';
 import { CHWWizard } from '@/components/CHW/CHWWizard';
 import { NonprofitWizard } from '@/components/Nonprofit/NonprofitWizard';
+import { CHWAssociationWizard } from '@/components/CHWAssociation/CHWAssociationWizard';
 
 function HomeContentInner() {
   const { currentUser } = useAuth();
   const [showCHWWizard, setShowCHWWizard] = useState(false);
   const [showNonprofitWizard, setShowNonprofitWizard] = useState(false);
+  const [showAssociationWizard, setShowAssociationWizard] = useState(false);
 
   const handleCHWWizardComplete = (chwId: string) => {
     console.log('New CHW registered:', chwId);
     setShowCHWWizard(false);
-    // Show success message
     alert('Thank you for registering! A welcome email has been sent to your inbox. You can now log in with your credentials.');
   };
 
   const handleNonprofitWizardComplete = (nonprofitId: string) => {
     console.log('New nonprofit registered:', nonprofitId);
     setShowNonprofitWizard(false);
-    // Show success message
     alert('Thank you for registering your organization! Your submission will be reviewed within 1-2 business days. You will receive an email notification once approved.');
+  };
+
+  const handleAssociationWizardComplete = (associationId: string) => {
+    console.log('New CHW Association registered:', associationId);
+    setShowAssociationWizard(false);
+    alert('Thank you for registering your CHW Association! Your submission will be reviewed by our team. You will receive an email notification once approved.');
   };
   
   return (
@@ -798,6 +804,191 @@ function HomeContentInner() {
             </IconButton>
 
             <NonprofitWizard onComplete={handleNonprofitWizardComplete} />
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* CHW Association Registration Section */}
+      <Container sx={{ py: 12 }}>
+        <Box sx={{ 
+          p: 6,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
+              Start a CHW Association in Your State
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 6, textAlign: 'center', opacity: 0.95, maxWidth: 800, mx: 'auto' }}>
+              Create a statewide Community Health Worker Association to organize resources, coordinate training, and advocate for CHWs
+            </Typography>
+
+            {/* Benefits Grid */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+              gap: 3,
+              mb: 6
+            }}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🏛️ Statewide Coordination
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Organize and coordinate CHW activities, training programs, and certification across your entire state
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📚 Resource Management
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Centralize nonprofit resources, training materials, and best practices for efficient statewide distribution
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🔔 Alerts & Notifications
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Send important updates, policy changes, and opportunities to all CHWs and organizations in your state
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📊 Data & Analytics
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Track CHW workforce data, training completion, certification status, and statewide impact metrics
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🎓 Training & Certification
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Manage CHW training programs, certification processes, and continuing education requirements
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🤝 Network Building
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Connect CHWs, nonprofits, and healthcare organizations across your state for collaboration and support
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* CTA Button */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Button 
+                variant="contained" 
+                size="large"
+                onClick={() => setShowAssociationWizard(true)}
+                sx={{ 
+                  py: 2, 
+                  px: 6,
+                  backgroundColor: 'white',
+                  color: '#4facfe',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
+                  }
+                }}
+                endIcon={<ArrowForwardIcon />}
+              >
+                Register Your CHW Association
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+
+      {/* CHW Association Registration Wizard Dialog */}
+      <Dialog
+        open={showAssociationWizard}
+        onClose={(event, reason) => {
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+            return;
+          }
+          setShowAssociationWizard(false);
+        }}
+        maxWidth="lg"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '12px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            backgroundColor: '#f8fafc'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0, overflow: 'auto' }}>
+          <Box sx={{
+            position: 'relative',
+            pt: 2,
+            pb: 2,
+          }}>
+            <IconButton
+              onClick={() => setShowAssociationWizard(false)}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                zIndex: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                }
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+
+            <CHWAssociationWizard onComplete={handleAssociationWizardComplete} />
           </Box>
         </DialogContent>
       </Dialog>
