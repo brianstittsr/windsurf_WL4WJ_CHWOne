@@ -561,7 +561,13 @@ function HomeContentInner() {
       {/* CHW Registration Wizard Dialog */}
       <Dialog
         open={showWizard}
-        onClose={() => setShowWizard(false)}
+        onClose={(event, reason) => {
+          // Only allow closing via the X button, not by clicking backdrop or pressing escape
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+            return;
+          }
+          setShowWizard(false);
+        }}
         maxWidth="lg"
         fullWidth
         sx={{
