@@ -935,6 +935,63 @@ export default function FormsManagement() {
                               Remove
                             </Button>
                           </Grid>
+                          
+                          {/* Options for fields that need them */}
+                          {['select', 'radio', 'checkbox', 'image-choice', 'button-choice', 'matrix-single', 'matrix-multiple', 'matrix-dropdown', 'rank-order'].includes(field.type) && (
+                            <Grid item xs={12}>
+                              <TextField
+                                fullWidth
+                                label="Options (comma-separated)"
+                                value={field.options?.join(', ') || ''}
+                                onChange={(e) => updateField(field.id, { 
+                                  options: e.target.value.split(',').map(opt => opt.trim()).filter(opt => opt) 
+                                })}
+                                size="small"
+                                placeholder="Option 1, Option 2, Option 3"
+                                helperText="Enter options separated by commas"
+                              />
+                            </Grid>
+                          )}
+                          
+                          {/* Placeholder for text-based fields */}
+                          {['text', 'textarea', 'email', 'url', 'phone', 'number', 'decimal', 'currency', 'percentage'].includes(field.type) && (
+                            <Grid item xs={12}>
+                              <TextField
+                                fullWidth
+                                label="Placeholder Text"
+                                value={field.placeholder || ''}
+                                onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                                size="small"
+                                placeholder="Enter placeholder text..."
+                              />
+                            </Grid>
+                          )}
+                          
+                          {/* Min/Max for numeric fields */}
+                          {['number', 'decimal', 'currency', 'percentage', 'slider', 'rating-scale'].includes(field.type) && (
+                            <>
+                              <Grid item xs={12} md={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Minimum Value"
+                                  type="number"
+                                  value={field.min || ''}
+                                  onChange={(e) => updateField(field.id, { min: parseFloat(e.target.value) || undefined })}
+                                  size="small"
+                                />
+                              </Grid>
+                              <Grid item xs={12} md={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Maximum Value"
+                                  type="number"
+                                  value={field.max || ''}
+                                  onChange={(e) => updateField(field.id, { max: parseFloat(e.target.value) || undefined })}
+                                  size="small"
+                                />
+                              </Grid>
+                            </>
+                          )}
                         </Grid>
                       </CardContent>
                     </Card>
