@@ -61,18 +61,24 @@ The comprehensive AI-powered grant management system that streamlines the entire
 
 **5. Auto-Generated Form Builder** 📝
 - **Intelligent Form Creation**: Automatically generates data collection forms from requirements
-- **Smart Field Types**: AI infers appropriate field types:
-  - Text fields for names and descriptions
-  - Number fields for counts and amounts
-  - Date fields for temporal data
-  - Dropdowns for categories
-  - Checkboxes for agreements
-  - File uploads for documents
+- **75+ Qualtrics-Style Field Types**: Professional-grade form building with comprehensive field options:
+  - **Text Entry**: Single line, multi-line, email, URL, phone, password
+  - **Multiple Choice**: Radio, checkbox, dropdown, image choice, button choice
+  - **Matrix/Grid**: Single/multiple answer, dropdown, text entry, rank order, side-by-side
+  - **Slider & Scale**: Slider, rating scale, Likert scale, star rating, NPS
+  - **Date & Time**: Date picker, time picker, datetime, date range
+  - **Numeric**: Integer, decimal, currency, percentage
+  - **File & Media**: File upload, image/video/audio upload, signature, drawing canvas
+  - **Location**: Full address, GPS, map picker, country/state/city selectors, ZIP code
+  - **Advanced**: CAPTCHA, consent, terms, section/page breaks, calculated fields, hidden fields
+  - **Contact Info**: Full name, name parts, contact information blocks
+  - **Specialized**: Color picker, barcode scanner, lookup, autocomplete, tags, WYSIWYG, code/JSON editors
 - **Drag-and-Drop Editor**: Reorder fields with visual interface
 - **Section Management**: Organize forms into logical sections
-- **Field Validation**: Set required fields, min/max values, date ranges
+- **Field Validation**: Set required fields, min/max values, date ranges, patterns
 - **Live Preview**: See exactly how forms will appear to users
 - **Export Options**: Download as JSON or PDF
+- **Template System**: Pre-built templates for common forms (attendance, onboarding, assessments)
 
 **6. Automatic Dataset Creation** 🗄️
 - **One Dataset Per Form**: Automatically creates structured datasets
@@ -91,11 +97,22 @@ The comprehensive AI-powered grant management system that streamlines the entire
 - **Chart Visualizations**: Line, bar, pie, and area charts
 - **Entity Contribution Analysis**: Track which organizations are meeting deliverables
 
+### 📝 Form Management System
+- **Form Templates**: Pre-built templates for common use cases (attendance, onboarding, assessments, surveys)
+- **Template Copying**: One-click template duplication with automatic dataset creation
+- **Form Builder**: Manual form creation with 75+ Qualtrics-style field types
+- **AI Form Builder**: AI-powered wizard for intelligent form generation
+- **Form Sharing**: Public URLs, embeddable iframes, QR codes, email distribution
+- **Form Analytics**: Track submissions, completion rates, and response data
+- **Real-time Updates**: Forms sync automatically with Firestore
+- **Export Options**: JSON, PDF export for forms and responses
+
 ### 🤖 Additional AI Features
 - **BMAD Chat Agent**: Home page chat widget connected to Archon Knowledge Base for NC CHW Association content
 - **CHWOne Assistant**: Agentic AI assistant for CHWs to search resources and automate tasks via n8n
 - **Data Collection Assistant**: AI-powered survey and form creation with QR code generation
 - **NCCHWA Training Tracker**: System for tracking CHW certification, training, and recertification requirements
+- **AI Form Enhancement**: Get AI recommendations for improving form structure and questions
 
 ### 🔐 Security & Compliance
 - **HIPAA Compliant**: All client data encrypted and audit logged
