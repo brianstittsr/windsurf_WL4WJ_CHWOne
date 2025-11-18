@@ -542,6 +542,7 @@ export function Step6FormGenerator() {
           <Tab label="Form Details" />
           <Tab label="Form Builder" />
           <Tab label="Preview" />
+          <Tab label="View & Share" />
         </Tabs>
         
         {tabIndex === 0 && (
@@ -950,6 +951,271 @@ export function Step6FormGenerator() {
                 </Button>
               </Box>
             </Paper>
+          </Box>
+        )}
+        
+        {tabIndex === 3 && (
+          <Box>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                View & Share Your Form
+              </Typography>
+              <Typography variant="body2">
+                Use the options below to view your form, share it with others, or export it for use in other systems.
+              </Typography>
+            </Alert>
+
+            <Grid container spacing={3}>
+              {/* View Form Section */}
+              <Grid item xs={12}>
+                <Card>
+                  <CardHeader 
+                    title="View Form" 
+                    subheader="Open your form in a new window to see how it will appear to users"
+                  />
+                  <CardContent>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="large"
+                      startIcon={<PreviewIcon />}
+                      onClick={() => {
+                        // Switch to preview tab
+                        setTabIndex(2);
+                      }}
+                      fullWidth
+                    >
+                      View Form Preview
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Share Form Section */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader 
+                    title="Share Form Link" 
+                    subheader="Copy a shareable link to this form"
+                  />
+                  <CardContent>
+                    <TextField
+                      fullWidth
+                      value={`${window.location.origin}/forms/${selectedTemplate.id}`}
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                      sx={{ mb: 2 }}
+                    />
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<FileCopyIcon />}
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/forms/${selectedTemplate.id}`);
+                        alert('Form link copied to clipboard!');
+                      }}
+                    >
+                      Copy Link
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Export Options Section */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader 
+                    title="Export Form" 
+                    subheader="Download your form in different formats"
+                  />
+                  <CardContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<FileCopyIcon />}
+                        onClick={exportAsJson}
+                        fullWidth
+                      >
+                        Export as JSON
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        startIcon={<FileCopyIcon />}
+                        onClick={exportAsPdf}
+                        fullWidth
+                      >
+                        Export as PDF
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Embed Code Section */}
+              <Grid item xs={12}>
+                <Card>
+                  <CardHeader 
+                    title="Embed Form" 
+                    subheader="Copy this code to embed the form on your website"
+                  />
+                  <CardContent>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      value={`<iframe 
+  src="${window.location.origin}/forms/${selectedTemplate.id}/embed" 
+  width="100%" 
+  height="600" 
+  frameborder="0"
+  title="${selectedTemplate.name}"
+></iframe>`}
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                      sx={{ mb: 2, fontFamily: 'monospace', fontSize: '0.875rem' }}
+                    />
+                    <Button
+                      variant="outlined"
+                      startIcon={<FileCopyIcon />}
+                      onClick={() => {
+                        navigator.clipboard.writeText(`<iframe src="${window.location.origin}/forms/${selectedTemplate.id}/embed" width="100%" height="600" frameborder="0" title="${selectedTemplate.name}"></iframe>`);
+                        alert('Embed code copied to clipboard!');
+                      }}
+                    >
+                      Copy Embed Code
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Form Status & Distribution */}
+              <Grid item xs={12}>
+                <Card>
+                  <CardHeader 
+                    title="Form Distribution" 
+                    subheader="Manage how this form is distributed and accessed"
+                  />
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <InputLabel>Access Level</InputLabel>
+                          <Select
+                            value={selectedTemplate.status === 'active' ? 'public' : 'private'}
+                            label="Access Level"
+                            onChange={(e) => {
+                              updateFormTemplate(selectedTemplate.id, { 
+                                status: e.target.value === 'public' ? 'active' : 'draft'
+                              });
+                            }}
+                          >
+                            <MenuItem value="public">Public - Anyone with link can access</MenuItem>
+                            <MenuItem value="private">Private - Only authorized users</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <FormControlLabel
+                          control={
+                            <Switch 
+                              checked={selectedTemplate.status === 'active'}
+                              onChange={(e) => updateFormTemplate(selectedTemplate.id, { 
+                                status: e.target.checked ? 'active' : 'draft' 
+                              })}
+                            />
+                          }
+                          label="Form is Active and Accepting Responses"
+                        />
+                      </Grid>
+                    </Grid>
+                    
+                    <Alert severity="success" sx={{ mt: 2 }}>
+                      <Typography variant="body2">
+                        <strong>Form Status:</strong> {selectedTemplate.status === 'active' ? 'Active - Accepting Responses' : 'Draft - Not Accepting Responses'}
+                      </Typography>
+                    </Alert>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* QR Code Section */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader 
+                    title="QR Code" 
+                    subheader="Generate a QR code for easy mobile access"
+                  />
+                  <CardContent>
+                    <Box sx={{ textAlign: 'center', p: 3, bgcolor: 'background.default', borderRadius: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        QR Code for: {selectedTemplate.name}
+                      </Typography>
+                      <Box 
+                        sx={{ 
+                          width: 200, 
+                          height: 200, 
+                          mx: 'auto', 
+                          bgcolor: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '2px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary">
+                          QR Code will be generated here
+                        </Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{ mt: 2 }}
+                        onClick={() => alert('QR Code download feature coming soon!')}
+                      >
+                        Download QR Code
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Email Distribution */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader 
+                    title="Email Distribution" 
+                    subheader="Send this form via email"
+                  />
+                  <CardContent>
+                    <TextField
+                      fullWidth
+                      label="Email Addresses"
+                      placeholder="Enter email addresses separated by commas"
+                      multiline
+                      rows={3}
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Email Subject"
+                      defaultValue={`Form: ${selectedTemplate.name}`}
+                      sx={{ mb: 2 }}
+                    />
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      onClick={() => alert('Email distribution feature coming soon!')}
+                    >
+                      Send Form via Email
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
           </Box>
         )}
       </Box>
