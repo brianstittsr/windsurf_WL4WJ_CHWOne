@@ -28,7 +28,8 @@ import {
   Notifications as NotificationsIcon,
   Backup as BackupIcon,
   Paid as PaidIcon,
-  Map as MapIcon
+  Map as MapIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import MainLayout from '@/components/Layout/MainLayout';
 import AdminSettings from '@/components/Admin/AdminSettings';
@@ -39,6 +40,7 @@ import AdminSecurity from '@/components/Admin/AdminSecurity';
 import AdminGrants from '@/components/Admin/AdminGrants';
 import AdminStates from '@/components/Admin/AdminStates';
 import AdminCHWAssociations from '@/components/Admin/AdminCHWAssociations';
+import AdminNonprofits from '@/components/Admin/AdminNonprofits';
 import AdminIdeas from '@/components/Admin/AdminIdeas';
 
 interface TabPanelProps {
@@ -136,6 +138,11 @@ function AdminDashboardContent() {
       label: 'CHW Associations',
       icon: <StorageIcon />,
       component: <AdminCHWAssociations />
+    },
+    {
+      label: 'Nonprofits',
+      icon: <BusinessIcon />,
+      component: <AdminNonprofits />
     },
     {
       label: 'Platform Ideas',
