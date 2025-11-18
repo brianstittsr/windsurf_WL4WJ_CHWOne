@@ -68,6 +68,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sign in with email/password - simplified version
   const signIn = useCallback(async (email: string, password: string) => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not configured');
+    }
+    
     setLoading(true);
     setError(null);
     
@@ -96,6 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sign out - simplified version
   const signOut = useCallback(async () => {
+    if (!auth) {
+      console.warn('Firebase not configured, clearing local state only');
+      setCurrentUser(null);
+      window.location.href = '/login';
+      return;
+    }
+    
     try {
       await firebaseSignOut(auth);
       setCurrentUser(null);
@@ -107,6 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setCurrentUser, setError]);
 
   const signUp = useCallback(async (email: string, password: string) => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not configured');
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -127,8 +142,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [setError, setLoading, setCurrentUser]);
 
-    // Listen for auth state changes
+    // Set up auth state listener
   useEffect(() => {
+    console.log('[AuthContext] Setting up auth state listener');
+    
+    // Check if Firebase auth is available
+    if (!auth) {
+      console.warn('[AuthContext] Firebase auth not configured, skipping auth state listener');
+      setState({
+        user: null,
+        profile: null,
+        loading: false,
+        error: 'Firebase not configured'
+      });
+      return;
+    }
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('[AUTH] Auth state changed:', user ? 'User signed in' : 'No user');
       if (user) {
