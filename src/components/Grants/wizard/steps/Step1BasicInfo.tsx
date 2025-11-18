@@ -79,6 +79,16 @@ export function Step1BasicInfo() {
             console.log('Document analysis result:', result);
             console.log('Checking grant data after analysis:', grantData);
             
+            // Show extracted text popup if available
+            if (result.extractedText) {
+              alert(
+                `PDF Text Extraction Debug\n\n` +
+                `Total characters extracted: ${result.extractedTextLength}\n\n` +
+                `First 1000 characters:\n\n${result.extractedText.slice(0, 1000)}\n\n` +
+                `(Check browser console for full text)`
+              );
+            }
+            
             if (result.success) {
               // Analysis was successful
               setShowAnalysisSuccess(true);

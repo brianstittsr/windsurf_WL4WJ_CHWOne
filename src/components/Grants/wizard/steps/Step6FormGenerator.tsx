@@ -55,7 +55,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
 import { useGrantWizard } from '@/contexts/GrantWizardContext';
-import { FormField, FormSection, FormTemplate, DataCollectionMethod, FieldValidation } from '@/types/grant.types';
+import { FormField, FormSection, FormTemplate, DataCollectionMethod, FieldValidation, Dataset, DatasetField } from '@/types/grant.types';
 
 export function Step6FormGenerator() {
   const { grantData, updateGrantData } = useGrantWizard();
@@ -173,13 +173,60 @@ export function Step6FormGenerator() {
     return 'data' as any; // Default purpose
   };
   
-  // Generate form templates based on data collection methods
+  // Function to create a dataset from a form template
+  const createDatasetFromForm = (formTemplate: FormTemplate): Dataset => {
+    // Extract all fields from all sections
+    const allFields: DatasetField[] = formTemplate.sections.flatMap(section => 
+      section.fields.map(field => ({
+        id: field.id,
+        name: field.name,
+        label: field.label,
+        type: field.type === 'checkbox' ? 'boolean' as const : 
+              field.type === 'file' ? 'text' as const : 
+              field.type as 'text' | 'number' | 'date' | 'select' | 'textarea',
+        required: field.required,
+        description: field.helpText
+      }))
+    );
+    
+    return {
+      id: `dataset-${formTemplate.id}`,
+      name: `${formTemplate.name} Dataset`,
+      description: `Auto-generated dataset for collecting ${formTemplate.name.toLowerCase()} data. This dataset is ready for data analysis and reporting.`,
+      formTemplateId: formTemplate.id,
+      fields: allFields,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'active',
+      recordCount: 0,
+      entityResponsible: formTemplate.entityResponsible,
+      purpose: formTemplate.description,
+      tags: [
+        formTemplate.purpose,
+        formTemplate.entityResponsible,
+        ...(formTemplate.frequency ? [formTemplate.frequency] : [])
+      ],
+      analysisReady: true
+    };
+  };
+  
+  // Function to generate datasets for all form templates
+  const generateDatasetsFromForms = (forms: FormTemplate[]): Dataset[] => {
+    return forms.map(form => createDatasetFromForm(form));
+  };
+  
+  // Generate form templates and datasets based on data collection methods
   useEffect(() => {
     // Only auto-generate if no templates exist yet and we have data collection methods
     if ((formTemplates.length === 0) && (grantData.dataCollectionMethods?.length || 0) > 0) {
       const generatedTemplates: FormTemplate[] = generateFormsFromDataCollection(grantData.dataCollectionMethods || []);
+      const generatedDatasets: Dataset[] = generateDatasetsFromForms(generatedTemplates);
+      
       setFormTemplates(generatedTemplates);
-      updateGrantData({ formTemplates: generatedTemplates });
+      updateGrantData({ 
+        formTemplates: generatedTemplates,
+        datasets: generatedDatasets
+      });
       
       if (generatedTemplates.length > 0) {
         setSelectedTemplateId(generatedTemplates[0].id);
@@ -1709,6 +1756,27 @@ export function Step6FormGenerator() {
     );
   };
 
+  // Manual regeneration function
+  const regenerateFormsFromDataCollection = () => {
+    if (!grantData.dataCollectionMethods || grantData.dataCollectionMethods.length === 0) {
+      alert('No data collection methods found. Please define data collection methods in Step 3 first.');
+      return;
+    }
+    
+    const generatedTemplates: FormTemplate[] = generateFormsFromDataCollection(grantData.dataCollectionMethods);
+    const generatedDatasets: Dataset[] = generateDatasetsFromForms(generatedTemplates);
+    
+    setFormTemplates(generatedTemplates);
+    updateGrantData({ 
+      formTemplates: generatedTemplates,
+      datasets: generatedDatasets
+    });
+    
+    if (generatedTemplates.length > 0) {
+      setSelectedTemplateId(generatedTemplates[0].id);
+    }
+  };
+
   return (
     <Box sx={{ mb: 4 }}>
       {/* Render dialogs */}
@@ -1716,20 +1784,44 @@ export function Step6FormGenerator() {
       {renderSectionEditDialog()}
       
       <Box sx={{ mb: 3 }}>
-        <Alert severity="info" sx={{ mb: 3 }}>
-          The Form Generator automatically creates data collection forms based on your grant requirements. 
-          These forms will be deployed to collect data from relevant entities and stakeholders.
+        <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mb: 3 }}>
+          <strong>Auto-Generate Data Collection Forms & Datasets</strong>
+          <br />
+          The Form Generator automatically creates data collection forms AND corresponding datasets based on your grant's data collection methods defined in Step 3.
+          Each data collection method becomes a form with fields for all specified data points, and a dataset is created for data analysis.
+          {formTemplates.length > 0 && (
+            <>
+              <br />
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                ✓ {formTemplates.length} form{formTemplates.length !== 1 ? 's' : ''} generated from your data collection methods
+                <br />
+                ✓ {grantData.datasets?.length || 0} dataset{(grantData.datasets?.length || 0) !== 1 ? 's' : ''} created and ready for data analysis
+              </Typography>
+            </>
+          )}
         </Alert>
         
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
           <Typography variant="h6">Form Templates</Typography>
-          <Button 
-            variant="contained" 
-            startIcon={<AddIcon />}
-            onClick={addFormTemplate}
-          >
-            Create New Form
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {(grantData.dataCollectionMethods?.length || 0) > 0 && (
+              <Button 
+                variant="outlined" 
+                color="primary"
+                startIcon={<SaveIcon />}
+                onClick={regenerateFormsFromDataCollection}
+              >
+                Regenerate from Data Collection
+              </Button>
+            )}
+            <Button 
+              variant="contained" 
+              startIcon={<AddIcon />}
+              onClick={addFormTemplate}
+            >
+              Create New Form
+            </Button>
+          </Box>
         </Box>
         
         {renderFormTemplatesList()}

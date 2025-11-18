@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Grid, 
   Card, 
@@ -11,10 +11,14 @@ import {
   Chip, 
   Button,
   Avatar,
-  CardActions
+  CardActions,
+  Dialog,
+  DialogContent,
+  IconButton
 } from '@mui/material';
-import { LocationOn, School, Language, Work } from '@mui/icons-material';
+import { LocationOn, School, Language, Work, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import Link from 'next/link';
+import { CHWWizard } from './CHWWizard';
 
 // Define the CHW Profile type
 export interface MockCHWProfile {
@@ -401,18 +405,121 @@ const CHWCard = ({ chw }: { chw: MockCHWProfile }) => {
 
 // Main component to display the grid of CHW cards
 export default function MockCHWProfiles() {
+  const [showWizard, setShowWizard] = useState(false);
+  const [allCHWs, setAllCHWs] = useState<MockCHWProfile[]>(mockCHWs);
+
+  // Load CHWs from localStorage on mount
+  React.useEffect(() => {
+    loadCHWs();
+  }, []);
+
+  const loadCHWs = () => {
+    try {
+      const savedProfiles = JSON.parse(localStorage.getItem('chwProfiles') || '[]');
+      
+      // Convert saved profiles to MockCHWProfile format
+      const convertedProfiles: MockCHWProfile[] = savedProfiles.map((profile: any) => ({
+        id: profile.id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        imageUrl: profile.profilePicture || 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg',
+        city: profile.address?.city || 'Unknown',
+        state: profile.address?.state || 'NC',
+        county: profile.serviceArea?.countyResideIn || 'Unknown',
+        specializations: profile.professional?.expertise || [],
+        languages: profile.professional?.languages || ['English'],
+        certificationLevel: mapCertificationLevel(profile.certification?.certificationStatus),
+        bio: profile.professional?.bio || 'Community Health Worker'
+      }));
+
+      // Combine mock data with saved profiles
+      setAllCHWs([...mockCHWs, ...convertedProfiles]);
+    } catch (error) {
+      console.error('Error loading CHW profiles:', error);
+      setAllCHWs(mockCHWs);
+    }
+  };
+
+  const mapCertificationLevel = (status: string): 'entry' | 'intermediate' | 'advanced' => {
+    if (status === 'certified') return 'advanced';
+    if (status === 'pending') return 'intermediate';
+    return 'entry';
+  };
+
+  const handleWizardComplete = (chwId: string) => {
+    console.log('New CHW created:', chwId);
+    setShowWizard(false);
+    // Refresh the CHW list
+    loadCHWs();
+  };
+
   return (
     <Box sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
-        Community Health Workers
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" component="h1">
+          Community Health Workers
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => setShowWizard(true)}
+          size="large"
+        >
+          Add New Community Health Worker Wizard
+        </Button>
+      </Box>
+      
       <Grid container spacing={3}>
-        {mockCHWs.map((chw) => (
+        {allCHWs.map((chw) => (
           <Grid item key={chw.id} xs={12} sm={6} md={4} lg={3}>
             <CHWCard chw={chw} />
           </Grid>
         ))}
       </Grid>
+
+      {/* CHW Wizard Dialog */}
+      <Dialog
+        open={showWizard}
+        onClose={() => setShowWizard(false)}
+        maxWidth="lg"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '12px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            backgroundColor: '#f8fafc'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0, overflow: 'auto' }}>
+          <Box sx={{
+            position: 'relative',
+            pt: 2,
+            px: 2,
+            pb: 2,
+          }}>
+            <IconButton
+              onClick={() => setShowWizard(false)}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                bgcolor: 'white',
+                boxShadow: 1,
+                zIndex: 10,
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+              }}
+              size="small"
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+
+            <CHWWizard onComplete={handleWizardComplete} />
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

@@ -51,6 +51,7 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { submitGrant } = useGrantWizard();
   
   // Create a component for the prepopulate button to use the context
   const PrepopulateButton = () => {
@@ -89,11 +90,12 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
   const handleComplete = async () => {
     try {
       setIsSubmitting(true);
-      // The actual submission will be handled by the context
-      const grantId = 'new-grant-id'; // Replace with actual grant ID from submission
+      // Submit the grant using the context
+      const grantId = await submitGrant();
+      
       toast({
         title: 'Grant created successfully',
-        description: 'The grant has been created and is now active.',
+        description: 'The grant has been saved and is now available in your grants list.',
       });
       
       if (onComplete) {
@@ -105,7 +107,7 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
       console.error('Error creating grant:', error);
       toast({
         title: 'Error creating grant',
-        description: 'There was an error creating the grant. Please try again.',
+        description: error instanceof Error ? error.message : 'There was an error creating the grant. Please try again.',
         variant: 'destructive',
       });
     } finally {

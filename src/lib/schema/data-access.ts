@@ -515,6 +515,50 @@ export async function createReferral(referral: Omit<Referral, 'id' | 'createdAt'
 // ============================================================================
 
 /**
+ * Get all grants
+ */
+export async function getGrants(): Promise<{ success: boolean; grants?: Grant[]; error?: any }> {
+  try {
+    const grantsRef = collection(db, COLLECTIONS.GRANTS);
+    const querySnapshot = await getDocs(grantsRef);
+    
+    const grants: Grant[] = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Grant));
+    
+    return { success: true, grants };
+  } catch (error) {
+    console.error('Error fetching grants:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Get a single grant by ID
+ */
+export async function getGrantById(id: string): Promise<{ success: boolean; grant?: Grant; error?: any }> {
+  try {
+    const grantRef = doc(db, COLLECTIONS.GRANTS, id);
+    const grantDoc = await getDoc(grantRef);
+    
+    if (!grantDoc.exists()) {
+      return { success: false, error: 'Grant not found' };
+    }
+    
+    const grant: Grant = {
+      id: grantDoc.id,
+      ...grantDoc.data()
+    } as Grant;
+    
+    return { success: true, grant };
+  } catch (error) {
+    console.error('Error fetching grant:', error);
+    return { success: false, error };
+  }
+}
+
+/**
  * Create a grant
  */
 export async function createGrant(grant: Omit<Grant, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ success: boolean; grantId?: string; error?: any }> {
@@ -607,31 +651,6 @@ export async function getAllGrants(options: {
   } catch (error) {
     console.error('Error getting grants:', error);
     return { success: false, grants: [], error };
-  }
-}
-
-/**
- * Get a grant by ID
- */
-export async function getGrantById(id: string): Promise<{ success: boolean; grant?: Grant; error?: any }> {
-  try {
-    const grantRef = doc(db, COLLECTIONS.GRANTS, id);
-    const grantDoc = await getDoc(grantRef);
-    
-    if (grantDoc.exists()) {
-      return { 
-        success: true, 
-        grant: { 
-          id: grantDoc.id, 
-          ...grantDoc.data() 
-        } as Grant 
-      };
-    }
-    
-    return { success: false, error: 'Grant not found' };
-  } catch (error) {
-    console.error('Error getting grant:', error);
-    return { success: false, error };
   }
 }
 

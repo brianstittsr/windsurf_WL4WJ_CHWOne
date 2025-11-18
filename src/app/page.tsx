@@ -1,16 +1,25 @@
 'use client';
 
-import React from 'react';
-import { Box, Typography, Button, Container } from '@mui/material';
-import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
+import React, { useState } from 'react';
+import { Box, Typography, Button, Container, Dialog, DialogContent, IconButton } from '@mui/material';
+import { ArrowForward as ArrowForwardIcon, Close as CloseIcon } from '@mui/icons-material';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from '@/styles/LogoGlow.module.css';
+import { CHWWizard } from '@/components/CHW/CHWWizard';
 
 function HomeContentInner() {
   const { currentUser } = useAuth();
+  const [showWizard, setShowWizard] = useState(false);
+
+  const handleWizardComplete = (chwId: string) => {
+    console.log('New CHW registered:', chwId);
+    setShowWizard(false);
+    // Show success message
+    alert('Thank you for registering! A welcome email has been sent to your inbox. You can now log in with your credentials.');
+  };
   
   return (
     <Box sx={{ 
@@ -300,6 +309,188 @@ function HomeContentInner() {
           </Box>
         </Box>
 
+        {/* CHW Registration Section */}
+        <Box sx={{ 
+          my: 12,
+          p: 6,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
+              Are You a Community Health Worker?
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 6, textAlign: 'center', opacity: 0.95, maxWidth: 800, mx: 'auto' }}>
+              Join our growing network of CHWs and unlock powerful tools to enhance your impact in the community
+            </Typography>
+
+            {/* Benefits Grid */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+              gap: 3,
+              mb: 6
+            }}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📋 Professional Profile
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Create a comprehensive profile showcasing your expertise, certifications, and service areas to connect with opportunities
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🤝 Networking & Collaboration
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Connect with other CHWs, share resources, and collaborate on community health initiatives across North Carolina
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📊 Data & Analytics Tools
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Access powerful data collection forms, analytics dashboards, and reporting tools to track your impact
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🎓 Training & Resources
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Access continuing education opportunities, best practices, and a library of resources to enhance your skills
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  💼 Job Opportunities
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Get discovered by organizations looking for qualified CHWs and access exclusive job postings
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🏆 Recognition & Certification
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Track your certifications, maintain your credentials, and showcase your professional achievements
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* CTA Buttons */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Button 
+                variant="contained" 
+                size="large"
+                onClick={() => setShowWizard(true)}
+                sx={{ 
+                  py: 2, 
+                  px: 6,
+                  mr: 2,
+                  mb: { xs: 2, sm: 0 },
+                  backgroundColor: 'white',
+                  color: '#667eea',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
+                  }
+                }}
+                endIcon={<ArrowForwardIcon />}
+              >
+                Register as a CHW
+              </Button>
+              <Button 
+                variant="outlined" 
+                size="large"
+                component={Link}
+                href="/chws/mock-profiles"
+                sx={{ 
+                  py: 2, 
+                  px: 6,
+                  borderColor: 'white',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  '&:hover': {
+                    borderColor: 'white',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                View CHW Directory
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Decorative elements */}
+          <Box sx={{
+            position: 'absolute',
+            top: -50,
+            right: -50,
+            width: 300,
+            height: 300,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+            pointerEvents: 'none'
+          }} />
+          <Box sx={{
+            position: 'absolute',
+            bottom: -100,
+            left: -100,
+            width: 400,
+            height: 400,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
+            pointerEvents: 'none'
+          }} />
+        </Box>
+
         {/* CTA Section */}
         <Box sx={{ 
           textAlign: 'center',
@@ -331,6 +522,49 @@ function HomeContentInner() {
           &copy; {new Date().getFullYear()} CHWOne Platform. All rights reserved.
         </Typography>
       </Box>
+
+      {/* CHW Registration Wizard Dialog */}
+      <Dialog
+        open={showWizard}
+        onClose={() => setShowWizard(false)}
+        maxWidth="lg"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '12px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            backgroundColor: '#f8fafc'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0, overflow: 'auto' }}>
+          <Box sx={{
+            position: 'relative',
+            pt: 2,
+            px: 2,
+            pb: 2,
+          }}>
+            <IconButton
+              onClick={() => setShowWizard(false)}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                bgcolor: 'white',
+                boxShadow: 1,
+                zIndex: 10,
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+              }}
+              size="small"
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+
+            <CHWWizard onComplete={handleWizardComplete} />
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

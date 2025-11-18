@@ -23,7 +23,7 @@ type GrantWizardContextType = {
   updateOrganization: (org: Organization) => void;
   
   // Document analysis methods
-  analyzeDocument: (file: File) => Promise<{success: boolean; error?: string; note?: string; steps?: string[]}>;
+  analyzeDocument: (file: File) => Promise<{success: boolean; error?: string; note?: string; steps?: string[]; extractedText?: string; extractedTextLength?: number}>;
   analysisSteps: string[];
   addAnalysisStep: (step: string) => void;
   clearAnalysisSteps: () => void;
@@ -279,7 +279,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
   };
 
   // Document Analysis Function using OpenAI API
-  const analyzeDocument = async (file: File): Promise<{success: boolean; error?: string; note?: string; steps?: string[]}> => {
+  const analyzeDocument = async (file: File): Promise<{success: boolean; error?: string; note?: string; steps?: string[]; extractedText?: string; extractedTextLength?: number}> => {
     try {
       // Reset steps and show the modal
       clearAnalysisSteps();
@@ -356,6 +356,18 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         const result = await response.json();
         console.log('API Response:', result); // Log the full response for debugging
         
+        // Show extracted text for debugging
+        if (result.extractedText) {
+          addAnalysisStep(`✓ Extracted ${result.extractedTextLength} characters from PDF`);
+          console.log('=== EXTRACTED TEXT FROM PDF ===');
+          console.log(result.extractedText);
+          console.log('=== END EXTRACTED TEXT ===');
+          
+          // Store extracted text in result for display
+          result.debugExtractedText = result.extractedText;
+          result.debugExtractedTextLength = result.extractedTextLength;
+        }
+        
         if (!result.success) {
           console.error(`Analysis failed: ${result.error || 'Unknown error'}`);
           addAnalysisStep(`❌ Analysis failed: ${result.error || 'Unknown error'}`);
@@ -414,7 +426,9 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         addAnalysisStep('✅ Document analysis complete');
         return { 
           success: true,
-          steps: analysisSteps 
+          steps: analysisSteps,
+          extractedText: result.debugExtractedText,
+          extractedTextLength: result.debugExtractedTextLength
         };
         
       } catch (fetchError: unknown) {
@@ -476,13 +490,13 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       
       // Initialize the extracted data
       const extractedData: Partial<Grant> = {
-        name: apiData.grantName || apiData.title || apiData.name || '',
+        name: apiData.grantTitle || apiData.grantName || apiData.title || apiData.name || '',
         description: apiData.description || apiData.purpose || '',
         startDate: apiData.startDate || '',
         endDate: apiData.endDate || '',
-        fundingSource: apiData.fundingSource || '',
-        grantNumber: apiData.grantNumber || '',
-        totalBudget: apiData.totalBudget || apiData.budget || 0,
+        fundingSource: apiData.fundingSource || apiData.funder || '',
+        grantNumber: apiData.grantNumber || apiData.grantId || '',
+        totalBudget: apiData.totalBudget || apiData.budget || apiData.amount || 0,
       };
       
       // Process collaborating entities
@@ -493,10 +507,12 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
           name: entity.name || `Entity ${index + 1}`,
           role: entity.role || 'partner',
           description: entity.description || '',
-          contactName: entity.contactName || entity.contact?.name || '',
+          contactName: entity.contactName || entity.contact?.name || entity.contactInfo || '',
           contactEmail: entity.contactEmail || entity.contact?.email || '',
           contactPhone: entity.contactPhone || entity.contact?.phone || '',
-          responsibilities: entity.responsibilities || []
+          responsibilities: Array.isArray(entity.responsibilities) 
+            ? entity.responsibilities 
+            : (entity.responsibilities ? [entity.responsibilities] : [])
         }));
       }
       
@@ -509,8 +525,10 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
           description: method.description || '',
           frequency: method.frequency || 'monthly',
           responsibleEntity: method.responsibleEntity || method.responsible || '',
-          dataPoints: method.dataPoints || method.data || [],
-          tools: method.tools || method.instruments || []
+          dataPoints: Array.isArray(method.dataPoints) ? method.dataPoints : (method.dataPoints ? [method.dataPoints] : (method.data || [])),
+          tools: Array.isArray(method.tools) 
+            ? method.tools 
+            : (method.tools ? [method.tools] : (method.instruments ? (Array.isArray(method.instruments) ? method.instruments : [method.instruments]) : []))
         }));
       }
       
@@ -922,11 +940,44 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
 
   const submitGrant = async (): Promise<string> => {
     try {
-      // This will be implemented in the grant service
-      console.log('Submitting grant:', grantData);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return 'grant-123'; // Return the new grant ID
+      console.log('Submitting grant to Firebase:', grantData);
+      
+      // Import createGrant and Timestamp dynamically
+      const { createGrant } = await import('@/lib/schema/data-access');
+      const { Timestamp } = await import('firebase/firestore');
+      
+      // Prepare grant data for Firebase with required fields
+      const grantToSave: any = {
+        title: grantData.name || 'Untitled Grant',
+        description: grantData.description || '',
+        fundingSource: grantData.fundingSource || '',
+        amount: grantData.totalBudget || 0,
+        organizationId: grantData.organizationId || 'general',
+        startDate: grantData.startDate ? Timestamp.fromDate(new Date(grantData.startDate)) : Timestamp.now(),
+        endDate: grantData.endDate ? Timestamp.fromDate(new Date(grantData.endDate)) : Timestamp.now(),
+        status: grantData.status || 'draft',
+        projectIds: [],
+        requirements: [],
+        reportingSchedule: [],
+        contactPerson: grantData.collaboratingEntities?.[0]?.contactName || 'Not specified',
+        // Include all the wizard data as additional fields
+        grantNumber: grantData.grantNumber,
+        collaboratingEntities: grantData.collaboratingEntities,
+        dataCollectionMethods: grantData.dataCollectionMethods,
+        projectMilestones: grantData.projectMilestones,
+        formTemplates: grantData.formTemplates,
+        datasets: grantData.datasets
+      };
+      
+      // Save to Firebase
+      const result = await createGrant(grantToSave);
+      
+      if (result.success && result.grantId) {
+        console.log('Grant created successfully:', result.grantId);
+        return result.grantId;
+      } else {
+        throw new Error(result.error || 'Failed to create grant');
+      }
     } catch (error) {
       console.error('Error submitting grant:', error);
       throw error;

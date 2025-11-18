@@ -99,6 +99,13 @@ function LoginFormContent() {
       return;
     }
     
+    // Validate email format before attempting sign in
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address (e.g., user@example.com)');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     
@@ -129,7 +136,9 @@ function LoginFormContent() {
       if (typeof error === 'object' && error !== null && 'code' in error) {
         const firebaseError = error as { code: string; message: string };
         errorMessage = firebaseError.message;
-        if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/user-not-found') {
+        if (firebaseError.code === 'auth/invalid-email') {
+          errorMessage = 'Please enter a valid email address (e.g., user@example.com)';
+        } else if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/user-not-found') {
           errorMessage = 'Invalid email or password. Please try again.';
         } else if (firebaseError.code === 'auth/too-many-requests') {
           errorMessage = 'Too many failed login attempts. Please try again later.';
@@ -193,6 +202,7 @@ function LoginFormContent() {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              helperText="Enter your email address (e.g., user@example.com)"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

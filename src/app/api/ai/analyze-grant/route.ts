@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,9 +78,9 @@ function getMockGrantData() {
   };
 }
 
-// Initialize Anthropic client with API key from environment variables
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
+// Initialize OpenAI client with API key from environment variables
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
 });
 
 export async function POST(request: NextRequest) {
@@ -143,7 +143,11 @@ export async function POST(request: NextRequest) {
         console.log(`Extracted ${fileContent.length} characters using file.text()`);
       }
       
-      console.log(`Content sample: ${fileContent.slice(0, 200)}...`);
+      console.log('=== EXTRACTED CONTENT PREVIEW ===');
+      console.log(`Total length: ${fileContent.length} characters`);
+      console.log('First 500 characters:');
+      console.log(fileContent.slice(0, 500));
+      console.log('=== END PREVIEW ===');
       
       // If we couldn't extract meaningful text, return an error
       if (fileContent.length < 100) {
@@ -155,97 +159,200 @@ export async function POST(request: NextRequest) {
         }, { status: 422 });
       }
       
-      // For development/testing or if Anthropic key is not set
-      if (!process.env.ANTHROPIC_API_KEY) {
-        console.log('Anthropic API key not set - returning error');
+      // Check for OpenAI API key
+      console.log('Checking for OpenAI API key...');
+      const apiKey = process.env.OPENAI_API_KEY?.trim();
+      console.log('API key exists:', !!apiKey);
+      console.log('API key length:', apiKey?.length || 0);
+      console.log('API key starts with sk-:', apiKey?.startsWith('sk-'));
+      
+      if (!apiKey) {
+        console.log('OpenAI API key not set - returning error');
         return NextResponse.json({
           success: false,
-          error: 'Anthropic API key not configured. Please set up your API key.',
+          error: 'OpenAI API key not configured. Please set up your API key.',
         }, { status: 400 });
       }
       
-      // Even in development mode, attempt to use the API if key is available
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Running in development mode but will attempt to use Anthropic API');
+      if (!apiKey.startsWith('sk-')) {
+        console.error('Invalid API key format - should start with sk-');
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid OpenAI API key format. Key should start with "sk-"',
+        }, { status: 400 });
       }
       
-      // Prepare system prompt for Anthropic with improved instructions
-      const systemPrompt = "You are a grant analysis assistant that extracts structured information from grant documents.";
+      console.log('OpenAI API key found! Proceeding with analysis...');
       
-      // Prepare user prompt for Anthropic
-      const userPrompt = `
-        Please extract key information from this grant document content:
-        
-        ${fileContent.slice(0, 15000)} // Limit content to avoid token limits
-        
-        Extract the following details in JSON format:
-        - grantTitle: The name or title of the grant
-        - description: A brief description of the grant's purpose
-        - fundingSource: The organization providing the funding
-        - grantNumber: Any identifier for the grant
-        - startDate: When the grant period begins (YYYY-MM-DD)
-        - endDate: When the grant period ends (YYYY-MM-DD)
-        - totalBudget: The total funding amount (numeric value only)
-        - entities: Array of collaborating organizations with their roles
-        - dataCollectionMethods: Required data collection methods
-        - milestones: Key project milestones and deadlines
-        - specialRequirements: Any special requirements or notes
-        
-        Respond with ONLY the JSON object, no other text.
-      `;
+      // Even in development mode, attempt to use the API if key is available
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Running in development mode but will attempt to use OpenAI API');
+      }
       
-      // Call Anthropic API
+      // Prepare prompt for OpenAI with system message for accuracy
+      const systemMessage = `You are an expert grant document analyst. Your ONLY job is to extract information that is EXPLICITLY STATED in the provided document text. 
+
+CRITICAL RULES:
+1. ONLY use information from the document text provided - DO NOT make up or infer organization names
+2. If information is not in the document, leave that field empty or use a generic placeholder
+3. Extract dates, amounts, and text EXACTLY as they appear in the document
+4. For organization names, ONLY use names that are explicitly written in the document text
+5. Read the ENTIRE document text carefully before responding
+
+DO NOT use generic names like "Women Leading" or "Community Health Worker Program" unless those exact phrases appear in the document.`;
+      
+      const prompt = `Read this ENTIRE document text carefully and extract ONLY the information that is explicitly stated in it. Do not make up or infer any organization names or details that are not in the text.
+
+===== DOCUMENT TEXT START =====
+${fileContent.slice(0, 15000)}
+===== DOCUMENT TEXT END =====
+
+Extract and return a JSON object with these fields. USE ONLY INFORMATION FROM THE DOCUMENT TEXT ABOVE:
+{
+  "grantTitle": "Extract the title from the document. If no title exists, create a SHORT (3-8 words) title based ONLY on what the document says. Use exact phrases from the document.",
+  "description": "Extract the purpose and goals EXACTLY as written in the document. Use the document's own words. 2-3 sentences. Quote directly from the document text.",
+  "fundingSource": "Extract the EXACT name of the funding organization as written in the document. Look for phrases like 'funded by', 'funder:', 'funding provided by', or organization names in context of providing money. Use the EXACT name from the document.",
+  "grantNumber": "Any grant identifier, reference number, or award number. Check headers, footers, and document metadata.",
+  "startDate": "REQUIRED: Find the agreement/grant start date. Search EVERYWHERE: headers, footers, 'effective date', 'from [DATE]', 'beginning [DATE]', 'Term: [DATE] to', signature blocks, date ranges. Format as YYYY-MM-DD. Examples: '7/1/2025' → '2025-07-01', 'July 1, 2025' → '2025-07-01'. This should NOT be empty if it's a dated agreement.",
+  "endDate": "REQUIRED: Find the agreement/grant end date. Search EVERYWHERE: 'through [DATE]', 'to [DATE]', 'ending [DATE]', 'expiration [DATE]', date ranges. Format as YYYY-MM-DD. Examples: '6/30/2026' → '2026-06-30', 'June 30, 2026' → '2026-06-30'. This should NOT be empty if it's a dated agreement.",
+  "totalBudget": "REQUIRED: Extract the total funding/grant amount. Search for: '$[amount]', 'total funding: [amount]', 'grant amount: [amount]', 'budget: [amount]', 'award amount: [amount]'. Return as NUMBER ONLY (no dollar signs, no commas). Examples: '$250,000' → 250000, '$1.5 million' → 1500000, 'Two hundred fifty thousand dollars' → 250000. If not found, return 0.",
+  "entities": [
+    {
+      "name": "REQUIRED: Extract the EXACT organization name as written in the document. Do not make up names. Use the exact text from the document.",
+      "role": "Determine from document context: 'lead' (primary recipient/grantee), 'partner' (collaborator), or 'funder' (provides money). Use what the document says.",
+      "responsibilities": "Extract EXACTLY what the document says this organization will do. Quote from the document. If not stated, leave empty.",
+      "contactInfo": "Extract contact info EXACTLY as written in the document (names, titles, emails, phones from signature blocks or headers)."
+    }
+  ],
+  "dataCollectionMethods": [
+    {
+      "name": "Method name (e.g., 'Quarterly Surveys', 'Monthly Site Visits')",
+      "description": "Detailed description of the data collection approach",
+      "frequency": "How often (e.g., 'monthly', 'quarterly', 'annually')",
+      "responsibleEntity": "Organization or role responsible for this data collection",
+      "dataPoints": ["specific", "metrics", "or", "indicators", "to", "collect"],
+      "tools": "Tools, software, or instruments used for data collection"
+    }
+  ],
+  "milestones": [
+    {
+      "name": "Milestone name",
+      "description": "What needs to be accomplished",
+      "dueDate": "YYYY-MM-DD",
+      "responsibleParties": ["organizations", "or", "roles", "responsible"],
+      "dependencies": ["other", "milestones", "that", "must", "complete", "first"]
+    }
+  ],
+  "specialRequirements": "Any special requirements, compliance needs, reporting obligations, or important notes"
+}
+
+CRITICAL INSTRUCTIONS - READ CAREFULLY:
+
+**PRIMARY RULE: EXTRACT ONLY FROM THE DOCUMENT TEXT PROVIDED ABOVE. DO NOT MAKE UP INFORMATION.**
+
+**EXTRACTION RULES:**
+1. **Organization Names**: Use EXACT names as written in the document. Do not infer or create organization names.
+2. **Dates**: Extract dates EXACTLY as they appear. Search headers, footers, signature blocks, and body text.
+3. **Amounts**: Extract dollar amounts EXACTLY as stated. Convert to number format (remove $ and commas).
+4. **Descriptions**: Quote or paraphrase DIRECTLY from the document text. Use the document's own language.
+5. **Empty Fields**: If information is not in the document, leave the field empty or return an empty array.
+
+**WHAT TO EXTRACT:**
+- **grantTitle**: Use document's title or create from its stated purpose (use exact phrases from document)
+- **description**: Copy the purpose/goals directly from the document text
+- **fundingSource**: Extract the EXACT name of the organization providing funding as written in document
+- **totalBudget**: Find and extract the dollar amount (return as number without $ or commas)
+- **startDate & endDate**: Find dates in ANY part of the document, format as YYYY-MM-DD
+- **entities**: List ONLY organizations explicitly named in the document with their stated roles and responsibilities
+
+**ORGANIZATION ROLES (based on document context):**
+- **lead**: Primary recipient/grantee managing the grant
+- **partner**: Collaborating/supporting organization  
+- **funder**: Organization providing the money
+
+**BUDGET/FUNDING AMOUNT EXTRACTION:**
+- Search for dollar amounts: "$250,000", "$1.5M", "$1,500,000"
+- Look for phrases: "total funding", "grant amount", "award amount", "budget", "total award"
+- Check budget tables or financial sections
+- Convert to NUMBER: remove $, commas, convert "million" to zeros
+- Examples: "$250,000" → 250000, "$1.5 million" → 1500000
+
+**DATE EXTRACTION:**
+- Search the ENTIRE document including metadata, headers, footers
+- Look for: "effective [DATE]", "[DATE] through [DATE]", "Term: [DATE] to [DATE]"
+- Check signature blocks for dates
+- Convert all dates to YYYY-MM-DD format
+
+**CONTACT INFORMATION:**
+- Extract EXACTLY as written in signature blocks, headers, or contact sections
+- Include names, titles, emails, phone numbers found in the document
+
+**DATA COLLECTION & MILESTONES:**
+- Extract ONLY if explicitly mentioned in the document
+- If not described in the document, return empty arrays []
+
+**FINAL REMINDER**: 
+- Use ONLY information from the document text provided above
+- Do NOT make up organization names, dates, or amounts
+- Extract and quote directly from the document
+- If something is not in the document, leave it empty
+
+Return valid JSON with proper array types.`;
+      
+      // Call OpenAI API with GPT-4o for enhanced reasoning
       try {
-        console.log('Sending text to Anthropic for analysis');
-        const completion = await anthropic.messages.create({
-          model: "claude-3-haiku-20240307",
-          system: systemPrompt,
+        console.log('Sending text to OpenAI GPT-4o for analysis (enhanced reasoning)');
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o",
           messages: [
             {
+              role: "system",
+              content: systemMessage
+            },
+            {
               role: "user",
-              content: userPrompt
+              content: prompt
             }
           ],
-          temperature: 0.3, // Lower temperature for more consistent parsing
+          temperature: 0.1,
           max_tokens: 4000,
+          response_format: { type: "json_object" }
         });
         
-        // Extract the content based on the type of block
-        let responseContent = '';
-        if (completion.content && completion.content.length > 0) {
-          const contentBlock = completion.content[0];
-          // Check if it's a text block
-          if (contentBlock.type === 'text') {
-            responseContent = contentBlock.text;
-          }
-        }
-        console.log('Anthropic analysis complete');
+        // Extract the response content
+        const responseContent = completion.choices[0]?.message?.content || '';
+        console.log('OpenAI analysis complete');
+        console.log('Response length:', responseContent.length);
+        console.log('Response preview:', responseContent.substring(0, 200));
         
         // Parse JSON response
         try {
           // Clean the response - some LLMs might add markdown code blocks
           const cleanedResponse = responseContent.replace(/```json\n|```\n|```json|```/g, '').trim();
           const parsedData = JSON.parse(cleanedResponse || '{}');
-          console.log('Successfully parsed JSON from Anthropic');
+          console.log('Successfully parsed JSON from OpenAI');
+          console.log('Parsed data keys:', Object.keys(parsedData));
           
           return NextResponse.json({
             success: true,
-            analyzedData: parsedData
+            analyzedData: parsedData,
+            extractedText: fileContent.slice(0, 2000), // Include first 2000 chars of extracted text for debugging
+            extractedTextLength: fileContent.length
           });
         } catch (parseError) {
-          console.error('Error parsing Anthropic response:', parseError);
+          console.error('Error parsing OpenAI response:', parseError);
           console.error('Raw response:', responseContent);
           return NextResponse.json({
             success: false,
-            error: 'Failed to parse response from Anthropic API.',
+            error: 'Failed to parse response from OpenAI API.',
             details: responseContent ? `Raw response: ${responseContent.substring(0, 100)}...` : 'No response received'
           }, { status: 422 });
         }
       } catch (aiError) {
-        console.error('Anthropic API error:', aiError);
+        console.error('OpenAI API error:', aiError);
         return NextResponse.json({
           success: false,
-          error: 'Error occurred while calling Anthropic API.',
+          error: 'Error occurred while calling OpenAI API.',
           details: aiError instanceof Error ? aiError.message : 'Unknown error'
         }, { status: 500 });
       }

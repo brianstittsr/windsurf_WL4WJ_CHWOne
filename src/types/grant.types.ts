@@ -116,6 +116,33 @@ export interface FormTemplate {
   frequency?: 'once' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
   dueDate?: string;
   contractDeliverable?: boolean;
+  datasetId?: string; // Link to associated dataset
+}
+
+export interface DatasetField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'textarea';
+  required: boolean;
+  description?: string;
+}
+
+export interface Dataset {
+  id: string;
+  name: string;
+  description: string;
+  formTemplateId: string; // Link to source form
+  fields: DatasetField[];
+  createdAt: string;
+  updatedAt: string;
+  status: 'active' | 'archived';
+  recordCount: number;
+  lastRecordDate?: string;
+  entityResponsible: string;
+  purpose: string;
+  tags?: string[];
+  analysisReady: boolean; // Flag indicating if dataset is ready for analysis
 }
 
 export interface ReportTemplate {
@@ -182,6 +209,7 @@ export interface Grant {
   // Form generation and management
   formTemplates?: FormTemplate[];
   reportTemplates?: ReportTemplate[];
+  datasets?: Dataset[]; // Auto-generated datasets for each form
   
   // AI-driven project tracking
   dashboardMetrics?: DashboardMetric[];

@@ -561,13 +561,13 @@ function ReportsContent() {
       </Dialog>
       
       {/* Notification Snackbar */}
-      <Snackbar
-        open={!!notification}
-        autoHideDuration={6000}
-        onClose={() => setNotification(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        {notification ? (
+      {notification && (
+        <Snackbar
+          open={true}
+          autoHideDuration={6000}
+          onClose={() => setNotification(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
           <Alert 
             onClose={() => setNotification(null)} 
             severity={notification.severity}
@@ -575,8 +575,8 @@ function ReportsContent() {
           >
             {notification.message}
           </Alert>
-        ) : <></>}
-      </Snackbar>
+        </Snackbar>
+      )}
       </Box>
     </UnifiedLayout>
   );

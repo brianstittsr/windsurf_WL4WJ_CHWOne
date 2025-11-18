@@ -107,39 +107,9 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
       roles: [UserRole.ADMIN] 
     },
     { 
-      href: '/projects', 
-      icon: 'sparkle', 
-      label: 'Projects', 
-      roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/grants', 
-      icon: 'security', 
-      label: 'Grants', 
-      roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/referrals', 
-      icon: 'openLink', 
-      label: 'Referrals', 
-      roles: [UserRole.ADMIN] 
-    },
-    { 
       href: '/resources', 
       icon: 'search', 
       label: 'Resources', 
-      roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/forms', 
-      icon: 'clipboard', 
-      label: 'Forms', 
-      roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/datasets', 
-      icon: 'database', 
-      label: 'Datasets', 
       roles: [UserRole.ADMIN] 
     },
     { 
@@ -147,13 +117,6 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
       icon: 'analytics', 
       label: 'Reports', 
       roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/ai-assistant', 
-      icon: 'psychology', 
-      label: 'AI Assistant', 
-      roles: [UserRole.ADMIN],
-      highlight: true // Add highlight to show it's new
     },
     { 
       href: '/civicrm', 

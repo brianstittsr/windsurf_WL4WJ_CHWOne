@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { GrantWizard } from '@/components/Grants/wizard/GrantWizard';
+import { GrantWizardProvider } from '@/contexts/GrantWizardContext';
+import { GrantGeneratorWizard } from '@/components/Grants/generator/GrantGeneratorWizard';
+import { GrantGeneratorProvider } from '@/contexts/GrantGeneratorContext';
 import {
   Grid,
   Card,
@@ -11,30 +14,16 @@ import {
   Button,
   Chip,
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
   IconButton,
-  TextField,
-  MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   CircularProgress,
   LinearProgress,
-  Fab,
   Alert,
   Accordion,
   AccordionSummary,
   AccordionDetails
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
   Visibility as VisibilityIcon,
   ExpandMore as ExpandMoreIcon,
   AttachMoney as MoneyIcon,
@@ -43,6 +32,7 @@ import {
   Assessment as AssessmentIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
+import { Sparkles } from 'lucide-react';
 import { createGrant, getActiveGrantsCount } from '@/lib/schema/data-access';
 import { Grant } from '@/lib/schema/unified-schema';
 import { Timestamp } from 'firebase/firestore';
@@ -50,21 +40,8 @@ import { Timestamp } from 'firebase/firestore';
 export default function GrantManagement() {
   const [grants, setGrants] = useState<Grant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
   const [showWizardDialog, setShowWizardDialog] = useState(false);
-  const [selectedGrant, setSelectedGrant] = useState<Grant | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    fundingSource: '',
-    amount: 0,
-    startDate: '',
-    endDate: '',
-    status: 'active' as 'active' | 'pending' | 'completed' | 'cancelled',
-    contactPerson: '',
-    requirements: '',
-    reportingSchedule: ''
-  });
+  const [showGeneratorDialog, setShowGeneratorDialog] = useState(false);
 
   useEffect(() => {
     fetchGrants();
@@ -72,155 +49,25 @@ export default function GrantManagement() {
 
   const fetchGrants = async () => {
     try {
-      // Mock data for demonstration
-      setGrants([
-        {
-          id: '1',
-          title: 'Rural Health Access Grant',
-          description: 'Funding for expanding healthcare access in rural communities through mobile clinics and CHW outreach programs.',
-          fundingSource: 'State Health Department',
-          amount: 250000,
-          organizationId: 'general',
-          startDate: Timestamp.fromDate(new Date('2024-01-01')),
-          endDate: Timestamp.fromDate(new Date('2024-12-31')),
-          status: 'active',
-          projectIds: ['project-1'],
-          requirements: ['HIPAA compliance', 'Monthly reporting', 'Final outcome report'],
-          reportingSchedule: [
-            {
-              type: 'monthly',
-              dueDate: Timestamp.fromDate(new Date('2024-02-15')),
-              completed: false,
-              submittedDate: undefined
-            },
-            {
-              type: 'quarterly',
-              dueDate: Timestamp.fromDate(new Date('2024-04-15')),
-              completed: false,
-              submittedDate: undefined
-            },
-            {
-              type: 'final',
-              dueDate: Timestamp.fromDate(new Date('2025-01-15')),
-              completed: false,
-              submittedDate: undefined
-            }
-          ],
-          contactPerson: 'Dr. Sarah Johnson',
-          createdAt: Timestamp.fromDate(new Date('2023-12-01')),
-          updatedAt: Timestamp.fromDate(new Date('2024-01-15'))
-        },
-        {
-          id: '2',
-          title: 'Diabetes Prevention Initiative Grant',
-          description: 'Support for community-based diabetes prevention programs and health education initiatives.',
-          fundingSource: 'CDC',
-          amount: 180000,
-          organizationId: 'region5',
-          startDate: Timestamp.fromDate(new Date('2024-04-01')),
-          endDate: Timestamp.fromDate(new Date('2025-03-31')),
-          status: 'pending',
-          projectIds: [],
-          requirements: ['CDC-approved curriculum', 'Quarterly progress reports', 'Participant tracking'],
-          reportingSchedule: [
-            {
-              type: 'quarterly',
-              dueDate: Timestamp.fromDate(new Date('2024-07-15')),
-              completed: false,
-              submittedDate: undefined
-            },
-            {
-              type: 'annual',
-              dueDate: Timestamp.fromDate(new Date('2025-04-15')),
-              completed: false,
-              submittedDate: undefined
-            }
-          ],
-          contactPerson: 'Michael Chen',
-          createdAt: Timestamp.fromDate(new Date('2024-02-01')),
-          updatedAt: Timestamp.fromDate(new Date('2024-02-15'))
-        }
-      ]);
+      // Import getGrants from data-access
+      const { getGrants } = await import('@/lib/schema/data-access');
+      
+      // Fetch grants from Firebase
+      const result = await getGrants();
+      
+      if (result.success && result.grants) {
+        console.log('Fetched grants from Firebase:', result.grants.length);
+        setGrants(result.grants);
+      } else {
+        console.error('Error fetching grants:', result.error);
+        setGrants([]);
+      }
     } catch (error) {
       console.error('Error fetching grants:', error);
+      setGrants([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const grantData: Omit<Grant, 'id' | 'createdAt' | 'updatedAt'> = {
-        title: formData.title,
-        description: formData.description,
-        fundingSource: formData.fundingSource,
-        amount: formData.amount,
-        organizationId: 'general', // Default to general organization
-        startDate: Timestamp.fromDate(new Date(formData.startDate)),
-        endDate: Timestamp.fromDate(new Date(formData.endDate)),
-        status: formData.status,
-        projectIds: [],
-        requirements: formData.requirements.split(',').map(r => r.trim()),
-        reportingSchedule: [],
-        contactPerson: formData.contactPerson
-      };
-
-      if (selectedGrant) {
-        // Update existing grant
-        console.log('Updating grant:', selectedGrant.id, grantData);
-        // TODO: Implement updateGrant in data-access.ts
-      } else {
-        // Create new grant
-        console.log('Creating new grant:', grantData);
-        const result = await createGrant(grantData);
-        if (result.success) {
-          console.log('Grant created successfully:', result.grantId);
-          // Refresh grants list
-          fetchGrants();
-        } else {
-          console.error('Error creating grant:', result.error);
-        }
-      }
-
-      setShowModal(false);
-      setSelectedGrant(null);
-      resetForm();
-    } catch (error) {
-      console.error('Error saving grant:', error);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      fundingSource: '',
-      amount: 0,
-      startDate: '',
-      endDate: '',
-      status: 'active',
-      contactPerson: '',
-      requirements: '',
-      reportingSchedule: ''
-    });
-  };
-
-  const editGrant = (grant: Grant) => {
-    setSelectedGrant(grant);
-    setFormData({
-      title: grant.title,
-      description: grant.description,
-      fundingSource: grant.fundingSource,
-      amount: grant.amount,
-      startDate: grant.startDate.toDate().toISOString().split('T')[0],
-      endDate: grant.endDate.toDate().toISOString().split('T')[0],
-      status: grant.status,
-      contactPerson: grant.contactPerson,
-      requirements: grant.requirements.join(', '),
-      reportingSchedule: ''
-    });
-    setShowModal(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -272,15 +119,16 @@ export default function GrantManagement() {
             onClick={() => setShowWizardDialog(true)}
             size="large"
           >
-            Launch Grant Analyzer Wizard
+            Launch Grant Analyzer
           </Button>
           <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setShowModal(true)}
+            variant="outlined"
+            color="primary"
+            startIcon={<Sparkles size={20} />}
+            onClick={() => setShowGeneratorDialog(true)}
             size="large"
           >
-            New Grant
+            Launch Grant Creator
           </Button>
         </Box>
       </Box>
@@ -420,17 +268,9 @@ export default function GrantManagement() {
                   <Button
                     variant="outlined"
                     size="small"
-                    startIcon={<EditIcon />}
-                    onClick={() => editGrant(grant)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
                     startIcon={<VisibilityIcon />}
                   >
-                    View
+                    View Details
                   </Button>
                 </Box>
               </Box>
@@ -474,132 +314,6 @@ export default function GrantManagement() {
         );
       })}
 
-      {/* Add/Edit Grant Modal */}
-      <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {selectedGrant ? 'Edit Grant' : 'New Grant'}
-        </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Grant Title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Funding Source"
-                  value={formData.fundingSource}
-                  onChange={(e) => setFormData({...formData, fundingSource: e.target.value})}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Amount"
-                  value={formData.amount.toString()}
-                  onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
-                  required
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Start Date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                  InputLabelProps={{ shrink: true }}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="End Date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                  InputLabelProps={{ shrink: true }}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  select
-                  label="Status"
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-                >
-                  {['active', 'pending', 'completed', 'cancelled'].map(status => (
-                    <MenuItem key={status} value={status}>
-                      {status.replace(/_/g, ' ')}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Contact Person"
-                  value={formData.contactPerson}
-                  onChange={(e) => setFormData({...formData, contactPerson: e.target.value})}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Requirements (comma-separated)"
-                  value={formData.requirements}
-                  onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                  placeholder="e.g., HIPAA compliance, Monthly reporting, Final outcome report"
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowModal(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              {selectedGrant ? 'Update Grant' : 'Create Grant'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        aria-label="add"
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        onClick={() => setShowModal(true)}
-      >
-        <AddIcon />
-      </Fab>
 
       {/* Grant Analyzer Wizard Dialog */}
       <Dialog 
@@ -641,14 +355,69 @@ export default function GrantManagement() {
               <CloseIcon fontSize="small" />
             </IconButton>
 
-            <GrantWizard 
-              organizationId="general"
-              onComplete={(grantId) => {
-                console.log('Grant created:', grantId);
-                setShowWizardDialog(false);
-                fetchGrants();
+            <GrantWizardProvider>
+              <GrantWizard 
+                organizationId="general"
+                onComplete={(grantId) => {
+                  console.log('Grant created:', grantId);
+                  setShowWizardDialog(false);
+                  fetchGrants();
+                }}
+              />
+            </GrantWizardProvider>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* Grant Generator Wizard Dialog */}
+      <Dialog 
+        open={showGeneratorDialog} 
+        onClose={() => setShowGeneratorDialog(false)} 
+        maxWidth="xl" 
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': { 
+            borderRadius: '12px',
+            maxHeight: '90vh', 
+            overflow: 'auto',
+            backgroundColor: '#f8fafc'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0, overflow: 'auto' }}>
+          <Box sx={{ 
+            position: 'relative',
+            pt: 2, 
+            px: 2, 
+            pb: 2,
+          }}>
+            {/* Close button in top-right corner */}
+            <IconButton 
+              onClick={() => setShowGeneratorDialog(false)}
+              sx={{ 
+                position: 'absolute', 
+                top: 16, 
+                right: 16, 
+                bgcolor: 'white',
+                boxShadow: 1,
+                zIndex: 10,
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } 
               }}
-            />
+              size="small"
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+
+            <GrantGeneratorProvider organizationId="general">
+              <GrantGeneratorWizard 
+                organizationId="general"
+                onComplete={(proposalId) => {
+                  console.log('Proposal created:', proposalId);
+                  setShowGeneratorDialog(false);
+                  // Optionally navigate to proposal view or refresh grants
+                }}
+              />
+            </GrantGeneratorProvider>
           </Box>
         </DialogContent>
       </Dialog>
