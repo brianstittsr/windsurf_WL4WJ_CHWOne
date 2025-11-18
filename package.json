@@ -28,6 +28,7 @@
     "clean": "rimraf .next && rimraf out",
     "vercel-build": "npm run build",
     "initialize-firebase": "node scripts/initialize-firebase.js",
+    "init-states": "ts-node scripts/initialize-states.ts",
     "check-admin-user": "node scripts/check-admin-user.js",
     "verify-firebase": "node scripts/verify-firebase-config.js",
     "disable-cognito": "node scripts/disable-cognito.js",
