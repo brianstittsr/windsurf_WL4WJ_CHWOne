@@ -22,6 +22,8 @@ import {
   Checkbox,
   FormGroup
 } from '@mui/material';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface NonprofitWizardProps {
   onComplete: (nonprofitId: string) => void;
@@ -160,11 +162,74 @@ export function NonprofitWizard({ onComplete }: NonprofitWizardProps) {
 
   const handleSubmit = async () => {
     try {
-      // In a real implementation, this would save to Firestore
       console.log('Nonprofit registration data:', formData);
       
-      // Simulate API call
-      const nonprofitId = `nonprofit-${Date.now()}`;
+      // Generate nonprofit ID
+      const timestamp = Date.now();
+      const nonprofitId = `nonprofit-${timestamp}`;
+      
+      // Create nonprofit data for Firestore
+      const nonprofitData = {
+        id: nonprofitId,
+        organizationName: formData.organizationName,
+        organizationType: formData.organizationType,
+        ein: formData.ein,
+        yearEstablished: parseInt(formData.yearEstablished) || new Date().getFullYear(),
+        mission: formData.mission,
+        website: formData.website,
+        
+        primaryContact: {
+          name: formData.primaryContactName,
+          title: formData.primaryContactTitle,
+          email: formData.primaryContactEmail,
+          phone: formData.primaryContactPhone
+        },
+        
+        organizationContact: {
+          phone: formData.organizationPhone,
+          email: formData.organizationEmail
+        },
+        
+        address: formData.address,
+        
+        services: {
+          categories: formData.serviceCategories,
+          description: formData.servicesDescription,
+          eligibilityCriteria: formData.eligibilityCriteria,
+          operatingHours: formData.operatingHours,
+          acceptsReferrals: formData.acceptsReferrals,
+          referralProcess: formData.referralProcess
+        },
+        
+        serviceArea: {
+          statewideCoverage: formData.statewideCoverage,
+          countiesServed: formData.serviceCounties
+        },
+        
+        verification: {
+          nonprofitStatus: formData.nonprofitStatus,
+          dataSharing: formData.dataSharing,
+          termsAccepted: formData.termsAccepted
+        },
+        
+        status: 'pending', // Pending admin approval
+        approvalStatus: 'pending',
+        isActive: false,
+        isApproved: false,
+        
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        
+        metadata: {
+          registrationSource: 'home_page_wizard',
+          needsReview: true
+        }
+      };
+      
+      // Save nonprofit to Firestore
+      const nonprofitRef = doc(db, 'nonprofits', nonprofitId);
+      await setDoc(nonprofitRef, nonprofitData);
+      console.log('Nonprofit saved to Firestore:', nonprofitId);
       
       // Call completion handler
       onComplete(nonprofitId);
