@@ -38,7 +38,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  ListItemText
+  ListItemText,
+  CircularProgress,
+  List,
+  ListItem
 } from '@mui/material';
 import { 
   Add as AddIcon,
@@ -101,6 +104,11 @@ export function Step6FormGenerator() {
     description: '',
     fields: []
   });
+  
+  // AI Enhancement state
+  const [aiRecommendations, setAiRecommendations] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [showAIDialog, setShowAIDialog] = useState(false);
   
   // Function to generate form templates from data collection methods
   const generateFormsFromDataCollection = (methods: DataCollectionMethod[]): FormTemplate[] => {
@@ -649,6 +657,25 @@ export function Step6FormGenerator() {
                   <SettingsIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6">AI Form Enhancement</Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={getAIRecommendations}
+                  disabled={loadingAI}
+                  startIcon={loadingAI ? <CircularProgress size={20} /> : <SettingsIcon />}
+                >
+                  {loadingAI ? 'Analyzing...' : 'Get AI Recommendations'}
+                </Button>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Use AI to analyze your form and get recommendations for improvements, additional fields, and better data collection practices.
+              </Typography>
             </Grid>
           </Grid>
         )}
@@ -1777,11 +1804,199 @@ export function Step6FormGenerator() {
     }
   };
 
+  // Get AI recommendations for form enhancement
+  const getAIRecommendations = async () => {
+    if (!selectedTemplate) {
+      alert('Please select a form template first.');
+      return;
+    }
+
+    setLoadingAI(true);
+    try {
+      const response = await fetch('/api/ai/enhance-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formTemplate: selectedTemplate,
+          grantContext: {
+            name: grantData.name,
+            description: grantData.description,
+            targetPopulation: grantData.targetPopulation
+          }
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setAiRecommendations(result.recommendations);
+        setShowAIDialog(true);
+      } else {
+        alert(`Error getting AI recommendations: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error getting AI recommendations:', error);
+      alert('Failed to get AI recommendations. Please try again.');
+    } finally {
+      setLoadingAI(false);
+    }
+  };
+
+  // Apply AI recommendations to the form
+  const applyAIRecommendations = () => {
+    if (!selectedTemplate || !aiRecommendations) return;
+
+    const updatedTemplate = { ...selectedTemplate };
+
+    // Apply suggested fields if any
+    if (aiRecommendations.suggestedFields && aiRecommendations.suggestedFields.length > 0) {
+      // Add suggested fields to the first section or create a new section
+      if (updatedTemplate.sections.length === 0) {
+        updatedTemplate.sections.push({
+          id: `section-${Date.now()}`,
+          title: 'Form Fields',
+          description: 'Auto-generated fields from AI recommendations',
+          fields: []
+        });
+      }
+
+      const firstSection = updatedTemplate.sections[0];
+      aiRecommendations.suggestedFields.forEach((suggestedField: any, index: number) => {
+        const newField: FormField = {
+          id: `field-ai-${Date.now()}-${index}`,
+          name: suggestedField.label.toLowerCase().replace(/\s+/g, '_'),
+          label: suggestedField.label,
+          type: suggestedField.type || 'text',
+          required: suggestedField.required || false,
+          placeholder: suggestedField.placeholder || '',
+          helpText: suggestedField.helpText || '',
+          width: 'full',
+          options: suggestedField.options || undefined,
+          validation: suggestedField.validation || undefined
+        };
+        firstSection.fields.push(newField);
+      });
+    }
+
+    // Update the template
+    updateFormTemplate(selectedTemplate.id, updatedTemplate);
+    setShowAIDialog(false);
+    alert('AI recommendations applied successfully!');
+  };
+
+  // Render AI recommendations dialog
+  const renderAIRecommendationsDialog = () => {
+    return (
+      <Dialog
+        open={showAIDialog}
+        onClose={() => setShowAIDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          AI Form Enhancement Recommendations
+        </DialogTitle>
+        <DialogContent dividers>
+          {aiRecommendations && (
+            <Box>
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Overall Form Score: {aiRecommendations.overallScore}/100
+                </Typography>
+                <Typography variant="body2">
+                  Review the recommendations below and click "Apply Recommendations" to automatically add suggested fields to your form.
+                </Typography>
+              </Alert>
+
+              {aiRecommendations.recommendations && aiRecommendations.recommendations.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Recommendations
+                  </Typography>
+                  <List>
+                    {aiRecommendations.recommendations.map((rec: any, index: number) => (
+                      <ListItem key={index} sx={{ display: 'block', mb: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Chip 
+                            label={rec.priority} 
+                            size="small" 
+                            color={rec.priority === 'high' ? 'error' : rec.priority === 'medium' ? 'warning' : 'info'}
+                            sx={{ mr: 1 }}
+                          />
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {rec.category}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          <strong>Issue:</strong> {rec.issue}
+                        </Typography>
+                        <Typography variant="body2" color="text.primary">
+                          <strong>Suggestion:</strong> {rec.suggestion}
+                        </Typography>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
+
+              {aiRecommendations.suggestedFields && aiRecommendations.suggestedFields.length > 0 && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Suggested Fields ({aiRecommendations.suggestedFields.length})
+                  </Typography>
+                  <Alert severity="success" sx={{ mb: 2 }}>
+                    These fields will be added to your form when you click "Apply Recommendations"
+                  </Alert>
+                  <List>
+                    {aiRecommendations.suggestedFields.map((field: any, index: number) => (
+                      <ListItem key={index} sx={{ display: 'block', bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {field.label}
+                          </Typography>
+                          <Chip label={field.type} size="small" variant="outlined" />
+                        </Box>
+                        {field.helpText && (
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                            {field.helpText}
+                          </Typography>
+                        )}
+                        {field.required && (
+                          <Chip label="Required" size="small" color="primary" sx={{ mt: 1 }} />
+                        )}
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowAIDialog(false)}>
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={applyAIRecommendations}
+            disabled={!aiRecommendations?.suggestedFields || aiRecommendations.suggestedFields.length === 0}
+          >
+            Apply Recommendations
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  };
+
   return (
     <Box sx={{ mb: 4 }}>
       {/* Render dialogs */}
       {renderFieldEditDialog()}
       {renderSectionEditDialog()}
+      {renderAIRecommendationsDialog()}
       
       <Box sx={{ mb: 3 }}>
         <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mb: 3 }}>
