@@ -322,7 +322,7 @@ export default function FormsManagement() {
           onClick={() => openModal('create')}
           size="large"
         >
-          New Form
+          New Form Wizard
         </Button>
       </Box>
 
