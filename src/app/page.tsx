@@ -466,6 +466,41 @@ function HomeContentInner() {
                 View CHW Directory
               </Button>
             </Box>
+
+            {/* Screenshot Preview */}
+            <Box sx={{ 
+              mt: 8, 
+              p: 4, 
+              borderRadius: 3,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <Typography variant="h5" sx={{ mb: 3, textAlign: 'center', fontWeight: 600 }}>
+                Explore Our CHW Community
+              </Typography>
+              <Box sx={{ 
+                borderRadius: 2,
+                overflow: 'hidden',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                border: '2px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <Image 
+                  src="/images/chw-profiles-screenshot.png"
+                  alt="Community Health Worker Profiles Directory"
+                  width={1200}
+                  height={675}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block'
+                  }}
+                  priority
+                />
+              </Box>
+              <Typography variant="body2" sx={{ mt: 2, textAlign: 'center', opacity: 0.9 }}>
+                Browse profiles of Community Health Workers across North Carolina
+              </Typography>
+            </Box>
           </Box>
 
           {/* Decorative elements */}
