@@ -472,14 +472,17 @@ export default function EnhancedProfileComponent({
                   />
                 )}
                 renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      key={option}
-                      label={option}
-                      {...getTagProps({ index })}
-                      size="small"
-                    />
-                  ))
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return (
+                      <Chip
+                        key={key}
+                        label={option}
+                        {...tagProps}
+                        size="small"
+                      />
+                    );
+                  })
                 }
               />
             </Grid>
@@ -499,15 +502,18 @@ export default function EnhancedProfileComponent({
                   />
                 )}
                 renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      key={option}
-                      label={option}
-                      {...getTagProps({ index })}
-                      size="small"
-                      icon={<Language />}
-                    />
-                  ))
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return (
+                      <Chip
+                        key={key}
+                        label={option}
+                        {...tagProps}
+                        size="small"
+                        icon={<Language />}
+                      />
+                    );
+                  })
                 }
               />
             </Grid>
@@ -678,14 +684,17 @@ export default function EnhancedProfileComponent({
                   />
                 )}
                 renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      key={option}
-                      label={`${option} County`}
-                      {...getTagProps({ index })}
-                      size="small"
-                    />
-                  ))
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return (
+                      <Chip
+                        key={key}
+                        label={`${option} County`}
+                        {...tagProps}
+                        size="small"
+                      />
+                    );
+                  })
                 }
               />
             </Grid>
