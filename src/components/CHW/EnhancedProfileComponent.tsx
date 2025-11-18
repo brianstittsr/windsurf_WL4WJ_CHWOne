@@ -242,15 +242,122 @@ export default function EnhancedProfileComponent({
               </Typography>
             </Box>
           </Box>
-          {editable && !isEditing && (
-            <Button
-              variant="outlined"
-              startIcon={<Edit />}
-              onClick={() => setIsEditing(true)}
-            >
-              Edit Profile
-            </Button>
-          )}
+          
+          {/* Right side - Certification Countdown + Edit Button */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Certification Countdown Clock */}
+            {(() => {
+              const daysUntilExpiration = calculateDaysUntilExpiration(profile.certification?.certificationExpiration);
+              const expirationDate = profile.certification?.certificationExpiration;
+              
+              if (!expirationDate) {
+                return (
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      p: 2,
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      borderRadius: 2,
+                      minWidth: 200,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-2px)'
+                      }
+                    }}
+                    component="a"
+                    href="https://www.ncchwa.org"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 0.5 }}>
+                      <CardMembership sx={{ fontSize: 20 }} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
+                        Certification
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+                      Set Expiration Date
+                    </Typography>
+                  </Paper>
+                );
+              }
+
+              let backgroundColor = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+              let icon = <CheckCircle sx={{ fontSize: 20 }} />;
+              let statusLabel = 'ACTIVE';
+              
+              if (daysUntilExpiration === null) {
+                return null;
+              } else if (daysUntilExpiration < 0) {
+                backgroundColor = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+                icon = <ErrorIcon sx={{ fontSize: 20 }} />;
+                statusLabel = 'EXPIRED';
+              } else if (daysUntilExpiration <= 30) {
+                backgroundColor = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+                icon = <ErrorIcon sx={{ fontSize: 20 }} />;
+                statusLabel = 'URGENT';
+              } else if (daysUntilExpiration <= 90) {
+                backgroundColor = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
+                icon = <Warning sx={{ fontSize: 20 }} />;
+                statusLabel = 'RENEW SOON';
+              }
+
+              return (
+                <Paper
+                  elevation={2}
+                  sx={{
+                    p: 2,
+                    background: backgroundColor,
+                    color: 'white',
+                    borderRadius: 2,
+                    minWidth: 200,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                  component="a"
+                  href="https://www.ncchwa.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 0.5 }}>
+                    {icon}
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+                      {statusLabel}
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    {daysUntilExpiration < 0 
+                      ? `Expired`
+                      : `${daysUntilExpiration} Days`
+                    }
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: '0.7rem', opacity: 0.9 }}>
+                    {daysUntilExpiration < 0 
+                      ? `${Math.abs(daysUntilExpiration)} days ago`
+                      : 'Until Recertification'
+                    }
+                  </Typography>
+                </Paper>
+              );
+            })()}
+
+            {editable && !isEditing && (
+              <Button
+                variant="outlined"
+                startIcon={<Edit />}
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Profile
+              </Button>
+            )}
+          </Box>
         </Box>
 
         {/* Success/Error Messages */}
