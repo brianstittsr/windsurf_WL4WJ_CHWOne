@@ -50,7 +50,10 @@ import {
   Add,
   Delete,
   Build,
-  ArrowForward
+  ArrowForward,
+  Warning,
+  CheckCircle,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import {
   CHWProfile,
@@ -79,6 +82,16 @@ interface EnhancedProfileComponentProps {
   editable?: boolean;
   onSave?: (profile: CHWProfile) => void;
 }
+
+// Helper function to calculate days until certification expiration
+const calculateDaysUntilExpiration = (expirationDate: string | undefined): number | null => {
+  if (!expirationDate) return null;
+  const expDate = new Date(expirationDate);
+  const today = new Date();
+  const diffTime = expDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
 
 export default function EnhancedProfileComponent({
   editable = true,
@@ -535,6 +548,145 @@ export default function EnhancedProfileComponent({
 
         {/* Tab 3: Certification */}
         <TabPanel value={activeTab} index={2}>
+          {/* Certification Countdown Tracker */}
+          {(() => {
+            const daysUntilExpiration = calculateDaysUntilExpiration(profile.certification?.certificationExpiration);
+            const expirationDate = profile.certification?.certificationExpiration;
+            
+            if (!expirationDate) {
+              return (
+                <Paper 
+                  elevation={3} 
+                  sx={{ 
+                    p: 3, 
+                    mb: 4, 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <CardMembership sx={{ fontSize: 48 }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+                        Set Your Certification Expiration Date
+                      </Typography>
+                      <Typography variant="body1" sx={{ mb: 2 }}>
+                        Stay on top of your CHW certification renewal. Add your expiration date below to track your recertification timeline.
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        component="a"
+                        href="https://www.ncchwa.org"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ 
+                          backgroundColor: 'white',
+                          color: '#667eea',
+                          fontWeight: 600,
+                          '&:hover': {
+                            backgroundColor: '#f8fafc'
+                          }
+                        }}
+                        endIcon={<ArrowForward />}
+                      >
+                        Visit NCCHWA for Certification Info
+                      </Button>
+                    </Box>
+                  </Box>
+                </Paper>
+              );
+            }
+
+            let alertColor: 'error' | 'warning' | 'success' = 'success';
+            let alertIcon = <CheckCircle sx={{ fontSize: 48 }} />;
+            let statusText = '';
+            let backgroundColor = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+
+            if (daysUntilExpiration === null) {
+              return null;
+            } else if (daysUntilExpiration < 0) {
+              alertColor = 'error';
+              alertIcon = <ErrorIcon sx={{ fontSize: 48 }} />;
+              statusText = 'EXPIRED';
+              backgroundColor = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+            } else if (daysUntilExpiration <= 30) {
+              alertColor = 'error';
+              alertIcon = <ErrorIcon sx={{ fontSize: 48 }} />;
+              statusText = 'URGENT';
+              backgroundColor = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+            } else if (daysUntilExpiration <= 90) {
+              alertColor = 'warning';
+              alertIcon = <Warning sx={{ fontSize: 48 }} />;
+              statusText = 'ACTION NEEDED';
+              backgroundColor = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
+            } else {
+              statusText = 'ACTIVE';
+            }
+
+            return (
+              <Paper 
+                elevation={3} 
+                sx={{ 
+                  p: 3, 
+                  mb: 4, 
+                  background: backgroundColor,
+                  color: 'white',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  {alertIcon}
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="overline" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
+                      {statusText}
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                      {daysUntilExpiration < 0 
+                        ? `Expired ${Math.abs(daysUntilExpiration)} days ago`
+                        : `${daysUntilExpiration} Days Until Recertification`
+                      }
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 2, opacity: 0.95 }}>
+                      {daysUntilExpiration < 0
+                        ? 'Your certification has expired. Please recertify immediately to maintain your CHW status.'
+                        : daysUntilExpiration <= 30
+                        ? 'Your certification expires soon! Take action now to avoid a lapse in your CHW certification.'
+                        : daysUntilExpiration <= 90
+                        ? 'Your certification is expiring soon. Start your recertification process to ensure continuity.'
+                        : 'Your certification is active. Mark your calendar to begin recertification 90 days before expiration.'
+                      }
+                    </Typography>
+                    <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
+                      Expiration Date: {new Date(expirationDate).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      component="a"
+                      href="https://www.ncchwa.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ 
+                        backgroundColor: 'white',
+                        color: alertColor === 'error' ? '#f44336' : alertColor === 'warning' ? '#ff9800' : '#4caf50',
+                        fontWeight: 600,
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        }
+                      }}
+                      endIcon={<ArrowForward />}
+                    >
+                      Recertify at NCCHWA
+                    </Button>
+                  </Box>
+                </Box>
+              </Paper>
+            );
+          })()}
+
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
               <TextField
