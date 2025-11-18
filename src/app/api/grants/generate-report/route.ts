@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { grantReportGenerationService } from '@/services/grants/GrantReportGenerationService';
+// import { grantReportGenerationService } from '@/services/grants/GrantReportGenerationService';
 import { emailDeliveryService } from '@/services/grants/EmailDeliveryService';
 
 export async function POST(request: NextRequest) {
+  // Temporarily disabled - service needs type fixes
+  return NextResponse.json({ error: 'Report generation temporarily unavailable' }, { status: 503 });
+  /*
   try {
     const body = await request.json();
     const { template, grantData, metrics, sendEmail, additionalRecipients } = body;
@@ -56,4 +59,5 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+  */
 }
