@@ -10,10 +10,12 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import MainLayout from '@/components/Layout/MainLayout';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export default function ForAssociationsPage() {
   return (
-    <MainLayout>
+    <AuthProvider>
+      <MainLayout>
       <Box
         sx={{
           bgcolor: 'primary.main',
@@ -367,5 +369,6 @@ export default function ForAssociationsPage() {
         </Box>
       </Container>
     </MainLayout>
+    </AuthProvider>
   );
 }

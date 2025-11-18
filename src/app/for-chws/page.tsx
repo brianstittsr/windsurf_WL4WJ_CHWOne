@@ -9,10 +9,12 @@ import PeopleIcon from '@mui/icons-material/People';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import Image from 'next/image';
 import MainLayout from '@/components/Layout/MainLayout';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export default function ForCHWsPage() {
   return (
-    <MainLayout>
+    <AuthProvider>
+      <MainLayout>
       <Box
         sx={{
           bgcolor: 'primary.main',
@@ -349,5 +351,6 @@ export default function ForCHWsPage() {
         </Box>
       </Container>
     </MainLayout>
+    </AuthProvider>
   );
 }
