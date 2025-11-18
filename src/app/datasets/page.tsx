@@ -26,9 +26,11 @@ import DatasetDetail from '@/components/Datasets/DatasetDetail';
 import { Dataset, TransformedDataset } from '@/types/bmad.types';
 import { dataProcessingService } from '@/services/bmad/DataProcessingService';
 import { v4 as uuidv4 } from 'uuid';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
 
-// Mock datasets for development
-const mockDatasets: Dataset[] = [
+// Mock datasets for development (kept for reference)
+const mockDatasets_UNUSED: Dataset[] = [
   {
     id: 'dataset-1',
     name: 'CHW Performance Metrics',
@@ -121,10 +123,39 @@ function DatasetsContent() {
   // Load datasets
   useEffect(() => {
     const loadDatasets = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        // In a real implementation, we would fetch from a database
-        // For now, we'll use mock data
-        setDatasets(mockDatasets);
+        setLoading(true);
+        const datasetsRef = collection(db, 'datasets');
+        const q = query(datasetsRef, where('userId', '==', currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        
+        const fetchedDatasets: Dataset[] = [];
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          fetchedDatasets.push({
+            id: docSnap.id,
+            name: data.name || 'Untitled Dataset',
+            description: data.description || '',
+            format: data.format || 'json',
+            size: data.size || 0,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            columns: data.fields || data.columns || [],
+            rowCount: data.recordCount || data.rowCount || 0,
+            userId: data.userId || currentUser.uid,
+            previewData: data.previewData || [],
+            metadata: data.metadata || {},
+            formId: data.formId // Link to the form that created this dataset
+          } as Dataset);
+        });
+        
+        setDatasets(fetchedDatasets);
+        console.log('Fetched datasets:', fetchedDatasets.length);
       } catch (err) {
         console.error('Error loading datasets:', err);
         setError(`Failed to load datasets: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -134,7 +165,7 @@ function DatasetsContent() {
     };
     
     loadDatasets();
-  }, []);
+  }, [currentUser]);
   
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -153,13 +184,27 @@ function DatasetsContent() {
     setSelectedDataset(dataset);
   };
   
-  const handleDeleteDataset = (dataset: Dataset) => {
-    // In a real implementation, we would delete from a database
-    setDatasets(prev => prev.filter(d => d.id !== dataset.id));
-    setNotification({
-      message: `Dataset "${dataset.name}" deleted`,
-      severity: 'info'
-    });
+  const handleDeleteDataset = async (dataset: Dataset) => {
+    if (!confirm(`Are you sure you want to delete dataset "${dataset.name}"?`)) {
+      return;
+    }
+
+    try {
+      const datasetRef = doc(db, 'datasets', dataset.id);
+      await deleteDoc(datasetRef);
+      
+      setDatasets(prev => prev.filter(d => d.id !== dataset.id));
+      setNotification({
+        message: `Dataset "${dataset.name}" deleted successfully`,
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error deleting dataset:', err);
+      setNotification({
+        message: `Failed to delete dataset: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        severity: 'error'
+      });
+    }
   };
   
   const handleExportDataset = (dataset: Dataset) => {
