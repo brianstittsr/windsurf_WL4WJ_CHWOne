@@ -75,7 +75,7 @@ function TemplateCard({ template, onUse, onPreview, copying }: {
         <CardMedia
           component="img"
           height="140"
-          image={template.metadata.thumbnailUrl || '/images/templates/default-template.png'}
+          image={template.metadata.thumbnailUrl || '/images/templates/default-template.svg'}
           alt={template.name}
         />
         <CardContent sx={{ flexGrow: 1 }}>
@@ -232,9 +232,9 @@ function TemplatesContent() {
     setCopying(true);
     try {
       // Create a copy of the template for the user
+      const { id, ...templateWithoutId } = template; // Remove id from template
       const newForm = {
-        ...template,
-        id: undefined, // Remove the template ID so Firestore generates a new one
+        ...templateWithoutId,
         userId: currentUser.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),

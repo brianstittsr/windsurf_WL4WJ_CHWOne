@@ -1,0 +1,13 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#607D8B"/>
+  <rect x="20" y="20" width="360" height="260" fill="white" rx="8"/>
+  <rect x="40" y="40" width="320" height="40" fill="#607D8B" rx="4"/>
+  <text x="200" y="68" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" font-weight="bold">Form Template</text>
+  <rect x="40" y="100" width="320" height="30" fill="#ECEFF1" rx="4"/>
+  <rect x="40" y="145" width="150" height="30" fill="#ECEFF1" rx="4"/>
+  <rect x="210" y="145" width="150" height="30" fill="#ECEFF1" rx="4"/>
+  <rect x="40" y="190" width="150" height="30" fill="#ECEFF1" rx="4"/>
+  <rect x="210" y="190" width="150" height="30" fill="#ECEFF1" rx="4"/>
+  <circle cx="200" cy="245" r="15" fill="#607D8B"/>
+  <path d="M 195 245 L 198 248 L 205 241" stroke="white" stroke-width="2" fill="none"/>
+</svg>
