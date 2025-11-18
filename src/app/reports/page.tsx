@@ -37,9 +37,11 @@ import ReportPreview from '@/components/Reports/ReportPreview';
 import { Report, ReportConfig } from '@/types/bmad.types';
 import { reportGenerationService } from '@/services/bmad/ReportGenerationService';
 import { v4 as uuidv4 } from 'uuid';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
 
-// Mock reports for development
-const mockReports: Report[] = [
+// Mock reports for development (kept for reference)
+const mockReports_UNUSED: Report[] = [
   {
     id: 'report-1',
     config: {
@@ -198,10 +200,43 @@ function ReportsContent() {
   // Load reports
   useEffect(() => {
     const loadReports = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        // In a real implementation, we would fetch from a database
-        // For now, we'll use mock data
-        setReports(mockReports);
+        setLoading(true);
+        const reportsRef = collection(db, 'reports');
+        const q = query(reportsRef, where('userId', '==', currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        
+        const fetchedReports: Report[] = [];
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          fetchedReports.push({
+            id: docSnap.id,
+            config: data.config || {
+              id: docSnap.id,
+              title: data.title || 'Untitled Report',
+              description: data.description || '',
+              datasets: data.datasets || [],
+              sections: data.sections || [],
+              visualizations: data.visualizations || [],
+              status: data.status || 'draft',
+              createdAt: data.createdAt?.toDate() || new Date(),
+              updatedAt: data.updatedAt?.toDate() || new Date()
+            },
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            userId: data.userId || currentUser.uid,
+            status: data.status || 'draft',
+            pdfUrl: data.pdfUrl
+          } as Report);
+        });
+        
+        setReports(fetchedReports);
+        console.log('Fetched reports:', fetchedReports.length);
       } catch (err) {
         console.error('Error loading reports:', err);
         setError(`Failed to load reports: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -211,7 +246,7 @@ function ReportsContent() {
     };
     
     loadReports();
-  }, []);
+  }, [currentUser]);
   
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -222,10 +257,35 @@ function ReportsContent() {
   };
   
   const handleGenerateReport = async (config: ReportConfig) => {
+    if (!currentUser) {
+      setNotification({
+        message: 'Please sign in to generate reports',
+        severity: 'error'
+      });
+      return;
+    }
+
     try {
-      // Create a new report
+      // Create report data for Firestore
+      const reportData = {
+        config: {
+          ...config,
+          status: 'generating',
+          updatedAt: serverTimestamp()
+        },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        userId: currentUser.uid,
+        status: 'generating'
+      };
+      
+      // Save to Firestore
+      const reportsRef = collection(db, 'reports');
+      const docRef = await addDoc(reportsRef, reportData);
+      
+      // Create local report object
       const newReport: Report = {
-        id: uuidv4(),
+        id: docRef.id,
         config: {
           ...config,
           status: 'generating',
@@ -233,7 +293,7 @@ function ReportsContent() {
         },
         createdAt: new Date(),
         updatedAt: new Date(),
-        userId: currentUser?.uid || 'unknown',
+        userId: currentUser.uid,
         status: 'generating'
       };
       
@@ -251,27 +311,38 @@ function ReportsContent() {
       
       // In a real implementation, we would call the report generation service
       // For now, we'll simulate a delay and then update the report status
-      setTimeout(() => {
-        setReports(prev => prev.map(r => 
-          r.id === newReport.id 
-            ? {
-                ...r,
-                status: 'complete',
-                config: {
-                  ...r.config,
+      setTimeout(async () => {
+        try {
+          const reportRef = doc(db, 'reports', docRef.id);
+          await addDoc(collection(reportRef, 'updates'), {
+            status: 'complete',
+            pdfUrl: `https://example.com/reports/${docRef.id}.pdf`,
+            updatedAt: serverTimestamp()
+          });
+
+          setReports(prev => prev.map(r => 
+            r.id === docRef.id 
+              ? {
+                  ...r,
                   status: 'complete',
-                  updatedAt: new Date()
-                },
-                updatedAt: new Date(),
-                pdfUrl: `https://example.com/reports/${r.id}.pdf`
-              }
-            : r
-        ));
-        
-        setNotification({
-          message: 'Report generated successfully',
-          severity: 'success'
-        });
+                  config: {
+                    ...r.config,
+                    status: 'complete',
+                    updatedAt: new Date()
+                  },
+                  updatedAt: new Date(),
+                  pdfUrl: `https://example.com/reports/${r.id}.pdf`
+                }
+              : r
+          ));
+          
+          setNotification({
+            message: 'Report generated successfully',
+            severity: 'success'
+          });
+        } catch (updateErr) {
+          console.error('Error updating report status:', updateErr);
+        }
       }, 3000);
     } catch (err) {
       console.error('Error generating report:', err);
@@ -286,13 +357,27 @@ function ReportsContent() {
     setSelectedReport(report);
   };
   
-  const handleDeleteReport = (report: Report) => {
-    // In a real implementation, we would delete from a database
-    setReports(prev => prev.filter(r => r.id !== report.id));
-    setNotification({
-      message: `Report "${report.config.title}" deleted`,
-      severity: 'info'
-    });
+  const handleDeleteReport = async (report: Report) => {
+    if (!confirm(`Are you sure you want to delete report "${report.config.title}"?`)) {
+      return;
+    }
+
+    try {
+      const reportRef = doc(db, 'reports', report.id);
+      await deleteDoc(reportRef);
+      
+      setReports(prev => prev.filter(r => r.id !== report.id));
+      setNotification({
+        message: `Report "${report.config.title}" deleted successfully`,
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error deleting report:', err);
+      setNotification({
+        message: `Failed to delete report: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        severity: 'error'
+      });
+    }
   };
   
   const handleEditReport = (report: Report) => {
