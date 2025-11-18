@@ -9,16 +9,25 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from '@/styles/LogoGlow.module.css';
 import { CHWWizard } from '@/components/CHW/CHWWizard';
+import { NonprofitWizard } from '@/components/Nonprofit/NonprofitWizard';
 
 function HomeContentInner() {
   const { currentUser } = useAuth();
-  const [showWizard, setShowWizard] = useState(false);
+  const [showCHWWizard, setShowCHWWizard] = useState(false);
+  const [showNonprofitWizard, setShowNonprofitWizard] = useState(false);
 
-  const handleWizardComplete = (chwId: string) => {
+  const handleCHWWizardComplete = (chwId: string) => {
     console.log('New CHW registered:', chwId);
-    setShowWizard(false);
+    setShowCHWWizard(false);
     // Show success message
     alert('Thank you for registering! A welcome email has been sent to your inbox. You can now log in with your credentials.');
+  };
+
+  const handleNonprofitWizardComplete = (nonprofitId: string) => {
+    console.log('New nonprofit registered:', nonprofitId);
+    setShowNonprofitWizard(false);
+    // Show success message
+    alert('Thank you for registering your organization! Your submission will be reviewed within 1-2 business days. You will receive an email notification once approved.');
   };
   
   return (
@@ -424,7 +433,7 @@ function HomeContentInner() {
               <Button 
                 variant="contained" 
                 size="large"
-                onClick={() => setShowWizard(true)}
+                onClick={() => setShowCHWWizard(true)}
                 sx={{ 
                   py: 2, 
                   px: 6,
@@ -560,13 +569,13 @@ function HomeContentInner() {
 
       {/* CHW Registration Wizard Dialog */}
       <Dialog
-        open={showWizard}
+        open={showCHWWizard}
         onClose={(event, reason) => {
           // Only allow closing via the X button, not by clicking backdrop or pressing escape
           if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
             return;
           }
-          setShowWizard(false);
+          setShowCHWWizard(false);
         }}
         maxWidth="lg"
         fullWidth
@@ -587,7 +596,7 @@ function HomeContentInner() {
             pb: 2,
           }}>
             <IconButton
-              onClick={() => setShowWizard(false)}
+              onClick={() => setShowCHWWizard(false)}
               sx={{
                 position: 'absolute',
                 top: 16,
@@ -602,7 +611,193 @@ function HomeContentInner() {
               <CloseIcon fontSize="small" />
             </IconButton>
 
-            <CHWWizard onComplete={handleWizardComplete} />
+            <CHWWizard onComplete={handleCHWWizardComplete} />
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* Nonprofit Registration Section */}
+      <Container sx={{ py: 12 }}>
+        <Box sx={{ 
+          p: 6,
+          borderRadius: 3,
+          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
+              Are You a Nonprofit Organization?
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 6, textAlign: 'center', opacity: 0.95, maxWidth: 800, mx: 'auto' }}>
+              Register your organization to connect with CHWs, share resources, and expand your community impact
+            </Typography>
+
+            {/* Benefits Grid */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+              gap: 3,
+              mb: 6
+            }}>
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🔗 Resource Sharing
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  List your services and resources in our directory for CHWs to refer clients directly to your organization
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🤝 CHW Partnerships
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Connect with qualified Community Health Workers to expand your reach and enhance service delivery
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📊 Referral Management
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Receive and manage client referrals from CHWs through our streamlined referral system
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📈 Impact Tracking
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Track referrals, measure outcomes, and demonstrate your organization's community impact
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  🌐 Increased Visibility
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Increase awareness of your services among CHWs and community members across North Carolina
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  💡 Collaboration Opportunities
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Discover partnership opportunities with other organizations and participate in community initiatives
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* CTA Button */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Button 
+                variant="contained" 
+                size="large"
+                onClick={() => setShowNonprofitWizard(true)}
+                sx={{ 
+                  py: 2, 
+                  px: 6,
+                  backgroundColor: 'white',
+                  color: '#f5576c',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
+                  }
+                }}
+                endIcon={<ArrowForwardIcon />}
+              >
+                Register Your Organization
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+
+      {/* Nonprofit Registration Wizard Dialog */}
+      <Dialog
+        open={showNonprofitWizard}
+        onClose={(event, reason) => {
+          // Only allow closing via the X button, not by clicking backdrop or pressing escape
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
+            return;
+          }
+          setShowNonprofitWizard(false);
+        }}
+        maxWidth="lg"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '12px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            backgroundColor: '#f8fafc'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0, overflow: 'auto' }}>
+          <Box sx={{
+            position: 'relative',
+            pt: 2,
+            pb: 2,
+          }}>
+            <IconButton
+              onClick={() => setShowNonprofitWizard(false)}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                zIndex: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                }
+              }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+
+            <NonprofitWizard onComplete={handleNonprofitWizardComplete} />
           </Box>
         </DialogContent>
       </Dialog>
