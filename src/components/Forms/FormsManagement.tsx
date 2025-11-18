@@ -53,6 +53,7 @@ import QRCodeGenerator, { FormQRCode } from '@/components/QRCode/QRCodeGenerator
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
 import { useAuth } from '@/contexts/AuthContext';
+import { FIELD_TYPES, FIELD_TYPE_CATEGORIES, getAllCategories, getFieldTypesByCategory } from '@/constants/formFieldTypes';
 
 interface FormField {
   id: string;
@@ -888,14 +889,16 @@ export default function FormsManagement() {
                                 label="Field Type"
                                 onChange={(e) => updateField(field.id, { type: e.target.value as any })}
                               >
-                                <MenuItem value="text">Text</MenuItem>
-                                <MenuItem value="number">Number</MenuItem>
-                                <MenuItem value="email">Email</MenuItem>
-                                <MenuItem value="date">Date</MenuItem>
-                                <MenuItem value="select">Select</MenuItem>
-                                <MenuItem value="textarea">Textarea</MenuItem>
-                                <MenuItem value="checkbox">Checkbox</MenuItem>
-                                <MenuItem value="radio">Radio</MenuItem>
+                                {getAllCategories().map((category) => [
+                                  <MenuItem key={`header-${category}`} disabled sx={{ fontWeight: 'bold', fontSize: '0.875rem', color: 'primary.main' }}>
+                                    {category}
+                                  </MenuItem>,
+                                  ...getFieldTypesByCategory(category).map((fieldType) => (
+                                    <MenuItem key={fieldType.value} value={fieldType.value} sx={{ pl: 3 }}>
+                                      {fieldType.label}
+                                    </MenuItem>
+                                  ))
+                                ])}
                               </Select>
                             </FormControl>
                           </Grid>
