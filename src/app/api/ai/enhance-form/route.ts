@@ -80,7 +80,6 @@ Description: ${formTemplate.description || 'No description'}
 ${grantContext ? `Grant Context:
 Grant Name: ${grantContext.name || 'N/A'}
 Grant Description: ${grantContext.description || 'N/A'}
-Target Population: ${grantContext.targetPopulation || 'N/A'}
 ` : ''}
 
 Current Form Structure:

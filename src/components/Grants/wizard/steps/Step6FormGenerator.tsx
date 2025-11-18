@@ -2088,8 +2088,7 @@ export function Step6FormGenerator() {
           formTemplate: selectedTemplate,
           grantContext: {
             name: grantData.name,
-            description: grantData.description,
-            targetPopulation: grantData.targetPopulation
+            description: grantData.description
           }
         }),
       });
