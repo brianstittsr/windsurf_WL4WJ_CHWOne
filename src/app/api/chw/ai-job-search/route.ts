@@ -58,7 +58,7 @@ Format the response as a JSON array of job objects.`;
     const responseText = completion.choices[0]?.message?.content || '[]';
     
     // Parse the AI response
-    let jobs = [];
+    let jobs: any[] = [];
     try {
       jobs = JSON.parse(responseText);
     } catch (parseError) {
