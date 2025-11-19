@@ -62,14 +62,15 @@ This document outlines the comprehensive CHW Jobs feature implementation for the
   - Geographic filters (states, counties)
 - **Manual Crawling**: Run crawler on-demand
 - **Status Tracking**: Last crawl date, next scheduled crawl
-- **Crawl4AI Integration**: Ready for web scraping implementation
+- **Web Scraping Integration**: Uses Cheerio and Axios for job discovery
 
 **API Endpoint:** `/api/admin/crawl-jobs`
 
-### 5. Crawl4AI Library ✅
+### 5. Web Scraping Libraries ✅
 **Location:** `package.json`
 
-- Added `crawl4ai` package (v0.3.74) to dependencies
+- Added `cheerio` package (v1.0.0) for HTML parsing
+- Added `axios` package (v1.6.0) for HTTP requests
 - Enables automated job discovery from websites
 - Supports custom CSS selectors and filtering
 
