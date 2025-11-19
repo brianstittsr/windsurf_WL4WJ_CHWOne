@@ -1,63 +1,151 @@
-# CHWOne Platform Recreation Prompt
+# Leadership Connections Platform Recreation Prompt
 
 ## Overview
-Create a comprehensive Community Health Worker (CHW) management platform with the following core modules. This is a Next.js 14+ application using TypeScript, Material-UI, and Firebase (Firestore) for data persistence.
+Create a comprehensive Leadership Connections networking platform for past leadership members and program graduates. This platform facilitates professional networking, mentorship, and community engagement among North Carolina's leadership alumni. This is a Next.js 14+ application using TypeScript, Material-UI, and Firebase (Firestore) for data persistence.
+
+**Platform Purpose:**
+- Connect past leadership program members and graduates
+- Enable professional networking and mentorship opportunities
+- Maintain alumni directory with searchable profiles
+- Facilitate knowledge sharing and collaboration
+- Track leadership program participation and achievements
+- Support ongoing community engagement
 
 ---
 
-## 1. My Profile Form
+## 1. Member Profile Form
 
 ### Requirements
-Create a user profile management system for Community Health Workers with the following features:
+Create a comprehensive profile management system for Leadership Connections members (past participants and graduates) to facilitate networking and professional connections.
 
 **Profile Fields:**
-- Personal Information:
+
+- **Personal Information:**
   - First Name, Middle Name, Last Name
   - Preferred Name
-  - Date of Birth
-  - Email Address (validated)
-  - Phone Number
-  - Mailing Address (textarea)
-  - Emergency Contact Name
-  - Emergency Contact Phone
+  - Profile Photo (upload)
+  - Email Address (validated, primary contact)
+  - Phone Number (optional, with privacy settings)
+  - LinkedIn Profile URL
+  - Personal Website/Portfolio URL
+  - City, State, ZIP Code
+  - Bio/About Me (rich text, 500 char max)
 
-- Employment Information:
-  - Hire Date
-  - Position/Title
-  - Department
-  - Supervisor Name
-  - Employment Status (Full-time, Part-time, Contract)
+- **Leadership Program Information:**
+  - Program(s) Attended (multi-select):
+    - Leadership North Carolina
+    - Leadership Asheville
+    - Leadership Greensboro
+    - Leadership Charlotte
+    - Other NC Leadership Programs
+  - Graduation Year(s) (array for multiple programs)
+  - Class/Cohort Number
+  - Program Location/Chapter
+  - Current Membership Status (Active, Alumni, Lifetime)
+  - Participation Type (Graduate, Participant, Mentor, Faculty)
 
-- Professional Information:
-  - Certifications (array of certification objects)
-  - Languages Spoken (multi-select)
-  - Areas of Expertise (tags/chips)
-  - Service Areas (geographic regions)
+- **Professional Information:**
+  - Current Job Title
+  - Current Organization/Company
+  - Industry/Sector (dropdown):
+    - Healthcare
+    - Education
+    - Government/Public Service
+    - Nonprofit
+    - Business/Corporate
+    - Technology
+    - Finance
+    - Legal
+    - Other
+  - Years of Experience
+  - Previous Organizations (array)
+  - Professional Certifications
+  - Board Memberships (current and past)
+  - Awards and Recognition
+
+- **Networking & Expertise:**
+  - Areas of Expertise (tags/chips):
+    - Leadership Development
+    - Community Engagement
+    - Strategic Planning
+    - Fundraising
+    - Marketing/Communications
+    - Human Resources
+    - Finance/Accounting
+    - Technology/Innovation
+    - Diversity & Inclusion
+    - Nonprofit Management
+    - Public Policy
+    - Education
+    - Healthcare
+    - Economic Development
+  - Skills (multi-select tags)
+  - Languages Spoken
+  - Willing to Mentor (Yes/No)
+  - Seeking Mentorship (Yes/No)
+  - Open to Networking (Yes/No)
+  - Available for Speaking Engagements (Yes/No)
+  - Volunteer Interests
+
+- **Community Engagement:**
+  - Current Community Involvement
+  - Volunteer Activities
+  - Causes Passionate About (tags)
+  - Geographic Areas of Interest (NC regions)
+  - Preferred Connection Methods (Email, Phone, LinkedIn, In-Person)
+
+- **Privacy Settings:**
+  - Profile Visibility (Public, Members Only, Private)
+  - Show Email (Yes/No)
+  - Show Phone (Yes/No)
+  - Show Current Employer (Yes/No)
+  - Allow Direct Messages (Yes/No)
+  - Include in Directory Search (Yes/No)
 
 **Features:**
-- Editable mode toggle
+- Editable mode toggle (view/edit)
 - Real-time validation
-- Auto-save functionality
-- Profile photo upload
+- Auto-save functionality (draft mode)
+- Profile photo upload with cropping
+- Privacy controls for each field
+- Public profile preview
+- Profile completeness indicator (progress bar)
+- Social media integration (LinkedIn import)
+- Export profile as PDF/vCard
+- Profile sharing via unique URL
 - Role-based field visibility
 - Firestore integration for data persistence
 - Loading states and error handling
 - Success/error notifications
+- Profile verification badge (for confirmed alumni)
 
 **Technical Stack:**
-- Next.js App Router (`/profile`)
-- Material-UI components (TextField, Select, DatePicker, etc.)
+- Next.js App Router (`/profile`, `/members/[id]`)
+- Material-UI components (TextField, Select, Autocomplete, etc.)
 - Firebase Firestore for data storage
+- Firebase Storage for profile photos
 - TypeScript interfaces for type safety
 - Form validation with error messages
+- Rich text editor for bio (TipTap or Quill)
+- Image cropping library (react-easy-crop)
 - Responsive design (mobile-first)
+- SEO optimization for public profiles
 
 ---
 
 ## 2. Forms Management
 
 ### Requirements
-Create a comprehensive form builder and management system with CRUD operations.
+Create a comprehensive form builder and management system for member engagement, event registration, surveys, and data collection.
+
+**Use Cases:**
+- Event registration (networking events, conferences, workshops)
+- Member surveys (satisfaction, needs assessment, feedback)
+- Mentorship program applications
+- Volunteer opportunity sign-ups
+- Board nomination forms
+- Program evaluation forms
+- Alumni updates and check-ins
 
 **Core Features:**
 
@@ -65,12 +153,13 @@ Create a comprehensive form builder and management system with CRUD operations.
 - Table view with columns:
   - Title
   - Description
-  - Category (Attendance, Onboarding, Assessment, Survey, Other)
+  - Category (Event Registration, Survey, Application, Update, Other)
   - Tags (chips)
-  - Organization (Region5, WL4WJ, General)
+  - Program/Chapter (Leadership NC, Asheville, Charlotte, Greensboro, Statewide)
   - QR Code (enabled/disabled badge)
   - Status (Draft, Published, Archived)
   - Created Date
+  - Response Count
   - Actions (View, Edit, Data, Delete)
 
 - Card/Grid view option
@@ -142,9 +231,11 @@ Create an AI-powered form generation wizard using natural language prompts.
   - Field options (for select/radio)
 
 **Example Prompts:**
-- "Create a patient intake form with name, date of birth, contact info, medical history, and current medications"
-- "Build a training attendance sheet with participant name, date, session title, and signature"
-- "Generate a community health assessment with demographics, health concerns, and service needs"
+- "Create an event registration form for our annual Leadership Summit with attendee name, organization, dietary restrictions, and session preferences"
+- "Build a mentorship program application with mentor/mentee info, areas of expertise, goals, and availability"
+- "Generate a member satisfaction survey with program feedback, networking opportunities, and suggestions for improvement"
+- "Create a board nomination form with nominee information, qualifications, leadership experience, and references"
+- "Build a volunteer opportunity sign-up with event details, time slots, skills needed, and contact preferences"
 
 **Generated Output:**
 - Form schema with all fields
@@ -170,7 +261,94 @@ Create an AI-powered form generation wizard using natural language prompts.
 
 ---
 
-## 4. Datasets
+## 4. Member Directory & Networking
+
+### Requirements
+Create a searchable member directory for alumni to find and connect with fellow leadership program graduates.
+
+**Directory Features:**
+
+**Search & Filter:**
+- Text search (name, organization, expertise)
+- Advanced filters:
+  - Program attended (Leadership NC, Asheville, etc.)
+  - Graduation year range
+  - Industry/sector
+  - Geographic location (NC regions)
+  - Areas of expertise
+  - Willing to mentor
+  - Available for speaking
+  - Open to networking
+- Save search criteria
+- Recent searches
+
+**Member Cards/List View:**
+- Profile photo
+- Name and preferred name
+- Current title and organization
+- Program(s) and graduation year(s)
+- Location (city, state)
+- Top 3 areas of expertise
+- Badges (Mentor, Speaker, Board Member)
+- Verification badge (confirmed alumni)
+- Connect button
+- View profile button
+
+**Member Profile View (`/members/[id]`):**
+- Full profile information (respecting privacy settings)
+- Professional background
+- Leadership programs attended
+- Areas of expertise and skills
+- Board memberships and awards
+- Community involvement
+- Contact information (if allowed)
+- Connect/Message buttons
+- Similar members suggestions
+- Mutual connections display
+
+**Networking Features:**
+
+**Connection Requests:**
+- Send connection request with optional message
+- Accept/decline requests
+- View pending requests
+- My connections list
+- Connection suggestions based on:
+  - Same program/cohort
+  - Similar expertise
+  - Same industry
+  - Geographic proximity
+  - Mutual connections
+
+**Messaging System:**
+- Direct messages between connected members
+- Message threads
+- Unread message notifications
+- Message search
+- Attachment support
+- Privacy controls
+
+**Mentorship Matching:**
+- Browse available mentors
+- Filter by expertise area
+- Request mentorship
+- Mentor dashboard (for mentors)
+- Mentee dashboard (for mentees)
+- Track mentorship relationships
+- Feedback and ratings
+
+**Technical Implementation:**
+- Firestore collections: `memberProfiles`, `connections`, `messages`, `mentorships`
+- Real-time updates for messages
+- Algolia or Firestore for search
+- Privacy-aware queries
+- Profile view tracking (analytics)
+- Connection recommendation algorithm
+- Notification system
+
+---
+
+## 5. Datasets
 
 ### Requirements
 Create a dataset management system for viewing and analyzing form responses.
@@ -240,16 +418,17 @@ Create a dataset management system for viewing and analyzing form responses.
 
 ---
 
-## 5. Form Templates
+## 6. Form Templates
 
 ### Requirements
-Create a template library with pre-built forms that users can copy and customize.
+Create a template library with pre-built forms for common Leadership Connections activities that users can copy and customize.
 
 **Template Categories:**
-- Attendance (Basic Attendance, Training Attendance)
-- Onboarding (CHW Onboarding, Client Onboarding)
-- Assessment (Community Health Assessment)
-- Survey (Satisfaction Survey, Needs Assessment)
+- Event Registration (Networking Events, Conferences, Workshops)
+- Surveys (Member Satisfaction, Program Evaluation, Needs Assessment)
+- Applications (Mentorship, Board Nominations, Volunteer Opportunities)
+- Member Updates (Alumni Check-ins, Profile Updates, Contact Information)
+- Program Forms (Leadership Program Applications, Graduation Information)
 - Other (Custom templates)
 
 **Template Structure:**
@@ -320,20 +499,59 @@ Create a template library with pre-built forms that users can copy and customize
 - Preserve validation rules
 
 **Built-in Templates:**
-1. **Basic Attendance Form**
-   - Name, Date, Time In, Time Out, Signature
 
-2. **Training Attendance Sheet**
-   - Participant Name, Organization, Session Title, Date, Signature, CEU Tracking
+1. **Leadership Summit Registration**
+   - Attendee Name, Organization, Title
+   - Program/Cohort, Graduation Year
+   - Dietary Restrictions, Accessibility Needs
+   - Session Preferences, Networking Interests
+   - Emergency Contact
 
-3. **CHW Onboarding Checklist**
-   - Personal Info, Employment Info, Certifications, Background Check, Training Completion
+2. **Member Satisfaction Survey**
+   - Program Attended, Graduation Year
+   - Satisfaction Ratings (networking, events, resources)
+   - Most Valuable Benefits
+   - Suggestions for Improvement
+   - Interest in Future Programs
 
-4. **Client Onboarding**
-   - Client Demographics, Contact Info, Service Needs, Consent Forms
+3. **Mentorship Program Application**
+   - Mentor/Mentee Selection
+   - Professional Background
+   - Areas of Expertise/Interest
+   - Goals and Expectations
+   - Time Commitment, Availability
+   - Preferred Communication Methods
 
-5. **Community Health Assessment**
-   - Demographics, Health Status, Service Needs, Barriers to Care
+4. **Board Nomination Form**
+   - Nominee Information
+   - Current Position and Organization
+   - Leadership Experience
+   - Board Experience
+   - Areas of Expertise
+   - References
+   - Statement of Interest
+
+5. **Alumni Update Form**
+   - Contact Information Updates
+   - Current Employment
+   - Recent Achievements/Awards
+   - Community Involvement
+   - Networking Interests
+   - Willingness to Mentor/Speak
+
+6. **Volunteer Opportunity Sign-Up**
+   - Event/Opportunity Details
+   - Time Slots Selection
+   - Skills/Expertise to Contribute
+   - Availability
+   - Contact Preferences
+
+7. **Networking Event RSVP**
+   - Attendee Information
+   - Plus-One Guest
+   - Dietary Restrictions
+   - Topics of Interest
+   - Who You'd Like to Meet
 
 **Technical Implementation:**
 - Templates stored as JSON files in `/src/data/formTemplates/`
@@ -344,61 +562,89 @@ Create a template library with pre-built forms that users can copy and customize
 
 ---
 
-## 6. Reports
+## 7. Reports & Analytics
 
 ### Requirements
-Create a reporting and analytics dashboard for form submissions and CHW activities.
+Create a reporting and analytics dashboard for member engagement, event participation, and platform usage.
 
 **Report Types:**
 
-**1. Form Submission Reports:**
+**1. Member Engagement Reports:**
+- Total active members
+- New member registrations over time
+- Profile completion rates
+- Member demographics (program, graduation year, industry)
+- Geographic distribution (NC regions)
+- Engagement metrics (logins, profile views, connections made)
+
+**2. Event & Form Submission Reports:**
 - Total submissions by form
-- Submissions over time (line chart)
-- Submissions by organization
+- Event registration trends
+- RSVP vs. actual attendance
+- Submissions by program/chapter
 - Response rate tracking
 - Completion time analytics
+- Popular events and programs
 
-**2. CHW Activity Reports:**
-- Active CHWs count
-- Forms created per CHW
-- Submissions collected per CHW
-- Geographic coverage
-- Service delivery metrics
+**3. Networking & Mentorship Analytics:**
+- Mentorship program participation
+- Mentor/mentee matches
+- Connection requests and acceptances
+- Profile views and interactions
+- Speaking engagement requests
+- Volunteer sign-ups
 
-**3. Dataset Analytics:**
-- Record count trends
-- Data quality metrics
-- Missing field analysis
-- Response distribution
-- Field value frequency
+**4. Program Alumni Analytics:**
+- Alumni by program and year
+- Industry distribution
+- Career progression tracking
+- Board membership participation
+- Community involvement metrics
+- Geographic reach
+
+**5. Platform Usage Reports:**
+- Active users (daily, weekly, monthly)
+- Most viewed profiles
+- Search queries and trends
+- Feature usage (directory, messaging, events)
+- Mobile vs. desktop usage
 
 **Dashboard Components:**
 
 **Summary Cards:**
-- Total Forms
-- Total Submissions
-- Active CHWs
-- Datasets Created
+- Total Members
+- Active Members (last 30 days)
+- Upcoming Events
+- Total Connections Made
+- Mentorship Matches
+- Profile Completion Rate
 
 **Charts:**
-- Submissions over time (line/area chart)
-- Forms by category (pie/donut chart)
-- Submissions by organization (bar chart)
-- Response rate by form (horizontal bar)
-- Geographic distribution (map or bar chart)
+- Member growth over time (line/area chart)
+- Members by program (pie/donut chart)
+- Members by industry (bar chart)
+- Geographic distribution (NC map with heat zones)
+- Event attendance trends (line chart)
+- Engagement metrics (multi-line chart)
+- Profile completeness distribution (histogram)
 
 **Data Tables:**
-- Top performing forms
-- Recent submissions
-- CHW leaderboard
-- Forms needing attention (low response rate)
+- Most active members
+- Recent member registrations
+- Upcoming events with RSVP counts
+- Popular networking connections
+- Top mentors (by mentee count)
+- Most viewed profiles
+- Recent form submissions
 
 **Filters:**
 - Date range picker
-- Organization filter
-- Form category filter
-- CHW filter
-- Status filter
+- Program/Chapter filter (Leadership NC, Asheville, etc.)
+- Graduation year filter
+- Industry filter
+- Geographic region filter
+- Membership status filter
+- Engagement level filter (Active, Inactive, New)
 
 **Export Options:**
 - Export report as PDF
@@ -463,14 +709,19 @@ src/
 ├── types/
 │   ├── form.types.ts
 │   ├── dataset.types.ts
-│   └── chw-profile.types.ts
+│   ├── member-profile.types.ts
+│   └── networking.types.ts
 ├── data/
 │   └── formTemplates/
-│       ├── attendanceSheet.json
-│       ├── chwOnboarding.json
+│       ├── eventRegistration.json
+│       ├── memberSurvey.json
+│       ├── mentorshipApplication.json
+│       ├── boardNomination.json
 │       └── ...
 └── constants/
-    └── formFieldTypes.ts
+    ├── formFieldTypes.ts
+    ├── programs.ts
+    └── industries.ts
 ```
 
 ### Firebase Collections:
@@ -483,13 +734,16 @@ src/
   description: string;
   fields: FormField[];
   status: 'draft' | 'published' | 'archived';
-  category: string;
+  category: 'event' | 'survey' | 'application' | 'update' | 'other';
   tags: string[];
-  organization: 'region5' | 'wl4wj' | 'general';
+  program: 'leadership-nc' | 'asheville' | 'charlotte' | 'greensboro' | 'statewide' | 'all';
   qrCodeEnabled: boolean;
   publicUrl: string;
   datasetId?: string;
   userId: string;
+  eventDate?: Timestamp; // For event registration forms
+  registrationDeadline?: Timestamp;
+  maxResponses?: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -520,34 +774,113 @@ src/
 }
 ```
 
-**chwProfiles:**
+**memberProfiles:**
 ```typescript
 {
   id: string;
   userId: string;
+  
+  // Personal Information
   firstName: string;
   middleName?: string;
   lastName: string;
   preferredName?: string;
-  dateOfBirth: Timestamp;
   email: string;
-  phone: string;
-  address: string;
-  emergencyContact: {
-    name: string;
-    phone: string;
-  };
-  employment: {
-    hireDate: Timestamp;
-    position: string;
-    department: string;
-    supervisor: string;
-    status: string;
-  };
-  certifications: Certification[];
+  phone?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  bio?: string;
+  profilePhotoUrl?: string;
+  linkedInUrl?: string;
+  websiteUrl?: string;
+  
+  // Leadership Program Information
+  programs: Array<{
+    name: string; // 'Leadership NC', 'Leadership Asheville', etc.
+    graduationYear: number;
+    cohort?: string;
+    location?: string;
+  }>;
+  membershipStatus: 'active' | 'alumni' | 'lifetime';
+  participationType: 'graduate' | 'participant' | 'mentor' | 'faculty';
+  
+  // Professional Information
+  currentTitle?: string;
+  currentOrganization?: string;
+  industry?: string;
+  yearsExperience?: number;
+  previousOrganizations?: string[];
+  certifications?: string[];
+  boardMemberships?: Array<{
+    organization: string;
+    role: string;
+    current: boolean;
+    startYear: number;
+    endYear?: number;
+  }>;
+  awards?: string[];
+  
+  // Networking & Expertise
+  expertise: string[]; // Leadership Development, Strategic Planning, etc.
+  skills: string[];
   languages: string[];
-  expertise: string[];
-  serviceAreas: string[];
+  willingToMentor: boolean;
+  seekingMentorship: boolean;
+  openToNetworking: boolean;
+  availableForSpeaking: boolean;
+  volunteerInterests: string[];
+  
+  // Community Engagement
+  communityInvolvement?: string;
+  volunteerActivities?: string[];
+  causes: string[];
+  geographicInterests: string[]; // NC regions
+  preferredContactMethods: string[];
+  
+  // Privacy Settings
+  profileVisibility: 'public' | 'members-only' | 'private';
+  showEmail: boolean;
+  showPhone: boolean;
+  showEmployer: boolean;
+  allowDirectMessages: boolean;
+  includeInDirectory: boolean;
+  
+  // Metadata
+  profileCompleteness: number; // 0-100
+  verified: boolean;
+  lastActive: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+```
+
+**connections:** (for networking)
+```typescript
+{
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  status: 'pending' | 'accepted' | 'declined';
+  message?: string;
+  createdAt: Timestamp;
+  respondedAt?: Timestamp;
+}
+```
+
+**mentorships:**
+```typescript
+{
+  id: string;
+  mentorId: string;
+  menteeId: string;
+  status: 'active' | 'completed' | 'inactive';
+  startDate: Timestamp;
+  endDate?: Timestamp;
+  focusAreas: string[];
+  goals?: string;
+  meetingFrequency?: string;
+  notes?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -557,9 +890,11 @@ src/
 
 1. **Authentication & Authorization:**
    - Firebase Auth integration
-   - Role-based access control (Admin, CHW, Supervisor)
+   - Role-based access control (Admin, Member, Program Coordinator, Guest)
    - User context provider
    - Protected routes
+   - Email verification for new members
+   - Alumni verification process
 
 2. **Responsive Design:**
    - Mobile-first approach
@@ -607,13 +942,53 @@ src/
 
 ## Implementation Priority:
 
-1. **Phase 1:** My Profile Form + Authentication
-2. **Phase 2:** Forms Management (CRUD operations)
-3. **Phase 3:** Form Templates + Template Copying
-4. **Phase 4:** Datasets (List and Detail views)
-5. **Phase 5:** Public Form Submission
-6. **Phase 6:** AI Form Builder
-7. **Phase 7:** Reports and Analytics
+1. **Phase 1:** Authentication + Member Profile Form
+   - Firebase Auth setup
+   - Member profile creation and editing
+   - Profile photo upload
+   - Privacy settings
+
+2. **Phase 2:** Member Directory & Search
+   - Searchable directory
+   - Member profile views
+   - Basic filtering
+   - Profile privacy controls
+
+3. **Phase 3:** Networking Features
+   - Connection requests
+   - My connections list
+   - Connection suggestions
+   - Basic messaging
+
+4. **Phase 4:** Forms Management
+   - Form builder (CRUD operations)
+   - Form templates
+   - Template copying
+   - Public form URLs
+
+5. **Phase 5:** Event Registration & Surveys
+   - Event registration forms
+   - RSVP tracking
+   - Survey creation
+   - Response collection
+
+6. **Phase 6:** Mentorship Program
+   - Mentor/mentee matching
+   - Mentorship applications
+   - Relationship tracking
+   - Feedback system
+
+7. **Phase 7:** Datasets & Analytics
+   - Dataset management
+   - Form response viewing
+   - Export capabilities
+   - Basic analytics
+
+8. **Phase 8:** Advanced Features
+   - AI Form Builder
+   - Advanced reporting
+   - Automated notifications
+   - Email campaigns
 
 ---
 
