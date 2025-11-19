@@ -705,7 +705,7 @@ function TemplatesContent() {
         fullWidth
       >
         <DialogTitle>
-          BMAD AI Form Wizard
+          CHWOne AI Form Wizard
           <IconButton
             aria-label="close"
             onClick={() => setWizardOpen(false)}
