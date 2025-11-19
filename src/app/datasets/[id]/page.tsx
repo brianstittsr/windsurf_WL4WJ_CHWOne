@@ -82,17 +82,23 @@ function DatasetViewContent() {
   const loadDataset = async () => {
     try {
       setLoading(true);
+      console.log('Loading dataset with ID:', datasetId);
       const datasetDocRef = doc(db, 'datasets', datasetId);
       const datasetDoc = await getDoc(datasetDocRef);
 
       if (datasetDoc.exists()) {
         const data = datasetDoc.data();
+        console.log('Dataset found:', data);
         setDataset({
           id: datasetDoc.id,
           ...data
         } as Dataset);
       } else {
-        console.error('Dataset not found');
+        console.error('Dataset not found with ID:', datasetId);
+        console.log('This usually means:');
+        console.log('1. No form submissions have been made yet');
+        console.log('2. The dataset was deleted');
+        console.log('3. The datasetId on the form is incorrect');
       }
     } catch (error) {
       console.error('Error loading dataset:', error);
@@ -187,17 +193,38 @@ function DatasetViewContent() {
 
   if (!dataset) {
     return (
-      <Box sx={{ textAlign: 'center', py: 8 }}>
+      <Box sx={{ textAlign: 'center', py: 8, px: 3 }}>
         <Typography variant="h5" sx={{ mb: 2 }}>
           Dataset Not Found
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<BackIcon />}
-          onClick={() => router.push('/datasets')}
-        >
-          Back to Datasets
-        </Button>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+          This dataset doesn't exist yet. It will be created automatically when someone submits the form for the first time.
+        </Typography>
+        <Alert severity="info" sx={{ mb: 3, maxWidth: 600, mx: 'auto', textAlign: 'left' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <strong>Possible reasons:</strong>
+          </Typography>
+          <Typography variant="body2" component="div">
+            • No form submissions have been received yet<br />
+            • The dataset was deleted<br />
+            • The form's dataset link is incorrect
+          </Typography>
+        </Alert>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            startIcon={<BackIcon />}
+            onClick={() => router.push('/datasets')}
+          >
+            Back to Datasets
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => router.push('/forms')}
+          >
+            View Forms
+          </Button>
+        </Box>
       </Box>
     );
   }
