@@ -355,7 +355,8 @@ function TemplatesContent() {
   const handleWizardComplete = (formId: string) => {
     console.log('Form generated:', formId);
     setWizardOpen(false);
-    // In a real implementation, this would redirect to the new form
+    // Redirect to forms management page to see the new form
+    window.location.href = '/forms';
   };
   
   // Open wizard with specific category
