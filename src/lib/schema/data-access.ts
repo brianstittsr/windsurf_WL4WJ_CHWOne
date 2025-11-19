@@ -58,7 +58,7 @@ export async function createUser(user: Omit<User, 'createdAt' | 'updatedAt'>) {
       action: 'create',
       resourceType: 'user',
       resourceId: user.uid,
-      description: `User ${user.email} created with role ${user.role}`
+      description: `User ${user.email} created with role ${user.primaryRole || user.roles?.[0] || 'unknown'}`
     });
     
     return { success: true, userId: user.uid };

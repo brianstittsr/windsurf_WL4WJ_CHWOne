@@ -41,10 +41,11 @@ export function validateUser(user: Partial<schema.User>, options: ValidationOpti
     if (!user.email) {
       errors.push({ field: 'email', message: 'Email is required', code: 'required' });
     }
-    if (!user.role) {
-      errors.push({ field: 'role', message: 'Role is required', code: 'required' });
+    // Support both single role and multi-role
+    if (!user.primaryRole && !user.roles?.length) {
+      errors.push({ field: 'role', message: 'At least one role is required', code: 'required' });
     }
-    if (!user.organizationId) {
+    if (!user.primaryOrganizationId && !user.organizationIds?.length) {
       errors.push({ field: 'organizationId', message: 'Organization ID is required', code: 'required' });
     }
   }
@@ -54,8 +55,18 @@ export function validateUser(user: Partial<schema.User>, options: ValidationOpti
     errors.push({ field: 'email', message: 'Invalid email format', code: 'format' });
   }
   
-  if (user.role && !Object.values(schema.UserRole).includes(user.role)) {
-    errors.push({ field: 'role', message: `Invalid role: ${user.role}`, code: 'enum' });
+  // Validate primaryRole if present
+  if (user.primaryRole && !Object.values(schema.UserRole).includes(user.primaryRole)) {
+    errors.push({ field: 'primaryRole', message: `Invalid role: ${user.primaryRole}`, code: 'enum' });
+  }
+  
+  // Validate roles array if present
+  if (user.roles && user.roles.length > 0) {
+    user.roles.forEach((role, index) => {
+      if (!Object.values(schema.UserRole).includes(role)) {
+        errors.push({ field: `roles[${index}]`, message: `Invalid role: ${role}`, code: 'enum' });
+      }
+    });
   }
   
   // Return validation result
