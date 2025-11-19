@@ -108,6 +108,8 @@ export default function EnhancedProfileComponent({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [profile, setProfile] = useState<CHWProfile>({
     userId: '',
@@ -328,23 +330,152 @@ export default function EnhancedProfileComponent({
     );
   }
 
+  // Handle photo upload
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 400;
+          
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (JPG, PNG, etc.)');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+      const compressedImage = await compressImage(file);
+      setProfile(prev => ({ ...prev, profilePicture: compressedImage }));
+      setPhotoFile(file);
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      setError('Failed to process image. Please try a different image.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   return (
     <Card sx={{ maxWidth: 1200, mx: 'auto' }}>
       <CardContent sx={{ p: 3 }}>
+        {/* Edit Button - Upper Left */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            {editable && !isEditing && (
+              <Button
+                variant="contained"
+                startIcon={<Edit />}
+                onClick={() => setIsEditing(true)}
+                size="large"
+              >
+                Edit Profile
+              </Button>
+            )}
+          </Box>
+        </Box>
+
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar
-              src={profile.profilePicture}
-              sx={{
-                width: 80,
-                height: 80,
-                bgcolor: 'primary.main',
-                fontSize: '2rem'
-              }}
-            >
-              {profile.firstName[0]}{profile.lastName[0]}
-            </Avatar>
+            <Box sx={{ position: 'relative' }}>
+              <Avatar
+                src={profile.profilePicture}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  bgcolor: 'primary.main',
+                  fontSize: '2rem',
+                  cursor: isEditing ? 'pointer' : 'default'
+                }}
+                onClick={() => {
+                  if (isEditing) {
+                    document.getElementById('profile-photo-upload')?.click();
+                  }
+                }}
+              >
+                {profile.firstName[0]}{profile.lastName[0]}
+              </Avatar>
+              {isEditing && (
+                <>
+                  <input
+                    id="profile-photo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <IconButton
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      bottom: -5,
+                      right: -5,
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      '&:hover': { bgcolor: 'primary.dark' }
+                    }}
+                    onClick={() => document.getElementById('profile-photo-upload')?.click()}
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                </>
+              )}
+              {uploadingPhoto && (
+                <CircularProgress
+                  size={24}
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    marginTop: '-12px',
+                    marginLeft: '-12px'
+                  }}
+                />
+              )}
+            </Box>
             <Box>
               <Typography variant="h5">
                 {profile.firstName} {profile.lastName}
@@ -465,15 +596,6 @@ export default function EnhancedProfileComponent({
               );
             })()}
 
-            {editable && !isEditing && (
-              <Button
-                variant="outlined"
-                startIcon={<Edit />}
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Profile
-              </Button>
-            )}
           </Box>
         </Box>
 
