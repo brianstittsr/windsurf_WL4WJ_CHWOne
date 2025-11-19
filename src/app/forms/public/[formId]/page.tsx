@@ -242,9 +242,15 @@ export default function PublicFormPage() {
         
         if (datasetDoc.exists()) {
           // Add record to dataset's records array
+          const currentData = datasetDoc.data();
+          const currentRecordCount = currentData.recordCount || currentData.rowCount || 0;
+          
           await updateDoc(datasetDocRef, {
             records: arrayUnion(submissionData),
-            updatedAt: serverTimestamp()
+            updatedAt: serverTimestamp(),
+            recordCount: currentRecordCount + 1,
+            rowCount: currentRecordCount + 1,
+            size: (currentData.size || 0) + JSON.stringify(submissionData).length
           });
           console.log('Response added to dataset:', datasetId);
         } else {
@@ -256,6 +262,11 @@ export default function PublicFormPage() {
           name: `${form?.title || 'Form'} - Responses`,
           description: `Dataset for storing responses from form: ${form?.title}`,
           formId: formId,
+          userId: formDocData.userId || 'system', // Use form creator's userId
+          format: 'json',
+          size: JSON.stringify(submissionData).length,
+          recordCount: 1,
+          rowCount: 1,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           fields: form?.fields.map(field => ({

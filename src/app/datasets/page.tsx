@@ -131,11 +131,18 @@ function DatasetsContent() {
       try {
         setLoading(true);
         const datasetsRef = collection(db, 'datasets');
-        const q = query(datasetsRef, where('userId', '==', currentUser.uid));
+        // Get datasets owned by user OR system-generated datasets
+        const q = query(datasetsRef);
         const querySnapshot = await getDocs(q);
         
+        // Filter to show user's datasets and system datasets
+        const userDatasets = querySnapshot.docs.filter(doc => {
+          const data = doc.data();
+          return data.userId === currentUser.uid || data.userId === 'system';
+        });
+        
         const fetchedDatasets: Dataset[] = [];
-        querySnapshot.forEach((docSnap) => {
+        userDatasets.forEach((docSnap) => {
           const data = docSnap.data();
           fetchedDatasets.push({
             id: docSnap.id,
