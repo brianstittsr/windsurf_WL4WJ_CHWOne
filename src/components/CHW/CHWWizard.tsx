@@ -29,7 +29,7 @@ import {
   Fade,
   Slide
 } from '@mui/material';
-import { Visibility, VisibilityOff, CheckCircle, Email, Login } from '@mui/icons-material';
+import { Visibility, VisibilityOff, CheckCircle, Email, Login, AutoAwesome } from '@mui/icons-material';
 import { TransitionProps } from '@mui/material/transitions';
 import { CHWProfile } from '@/types/chw-profile.types';
 import { auth, db } from '@/lib/firebase';
@@ -103,6 +103,7 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [enhancingBio, setEnhancingBio] = useState(false);
   const [formData, setFormData] = useState<any>({
     firstName: '',
     lastName: '',
@@ -189,6 +190,37 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
         setProfilePhoto(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEnhanceBio = async () => {
+    if (!formData.professional?.bio) return;
+    
+    setEnhancingBio(true);
+    try {
+      const response = await fetch('/api/ai/enhance-bio', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bio: formData.professional.bio,
+          expertise: formData.professional.expertise || [],
+          yearsOfExperience: formData.professional.yearsOfExperience || 0
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to enhance bio');
+      }
+
+      const data = await response.json();
+      updateNestedField('professional', 'bio', data.enhancedBio);
+    } catch (error) {
+      console.error('Error enhancing bio:', error);
+      alert('Failed to enhance bio. Please try again.');
+    } finally {
+      setEnhancingBio(false);
     }
   };
 
@@ -587,6 +619,21 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
                 value={formData.professional?.bio}
                 onChange={(e) => updateNestedField('professional', 'bio', e.target.value)}
                 placeholder="Tell us about your experience and passion for community health work..."
+                helperText="Write a brief bio and click 'AI Enhance' to improve it"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end" sx={{ alignSelf: 'flex-start', mt: 1 }}>
+                      <IconButton
+                        onClick={handleEnhanceBio}
+                        disabled={!formData.professional?.bio || enhancingBio}
+                        color="primary"
+                        title="Enhance bio with AI"
+                      >
+                        <AutoAwesome />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>

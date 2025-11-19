@@ -329,7 +329,7 @@ function HomeContentInner() {
           my: 12,
           p: 6,
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #1e3a8a 0%, #0891b2 50%, #10b981 100%)',
           color: 'white',
           position: 'relative',
           overflow: 'hidden'
@@ -446,7 +446,7 @@ function HomeContentInner() {
                   mr: 2,
                   mb: { xs: 2, sm: 0 },
                   backgroundColor: 'white',
-                  color: '#667eea',
+                  color: '#0891b2',
                   fontWeight: 600,
                   fontSize: '1.1rem',
                   '&:hover': {
@@ -572,7 +572,7 @@ function HomeContentInner() {
         <Box sx={{ 
           p: 6,
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #14b8a6 100%)',
           color: 'white',
           position: 'relative',
           overflow: 'hidden'
@@ -687,7 +687,7 @@ function HomeContentInner() {
                   py: 2, 
                   px: 6,
                   backgroundColor: 'white',
-                  color: '#f5576c',
+                  color: '#0891b2',
                   fontWeight: 600,
                   fontSize: '1.1rem',
                   '&:hover': {
@@ -710,7 +710,7 @@ function HomeContentInner() {
         <Box sx={{ 
           p: 6,
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)',
+          background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%)',
           color: 'white',
           position: 'relative',
           overflow: 'hidden'
@@ -825,7 +825,7 @@ function HomeContentInner() {
                   py: 2, 
                   px: 6,
                   backgroundColor: 'white',
-                  color: '#2193b0',
+                  color: '#1e40af',
                   fontWeight: 600,
                   fontSize: '1.1rem',
                   '&:hover': {
