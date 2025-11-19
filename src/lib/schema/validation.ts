@@ -73,8 +73,8 @@ export function validateCHWProfile(profile: Partial<schema.CHWProfile>, options:
   
   // Required fields
   if (!options.partial) {
-    if (!profile.uid) {
-      errors.push({ field: 'uid', message: 'User ID is required', code: 'required' });
+    if (!profile.userId) {
+      errors.push({ field: 'userId', message: 'User ID is required', code: 'required' });
     }
     if (!profile.firstName) {
       errors.push({ field: 'firstName', message: 'First name is required', code: 'required' });
@@ -82,32 +82,39 @@ export function validateCHWProfile(profile: Partial<schema.CHWProfile>, options:
     if (!profile.lastName) {
       errors.push({ field: 'lastName', message: 'Last name is required', code: 'required' });
     }
-    if (!profile.certificationNumber) {
-      errors.push({ field: 'certificationNumber', message: 'Certification number is required', code: 'required' });
+    if (!profile.email) {
+      errors.push({ field: 'email', message: 'Email is required', code: 'required' });
     }
-    if (!profile.certificationDate) {
-      errors.push({ field: 'certificationDate', message: 'Certification date is required', code: 'required' });
+    if (!profile.professional) {
+      errors.push({ field: 'professional', message: 'Professional information is required', code: 'required' });
     }
-    if (!profile.expirationDate) {
-      errors.push({ field: 'expirationDate', message: 'Expiration date is required', code: 'required' });
+    if (!profile.serviceArea) {
+      errors.push({ field: 'serviceArea', message: 'Service area information is required', code: 'required' });
     }
-    if (!profile.primaryPhone) {
-      errors.push({ field: 'primaryPhone', message: 'Primary phone is required', code: 'required' });
+    if (!profile.membership) {
+      errors.push({ field: 'membership', message: 'Membership information is required', code: 'required' });
+    }
+    if (!profile.contactPreferences) {
+      errors.push({ field: 'contactPreferences', message: 'Contact preferences are required', code: 'required' });
     }
   }
   
   // Field validations
-  if (profile.certificationLevel && 
-      !['entry', 'intermediate', 'advanced', 'lead'].includes(profile.certificationLevel)) {
-    errors.push({ field: 'certificationLevel', message: `Invalid certification level: ${profile.certificationLevel}`, code: 'enum' });
+  if (profile.certification?.certificationStatus && 
+      !['certified', 'pending', 'expired', 'not_certified'].includes(profile.certification.certificationStatus)) {
+    errors.push({ field: 'certification.certificationStatus', message: `Invalid certification status: ${profile.certification.certificationStatus}`, code: 'enum' });
   }
   
-  if (profile.primaryPhone && !isValidPhone(profile.primaryPhone)) {
-    errors.push({ field: 'primaryPhone', message: 'Invalid phone number format', code: 'format' });
+  if (profile.phone && !isValidPhone(profile.phone)) {
+    errors.push({ field: 'phone', message: 'Invalid phone number format', code: 'format' });
   }
   
-  if (profile.secondaryPhone && !isValidPhone(profile.secondaryPhone)) {
-    errors.push({ field: 'secondaryPhone', message: 'Invalid phone number format', code: 'format' });
+  if (profile.email && !isValidEmail(profile.email)) {
+    errors.push({ field: 'email', message: 'Invalid email format', code: 'format' });
+  }
+  
+  if (profile.status && !['active', 'pending', 'inactive'].includes(profile.status)) {
+    errors.push({ field: 'status', message: `Invalid status: ${profile.status}`, code: 'enum' });
   }
   
   // Return validation result

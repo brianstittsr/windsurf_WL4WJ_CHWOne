@@ -124,7 +124,7 @@ export async function updateUser(uid: string, updates: Partial<User>) {
  */
 export async function createCHWProfile(profile: Omit<CHWProfile, 'createdAt' | 'updatedAt'>) {
   try {
-    const chwRef = doc(db, COLLECTIONS.CHW_PROFILES, profile.uid);
+    const chwRef = doc(db, COLLECTIONS.CHW_PROFILES, profile.userId);
     
     await setDoc(chwRef, {
       ...profile,
@@ -134,14 +134,14 @@ export async function createCHWProfile(profile: Omit<CHWProfile, 'createdAt' | '
     
     // Log activity
     await logActivity({
-      userId: profile.uid,
+      userId: profile.userId,
       action: 'create',
       resourceType: 'chw',
-      resourceId: profile.uid,
+      resourceId: profile.userId,
       description: `CHW profile created for ${profile.firstName} ${profile.lastName}`
     });
     
-    return { success: true, profileId: profile.uid };
+    return { success: true, profileId: profile.userId };
   } catch (error) {
     console.error('Error creating CHW profile:', error);
     return { success: false, error };
