@@ -485,6 +485,17 @@ export default function PublicFormPage() {
       <Box sx={{ py: 4 }}>
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
+          {/* CHWOne Logo */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Image 
+              src="/images/CHWOneLogoDesign.png" 
+              width={60}
+              height={60}
+              alt="CHWOne Logo"
+              style={{ borderRadius: '50%' }}
+            />
+          </Box>
+          
           <Chip
             icon={<QrCodeIcon />}
             label="Public Survey"
@@ -540,8 +551,26 @@ export default function PublicFormPage() {
 
         {/* Footer */}
         <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography variant="caption" color="text.secondary">
-            This survey is powered by CHWOne • Responses are anonymous and secure
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              Powered by
+            </Typography>
+            <Image 
+              src="/images/CHWOneLogoDesign.png" 
+              width={20}
+              height={20}
+              alt="CHWOne Logo"
+              style={{ borderRadius: '50%' }}
+            />
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+              CHWOne
+            </Typography>
+          </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem', fontStyle: 'italic' }}>
+            A Women Leading for Wellness and Justice product
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+            Responses are anonymous and secure
           </Typography>
         </Box>
       </Box>
