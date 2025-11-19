@@ -13,8 +13,12 @@ export interface UserProfile {
   displayName?: string;
   phoneNumber?: string;
   photoURL?: string;
-  role: UserRole;
+  role: UserRole; // Kept for backward compatibility
+  roles?: UserRole[]; // Multiple roles support
+  primaryRole?: UserRole; // Active role
   organization: 'general' | 'region1' | 'region2' | 'region3' | 'region4' | 'region5' | 'region6' | 'wl4wj';
+  organizationIds?: string[]; // Multiple organizations
+  primaryOrganizationId?: string;
   // Organization type for role-based navigation and permissions
   organizationType?: OrganizationType;
   permissions: UserPermissions;
@@ -22,7 +26,11 @@ export interface UserProfile {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   lastLoginAt?: Timestamp;
-  // CHW-specific fields
+  // Profile references for multi-role support
+  chwProfileId?: string;
+  nonprofitProfileId?: string;
+  associationProfileId?: string;
+  // CHW-specific fields (deprecated, use chwProfileId)
   chwProfile?: CHWProfile;
 }
 
@@ -101,9 +109,14 @@ export interface CHWResource {
 
 export enum UserRole {
   ADMIN = 'ADMIN',
-  CHW_COORDINATOR = 'CHW_COORDINATOR',
   CHW = 'CHW',
-  NONPROFIT_STAFF = 'NONPROFIT_STAFF'
+  CHW_COORDINATOR = 'CHW_COORDINATOR',
+  NONPROFIT_STAFF = 'NONPROFIT_STAFF',
+  CHW_ASSOCIATION = 'CHW_ASSOCIATION',
+  WL4WJ_CHW = 'WL4WJ_CHW',
+  CLIENT = 'CLIENT',
+  VIEWER = 'VIEWER',
+  DEMO = 'DEMO'
 }
 
 /**

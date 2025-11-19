@@ -2,10 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/firebaseConfig';
-import { UserProfile, OrganizationType } from '@/types/firebase/schema';
+import { UserProfile, OrganizationType, UserRole } from '@/types/firebase/schema';
 import { ensureOrganizationType } from '@/utils/organizationTypeMapping';
+import { COLLECTIONS } from '@/lib/schema/unified-schema';
 
 // Auto-login control - disabled to prevent auto-login
 const DISABLE_AUTO_LOGIN = false; // Enable auto-login
@@ -20,6 +21,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<User>;
   updateOrganizationType: (orgType: OrganizationType) => Promise<void>;
+  switchRole: (role: UserRole) => Promise<void>;
 }
 
 // Create the auth context
@@ -224,6 +226,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.user, state.profile]);
 
+  // Switch active role for multi-role users
+  const switchRole = useCallback(async (role: UserRole) => {
+    if (!state.user) {
+      throw new Error('No user is currently signed in');
+    }
+    
+    if (!state.profile) {
+      throw new Error('User profile not loaded');
+    }
+    
+    // Check if user has this role
+    const userRoles = state.profile.roles || [state.profile.role];
+    if (!userRoles.includes(role)) {
+      throw new Error('User does not have this role');
+    }
+    
+    try {
+      console.log('Switching to role:', role);
+      const userDocRef = doc(db, COLLECTIONS.USERS, state.user.uid);
+      await updateDoc(userDocRef, {
+        primaryRole: role,
+        updatedAt: serverTimestamp()
+      });
+      
+      // Update local state
+      setState(prev => ({
+        ...prev, 
+        profile: {
+          ...prev.profile as UserProfile,
+          primaryRole: role
+        }
+      }));
+      
+      console.log('Role switched successfully to:', role);
+      return;
+    } catch (error) {
+      console.error('Error switching role:', error);
+      throw new Error('Failed to switch role');
+    }
+  }, [state.user, state.profile]);
+
   // Context value
   const contextValue = {
     currentUser: state.user,
@@ -234,6 +277,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     signUp,
     updateOrganizationType,
+    switchRole,
   };
 
   return (
