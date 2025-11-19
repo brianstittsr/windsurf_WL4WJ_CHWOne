@@ -242,25 +242,51 @@ function TemplatesContent() {
       if (template.schema?.sections) {
         template.schema.sections.forEach((section: any) => {
           section.fields.forEach((field: any) => {
-            flattenedFields.push({
+            const fieldData: any = {
               id: field.id,
               name: field.id, // Use id as name
               label: field.label,
               type: field.type,
-              required: field.required || false,
-              placeholder: field.placeholder,
-              options: field.options?.map((opt: any) => ({
+              required: field.required || false
+            };
+            
+            // Only add optional fields if they have values
+            if (field.placeholder) {
+              fieldData.placeholder = field.placeholder;
+            }
+            if (field.options && field.options.length > 0) {
+              fieldData.options = field.options.map((opt: any) => ({
                 value: typeof opt === 'string' ? opt : opt.value,
                 label: typeof opt === 'string' ? opt : opt.label
-              })),
-              validation: field.validation
-            });
+              }));
+            }
+            if (field.validation) {
+              fieldData.validation = field.validation;
+            }
+            
+            flattenedFields.push(fieldData);
           });
         });
       }
 
       // Create a copy of the template for the user
       const { id, schema, ...templateWithoutId } = template; // Remove id and schema from template
+      
+      // Filter out undefined values from metadata
+      const cleanMetadata: any = {
+        copiedFrom: template.name,
+        copiedAt: new Date().toISOString()
+      };
+      
+      // Only add template metadata if it exists and has values
+      if (template.metadata) {
+        Object.keys(template.metadata).forEach(key => {
+          if (template.metadata[key] !== undefined) {
+            cleanMetadata[key] = template.metadata[key];
+          }
+        });
+      }
+      
       const newForm = {
         title: template.name || template.schema?.title || 'Untitled Form',
         description: template.description || template.schema?.description || '',
@@ -277,11 +303,7 @@ function TemplatesContent() {
           confirmationMessage: 'Thank you for your submission!',
           allowAnonymous: true
         },
-        metadata: {
-          ...template.metadata,
-          copiedFrom: template.name,
-          copiedAt: new Date().toISOString()
-        }
+        metadata: cleanMetadata
       };
 
       // Save form to Firestore
