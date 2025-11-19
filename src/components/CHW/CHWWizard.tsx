@@ -171,29 +171,77 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Calculate new dimensions (max 400x400)
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 400;
+          
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Convert to base64 with compression (0.7 quality)
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file');
+        setErrorMessage('Please upload an image file (JPG, PNG, etc.)');
+        setShowError(true);
         return;
       }
       
-      // Validate file size (max 5MB)
+      // Validate file size (max 5MB for original)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB');
+        setErrorMessage('Image size must be less than 5MB');
+        setShowError(true);
         return;
       }
       
       setPhotoFile(file);
       
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Compress image before storing
+        const compressedImage = await compressImage(file);
+        setProfilePhoto(compressedImage);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        setErrorMessage('Failed to process image. Please try a different image.');
+        setShowError(true);
+      }
     }
   };
 
@@ -389,6 +437,10 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
         message = 'Invalid email address. Please check and try again.';
       } else if (error.code === 'auth/weak-password') {
         message = 'Password is too weak. Please use a stronger password (at least 6 characters).';
+      } else if (error.message && error.message.includes('profilePicture') && error.message.includes('longer than')) {
+        message = 'Profile picture is too large. Please upload a smaller image or remove the photo and try again.';
+      } else if (error.message && error.message.includes('bytes')) {
+        message = 'Profile data is too large. Please try removing the profile picture or reducing the amount of text.';
       } else {
         message = `Error creating profile: ${error.message || 'Please try again.'}`;
       }
