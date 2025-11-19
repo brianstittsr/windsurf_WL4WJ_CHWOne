@@ -52,6 +52,7 @@ function FormsContent() {
           <Typography color="text.secondary" sx={{ mb: 4 }}>Create, manage, and analyze health assessment forms and data collection tools for Community Health Workers</Typography>
           
           <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+            <Button component={Link} href="/forms/templates" variant="outlined">Form Templates</Button>
             <Button 
               variant="contained" 
               color="primary"
@@ -68,8 +69,6 @@ function FormsContent() {
               Create with AI Wizard
             </Button>
             <Button component={Link} href="/forms/new" variant="outlined">Create Form Manually</Button>
-            <Button component={Link} href="/forms/builder" variant="outlined" color="secondary">AI Form Builder</Button>
-            <Button component={Link} href="/forms/templates" variant="outlined">Form Templates</Button>
           </Stack>
         </Box>
         

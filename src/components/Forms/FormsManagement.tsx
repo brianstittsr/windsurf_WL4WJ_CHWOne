@@ -398,23 +398,13 @@ export default function FormsManagement() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            Forms Management
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Create and manage custom forms for data collection
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => openModal('create')}
-          size="large"
-        >
-          New Form Wizard
-        </Button>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+          Forms Management
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Create and manage custom forms for data collection
+        </Typography>
       </Box>
 
       {/* Search and Filters */}
