@@ -62,16 +62,17 @@ export interface OrganizationPermissionSet {
  */
 export const DEFAULT_PERMISSIONS: Record<OrganizationType, OrganizationPermissionSet> = {
   [OrganizationType.CHW]: {
-    [PlatformTool.REFERRALS]: { access: true, level: AccessLevel.EDIT },
-    [PlatformTool.PROJECTS]: { access: true, level: AccessLevel.VIEW },
-    [PlatformTool.GRANTS]: { access: true, level: AccessLevel.VIEW },
-    [PlatformTool.RESOURCES]: { access: true, level: AccessLevel.VIEW },
-    [PlatformTool.FORMS]: { access: true, level: AccessLevel.EDIT },
-    [PlatformTool.DATASETS]: { access: true, level: AccessLevel.VIEW },
-    [PlatformTool.REPORTS]: { access: true, level: AccessLevel.VIEW },
-    [PlatformTool.AI_ASSISTANT]: { access: true, level: AccessLevel.EDIT },
-    [PlatformTool.DATA_TOOLS]: { access: true, level: AccessLevel.VIEW },
-    [PlatformTool.IDEAS]: { access: true, level: AccessLevel.EDIT }
+    // CHW users only have access to their profile - no platform tools
+    [PlatformTool.REFERRALS]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.PROJECTS]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.GRANTS]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.RESOURCES]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.FORMS]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.DATASETS]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.REPORTS]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.AI_ASSISTANT]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.DATA_TOOLS]: { access: false, level: AccessLevel.NONE },
+    [PlatformTool.IDEAS]: { access: false, level: AccessLevel.NONE }
   },
   [OrganizationType.NONPROFIT]: {
     [PlatformTool.REFERRALS]: { access: true, level: AccessLevel.ADMIN },

@@ -16,7 +16,8 @@ import {
   Build as DataToolsIcon,
   Lightbulb as IdeasIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  ExpandLess as ExpandLessIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
 import useToolPermissions from '@/hooks/useToolPermissions';
@@ -191,6 +192,56 @@ export default function RoleBasedNavigation({ onNavigate, showOrgLabel = true }:
       return aIndex - bIndex;
     });
   
+  // Special simplified navigation for CHW users
+  if (organizationType === OrganizationType.CHW) {
+    return (
+      <Box sx={{ width: '100%', py: 1 }}>
+        {/* Organization Type Label */}
+        {showOrgLabel && (
+          <Box sx={{ px: 2, py: 1, mb: 2 }}>
+            <Chip
+              avatar={
+                <Avatar 
+                  sx={{ 
+                    bgcolor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText 
+                  }}
+                >
+                  {getOrganizationName().charAt(0)}
+                </Avatar>
+              }
+              label={getOrganizationName()}
+              variant="outlined"
+              sx={{ width: '100%', justifyContent: 'flex-start' }}
+            />
+          </Box>
+        )}
+        
+        {/* My Profile - Only option for CHW users */}
+        <NavSection>
+          <ClickableLink href="/profile">
+            <NavButton
+              startIcon={<PersonIcon />}
+              fullWidth
+              color="inherit"
+              onClick={handleNavClick}
+              sx={{ width: '100%' }}
+            >
+              My Profile
+            </NavButton>
+          </ClickableLink>
+        </NavSection>
+        
+        <Box sx={{ px: 2, py: 3 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
+            Manage your CHW profile and settings
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+  
+  // Standard navigation for other organization types
   return (
     <Box sx={{ width: '100%', py: 1 }}>
       {/* Organization Type Label */}
