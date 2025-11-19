@@ -233,12 +233,21 @@ export default function PublicFormPage() {
     const value = formData[field.name];
     const error = errors[field.name];
 
+    // Common props for most field types (not checkbox/radio which need custom handling)
     const commonProps = {
       fullWidth: true,
       value,
       onChange: (e: any) => handleFieldChange(field.name, e.target.value),
       error: !!error,
       helperText: error,
+      required: field.required,
+      sx: { mb: 2 }
+    };
+
+    // For checkbox and radio, we need different props
+    const fieldsetProps = {
+      fullWidth: true,
+      error: !!error,
       required: field.required,
       sx: { mb: 2 }
     };
@@ -310,7 +319,7 @@ export default function PublicFormPage() {
 
       case 'radio':
         return (
-          <FormControl component="fieldset" {...commonProps}>
+          <FormControl component="fieldset" {...fieldsetProps}>
             <Typography component="legend" sx={{ mb: 1 }}>
               {field.label} {field.required && '*'}
             </Typography>
@@ -333,12 +342,12 @@ export default function PublicFormPage() {
 
       case 'checkbox':
         return (
-          <FormControl component="fieldset" {...commonProps}>
+          <FormControl component="fieldset" {...fieldsetProps}>
             <Typography component="legend" sx={{ mb: 1 }}>
               {field.label} {field.required && '*'}
             </Typography>
             {field.options?.map(option => (
-              <label key={option.value} style={{ display: 'block', marginBottom: 8 }}>
+              <label key={option.value} style={{ display: 'block', marginBottom: 8, cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   name={field.name}
@@ -351,7 +360,7 @@ export default function PublicFormPage() {
                       : currentValues.filter(v => v !== option.value);
                     handleFieldChange(field.name, newValues);
                   }}
-                  style={{ marginRight: 8 }}
+                  style={{ marginRight: 8, cursor: 'pointer' }}
                 />
                 {option.label}
               </label>
