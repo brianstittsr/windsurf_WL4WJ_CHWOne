@@ -47,7 +47,8 @@ import {
   Search as SearchIcon,
   FilterList as FilterListIcon,
   GroupWork as GroupWorkIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  Storage as DataIcon
 } from '@mui/icons-material';
 import QRCodeGenerator, { FormQRCode } from '@/components/QRCode/QRCodeGenerator';
 import { db } from '@/lib/firebase';
@@ -91,6 +92,7 @@ interface Form {
   organization?: 'region5' | 'wl4wj' | 'general';
   qrCodeEnabled: boolean;
   publicUrl?: string;
+  datasetId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -146,6 +148,7 @@ export default function FormsManagement() {
           organization: data.organization || 'general',
           qrCodeEnabled: data.qrCodeEnabled || false,
           publicUrl: data.publicUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/forms/public/${doc.id}`,
+          datasetId: data.datasetId, // Link to dataset for viewing responses
           fields: data.fields || [],
           status: data.status || 'draft',
           createdAt: data.createdAt?.toDate() || new Date(),
@@ -674,6 +677,17 @@ export default function FormsManagement() {
                           >
                             Edit
                           </Button>
+                          {form.datasetId && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<DataIcon />}
+                              onClick={() => window.location.href = `/datasets/${form.datasetId}`}
+                              color="success"
+                            >
+                              Data
+                            </Button>
+                          )}
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -766,6 +780,18 @@ export default function FormsManagement() {
                             >
                               Edit
                             </Button>
+                            {form.datasetId && (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<DataIcon />}
+                                onClick={() => window.location.href = `/datasets/${form.datasetId}`}
+                                color="success"
+                                fullWidth
+                              >
+                                Data
+                              </Button>
+                            )}
                           </Box>
                         </CardContent>
                       </Card>
