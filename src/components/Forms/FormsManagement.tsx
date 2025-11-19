@@ -119,6 +119,10 @@ export default function FormsManagement() {
   const [filterOrganization, setFilterOrganization] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [groupBy, setGroupBy] = useState<'category' | 'organization' | 'status' | 'none'>('none');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [formToDelete, setFormToDelete] = useState<Form | null>(null);
+  const [deleteDataset, setDeleteDataset] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchForms();
@@ -278,22 +282,53 @@ export default function FormsManagement() {
     });
   };
 
-  const handleDeleteForm = async (formId: string) => {
-    if (!confirm('Are you sure you want to delete this form?')) {
-      return;
-    }
+  const handleDeleteForm = (form: Form) => {
+    setFormToDelete(form);
+    setDeleteDataset(false); // Default to not deleting dataset
+    setDeleteDialogOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!formToDelete) return;
+
+    setDeleting(true);
     try {
-      const formRef = doc(db, 'forms', formId);
+      // Delete the form
+      const formRef = doc(db, 'forms', formToDelete.id);
       await deleteDoc(formRef);
       console.log('Form deleted successfully');
+
+      // Delete the dataset if requested and it exists
+      if (deleteDataset && formToDelete.datasetId) {
+        try {
+          const datasetRef = doc(db, 'datasets', formToDelete.datasetId);
+          await deleteDoc(datasetRef);
+          console.log('Dataset deleted successfully');
+        } catch (datasetError) {
+          console.error('Error deleting dataset:', datasetError);
+          alert('Form deleted but failed to delete dataset. You may need to delete it manually.');
+        }
+      }
+
+      // Close dialog and refresh
+      setDeleteDialogOpen(false);
+      setFormToDelete(null);
+      setDeleteDataset(false);
       
       // Refresh the forms list
       await fetchForms();
     } catch (error) {
       console.error('Error deleting form:', error);
       alert('Failed to delete form. Please try again.');
+    } finally {
+      setDeleting(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setFormToDelete(null);
+    setDeleteDataset(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -688,6 +723,15 @@ export default function FormsManagement() {
                               Data
                             </Button>
                           )}
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => handleDeleteForm(form)}
+                            color="error"
+                          >
+                            Delete
+                          </Button>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -792,6 +836,16 @@ export default function FormsManagement() {
                                 Data
                               </Button>
                             )}
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<DeleteIcon />}
+                              onClick={() => handleDeleteForm(form)}
+                              color="error"
+                              fullWidth
+                            >
+                              Delete
+                            </Button>
                           </Box>
                         </CardContent>
                       </Card>
@@ -1056,6 +1110,73 @@ export default function FormsManagement() {
             )}
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Delete Form
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Are you sure you want to delete <strong>"{formToDelete?.title}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            This action cannot be undone.
+          </Typography>
+          {formToDelete?.datasetId && (
+            <Box sx={{ 
+              p: 2, 
+              bgcolor: 'warning.light', 
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'warning.main'
+            }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                This form has a linked dataset
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                The dataset contains {formToDelete.datasetId ? 'form responses' : 'data'}. Would you like to delete it as well?
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  id="delete-dataset-checkbox"
+                  checked={deleteDataset}
+                  onChange={(e) => setDeleteDataset(e.target.checked)}
+                  style={{ marginRight: 8, cursor: 'pointer' }}
+                />
+                <label 
+                  htmlFor="delete-dataset-checkbox" 
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                >
+                  <Typography variant="body2">
+                    Also delete the linked dataset and all responses
+                  </Typography>
+                </label>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            color="error" 
+            variant="contained"
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={16} /> : <DeleteIcon />}
+          >
+            {deleting ? 'Deleting...' : 'Delete Form'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Floating Action Button */}
