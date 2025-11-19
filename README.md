@@ -12,7 +12,106 @@ CHWOne is designed specifically for community health organizations to:
 - Store and analyze Empower Project survey results
 - Provide HIPAA-compliant data access and audit logging
 
-## ✨ Key Features
+## 🎉 Latest Features (November 2025)
+
+### 🆕 CHW Registration Form Enhancements
+
+#### **Enhanced User Experience** ✨
+The CHW registration form has been completely redesigned with modern UX best practices:
+
+**Password Management:**
+- 👁️ **Password Visibility Toggle**: Click the eye icon to show/hide password characters while typing
+- 🔄 **Dual Visibility Controls**: Independent toggles for password and confirmation fields
+- 🔒 **Browser Password Manager Integration**: Full support for saving and auto-filling passwords
+- ✅ **Real-time Password Verification**: Instant feedback when passwords don't match
+- 🎨 **Visual Error States**: Clear red borders and helpful error messages
+
+**Additional Expertise Field:**
+- 📝 **Free-form Text Area**: Describe skills and experiences beyond predefined options
+- 💡 **Smart Placeholder Text**: Helpful guidance on what to include
+- 🎯 **Flexible Input**: Capture unique qualifications, certifications, and experiences
+- 📊 **Saved to Firebase**: Automatically stored in both `users` and `chwProfiles` collections
+
+**Beautiful Success Modal:**
+- 🎊 **Animated Confirmation**: Gradient background with pulsing checkmark animation
+- 📧 **Email Confirmation Display**: Shows registered email address
+- 🔐 **Login Instructions**: Clear next steps for accessing the platform
+- ⏱️ **Auto-Close**: Automatically dismisses after 3 seconds
+- 🎬 **Staggered Animations**: Smooth fade-in effects for professional feel
+- 🎨 **Modern Design**: Purple gradient theme with glassmorphism effects
+
+**Technical Improvements:**
+- ✅ **Schema Consistency**: Uses `COLLECTIONS` constants for Firestore
+- ✅ **Dual Storage**: Saves to both `users` and `chwProfiles` collections
+- ✅ **Type Safety**: Full TypeScript support with proper interfaces
+- ✅ **Autocomplete Support**: HTML5 attributes for better browser integration
+
+### 💼 CHW Jobs & Career Management System
+
+#### **AI-Powered Job Matching** 🤖
+Complete job discovery and matching system for Community Health Workers:
+
+**Smart Job Matching:**
+- 🎯 **Intelligent Algorithm**: Calculates match scores (0-100%) based on:
+  - Skills and expertise alignment
+  - Geographic location preferences
+  - Years of experience
+  - Language capabilities
+  - Additional expertise and qualifications
+- 📊 **Match Reasons**: Explains why each job fits the CHW's profile
+- 🏆 **Recommended Jobs**: Automatically surfaces jobs with 50%+ match score
+- 🔍 **Search Functionality**: Find specific opportunities with keyword search
+
+**AI Job Search:**
+- 💬 **Natural Language Queries**: "Find remote diabetes care positions"
+- 🤖 **OpenAI GPT-4 Integration**: Understands context and intent
+- 📧 **Automated Notifications**: Emails sent for high-match jobs (80%+ score)
+- 💾 **Save to List**: One-click to add jobs to recommendation list
+- 🎯 **Quick Suggestions**: Pre-defined searches for common job types
+
+**Job Features:**
+- 📋 **Detailed Job Cards**: Title, organization, location, salary, skills
+- 👁️ **Full Job Details**: Requirements, responsibilities, qualifications
+- 🔖 **Bookmark Jobs**: Save opportunities for later review
+- 📱 **Apply Now**: Direct application links
+- 📊 **Tabbed Interface**: Recommended / All Jobs / Saved Jobs
+
+#### **Admin Job Crawler** 🕷️
+Automated job discovery system for administrators:
+
+**Web Scraping Configuration:**
+- 🌐 **Custom Crawlers**: Configure multiple job sources
+- 🎯 **CSS Selectors**: Extract job data using custom selectors
+- ⏰ **Scheduled Crawling**: Daily, weekly, or monthly automation
+- 🔧 **Manual Triggers**: Run crawlers on-demand
+- 📍 **Geographic Filters**: Target specific states and counties
+- 🔤 **Keyword Filters**: Include/exclude specific terms
+- 📊 **Status Tracking**: Monitor last crawl date and next scheduled run
+
+**Technology Stack:**
+- 🛠️ **Cheerio**: Fast HTML parsing with jQuery-like syntax
+- 🌐 **Axios**: Reliable HTTP requests with timeout handling
+- 🔥 **Firebase Integration**: Jobs saved directly to Firestore
+- 📈 **Performance**: Efficient crawling with error handling
+
+**API Endpoints:**
+- `/api/chw/ai-job-search` - AI-powered job search
+- `/api/chw/send-job-notifications` - Email notifications
+- `/api/chw/add-job-recommendation` - Save job recommendations
+- `/api/admin/crawl-jobs` - Execute job crawler
+
+### 📊 Data Architecture
+
+**New Firestore Collections:**
+- `chwJobs` - All CHW job postings (manual, crawled, imported)
+- `chwJobRecommendations` - Job recommendations for individual CHWs
+- `jobCrawlerConfigs` - Crawler configurations for automated discovery
+
+**Enhanced Collections:**
+- `users` - Now includes all registration data with proper schema
+- `chwProfiles` - Complete CHW professional profiles with additional expertise
+
+## ✨ Core Features
 
 ### 🤖 AI-Powered Grant Management
 
@@ -470,12 +569,55 @@ CMD ["npm", "start"]
 - Component-based architecture
 - HIPAA compliance considerations
 
-## 📞 Support
+## � Documentation
+
+### Feature Documentation
+Comprehensive guides for all major features:
+
+- **[CHW Jobs Feature Implementation](docs/CHW_JOBS_FEATURE_IMPLEMENTATION.md)** - Complete guide to the jobs system
+  - Job matching algorithm details
+  - AI search implementation
+  - Admin crawler configuration
+  - API endpoint documentation
+  - Firebase collection schemas
+
+- **[Password Field Enhancements](docs/PASSWORD_FIELD_ENHANCEMENTS.md)** - Password UX improvements
+  - Visibility toggle implementation
+  - Browser password manager integration
+  - Accessibility features
+  - Security best practices
+
+- **[Success Modal Enhancement](docs/SUCCESS_MODAL_ENHANCEMENT.md)** - Registration success modal
+  - Animation specifications
+  - Design system details
+  - User experience flow
+  - Technical implementation
+
+- **[CHW Registration Firestore Fix](docs/CHW_REGISTRATION_FIRESTORE_FIX.md)** - Database architecture
+  - Collection naming conventions
+  - Data flow documentation
+  - Schema constants usage
+  - Migration guide
+
+### Component Documentation
+- **CHWWizard** - Multi-step registration form with validation
+- **CHWJobsSection** - Job listing and matching interface
+- **CHWJobAISearch** - AI-powered job search component
+- **AdminJobCrawler** - Web scraping configuration panel
+
+### API Documentation
+- **POST** `/api/chw/ai-job-search` - Natural language job search
+- **POST** `/api/chw/send-job-notifications` - Email notifications
+- **POST** `/api/chw/add-job-recommendation` - Save job recommendations
+- **POST** `/api/admin/crawl-jobs` - Execute job crawler
+
+## �📞 Support
 
 ### Documentation
 - [Firebase Documentation](https://firebase.google.com/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Once UI Documentation](https://once-ui.com/docs)
+- [Project Documentation](docs/) - Feature-specific guides
 
 ### Community
 - GitHub Issues for bug reports
