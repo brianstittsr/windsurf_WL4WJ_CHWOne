@@ -14,7 +14,88 @@ CHWOne is designed specifically for community health organizations to:
 
 ## 🎉 Latest Features (November 2025)
 
-### 🆕 CHW Registration Form Enhancements
+### 🔄 Multi-Role User System (NEW!)
+
+#### **Role Switcher & Profile Management** 🎭
+Users can now have multiple roles with a single email address:
+
+**Multi-Role Support:**
+- 👥 **Multiple Roles**: One email can be CHW + Nonprofit Staff + Association Member
+- 🔄 **Role Switcher**: Dropdown UI to switch between roles instantly
+- ⭐ **Primary Role**: Set your default/active role
+- 🎯 **Context-Aware Navigation**: Navigation updates based on active role
+- 📊 **Profile Management Page**: View and manage all roles in one place
+
+**Role Switcher Features:**
+- 🎨 **Visual Icons**: Each role has a unique icon (Person, Business, Groups, Admin)
+- ✅ **Active Indicator**: Checkmark and badge show current role
+- 🔁 **One-Click Switch**: Change roles and reload automatically
+- 📱 **Compact Mode**: Mobile-friendly dropdown
+- 🎭 **Role Count**: Shows how many roles you have
+
+**Profile Management:**
+- 📋 **View All Roles**: See all assigned roles in one list
+- ⭐ **Set Primary**: Click to make any role your default
+- 👁️ **View Profiles**: Quick links to each role's full profile
+- 📊 **Profile Summaries**: CHW and Nonprofit profile cards
+- 💼 **Role Descriptions**: Clear explanation of each role's capabilities
+
+**Registration Updates:**
+- 🔐 **Smart Registration**: Detects existing accounts
+- ➕ **Add Role**: Sign in and add new role to existing account
+- 🚫 **Duplicate Prevention**: Won't create duplicate profiles
+- 🔑 **Password Verification**: Must use correct password for existing accounts
+- 📝 **Clear Messaging**: Helpful error messages guide users
+
+**Technical Implementation:**
+- ✅ **Schema Updates**: `roles[]`, `primaryRole`, `organizationIds[]`
+- ✅ **Profile References**: `chwProfileId`, `nonprofitProfileId`, `associationProfileId`
+- ✅ **AuthContext**: `switchRole()` method for role switching
+- ✅ **Backward Compatible**: Existing single-role users work seamlessly
+- ✅ **Firestore Integration**: Updates persist across sessions
+
+**User Experience:**
+1. Register as CHW with email@example.com
+2. Later register nonprofit with same email
+3. System detects existing account
+4. Adds NONPROFIT_STAFF to roles array
+5. Role switcher appears in header
+6. Click to switch between CHW and Nonprofit views
+7. Navigation and permissions update automatically
+
+**Routes:**
+- `/profile` - User profile with role switcher
+- `/profile-management` - Manage all roles and profiles
+
+### 🎨 UI/UX Improvements
+
+#### **Region Dropdown** 🗺️
+- 📍 **Standardized Regions**: Dropdown with Region 1-6 options
+- ✅ **Data Consistency**: No more free-text variations
+- � **Better Reporting**: Consistent values for analytics
+- 📝 **Registration & Profile**: Updated in both forms
+
+#### **Profile Photo Editing** 📸
+- 🖼️ **Click to Upload**: Click avatar or edit icon to change photo
+- 🔄 **Auto-Compression**: Resizes to 400x400, JPEG 70% quality
+- ⚡ **Instant Preview**: See new photo immediately
+- 💾 **Save with Profile**: Photo persists to Firestore
+- 🎨 **Edit Mode**: Edit icon appears when editing profile
+
+#### **Edit Button Visibility** ✏️
+- 📍 **Upper Left Corner**: Prominent "Edit Profile" button
+- 🎨 **Contained Style**: Filled button for better visibility
+- 📏 **Large Size**: Easy to find and click
+- ✅ **Always Visible**: Shows immediately on profile page
+
+#### **CHW Profile Cards** 🎴
+- 🧹 **Cleaner Design**: Removed bio text from cards
+- 📊 **Key Info Only**: Photo, name, location, specializations, languages
+- 📏 **Consistent Heights**: Cards align better in grid
+- 👁️ **Better Scanning**: Easier to browse directory
+- 📖 **Full Bio**: Still available on detailed profile page
+
+### �🆕 CHW Registration Form Enhancements
 
 #### **Enhanced User Experience** ✨
 The CHW registration form has been completely redesigned with modern UX best practices:
@@ -611,7 +692,7 @@ Comprehensive guides for all major features:
 - **POST** `/api/chw/add-job-recommendation` - Save job recommendations
 - **POST** `/api/admin/crawl-jobs` - Execute job crawler
 
-## �📞 Support
+## �� Support
 
 ### Documentation
 - [Firebase Documentation](https://firebase.google.com/docs)
