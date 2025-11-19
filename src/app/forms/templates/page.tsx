@@ -237,16 +237,46 @@ function TemplatesContent() {
 
     setCopying(true);
     try {
+      // Flatten the schema fields into a simple fields array for the form
+      const flattenedFields: any[] = [];
+      if (template.schema?.sections) {
+        template.schema.sections.forEach((section: any) => {
+          section.fields.forEach((field: any) => {
+            flattenedFields.push({
+              id: field.id,
+              name: field.id, // Use id as name
+              label: field.label,
+              type: field.type,
+              required: field.required || false,
+              placeholder: field.placeholder,
+              options: field.options?.map((opt: any) => ({
+                value: typeof opt === 'string' ? opt : opt.value,
+                label: typeof opt === 'string' ? opt : opt.label
+              })),
+              validation: field.validation
+            });
+          });
+        });
+      }
+
       // Create a copy of the template for the user
-      const { id, ...templateWithoutId } = template; // Remove id from template
+      const { id, schema, ...templateWithoutId } = template; // Remove id and schema from template
       const newForm = {
-        ...templateWithoutId,
+        title: template.name || template.schema?.title || 'Untitled Form',
+        description: template.description || template.schema?.description || '',
+        category: template.category || 'other',
+        tags: template.metadata?.tags || [],
+        fields: flattenedFields, // Use flattened fields array
         userId: currentUser.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         status: 'draft',
         isTemplate: false,
         templateId: template.id, // Reference to the original template
+        settings: {
+          confirmationMessage: 'Thank you for your submission!',
+          allowAnonymous: true
+        },
         metadata: {
           ...template.metadata,
           copiedFrom: template.name,
