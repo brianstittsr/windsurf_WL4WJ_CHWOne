@@ -95,6 +95,10 @@ export default function PublicFormPage() {
         fields: formData.fields || []
       };
 
+      console.log('Fetched form data:', formData);
+      console.log('Form fields:', fetchedForm.fields);
+      console.log('Number of fields:', fetchedForm.fields.length);
+
       setForm(fetchedForm);
 
       // Initialize form data
@@ -488,26 +492,40 @@ export default function PublicFormPage() {
         {/* Form */}
         <Paper elevation={2} sx={{ p: 4 }}>
           <form onSubmit={handleSubmit}>
-            {form.fields.map(field => (
-              <Box key={field.id}>
-                {renderField(field)}
-              </Box>
-            ))}
+            {form.fields && form.fields.length > 0 ? (
+              <>
+                {form.fields.map(field => (
+                  <Box key={field.id}>
+                    {renderField(field)}
+                  </Box>
+                ))}
 
-            <Divider sx={{ my: 3 }} />
+                <Divider sx={{ my: 3 }} />
 
-            <Box sx={{ textAlign: 'center' }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                startIcon={submitting ? <CircularProgress size={20} /> : <SendIcon />}
-                disabled={submitting}
-                sx={{ minWidth: 200 }}
-              >
-                {submitting ? 'Submitting...' : 'Submit Survey'}
-              </Button>
-            </Box>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    startIcon={submitting ? <CircularProgress size={20} /> : <SendIcon />}
+                    disabled={submitting}
+                    sx={{ minWidth: 200 }}
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Survey'}
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              <Alert severity="warning">
+                <Typography variant="h6" gutterBottom>No Form Fields Found</Typography>
+                <Typography variant="body2">
+                  This form doesn't have any fields configured yet. Please contact the form administrator.
+                </Typography>
+                <Typography variant="caption" sx={{ mt: 2, display: 'block' }}>
+                  Debug Info: Form ID: {formId}
+                </Typography>
+              </Alert>
+            )}
           </form>
         </Paper>
 
