@@ -386,10 +386,6 @@ const CHWCard = ({ chw }: { chw: MockCHWProfile }) => {
             ))}
           </Box>
         </Box>
-        
-        <Typography variant="body2" color="text.secondary">
-          {chw.bio}
-        </Typography>
       </CardContent>
       <CardActions>
         <Button 
