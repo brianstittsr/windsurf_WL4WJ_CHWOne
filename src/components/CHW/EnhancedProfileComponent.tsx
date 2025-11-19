@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { COLLECTIONS } from '@/lib/schema/unified-schema';
 import {
   Card,
   CardContent,
@@ -26,7 +29,8 @@ import {
   Autocomplete,
   IconButton,
   Paper,
-  Stack
+  Stack,
+  CircularProgress
 } from '@mui/material';
 import {
   Person,
@@ -101,6 +105,7 @@ export default function EnhancedProfileComponent({
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -131,17 +136,97 @@ export default function EnhancedProfileComponent({
   });
 
   useEffect(() => {
-    if (currentUser) {
-      // Load profile data - in real implementation, this would come from API
-      setProfile(prev => ({
-        ...prev,
-        userId: currentUser.uid,
-        firstName: currentUser.displayName?.split(' ')[0] || '',
-        lastName: currentUser.displayName?.split(' ')[1] || '',
-        email: currentUser.email || '',
-        profilePicture: currentUser.photoURL || undefined
-      }));
-    }
+    const loadProfile = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        console.log('Loading CHW profile for user:', currentUser.uid);
+
+        // Load from chwProfiles collection
+        const profileRef = doc(db, COLLECTIONS.CHW_PROFILES, currentUser.uid);
+        const profileSnap = await getDoc(profileRef);
+
+        if (profileSnap.exists()) {
+          const data = profileSnap.data();
+          console.log('CHW profile loaded:', data);
+          
+          // Map Firestore data to profile state
+          setProfile({
+            id: profileSnap.id,
+            userId: data.userId || currentUser.uid,
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            email: data.email || currentUser.email || '',
+            phone: data.phone || '',
+            address: data.address || {},
+            profilePicture: data.profilePicture || currentUser.photoURL || undefined,
+            displayName: data.displayName || `${data.firstName} ${data.lastName}`,
+            professional: {
+              headline: data.professional?.headline || '',
+              bio: data.professional?.bio || '',
+              expertise: data.professional?.expertise || [],
+              additionalExpertise: data.professional?.additionalExpertise || '',
+              languages: data.professional?.languages || ['English'],
+              availableForOpportunities: data.professional?.availableForOpportunities ?? true,
+              yearsOfExperience: data.professional?.yearsOfExperience || 0,
+              specializations: data.professional?.specializations || data.professional?.expertise || [],
+              currentOrganization: data.professional?.currentOrganization || '',
+              currentPosition: data.professional?.currentPosition || ''
+            },
+            serviceArea: {
+              region: data.serviceArea?.region || '',
+              countiesWorkedIn: data.serviceArea?.countiesWorkedIn || [],
+              countyResideIn: data.serviceArea?.countyResideIn || '',
+              currentOrganization: data.serviceArea?.currentOrganization || data.professional?.currentOrganization,
+              role: data.serviceArea?.role || data.professional?.currentPosition
+            },
+            certification: data.certification || {
+              certificationNumber: '',
+              certificationStatus: 'not_certified',
+              certificationExpiration: undefined,
+              expirationDate: undefined
+            },
+            contactPreferences: {
+              allowDirectMessages: data.contactPreferences?.allowDirectMessages ?? true,
+              showEmail: data.contactPreferences?.showEmail ?? false,
+              showPhone: data.contactPreferences?.showPhone ?? false,
+              showAddress: data.contactPreferences?.showAddress ?? false
+            },
+            membership: {
+              dateRegistered: data.membership?.dateRegistered || data.createdAt,
+              includeInDirectory: data.membership?.includeInDirectory ?? true,
+              renewalDate: data.membership?.renewalDate
+            },
+            toolAccess: data.toolAccess || DEFAULT_CHW_PROFILE.toolAccess,
+            socialLinks: data.socialLinks || {},
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt
+          });
+        } else {
+          console.log('No CHW profile found, using defaults with Auth data');
+          // No profile exists yet, use defaults with Auth data
+          setProfile(prev => ({
+            ...prev,
+            userId: currentUser.uid,
+            firstName: currentUser.displayName?.split(' ')[0] || '',
+            lastName: currentUser.displayName?.split(' ')[1] || '',
+            email: currentUser.email || '',
+            profilePicture: currentUser.photoURL || undefined
+          }));
+        }
+      } catch (err) {
+        console.error('Error loading CHW profile:', err);
+        setError('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
   }, [currentUser]);
 
   const handleInputChange = (field: string, value: any, section?: keyof CHWProfile) => {
@@ -162,6 +247,11 @@ export default function EnhancedProfileComponent({
   };
 
   const handleSave = async () => {
+    if (!currentUser) {
+      setError('You must be logged in to save your profile');
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -171,8 +261,21 @@ export default function EnhancedProfileComponent({
         throw new Error('Please fill in all required fields');
       }
 
-      // In real implementation, save to API
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock API call
+      console.log('Saving CHW profile to Firestore...');
+
+      // Prepare profile data for Firestore
+      const profileData = {
+        ...profile,
+        userId: currentUser.uid,
+        displayName: `${profile.firstName} ${profile.lastName}`,
+        updatedAt: serverTimestamp()
+      };
+
+      // Save to chwProfiles collection
+      const profileRef = doc(db, COLLECTIONS.CHW_PROFILES, currentUser.uid);
+      await setDoc(profileRef, profileData, { merge: true });
+
+      console.log('CHW profile saved successfully');
 
       setSuccess(true);
       setIsEditing(false);
@@ -180,6 +283,7 @@ export default function EnhancedProfileComponent({
 
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
+      console.error('Error saving profile:', err);
       setError(err instanceof Error ? err.message : 'Failed to save profile');
     } finally {
       setSaving(false);
@@ -210,6 +314,19 @@ export default function EnhancedProfileComponent({
   };
 
   const renewalStatus = getRenewalStatus();
+
+  // Show loading state
+  if (loading) {
+    return (
+      <Card sx={{ maxWidth: 1200, mx: 'auto' }}>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+            <CircularProgress size={60} />
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card sx={{ maxWidth: 1200, mx: 'auto' }}>
