@@ -25,6 +25,7 @@ import {
   CheckCircle as CheckCircleIcon,
   QrCode as QrCodeIcon
 } from '@mui/icons-material';
+import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 
@@ -454,7 +455,15 @@ export default function PublicFormPage() {
     return (
       <Container maxWidth="md">
         <Box sx={{ textAlign: 'center', py: 8 }}>
-          <CheckCircleIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Image 
+              src="/images/CHWOneLogoDesign.png" 
+              width={80}
+              height={80}
+              alt="CHWOne Logo"
+              style={{ borderRadius: '50%' }}
+            />
+          </Box>
           <Typography variant="h4" sx={{ mb: 2 }}>
             Thank You!
           </Typography>
