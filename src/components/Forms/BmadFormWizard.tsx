@@ -173,11 +173,16 @@ const generateTitleSuggestions = (title: string): string[] => {
 
 // Function to actually generate and save form to Firestore
 const generateForm = async (formStructure: any, userId: string) => {
+  console.log('[generateForm] Starting form generation...');
+  console.log('[generateForm] Form structure:', formStructure);
+  console.log('[generateForm] User ID:', userId);
+  
   try {
     // Flatten the form structure into fields array
     const flattenedFields: any[] = [];
     
     if (formStructure.sections) {
+      console.log('[generateForm] Processing sections:', formStructure.sections.length);
       formStructure.sections.forEach((section: any) => {
         section.fields.forEach((field: any) => {
           const fieldData: any = {
@@ -207,6 +212,9 @@ const generateForm = async (formStructure: any, userId: string) => {
       });
     }
     
+    console.log('[generateForm] Flattened fields:', flattenedFields.length, 'fields');
+    console.log('[generateForm] Fields:', flattenedFields);
+    
     // Create form document
     const formData = {
       title: formStructure.title,
@@ -230,8 +238,11 @@ const generateForm = async (formStructure: any, userId: string) => {
     };
     
     // Save to Firestore
+    console.log('[generateForm] Saving form to Firestore...');
+    console.log('[generateForm] Form data:', formData);
     const formsRef = collection(db, 'forms');
     const formDocRef = await addDoc(formsRef, formData);
+    console.log('[generateForm] Form saved! ID:', formDocRef.id);
     
     // Create associated dataset
     const datasetData = {
@@ -257,29 +268,37 @@ const generateForm = async (formStructure: any, userId: string) => {
       }
     };
     
+    console.log('[generateForm] Creating dataset...');
     const datasetsRef = collection(db, 'datasets');
     const datasetDocRef = await addDoc(datasetsRef, datasetData);
+    console.log('[generateForm] Dataset created! ID:', datasetDocRef.id);
     
     // Update form with dataset reference
+    console.log('[generateForm] Linking dataset to form...');
     const { doc: docRef, updateDoc } = await import('firebase/firestore');
     const formRef = docRef(db, 'forms', formDocRef.id);
     await updateDoc(formRef, {
       datasetId: datasetDocRef.id
     });
+    console.log('[generateForm] Form updated with dataset reference');
     
-    return {
+    const result = {
       success: true,
       formId: formDocRef.id,
       datasetId: datasetDocRef.id,
       message: 'Form generated and saved successfully'
     };
+    console.log('[generateForm] Returning success result:', result);
+    return result;
   } catch (error) {
-    console.error('Error generating form:', error);
-    return {
+    console.error('[generateForm] Error generating form:', error);
+    const errorResult = {
       success: false,
       formId: null,
-      message: 'Failed to generate form'
+      message: `Failed to generate form: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
+    console.error('[generateForm] Returning error result:', errorResult);
+    return errorResult;
   }
 };
 
@@ -402,13 +421,19 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
   
   // Handle final form generation
   const handleGenerateForm = async () => {
+    console.log('[AI Wizard] Starting form generation...');
+    console.log('[AI Wizard] Form preview:', formPreview);
+    console.log('[AI Wizard] Current user:', currentUser?.uid);
+    
     if (!formPreview) {
       setError('Please generate a form preview first.');
+      console.error('[AI Wizard] No form preview available');
       return;
     }
     
     if (!currentUser) {
       setError('You must be logged in to generate forms.');
+      console.error('[AI Wizard] No current user');
       return;
     }
     
@@ -416,20 +441,29 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
     setError(null);
     
     try {
+      console.log('[AI Wizard] Calling generateForm...');
       const result = await generateForm(formPreview, currentUser.uid);
+      console.log('[AI Wizard] Generation result:', result);
+      
       if (result.success && result.formId) {
+        console.log('[AI Wizard] Form generated successfully! ID:', result.formId);
         setGeneratedFormId(result.formId);
         if (onComplete) {
+          console.log('[AI Wizard] Calling onComplete callback...');
           onComplete(result.formId);
+        } else {
+          console.warn('[AI Wizard] No onComplete callback provided');
         }
       } else {
+        console.error('[AI Wizard] Form generation failed:', result.message);
         setError(result.message || 'Failed to generate form. Please try again.');
       }
     } catch (err) {
+      console.error('[AI Wizard] Exception during form generation:', err);
       setError('An error occurred during form generation. Please try again.');
-      console.error(err);
     } finally {
       setGenerating(false);
+      console.log('[AI Wizard] Form generation complete');
     }
   };
   
