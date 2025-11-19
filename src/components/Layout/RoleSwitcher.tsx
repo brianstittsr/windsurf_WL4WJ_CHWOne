@@ -75,12 +75,32 @@ export default function RoleSwitcher({ compact = false }: RoleSwitcherProps) {
     }
   };
 
-  // Don't show switcher if user has only one role
-  if (!userProfile || !userProfile.roles || userProfile.roles.length <= 1) {
+  // Check if user is admin
+  const isAdmin = userProfile?.roles?.includes(UserRole.ADMIN) || 
+                  userProfile?.primaryRole === UserRole.ADMIN;
+
+  // All available roles for admin users
+  const allAvailableRoles = [
+    UserRole.ADMIN,
+    UserRole.CHW,
+    UserRole.NONPROFIT_STAFF,
+    UserRole.CHW_ASSOCIATION,
+    UserRole.CHW_COORDINATOR,
+    UserRole.WL4WJ_CHW,
+    UserRole.CLIENT,
+    UserRole.VIEWER,
+    UserRole.DEMO
+  ];
+
+  // Determine which roles to show
+  const rolesToShow = isAdmin ? allAvailableRoles : (userProfile?.roles || []);
+
+  // Don't show switcher if user has only one role (unless they're admin)
+  if (!userProfile || (!isAdmin && rolesToShow.length <= 1)) {
     return null;
   }
 
-  const currentRole = userProfile.primaryRole || userProfile.roles[0];
+  const currentRole = userProfile.primaryRole || userProfile.roles?.[0] || UserRole.VIEWER;
   const currentRoleDisplay = roleDisplayNames[currentRole] || currentRole;
   const currentRoleIcon = roleIcons[currentRole] || <CHWIcon fontSize="small" />;
 
@@ -112,11 +132,11 @@ export default function RoleSwitcher({ compact = false }: RoleSwitcherProps) {
         >
           <Box sx={{ px: 2, py: 1 }}>
             <Typography variant="caption" color="text.secondary">
-              Switch Role
+              {isAdmin ? 'Switch Role (Admin Mode)' : 'Switch Role'}
             </Typography>
           </Box>
           <Divider />
-          {userProfile.roles.map((role) => (
+          {rolesToShow.map((role) => (
             <MenuItem
               key={role}
               onClick={() => handleRoleSwitch(role)}
@@ -173,14 +193,14 @@ export default function RoleSwitcher({ compact = false }: RoleSwitcherProps) {
       >
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            Switch Active Role
+            {isAdmin ? 'Switch Active Role (Admin Mode)' : 'Switch Active Role'}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            You have {userProfile.roles.length} roles
+            {isAdmin ? `All ${rolesToShow.length} roles available` : `You have ${userProfile.roles?.length || 0} roles`}
           </Typography>
         </Box>
         <Divider />
-        {userProfile.roles.map((role) => (
+        {rolesToShow.map((role) => (
           <MenuItem
             key={role}
             onClick={() => handleRoleSwitch(role)}
