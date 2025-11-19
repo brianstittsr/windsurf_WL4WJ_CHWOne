@@ -1,7 +1,14 @@
 # Leadership Connections Platform Recreation Prompt
 
+## Purpose of This Prompt
+
+**This prompt is designed to add the features listed below into an EXISTING Next.js website's admin section.**
+
+The goal is to integrate a comprehensive alumni management and networking system into the Leadership Connections website (https://www.ncleadconnect.org). These features will be added to the admin area of the existing site, allowing administrators and members to manage profiles, create forms, track engagement, and facilitate networking among North Carolina's leadership program alumni.
+
 ## Overview
-Create a comprehensive Leadership Connections networking platform for past leadership members and program graduates. This platform facilitates professional networking, mentorship, and community engagement among North Carolina's leadership alumni. This is a Next.js 14+ application using TypeScript, Material-UI, and Firebase (Firestore) for data persistence.
+
+Add a comprehensive Leadership Connections networking platform for past leadership members and program graduates to the existing Next.js website. This platform facilitates professional networking, mentorship, and community engagement among North Carolina's leadership alumni. The implementation uses TypeScript, Material-UI, and Firebase (Firestore) for data persistence.
 
 **Platform Purpose:**
 - Connect past leadership program members and graduates
@@ -10,6 +17,14 @@ Create a comprehensive Leadership Connections networking platform for past leade
 - Facilitate knowledge sharing and collaboration
 - Track leadership program participation and achievements
 - Support ongoing community engagement
+
+**Integration Context:**
+- Add features to existing Next.js website
+- Integrate into admin section (`/admin/*` routes)
+- Maintain consistency with existing site design
+- Use existing authentication system or integrate Firebase Auth
+- Preserve existing site structure and public pages
+- Add new admin routes without disrupting current functionality
 
 ---
 
@@ -120,7 +135,7 @@ Create a comprehensive profile management system for Leadership Connections memb
 - Profile verification badge (for confirmed alumni)
 
 **Technical Stack:**
-- Next.js App Router (`/profile`, `/members/[id]`)
+- Next.js App Router (`/admin/profile`, `/admin/members/[id]`)
 - Material-UI components (TextField, Select, Autocomplete, etc.)
 - Firebase Firestore for data storage
 - Firebase Storage for profile photos
@@ -130,6 +145,7 @@ Create a comprehensive profile management system for Leadership Connections memb
 - Image cropping library (react-easy-crop)
 - Responsive design (mobile-first)
 - SEO optimization for public profiles
+- Protected routes with authentication middleware
 
 ---
 
@@ -677,20 +693,63 @@ Create a reporting and analytics dashboard for member engagement, event particip
 - **Validation:** Custom validation functions
 - **Icons:** Material-UI Icons (@mui/icons-material)
 
+### Integration Considerations:
+
+**Working with Existing Site:**
+1. **Preserve Existing Routes:** Do not modify or interfere with existing public pages
+2. **Admin Section Isolation:** All new features under `/admin/*` routes
+3. **Shared Components:** Reuse existing layout components where possible
+4. **Design Consistency:** Match existing site's theme, colors, and typography
+5. **Authentication:** Integrate with existing auth or add Firebase Auth middleware
+6. **Database:** Add Firebase collections without affecting existing data
+7. **Navigation:** Add admin navigation menu (sidebar or top nav)
+8. **Permissions:** Implement role-based access control for admin features
+9. **API Routes:** Add new API endpoints under `/api/admin/*`
+10. **Environment Variables:** Add Firebase config to existing `.env` files
+
+**Admin Layout Requirements:**
+- Protected routes (require authentication)
+- Admin navigation menu with sections:
+  - Dashboard
+  - My Profile
+  - Member Directory
+  - Forms Management
+  - Datasets
+  - Reports
+  - Settings
+- Breadcrumb navigation
+- User menu (profile, logout)
+- Responsive sidebar/drawer
+- Page titles and metadata
+
 ### Project Structure:
+
+**Admin Routes to Add:**
 ```
 src/
 ├── app/
-│   ├── profile/
+│   ├── admin/                          # NEW: Admin section
+│   │   ├── layout.tsx                  # Admin layout with navigation
+│   │   ├── page.tsx                    # Admin dashboard
+│   │   ├── profile/                    # Member profile management
+│   │   │   └── page.tsx
+│   │   ├── members/                    # Member directory
+│   │   │   ├── page.tsx                # Directory list
+│   │   │   └── [id]/page.tsx           # Individual member view
+│   │   ├── forms/                      # Forms management
+│   │   │   ├── page.tsx                # Forms list
+│   │   │   ├── templates/              # Form templates
+│   │   │   └── [id]/                   # Form editor
+│   │   ├── datasets/                   # Dataset management
+│   │   │   ├── page.tsx                # Dataset list
+│   │   │   └── [id]/page.tsx           # Dataset detail
+│   │   ├── reports/                    # Reports & analytics
+│   │   │   └── page.tsx
+│   │   └── settings/                   # Admin settings
+│   │       └── page.tsx
 │   ├── forms/
-│   │   ├── page.tsx (Forms Management)
-│   │   ├── templates/
-│   │   └── public/[formId]/
-│   ├── datasets/
-│   │   ├── page.tsx (Dataset List)
-│   │   └── [id]/page.tsx (Dataset Detail)
-│   ├── reports/
-│   └── api/
+│   │   └── public/[formId]/            # Public form submission (non-admin)
+│   └── api/                            # API routes
 ├── components/
 │   ├── Forms/
 │   │   ├── FormsManagement.tsx
