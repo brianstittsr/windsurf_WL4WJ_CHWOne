@@ -1159,12 +1159,22 @@ export default function EnhancedProfileComponent({
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Region"
-                value={profile.serviceArea.region}
-                disabled
-              />
+              <FormControl fullWidth>
+                <InputLabel>Region</InputLabel>
+                <Select
+                  value={profile.serviceArea.region || ''}
+                  onChange={(e) => handleInputChange('region', e.target.value, 'serviceArea')}
+                  disabled={!isEditing}
+                  label="Region"
+                >
+                  <MenuItem value="Region 1">Region 1</MenuItem>
+                  <MenuItem value="Region 2">Region 2</MenuItem>
+                  <MenuItem value="Region 3">Region 3</MenuItem>
+                  <MenuItem value="Region 4">Region 4</MenuItem>
+                  <MenuItem value="Region 5">Region 5</MenuItem>
+                  <MenuItem value="Region 6">Region 6</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
 
             <Grid item xs={12}>

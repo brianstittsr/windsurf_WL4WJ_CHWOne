@@ -966,13 +966,21 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Region"
-                value={formData.serviceArea?.region}
-                onChange={(e) => updateNestedField('serviceArea', 'region', e.target.value)}
-                placeholder="e.g., Region 5"
-              />
+              <FormControl fullWidth>
+                <InputLabel>Region</InputLabel>
+                <Select
+                  value={formData.serviceArea?.region || ''}
+                  onChange={(e) => updateNestedField('serviceArea', 'region', e.target.value)}
+                  label="Region"
+                >
+                  <MenuItem value="Region 1">Region 1</MenuItem>
+                  <MenuItem value="Region 2">Region 2</MenuItem>
+                  <MenuItem value="Region 3">Region 3</MenuItem>
+                  <MenuItem value="Region 4">Region 4</MenuItem>
+                  <MenuItem value="Region 5">Region 5</MenuItem>
+                  <MenuItem value="Region 6">Region 6</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
