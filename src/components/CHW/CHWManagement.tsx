@@ -24,115 +24,142 @@ export default function CHWManagement() {
         // Enhanced mock CHW data with more realistic scenarios
         const mockCHWs: CHWProfile[] = [
           {
-            uid: 'chw-1',
+            userId: 'chw-1',
             firstName: 'Maria',
             lastName: 'Rodriguez',
-            certificationNumber: 'CHW-2024-001',
-            certificationDate: new Date('2024-01-15') as any,
-            expirationDate: new Date('2026-01-15') as any,
-            certificationLevel: 'advanced',
-            specializations: ['Maternal Health', 'Diabetes Management', 'Hypertension Care'],
-            region: 'Charlotte Metro',
-            serviceArea: ['Mecklenburg County', 'Union County'],
-            zipCodes: ['28202', '28203', '28204'],
-            languages: ['English', 'Spanish'],
-            skills: ['Blood Pressure Screening', 'Diabetes Education', 'Prenatal Care'],
-            primaryPhone: '704-555-1234',
-            availability: {
-              monday: [{ start: '09:00', end: '17:00' }],
-              tuesday: [{ start: '09:00', end: '17:00' }],
-              wednesday: [{ start: '09:00', end: '17:00' }],
-              thursday: [{ start: '09:00', end: '17:00' }],
-              friday: [{ start: '09:00', end: '17:00' }],
-              saturday: [],
-              sunday: []
+            email: 'maria.rodriguez@example.com',
+            phone: '704-555-1234',
+            displayName: 'Maria Rodriguez',
+            professional: {
+              headline: 'Experienced CHW specializing in Maternal Health',
+              bio: 'Dedicated community health worker with focus on maternal and child health',
+              expertise: ['Maternal Health', 'Diabetes Management', 'Hypertension Care'],
+              languages: ['English', 'Spanish'],
+              availableForOpportunities: true,
+              yearsOfExperience: 5,
+              specializations: ['Maternal Health', 'Diabetes Management', 'Hypertension Care'],
+              currentOrganization: 'Charlotte Health Center',
+              currentPosition: 'Senior CHW'
             },
-            isActive: true,
-            caseLoad: 22,
-            maxCaseLoad: 25,
-            completedTrainings: 12,
-            totalEncounters: 156,
-            profileVisible: true,
-            allowContactSharing: true,
-            supervisor: 'Sarah Johnson',
-            resources: [],
-            equipment: ['Blood Pressure Cuff', 'Tablet', 'Educational Materials'],
-            createdAt: new Date('2024-01-15') as any,
-            updatedAt: new Date('2024-01-15') as any
+            serviceArea: {
+              region: 'Charlotte Metro',
+              countiesWorkedIn: ['Mecklenburg County', 'Union County'],
+              countyResideIn: 'Mecklenburg County',
+              primaryCounty: 'Mecklenburg County',
+              currentOrganization: 'Charlotte Health Center',
+              role: 'Senior CHW'
+            },
+            certification: {
+              certificationNumber: 'CHW-2024-001',
+              certificationStatus: 'certified',
+              certificationExpiration: '2026-01-15',
+              expirationDate: '2026-01-15'
+            },
+            membership: {
+              dateRegistered: '2024-01-15',
+              includeInDirectory: true
+            },
+            contactPreferences: {
+              allowDirectMessages: true,
+              showEmail: true,
+              showPhone: true,
+              showAddress: false
+            },
+            status: 'active',
+            createdAt: '2024-01-15',
+            updatedAt: '2024-01-15'
           },
           {
-            uid: 'chw-2',
+            userId: 'chw-2',
             firstName: 'James',
             lastName: 'Wilson',
-            certificationNumber: 'CHW-2024-002',
-            certificationDate: new Date('2024-02-01') as any,
-            expirationDate: new Date('2025-02-15') as any, // Expiring soon
-            certificationLevel: 'intermediate',
-            specializations: ['Mental Health', 'Substance Abuse', 'Crisis Intervention'],
-            region: 'Triangle',
-            serviceArea: ['Durham County', 'Wake County'],
-            zipCodes: ['27701', '27703', '27601'],
-            languages: ['English', 'French'],
-            skills: ['Crisis Intervention', 'Mental Health First Aid', 'Substance Abuse Counseling'],
-            primaryPhone: '919-555-2345',
-            availability: {
-              monday: [{ start: '10:00', end: '18:00' }],
-              tuesday: [{ start: '10:00', end: '18:00' }],
-              wednesday: [{ start: '10:00', end: '18:00' }],
-              thursday: [{ start: '10:00', end: '18:00' }],
-              friday: [{ start: '10:00', end: '18:00' }],
-              saturday: [],
-              sunday: []
+            email: 'james.wilson@example.com',
+            phone: '919-555-2345',
+            displayName: 'James Wilson',
+            professional: {
+              headline: 'Mental Health and Crisis Intervention Specialist',
+              bio: 'Experienced in mental health support and crisis intervention',
+              expertise: ['Mental Health', 'Substance Abuse', 'Crisis Intervention'],
+              languages: ['English', 'French'],
+              availableForOpportunities: true,
+              yearsOfExperience: 3,
+              specializations: ['Mental Health', 'Substance Abuse', 'Crisis Intervention'],
+              currentOrganization: 'Triangle Mental Health',
+              currentPosition: 'CHW'
             },
-            isActive: true,
-            caseLoad: 18,
-            maxCaseLoad: 20,
-            completedTrainings: 8,
-            totalEncounters: 112,
-            profileVisible: true,
-            allowContactSharing: true,
-            supervisor: 'Michael Davis',
-            resources: [],
-            equipment: ['Laptop', 'Resource Guides', 'Crisis Intervention Kit'],
-            createdAt: new Date('2024-02-01') as any,
-            updatedAt: new Date('2024-02-01') as any
+            serviceArea: {
+              region: 'Triangle',
+              countiesWorkedIn: ['Durham County', 'Wake County'],
+              countyResideIn: 'Durham County',
+              primaryCounty: 'Durham County',
+              currentOrganization: 'Triangle Mental Health',
+              role: 'CHW'
+            },
+            certification: {
+              certificationNumber: 'CHW-2024-002',
+              certificationStatus: 'certified',
+              certificationExpiration: '2025-02-15',
+              expirationDate: '2025-02-15'
+            },
+            membership: {
+              dateRegistered: '2024-02-01',
+              includeInDirectory: true
+            },
+            contactPreferences: {
+              allowDirectMessages: true,
+              showEmail: true,
+              showPhone: true,
+              showAddress: false
+            },
+            status: 'active',
+            createdAt: '2024-02-01',
+            updatedAt: '2024-02-01'
           },
           {
-            uid: 'chw-3',
+            userId: 'chw-3',
             firstName: 'Tasha',
             lastName: 'Johnson',
-            certificationNumber: 'CHW-2024-003',
-            certificationDate: new Date('2024-03-10') as any,
-            expirationDate: new Date('2026-03-10') as any,
-            certificationLevel: 'entry',
-            specializations: ['Pediatric Care', 'Immunizations', 'Child Development'],
-            region: 'Western NC',
-            serviceArea: ['Buncombe County', 'Henderson County'],
-            zipCodes: ['28801', '28803', '28792'],
-            languages: ['English'],
-            skills: ['Pediatric Assessment', 'Immunization Education', 'Child Development Screening'],
-            primaryPhone: '828-555-3456',
-            availability: {
-              monday: [{ start: '08:00', end: '16:00' }],
-              tuesday: [{ start: '08:00', end: '16:00' }],
-              wednesday: [{ start: '08:00', end: '16:00' }],
-              thursday: [{ start: '08:00', end: '16:00' }],
-              friday: [{ start: '08:00', end: '16:00' }],
-              saturday: [],
-              sunday: []
+            email: 'tasha.johnson@example.com',
+            phone: '828-555-3456',
+            displayName: 'Tasha Johnson',
+            professional: {
+              headline: 'Pediatric Care and Child Development Specialist',
+              bio: 'Focused on pediatric care and child development',
+              expertise: ['Pediatric Care', 'Immunizations', 'Child Development'],
+              languages: ['English'],
+              availableForOpportunities: true,
+              yearsOfExperience: 2,
+              specializations: ['Pediatric Care', 'Immunizations', 'Child Development'],
+              currentOrganization: 'Western NC Health',
+              currentPosition: 'CHW'
             },
-            isActive: true,
-            caseLoad: 15,
-            maxCaseLoad: 30,
-            completedTrainings: 5,
-            totalEncounters: 87,
-            profileVisible: true,
-            allowContactSharing: true,
-            supervisor: 'Lisa Rodriguez',
-            resources: [],
-            equipment: ['Growth Charts', 'Developmental Screening Tools', 'Educational Materials'],
-            createdAt: new Date('2024-03-10') as any,
-            updatedAt: new Date('2024-03-10') as any
+            serviceArea: {
+              region: 'Western NC',
+              countiesWorkedIn: ['Buncombe County', 'Henderson County'],
+              countyResideIn: 'Buncombe County',
+              primaryCounty: 'Buncombe County',
+              currentOrganization: 'Western NC Health',
+              role: 'CHW'
+            },
+            certification: {
+              certificationNumber: 'CHW-2024-003',
+              certificationStatus: 'certified',
+              certificationExpiration: '2026-03-10',
+              expirationDate: '2026-03-10'
+            },
+            membership: {
+              dateRegistered: '2024-03-10',
+              includeInDirectory: true
+            },
+            contactPreferences: {
+              allowDirectMessages: true,
+              showEmail: true,
+              showPhone: true,
+              showAddress: false
+            },
+            status: 'active',
+            createdAt: '2024-03-10',
+            updatedAt: '2024-03-10'
           }
         ];
         setCHWs(mockCHWs);
@@ -204,18 +231,18 @@ export default function CHWManagement() {
           </TableHead>
           <TableBody>
             {chws.map((chw) => {
-              // Handle both Date and Timestamp objects
-              const expirationDate = typeof chw.expirationDate === 'object' && 'toDate' in chw.expirationDate 
-                ? chw.expirationDate.toDate() 
-                : new Date(chw.expirationDate);
-              const certStatus = getCertificationStatus(expirationDate);
+              // Handle certification expiration date
+              const expirationDate = chw.certification?.expirationDate 
+                ? new Date(chw.certification.expirationDate)
+                : null;
+              const certStatus = expirationDate ? getCertificationStatus(expirationDate) : { status: 'Unknown', variant: 'default' };
               
               return (
-                <TableRow key={chw.uid}>
+                <TableRow key={chw.userId || chw.id}>
                   <TableCell>{`${chw.firstName} ${chw.lastName}`}</TableCell>
-                  <TableCell>{chw.certificationNumber}</TableCell>
-                  <TableCell>{chw.region}</TableCell>
-                  <TableCell>{chw.languages.join(', ')}</TableCell>
+                  <TableCell>{chw.certification?.certificationNumber || 'N/A'}</TableCell>
+                  <TableCell>{chw.serviceArea.region}</TableCell>
+                  <TableCell>{chw.professional.languages.join(', ')}</TableCell>
                   <TableCell>
                     <Chip 
                       label={certStatus.status}
@@ -225,8 +252,8 @@ export default function CHWManagement() {
                   </TableCell>
                   <TableCell>
                     <Chip 
-                      label={chw.isActive ? 'Active' : 'Inactive'}
-                      color={chw.isActive ? 'success' : 'default'}
+                      label={chw.status === 'active' ? 'Active' : 'Inactive'}
+                      color={chw.status === 'active' ? 'success' : 'default'}
                       size="small"
                     />
                   </TableCell>
@@ -236,7 +263,7 @@ export default function CHWManagement() {
                         size="small" 
                         variant="outlined" 
                         startIcon={<FaEye />}
-                        onClick={() => alert(`View CHW ${chw.uid}`)}
+                        onClick={() => alert(`View CHW ${chw.userId || chw.id}`)}
                       >
                         View
                       </Button>
@@ -244,7 +271,7 @@ export default function CHWManagement() {
                         size="small" 
                         variant="outlined" 
                         startIcon={<FaEdit />}
-                        onClick={() => alert(`Edit CHW ${chw.uid}`)}
+                        onClick={() => alert(`Edit CHW ${chw.userId || chw.id}`)}
                       >
                         Edit
                       </Button>
