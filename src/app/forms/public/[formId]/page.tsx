@@ -70,71 +70,36 @@ export default function PublicFormPage() {
   const fetchForm = async () => {
     try {
       setLoading(true);
-      // In a real implementation, this would fetch from your API
-      // For now, we'll use mock data
-      const mockForm: Form = {
-        id: formId,
-        title: 'Community Health Assessment',
-        description: 'Please help us understand your health needs by completing this survey.',
+      
+      // Fetch the actual form from Firestore
+      const formDocRef = doc(db, 'forms', formId);
+      const formDoc = await getDoc(formDocRef);
+      
+      if (!formDoc.exists()) {
+        console.error('Form not found');
+        setLoading(false);
+        return;
+      }
+      
+      const formData = formDoc.data();
+      
+      // Convert Firestore data to Form interface
+      const fetchedForm: Form = {
+        id: formDoc.id,
+        title: formData.title || formData.name || 'Untitled Form',
+        description: formData.description || '',
         settings: {
-          confirmationMessage: 'Thank you for completing this survey! Your responses help us provide better community health services.',
-          allowAnonymous: true
+          confirmationMessage: formData.settings?.confirmationMessage || 'Thank you for your submission!',
+          allowAnonymous: formData.settings?.allowAnonymous !== false // Default to true
         },
-        fields: [
-          {
-            id: 'name',
-            name: 'fullName',
-            label: 'Full Name',
-            type: 'text',
-            required: true,
-            placeholder: 'Enter your full name'
-          },
-          {
-            id: 'email',
-            name: 'email',
-            label: 'Email Address',
-            type: 'email',
-            required: true,
-            placeholder: 'your.email@example.com'
-          },
-          {
-            id: 'age',
-            name: 'age',
-            label: 'Age',
-            type: 'number',
-            required: false,
-            placeholder: 'Your age in years'
-          },
-          {
-            id: 'services',
-            name: 'neededServices',
-            label: 'Services Needed',
-            type: 'checkbox',
-            required: false,
-            options: [
-              { value: 'medical', label: 'Medical Care' },
-              { value: 'dental', label: 'Dental Care' },
-              { value: 'mental', label: 'Mental Health Services' },
-              { value: 'nutrition', label: 'Nutrition Counseling' },
-              { value: 'transportation', label: 'Transportation' }
-            ]
-          },
-          {
-            id: 'comments',
-            name: 'additionalComments',
-            label: 'Additional Comments',
-            type: 'textarea',
-            required: false,
-            placeholder: 'Any additional information you\'d like to share...'
-          }
-        ]
+        fields: formData.fields || []
       };
 
-      setForm(mockForm);
+      setForm(fetchedForm);
 
       // Initialize form data
       const initialData: Record<string, any> = {};
-      mockForm.fields.forEach(field => {
+      fetchedForm.fields.forEach(field => {
         if (field.type === 'checkbox') {
           initialData[field.name] = [];
         } else {
