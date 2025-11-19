@@ -650,6 +650,18 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
               </FormControl>
             </Grid>
             <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Additional Expertise"
+                value={formData.professional?.additionalExpertise || ''}
+                onChange={(e) => updateNestedField('professional', 'additionalExpertise', e.target.value)}
+                placeholder="Describe any other skills, experiences, or areas of expertise not listed above..."
+                helperText="Share additional qualifications, certifications, or unique experiences that make you stand out"
+              />
+            </Grid>
+            <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel>Languages Spoken</InputLabel>
                 <Select
@@ -672,18 +684,6 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                label="Additional Expertise"
-                value={formData.professional?.additionalExpertise || ''}
-                onChange={(e) => updateNestedField('professional', 'additionalExpertise', e.target.value)}
-                placeholder="Describe any other skills, experiences, or areas of expertise not listed above..."
-                helperText="Share additional qualifications, certifications, or unique experiences that make you stand out"
-              />
             </Grid>
           </Grid>
         );

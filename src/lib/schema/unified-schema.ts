@@ -83,73 +83,125 @@ export interface UserPermissions {
 // ============================================================================
 
 // CHW Profile (detailed information about community health workers)
+// Aligned with chw-profile.types.ts for consistency across the application
 export interface CHWProfile {
-  uid: string;                          // Links to User.uid
-  
-  // Personal Information
+  // Basic Information
+  id?: string;
+  userId: string;                       // Links to User.uid
   firstName: string;
   lastName: string;
-  dateOfBirth?: Timestamp;
-  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
-  
-  // Professional Information
-  certificationNumber: string;          // Unique CHW identifier
-  certificationDate: Timestamp;
-  expirationDate: Timestamp;
-  certificationLevel: 'entry' | 'intermediate' | 'advanced' | 'lead';
-  hireDate?: Timestamp;
-  supervisor?: string;                  // UID of supervisor
-  
-  // Contact Information
-  primaryPhone: string;
-  secondaryPhone?: string;
-  emergencyContact?: {
-    name: string;
-    relationship: string;
-    phone: string;
+  email: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
   };
   
-  // Service Information
-  region: string;                       // Geographic region
-  serviceArea: string[];                // Counties/areas served
-  zipCodes: string[];                   // ZIP codes covered
-  travelRadius?: number;                // Miles willing to travel
-  languages: string[];                  // Languages spoken
-  specializations: string[];            // Areas of expertise
-  skills: string[];                     // Specific skills
+  // Profile Display
+  profilePicture?: string;
+  displayName?: string;
   
-  // Availability
-  availability: {
-    monday: TimeSlot[];
-    tuesday: TimeSlot[];
-    wednesday: TimeSlot[];
-    thursday: TimeSlot[];
-    friday: TimeSlot[];
-    saturday: TimeSlot[];
-    sunday: TimeSlot[];
+  // Professional Information (nested object matching form structure)
+  professional: {
+    headline?: string;
+    bio?: string;
+    expertise: string[];                // Selected expertise areas
+    additionalExpertise?: string;       // Free-form text for additional skills/experiences
+    languages: string[];                // Languages spoken
+    availableForOpportunities: boolean;
+    yearsOfExperience?: number;
+    specializations: string[];
+    currentOrganization?: string;
+    currentPosition?: string;
   };
   
-  // Performance Metrics
-  isActive: boolean;
-  caseLoad: number;                     // Current client count
-  maxCaseLoad: number;                  // Maximum capacity
-  completedTrainings: number;
-  totalEncounters: number;
-  lastActivityDate?: Timestamp;
+  // Service Area (nested object)
+  serviceArea: {
+    region: string;                     // Geographic region
+    countiesWorkedIn: string[];         // Counties/areas served
+    countyResideIn: string;             // Primary county of residence
+    primaryCounty: string;
+    currentOrganization?: string;
+    role?: string;
+  };
   
-  // Resources & Assets
-  resources: CHWResource[];             // Resources created or shared by the CHW
-  equipment: string[];                  // Equipment assigned to the CHW
+  // Certification (nested object)
+  certification?: {
+    certificationNumber: string;
+    certificationStatus: 'certified' | 'pending' | 'expired' | 'not_certified';
+    certificationExpiration?: string;
+    expirationDate?: string;
+    scctCompletion?: boolean;
+    scctCompletionDate?: string;
+    scctInstructor?: string;
+    scctScore?: number;
+    scctProofOfCompletion?: string;
+  };
   
-  // Profile Settings
-  profileVisible: boolean;              // Directory visibility
-  allowContactSharing: boolean;
-  bio?: string;
-  profilePictureUrl?: string;
+  // Training
+  training?: {
+    college?: string;
+    collegeOtherDetails?: string;
+    trainingPrograms: string[];
+    ceuCredits?: number;
+  };
+  
+  // Membership
+  membership: {
+    memberNumber?: string;
+    memberType?: string;
+    dateRegistered: Timestamp | string;
+    lastRenewal?: string;
+    renewalDate?: string;
+    includeInDirectory: boolean;
+  };
+  
+  // Privacy & Contact Preferences (nested object)
+  contactPreferences: {
+    allowDirectMessages: boolean;
+    showEmail: boolean;
+    showPhone: boolean;
+    showAddress: boolean;
+  };
+  
+  // Social Links
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    facebook?: string;
+    website?: string;
+  };
+  
+  // Tool Access
+  toolAccess?: {
+    forms: boolean;
+    datasets: boolean;
+    reports: boolean;
+    aiAssistant: boolean;
+    grants: boolean;
+    referrals: boolean;
+    projects: boolean;
+  };
+  
+  // Additional Preferences
+  languagePreference?: string;
+  contactMethodPreference?: 'email' | 'phone' | 'text' | 'any';
+  
+  // Status
+  status?: 'active' | 'pending' | 'inactive';
   
   // Timestamps
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Timestamp | string;
+  updatedAt: Timestamp | string;
+  lastActive?: string;
+  
+  // Internal Notes (admin only)
+  internalNotes?: string;
+  applicationStatus?: string;
+  applicationVerification?: string;
+  feeWaiver?: boolean;
 }
 
 export interface TimeSlot {

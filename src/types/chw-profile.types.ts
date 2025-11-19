@@ -67,10 +67,13 @@ export interface ProfessionalInfo {
   headline?: string;
   bio?: string;
   expertise: string[];
+  additionalExpertise?: string;      // Free-form text for additional skills/experiences
   languages: string[];
   availableForOpportunities: boolean;
   yearsOfExperience?: number;
   specializations: string[];
+  currentOrganization?: string;
+  currentPosition?: string;
 }
 
 /**
