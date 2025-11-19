@@ -387,9 +387,12 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
   
   // Handle step navigation
   const handleNext = () => {
+    console.log('[AI Wizard] handleNext called, activeStep:', activeStep, 'total steps:', steps.length);
     if (activeStep === steps.length - 1) {
+      console.log('[AI Wizard] On final step, calling handleGenerateForm...');
       handleGenerateForm();
     } else {
+      console.log('[AI Wizard] Moving to next step...');
       setActiveStep(prevStep => prevStep + 1);
     }
   };
@@ -400,20 +403,26 @@ export default function BmadFormWizard({ onComplete, initialCategory }: BmadForm
   
   // Handle form preview generation
   const handlePreviewForm = async () => {
+    console.log('[AI Wizard] handlePreviewForm called');
+    console.log('[AI Wizard] Wizard data:', wizardData);
     setAnalyzing(true);
     setError(null);
     
     try {
+      console.log('[AI Wizard] Calling performAiAnalysis...');
       const result = await performAiAnalysis(wizardData);
+      console.log('[AI Wizard] Analysis result:', result);
       if (result.success) {
         setFormPreview(result.formStructure);
         setRecommendations(result.recommendations);
+        console.log('[AI Wizard] Form preview set successfully');
       } else {
         setError('Failed to generate form preview. Please try again.');
+        console.error('[AI Wizard] Preview generation failed');
       }
     } catch (err) {
       setError('An error occurred during analysis. Please try again.');
-      console.error(err);
+      console.error('[AI Wizard] Exception during preview:', err);
     } finally {
       setAnalyzing(false);
     }
