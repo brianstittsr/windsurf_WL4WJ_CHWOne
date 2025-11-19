@@ -418,7 +418,7 @@ export default function AdminJobCrawler() {
                         fullWidth
                         size="small"
                         label="Job Title Selector"
-                        value={formData.selectors.jobTitle}
+                        value={formData.selectors?.jobTitle || ''}
                         onChange={(e) => setFormData({
                           ...formData,
                           selectors: { ...formData.selectors, jobTitle: e.target.value }
@@ -431,7 +431,7 @@ export default function AdminJobCrawler() {
                         fullWidth
                         size="small"
                         label="Organization Selector"
-                        value={formData.selectors.organization}
+                        value={formData.selectors?.organization || ''}
                         onChange={(e) => setFormData({
                           ...formData,
                           selectors: { ...formData.selectors, organization: e.target.value }
@@ -444,7 +444,7 @@ export default function AdminJobCrawler() {
                         fullWidth
                         size="small"
                         label="Location Selector"
-                        value={formData.selectors.location}
+                        value={formData.selectors?.location || ''}
                         onChange={(e) => setFormData({
                           ...formData,
                           selectors: { ...formData.selectors, location: e.target.value }
@@ -457,7 +457,7 @@ export default function AdminJobCrawler() {
                         fullWidth
                         size="small"
                         label="Description Selector"
-                        value={formData.selectors.description}
+                        value={formData.selectors?.description || ''}
                         onChange={(e) => setFormData({
                           ...formData,
                           selectors: { ...formData.selectors, description: e.target.value }
