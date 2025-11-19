@@ -21,7 +21,7 @@ import { LocationOn, School, Language, Work, Add as AddIcon, Close as CloseIcon 
 import Link from 'next/link';
 import { CHWWizard } from './CHWWizard';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { COLLECTIONS } from '@/lib/schema/unified-schema';
 
 // Define the CHW Profile type
@@ -422,10 +422,37 @@ export default function MockCHWProfiles() {
       const querySnapshot = await getDocs(chwProfilesRef);
       
       // Convert Firebase profiles to MockCHWProfile format
-      const convertedProfiles: MockCHWProfile[] = querySnapshot.docs.map((doc) => {
-        const profile = doc.data();
-        return {
-          id: doc.id,
+      const allProfiles: MockCHWProfile[] = [];
+      
+      for (const docSnapshot of querySnapshot.docs) {
+        const profile = docSnapshot.data();
+        
+        // Check if this user is an admin by looking up their user document
+        let isAdmin = false;
+        if (profile.userId) {
+          try {
+            const userDocRef = doc(db, COLLECTIONS.USERS, profile.userId);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              // Check if user has ADMIN role in roles array or primaryRole
+              isAdmin = userData.roles?.includes('ADMIN') || 
+                       userData.primaryRole === 'ADMIN' || 
+                       userData.role === 'ADMIN';
+            }
+          } catch (error) {
+            console.error('Error checking user role:', error);
+          }
+        }
+        
+        // Skip admin profiles (they shouldn't appear in public CHW directory)
+        if (isAdmin) {
+          console.log(`Skipping admin profile: ${profile.firstName} ${profile.lastName}`);
+          continue;
+        }
+        
+        allProfiles.push({
+          id: docSnapshot.id,
           firstName: profile.firstName || 'Unknown',
           lastName: profile.lastName || 'Unknown',
           imageUrl: profile.profilePicture || 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg',
@@ -436,12 +463,12 @@ export default function MockCHWProfiles() {
           languages: profile.professional?.languages || ['English'],
           certificationLevel: mapCertificationLevel(profile.certification?.certificationStatus),
           bio: profile.professional?.bio || 'Community Health Worker'
-        };
-      });
+        });
+      }
 
-      // Only show real profiles from Firebase
-      setAllCHWs(convertedProfiles);
-      console.log(`Loaded ${convertedProfiles.length} CHW profiles from Firebase`);
+      // Only show non-admin CHW profiles
+      setAllCHWs(allProfiles);
+      console.log(`Loaded ${allProfiles.length} CHW profiles from Firebase (admins filtered out)`);
     } catch (error) {
       console.error('Error loading CHW profiles from Firebase:', error);
       setAllCHWs([]);
