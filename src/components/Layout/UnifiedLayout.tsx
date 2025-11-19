@@ -26,6 +26,7 @@ import { Menu as MenuIcon, Close as CloseIcon, Settings as SettingsIcon, Logout 
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
 import ClickableLink from './ClickableLink';
+import AdminProfileSwitcher from './AdminProfileSwitcher';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -242,6 +243,9 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
           
           {/* Always use spacer when not logged in to push content to right */}
           <Box sx={{ flexGrow: 1 }} />
+
+          {/* Admin Profile Switcher - Only visible to admins */}
+          {!isMobile && <AdminProfileSwitcher />}
 
           {/* AUTHENTICATION DISABLED: Always show mobile menu button */}
           {isMobile && (
