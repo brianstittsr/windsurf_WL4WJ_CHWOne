@@ -696,7 +696,7 @@ src/
 │   │   ├── FormsManagement.tsx
 │   │   ├── BmadFormWizard.tsx (AI Builder)
 │   │   └── FormRenderer.tsx
-│   ├── CHW/
+│   ├── LCUser/
 │   │   └── EnhancedProfileComponent.tsx
 │   ├── Layout/
 │   │   ├── UnifiedLayout.tsx
