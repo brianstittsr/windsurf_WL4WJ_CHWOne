@@ -35,8 +35,8 @@ import { Visibility, VisibilityOff, CheckCircle, Email, Login, AutoAwesome } fro
 import { TransitionProps } from '@mui/material/transitions';
 import { CHWProfile } from '@/types/chw-profile.types';
 import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { COLLECTIONS } from '@/lib/schema/unified-schema';
 
 interface CHWWizardProps {
@@ -306,44 +306,110 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
 
       console.log('Submitting CHW Profile:', formData);
       
-      // Create Firebase Authentication user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
+      let user;
+      let isExistingUser = false;
       
-      const user = userCredential.user;
-      console.log('Firebase user created:', user.uid);
-      
-      // Create user profile in Firestore users collection
-      const userProfileData = {
-        uid: user.uid,
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        displayName: `${formData.firstName} ${formData.lastName}`,
-        role: 'CHW', // Community Health Worker role
-        organizationType: 'CHW',
-        phone: formData.phone || '',
-        address: formData.address,
-        profilePicture: profilePhoto || '',
-        status: 'pending', // Pending admin approval
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        permissions: {
-          canAccessDashboard: true,
-          canManageClients: true,
-          canCreateReferrals: true,
-          canAccessResources: true,
-          canUseForms: true,
-          canViewReports: true
+      try {
+        // Try to create new Firebase Authentication user
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        user = userCredential.user;
+        console.log('New Firebase user created:', user.uid);
+      } catch (authError: any) {
+        // Check if error is because email already exists
+        if (authError.code === 'auth/email-already-in-use') {
+          console.log('Email already exists, attempting to sign in and add CHW role...');
+          isExistingUser = true;
+          
+          // Sign in with provided credentials
+          try {
+            const signInCredential = await signInWithEmailAndPassword(
+              auth,
+              formData.email,
+              formData.password
+            );
+            user = signInCredential.user;
+            console.log('Signed in existing user:', user.uid);
+          } catch (signInError: any) {
+            if (signInError.code === 'auth/wrong-password') {
+              setErrorMessage('An account with this email already exists. Please use the correct password or contact support.');
+            } else {
+              setErrorMessage('Unable to access existing account. Please verify your password or contact support.');
+            }
+            setShowError(true);
+            return;
+          }
+        } else {
+          // Re-throw other auth errors
+          throw authError;
         }
-      };
+      }
       
-      // Save to users collection
-      await setDoc(doc(db, COLLECTIONS.USERS, user.uid), userProfileData);
-      console.log('User profile saved to Firestore users collection');
+      if (!user) {
+        setErrorMessage('Failed to create or access user account');
+        setShowError(true);
+        return;
+      }
+      
+      // Check if user already has a CHW profile
+      const existingCHWProfile = await getDoc(doc(db, COLLECTIONS.CHW_PROFILES, user.uid));
+      if (existingCHWProfile.exists()) {
+        setErrorMessage('You already have a CHW profile registered with this email.');
+        setShowError(true);
+        return;
+      }
+      
+      // Create or update user profile in Firestore users collection
+      const userRef = doc(db, COLLECTIONS.USERS, user.uid);
+      const existingUserDoc = await getDoc(userRef);
+      
+      if (isExistingUser && existingUserDoc.exists()) {
+        // Update existing user to add CHW role
+        console.log('Adding CHW role to existing user');
+        await updateDoc(userRef, {
+          roles: arrayUnion('CHW'),
+          chwProfileId: user.uid,
+          updatedAt: serverTimestamp()
+        });
+        console.log('CHW role added to existing user profile');
+      } else {
+        // Create new user profile
+        const userProfileData = {
+          uid: user.uid,
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          displayName: `${formData.firstName} ${formData.lastName}`,
+          roles: ['CHW'], // Array of roles
+          primaryRole: 'CHW',
+          organizationType: 'CHW',
+          organizationIds: [],
+          primaryOrganizationId: '',
+          phone: formData.phone || '',
+          address: formData.address,
+          profilePicture: profilePhoto || '',
+          chwProfileId: user.uid,
+          isActive: true,
+          isApproved: false, // Pending admin approval
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          permissions: {
+            canAccessDashboard: true,
+            canManageClients: true,
+            canCreateReferrals: true,
+            canAccessResources: true,
+            canUseForms: true,
+            canViewReports: true
+          }
+        };
+        
+        // Save to users collection
+        await setDoc(userRef, userProfileData);
+        console.log('New user profile saved to Firestore users collection');
+      }
       
       // Create CHW profile data
       const chwProfileData = {

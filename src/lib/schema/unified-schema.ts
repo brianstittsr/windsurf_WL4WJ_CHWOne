@@ -40,8 +40,10 @@ export interface User {
   displayName?: string;
   phoneNumber?: string;
   photoURL?: string;
-  role: UserRole;                       // Role-based access control
-  organizationId: string;               // Primary organization
+  roles: UserRole[];                    // Multiple roles supported (e.g., CHW + Nonprofit)
+  primaryRole: UserRole;                // Default/active role
+  organizationIds: string[];            // Multiple organization memberships
+  primaryOrganizationId: string;        // Primary organization
   isActive: boolean;
   isApproved: boolean;                  // Admin approval status
   createdAt: Timestamp;
@@ -49,6 +51,11 @@ export interface User {
   lastLoginAt?: Timestamp;
   hipaaTrainingCompleted?: boolean;     // HIPAA compliance
   hipaaTrainingDate?: Timestamp;
+  
+  // Profile references for multi-role support
+  chwProfileId?: string;                // Reference to CHW profile if user is a CHW
+  nonprofitProfileId?: string;          // Reference to nonprofit profile if user owns/works for nonprofit
+  associationProfileId?: string;        // Reference to association profile
 }
 
 // Comprehensive user roles
