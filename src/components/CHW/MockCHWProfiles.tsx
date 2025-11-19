@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Grid, 
   Card, 
@@ -14,11 +14,15 @@ import {
   CardActions,
   Dialog,
   DialogContent,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import { LocationOn, School, Language, Work, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import Link from 'next/link';
 import { CHWWizard } from './CHWWizard';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { COLLECTIONS } from '@/lib/schema/unified-schema';
 
 // Define the CHW Profile type
 export interface MockCHWProfile {
@@ -406,37 +410,47 @@ const CHWCard = ({ chw }: { chw: MockCHWProfile }) => {
 // Main component to display the grid of CHW cards
 export default function MockCHWProfiles() {
   const [showWizard, setShowWizard] = useState(false);
-  const [allCHWs, setAllCHWs] = useState<MockCHWProfile[]>(mockCHWs);
+  const [allCHWs, setAllCHWs] = useState<MockCHWProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load CHWs from localStorage on mount
-  React.useEffect(() => {
+  // Load CHWs from Firebase on mount
+  useEffect(() => {
     loadCHWs();
   }, []);
 
-  const loadCHWs = () => {
+  const loadCHWs = async () => {
     try {
-      const savedProfiles = JSON.parse(localStorage.getItem('chwProfiles') || '[]');
+      setLoading(true);
+      // Load from Firebase Firestore
+      const chwProfilesRef = collection(db, COLLECTIONS.CHW_PROFILES);
+      const querySnapshot = await getDocs(chwProfilesRef);
       
-      // Convert saved profiles to MockCHWProfile format
-      const convertedProfiles: MockCHWProfile[] = savedProfiles.map((profile: any) => ({
-        id: profile.id,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        imageUrl: profile.profilePicture || 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg',
-        city: profile.address?.city || 'Unknown',
-        state: profile.address?.state || 'NC',
-        county: profile.serviceArea?.countyResideIn || 'Unknown',
-        specializations: profile.professional?.expertise || [],
-        languages: profile.professional?.languages || ['English'],
-        certificationLevel: mapCertificationLevel(profile.certification?.certificationStatus),
-        bio: profile.professional?.bio || 'Community Health Worker'
-      }));
+      // Convert Firebase profiles to MockCHWProfile format
+      const convertedProfiles: MockCHWProfile[] = querySnapshot.docs.map((doc) => {
+        const profile = doc.data();
+        return {
+          id: doc.id,
+          firstName: profile.firstName || 'Unknown',
+          lastName: profile.lastName || 'Unknown',
+          imageUrl: profile.profilePicture || 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg',
+          city: profile.address?.city || 'Unknown',
+          state: profile.address?.state || 'NC',
+          county: profile.serviceArea?.countyResideIn || 'Unknown',
+          specializations: profile.professional?.expertise || [],
+          languages: profile.professional?.languages || ['English'],
+          certificationLevel: mapCertificationLevel(profile.certification?.certificationStatus),
+          bio: profile.professional?.bio || 'Community Health Worker'
+        };
+      });
 
-      // Combine mock data with saved profiles
-      setAllCHWs([...mockCHWs, ...convertedProfiles]);
+      // Only show real profiles from Firebase
+      setAllCHWs(convertedProfiles);
+      console.log(`Loaded ${convertedProfiles.length} CHW profiles from Firebase`);
     } catch (error) {
-      console.error('Error loading CHW profiles:', error);
-      setAllCHWs(mockCHWs);
+      console.error('Error loading CHW profiles from Firebase:', error);
+      setAllCHWs([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -470,13 +484,44 @@ export default function MockCHWProfiles() {
         </Button>
       </Box>
       
-      <Grid container spacing={3}>
-        {allCHWs.map((chw) => (
-          <Grid item key={chw.id} xs={12} sm={6} md={4} lg={3}>
-            <CHWCard chw={chw} />
-          </Grid>
-        ))}
-      </Grid>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <CircularProgress size={60} />
+        </Box>
+      ) : allCHWs.length === 0 ? (
+        <Box sx={{ 
+          textAlign: 'center', 
+          py: 8,
+          px: 3,
+          backgroundColor: '#f8fafc',
+          borderRadius: 2,
+          border: '2px dashed #cbd5e1'
+        }}>
+          <Typography variant="h5" sx={{ mb: 2, color: '#64748b' }}>
+            No CHW Profiles Yet
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 4, color: '#94a3b8' }}>
+            Be the first to register as a Community Health Worker!
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setShowWizard(true)}
+            size="large"
+          >
+            Register Now
+          </Button>
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {allCHWs.map((chw) => (
+            <Grid item key={chw.id} xs={12} sm={6} md={4} lg={3}>
+              <CHWCard chw={chw} />
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       {/* CHW Wizard Dialog */}
       <Dialog
