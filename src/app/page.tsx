@@ -500,10 +500,10 @@ function HomeContentInner() {
                 border: '2px solid rgba(255, 255, 255, 0.2)'
               }}>
                 <Image 
-                  src="/images/chw-profiles-screenshot.png"
+                  src="/images/CHWProfilesImages.png"
                   alt="Community Health Worker Profiles Directory"
-                  width={1200}
-                  height={675}
+                  width={1024}
+                  height={690}
                   style={{
                     width: '100%',
                     height: 'auto',
