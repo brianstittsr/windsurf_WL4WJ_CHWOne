@@ -27,7 +27,9 @@ import {
   DialogContent,
   DialogActions,
   Fade,
-  Slide
+  Slide,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { Visibility, VisibilityOff, CheckCircle, Email, Login, AutoAwesome } from '@mui/icons-material';
 import { TransitionProps } from '@mui/material/transitions';
@@ -104,6 +106,8 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [enhancingBio, setEnhancingBio] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
   const [formData, setFormData] = useState<any>({
     firstName: '',
     lastName: '',
@@ -226,14 +230,29 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
 
   const handleSubmit = async () => {
     try {
+      // Validate required fields
+      if (!formData.email || !formData.email.trim()) {
+        setErrorMessage('Email address is required');
+        setShowError(true);
+        return;
+      }
+
+      if (!formData.password) {
+        setErrorMessage('Password is required');
+        setShowError(true);
+        return;
+      }
+
       // Validate password match
       if (formData.password !== formData.confirmPassword) {
-        alert('Passwords do not match!');
+        setErrorMessage('Passwords do not match. Please check and try again.');
+        setShowError(true);
         return;
       }
 
       if (formData.password.length < 6) {
-        alert('Password must be at least 6 characters long');
+        setErrorMessage('Password must be at least 6 characters long');
+        setShowError(true);
         return;
       }
 
@@ -363,15 +382,18 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
       }, 3000);
     } catch (error: any) {
       console.error('Error creating CHW profile:', error);
+      let message = '';
       if (error.code === 'auth/email-already-in-use') {
-        alert('This email is already registered. Please use a different email or try logging in.');
+        message = 'This email is already registered. Please use a different email or log in to your existing account.';
       } else if (error.code === 'auth/invalid-email') {
-        alert('Invalid email address. Please check and try again.');
+        message = 'Invalid email address. Please check and try again.';
       } else if (error.code === 'auth/weak-password') {
-        alert('Password is too weak. Please use a stronger password.');
+        message = 'Password is too weak. Please use a stronger password (at least 6 characters).';
       } else {
-        alert('Error creating profile. Please try again.');
+        message = `Error creating profile: ${error.message || 'Please try again.'}`;
       }
+      setErrorMessage(message);
+      setShowError(true);
     }
   };
 
@@ -1222,6 +1244,23 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
           </Box>
         </DialogContent>
       </Dialog>
+
+      {/* Error Snackbar */}
+      <Snackbar 
+        open={showError} 
+        autoHideDuration={6000} 
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setShowError(false)} 
+          severity="error" 
+          sx={{ width: '100%' }}
+          variant="filled"
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
