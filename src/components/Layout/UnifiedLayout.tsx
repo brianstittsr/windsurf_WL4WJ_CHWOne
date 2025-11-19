@@ -173,7 +173,12 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
               alt="CHWOne Logo"
               style={{ borderRadius: '50%', marginRight: 8 }}
             />
-            <Box component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem', color: '#1a365d' }}>CHWOne</Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Box component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem', color: '#1a365d' }}>CHWOne</Box>
+              <Box component="span" sx={{ fontSize: '0.65rem', color: '#666', fontStyle: 'italic', lineHeight: 1 }}>
+                A Women Leading for Wellness and Justice product
+              </Box>
+            </Box>
           </Link>
 
           {/* AUTHENTICATION DISABLED: Always show desktop menu */}
