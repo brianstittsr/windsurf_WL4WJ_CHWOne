@@ -572,7 +572,7 @@ function HomeContentInner() {
         <Box sx={{ 
           p: 6,
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
           color: 'white',
           position: 'relative',
           overflow: 'hidden'
@@ -599,10 +599,10 @@ function HomeContentInner() {
                 backdropFilter: 'blur(10px)'
               }}>
                 <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🤝 Resource Sharing
+                  🔗 Resource Sharing
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Share your services, programs, and resources with Community Health Workers for efficient referrals
+                  List your services and resources in our directory for CHWs to refer clients directly to your organization
                 </Typography>
               </Box>
 
@@ -613,10 +613,10 @@ function HomeContentInner() {
                 backdropFilter: 'blur(10px)'
               }}>
                 <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  💡 CHW Partnerships
+                  🤝 CHW Partnerships
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Connect directly with certified CHWs in your service area to expand your community reach
+                  Connect with qualified Community Health Workers to expand your reach and enhance service delivery
                 </Typography>
               </Box>
 
@@ -627,7 +627,21 @@ function HomeContentInner() {
                 backdropFilter: 'blur(10px)'
               }}>
                 <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  📊 Impact Tracking
+                  📊 Referral Management
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Receive and manage client referrals from CHWs through our streamlined referral system
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  📈 Impact Tracking
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Track referrals, measure outcomes, and demonstrate your organization's community impact
@@ -641,10 +655,24 @@ function HomeContentInner() {
                 backdropFilter: 'blur(10px)'
               }}>
                 <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🌐 Visibility & Reach
+                  🌐 Increased Visibility
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Increase your organization's visibility in the CHW network and reach more community members
+                  Increase awareness of your services among CHWs and community members across North Carolina
+                </Typography>
+              </Box>
+
+              <Box sx={{ 
+                p: 3, 
+                borderRadius: 2, 
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                  💡 Collaboration Opportunities
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Discover partnership opportunities with other organizations and participate in community initiatives
                 </Typography>
               </Box>
             </Box>
@@ -659,7 +687,7 @@ function HomeContentInner() {
                   py: 2, 
                   px: 6,
                   backgroundColor: 'white',
-                  color: '#764ba2',
+                  color: '#f5576c',
                   fontWeight: 600,
                   fontSize: '1.1rem',
                   '&:hover': {
@@ -869,144 +897,6 @@ function HomeContentInner() {
           </Box>
         </DialogContent>
       </Dialog>
-
-      {/* Nonprofit Registration Section */}
-      <Container sx={{ py: 12 }}>
-        <Box sx={{ 
-          p: 6,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <Box sx={{ position: 'relative', zIndex: 1 }}>
-            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
-              Are You a Nonprofit Organization?
-            </Typography>
-            <Typography variant="h6" sx={{ mb: 6, textAlign: 'center', opacity: 0.95, maxWidth: 800, mx: 'auto' }}>
-              Register your organization to connect with CHWs, share resources, and expand your community impact
-            </Typography>
-
-            {/* Benefits Grid */}
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-              gap: 3,
-              mb: 6
-            }}>
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🔗 Resource Sharing
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  List your services and resources in our directory for CHWs to refer clients directly to your organization
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🤝 CHW Partnerships
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Connect with qualified Community Health Workers to expand your reach and enhance service delivery
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  📊 Referral Management
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Receive and manage client referrals from CHWs through our streamlined referral system
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  📈 Impact Tracking
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Track referrals, measure outcomes, and demonstrate your organization's community impact
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  🌐 Increased Visibility
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Increase awareness of your services among CHWs and community members across North Carolina
-                </Typography>
-              </Box>
-
-              <Box sx={{ 
-                p: 3, 
-                borderRadius: 2, 
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                  💡 Collaboration Opportunities
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Discover partnership opportunities with other organizations and participate in community initiatives
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* CTA Button */}
-            <Box sx={{ textAlign: 'center' }}>
-              <Button 
-                variant="contained" 
-                size="large"
-                onClick={() => setShowNonprofitWizard(true)}
-                sx={{ 
-                  py: 2, 
-                  px: 6,
-                  backgroundColor: 'white',
-                  color: '#f5576c',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  '&:hover': {
-                    backgroundColor: '#f8fafc',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
-                  }
-                }}
-                endIcon={<ArrowForwardIcon />}
-              >
-                Register Your Organization
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      </Container>
 
       {/* Nonprofit Registration Wizard Dialog */}
       <Dialog

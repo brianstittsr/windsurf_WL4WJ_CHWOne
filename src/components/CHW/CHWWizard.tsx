@@ -20,12 +20,22 @@ import {
   SelectChangeEvent,
   FormControlLabel,
   Switch,
-  Avatar
+  Avatar,
+  InputAdornment,
+  IconButton,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  Fade,
+  Slide
 } from '@mui/material';
+import { Visibility, VisibilityOff, CheckCircle, Email, Login } from '@mui/icons-material';
+import { TransitionProps } from '@mui/material/transitions';
 import { CHWProfile } from '@/types/chw-profile.types';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { COLLECTIONS } from '@/lib/schema/unified-schema';
 
 interface CHWWizardProps {
   onComplete: (chwId: string) => void;
@@ -76,10 +86,23 @@ const LANGUAGES = [
   'Hindi', 'Korean', 'Portuguese', 'Russian', 'Tagalog', 'Other'
 ];
 
+const SlideTransition = React.forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement<any, any>;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 export function CHWWizard({ onComplete }: CHWWizardProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [profilePhoto, setProfilePhoto] = useState<string>('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [formData, setFormData] = useState<any>({
     firstName: '',
     lastName: '',
@@ -97,6 +120,7 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
       bio: '',
       headline: '',
       expertise: [],
+      additionalExpertise: '', // New field for other experiences
       languages: ['English'],
       yearsOfExperience: 0,
       currentOrganization: '',
@@ -219,8 +243,8 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
       };
       
       // Save to users collection
-      await setDoc(doc(db, 'users', user.uid), userProfileData);
-      console.log('User profile saved to Firestore');
+      await setDoc(doc(db, COLLECTIONS.USERS, user.uid), userProfileData);
+      console.log('User profile saved to Firestore users collection');
       
       // Create CHW profile data
       const chwProfileData = {
@@ -237,6 +261,7 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
           headline: formData.professional.headline || '',
           bio: formData.professional.bio || '',
           expertise: formData.professional.expertise || [],
+          additionalExpertise: formData.professional.additionalExpertise || '',
           languages: formData.professional.languages || ['English'],
           availableForOpportunities: formData.professional.availableForOpportunities,
           yearsOfExperience: formData.professional.yearsOfExperience || 0,
@@ -273,9 +298,9 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
         updatedAt: serverTimestamp()
       };
       
-      // Save CHW profile to chw-profiles collection
-      await setDoc(doc(db, 'chw-profiles', user.uid), chwProfileData);
-      console.log('CHW profile saved to Firestore');
+      // Save CHW profile to chwProfiles collection
+      await setDoc(doc(db, COLLECTIONS.CHW_PROFILES, user.uid), chwProfileData);
+      console.log('CHW profile saved to Firestore chwProfiles collection');
       
       // Send thank you email
       try {
@@ -296,8 +321,14 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
         // Don't block registration if email fails
       }
       
-      // Call onComplete callback
-      onComplete(user.uid);
+      // Store email and show success modal
+      setRegisteredEmail(formData.email);
+      setShowSuccessModal(true);
+      
+      // Call onComplete callback after a delay
+      setTimeout(() => {
+        onComplete(user.uid);
+      }, 3000);
     } catch (error: any) {
       console.error('Error creating CHW profile:', error);
       if (error.code === 'auth/email-already-in-use') {
@@ -424,6 +455,8 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
                 fullWidth
                 type="email"
                 label="Email Address"
+                name="email"
+                autoComplete="email"
                 value={formData.email}
                 onChange={(e) => updateField('email', e.target.value)}
               />
@@ -441,23 +474,55 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
               <TextField
                 required
                 fullWidth
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 label="Password"
+                name="password"
+                autoComplete="new-password"
                 value={formData.password}
                 onChange={(e) => updateField('password', e.target.value)}
                 helperText="Minimum 6 characters"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 required
                 fullWidth
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 label="Confirm Password"
+                name="confirmPassword"
+                autoComplete="new-password"
                 value={formData.confirmPassword}
                 onChange={(e) => updateField('confirmPassword', e.target.value)}
                 error={formData.confirmPassword && formData.password !== formData.confirmPassword}
-                helperText={formData.confirmPassword && formData.password !== formData.confirmPassword ? "Passwords don't match" : ""}
+                helperText={formData.confirmPassword && formData.password !== formData.confirmPassword ? "Passwords don't match" : "Re-enter your password"}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle confirm password visibility"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -607,6 +672,18 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Additional Expertise"
+                value={formData.professional?.additionalExpertise || ''}
+                onChange={(e) => updateNestedField('professional', 'additionalExpertise', e.target.value)}
+                placeholder="Describe any other skills, experiences, or areas of expertise not listed above..."
+                helperText="Share additional qualifications, certifications, or unique experiences that make you stand out"
+              />
             </Grid>
           </Grid>
         );
@@ -934,6 +1011,170 @@ export function CHWWizard({ onComplete }: CHWWizardProps) {
           </Button>
         )}
       </Box>
+
+      {/* Success Modal */}
+      <Dialog
+        open={showSuccessModal}
+        TransitionComponent={SlideTransition}
+        keepMounted
+        onClose={() => {}}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            overflow: 'visible',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0, overflow: 'visible' }}>
+          <Box sx={{ 
+            textAlign: 'center', 
+            py: 6, 
+            px: 4,
+            position: 'relative'
+          }}>
+            {/* Success Icon with Animation */}
+            <Fade in={showSuccessModal} timeout={800}>
+              <Box sx={{ 
+                position: 'relative',
+                display: 'inline-block',
+                mb: 3
+              }}>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 120,
+                    height: 120,
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    animation: 'pulse 2s infinite',
+                    '@keyframes pulse': {
+                      '0%': {
+                        transform: 'translate(-50%, -50%) scale(1)',
+                        opacity: 1,
+                      },
+                      '100%': {
+                        transform: 'translate(-50%, -50%) scale(1.5)',
+                        opacity: 0,
+                      },
+                    },
+                  }}
+                />
+                <CheckCircle 
+                  sx={{ 
+                    fontSize: 100, 
+                    color: 'white',
+                    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))',
+                  }} 
+                />
+              </Box>
+            </Fade>
+
+            {/* Success Message */}
+            <Fade in={showSuccessModal} timeout={1000} style={{ transitionDelay: '200ms' }}>
+              <Box>
+                <Typography 
+                  variant="h4" 
+                  sx={{ 
+                    color: 'white', 
+                    fontWeight: 'bold',
+                    mb: 2,
+                    textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  Registration Successful! 🎉
+                </Typography>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    color: 'rgba(255, 255, 255, 0.95)', 
+                    mb: 4,
+                    fontWeight: 400
+                  }}
+                >
+                  Thank you for joining our community!
+                </Typography>
+              </Box>
+            </Fade>
+
+            {/* Information Cards */}
+            <Fade in={showSuccessModal} timeout={1000} style={{ transitionDelay: '400ms' }}>
+              <Box sx={{ mb: 3 }}>
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    p: 3, 
+                    mb: 2,
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    borderRadius: 3,
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Email sx={{ color: '#667eea', mr: 1.5, fontSize: 28 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#333' }}>
+                      Welcome Email Sent
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#666', ml: 5 }}>
+                    A confirmation email has been sent to:
+                  </Typography>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      color: '#667eea', 
+                      fontWeight: 600,
+                      ml: 5,
+                      mt: 0.5
+                    }}
+                  >
+                    {registeredEmail}
+                  </Typography>
+                </Paper>
+
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    p: 3,
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    borderRadius: 3,
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Login sx={{ color: '#764ba2', mr: 1.5, fontSize: 28 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#333' }}>
+                      Ready to Get Started
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#666', ml: 5 }}>
+                    You can now log in with your credentials and access your CHW dashboard.
+                  </Typography>
+                </Paper>
+              </Box>
+            </Fade>
+
+            {/* Auto-close message */}
+            <Fade in={showSuccessModal} timeout={1000} style={{ transitionDelay: '600ms' }}>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  display: 'block',
+                  mt: 2
+                }}
+              >
+                This window will close automatically in a few seconds...
+              </Typography>
+            </Fade>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
