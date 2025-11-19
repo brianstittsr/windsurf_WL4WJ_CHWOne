@@ -119,6 +119,8 @@ function TemplatesContent() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardCategory, setWizardCategory] = useState<string | undefined>(undefined);
   const [copying, setCopying] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [copiedTemplateName, setCopiedTemplateName] = useState('');
   
   // Filter templates based on category and search query
   useEffect(() => {
@@ -270,16 +272,21 @@ function TemplatesContent() {
       console.log('Form updated with dataset reference');
 
       // Show success message
-      alert(`Template "${template.name}" has been copied to your forms with a complementary dataset for responses!`);
-      
-      // Redirect to the form editor
-      router.push(`/forms/${formDocRef.id}/edit`);
+      setCopiedTemplateName(template.name);
+      setSuccessDialogOpen(true);
     } catch (error) {
       console.error('Error copying template:', error);
       alert('Failed to copy template. Please try again.');
     } finally {
       setCopying(false);
     }
+  };
+
+  // Handle success dialog close
+  const handleSuccessDialogClose = () => {
+    setSuccessDialogOpen(false);
+    // Redirect to forms management page
+    router.push('/forms');
   };
   
   // Handle template preview
@@ -577,6 +584,61 @@ function TemplatesContent() {
             </DialogActions>
           </>
         )}
+      </Dialog>
+      
+      {/* Success Dialog */}
+      <Dialog
+        open={successDialogOpen}
+        onClose={handleSuccessDialogClose}
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          textAlign: 'center', 
+          pt: 4,
+          pb: 2,
+          fontSize: '1.5rem',
+          fontWeight: 600
+        }}>
+          Template Copied Successfully! 🎉
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pb: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2, opacity: 0.95 }}>
+            Template <strong>"{copiedTemplateName}"</strong> has been copied to your forms with a complementary dataset for responses!
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.85 }}>
+            You can now edit and customize your new form.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 4, px: 3 }}>
+          <Button
+            onClick={handleSuccessDialogClose}
+            variant="contained"
+            size="large"
+            sx={{
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              backdropFilter: 'blur(10px)',
+              px: 4,
+              py: 1.5,
+              borderRadius: 2,
+              fontWeight: 600,
+              fontSize: '1rem',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.3)',
+              }
+            }}
+          >
+            View My Forms
+          </Button>
+        </DialogActions>
       </Dialog>
       
       {/* AI Wizard Dialog */}
