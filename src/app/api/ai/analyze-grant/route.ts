@@ -352,6 +352,26 @@ Extract and return a JSON object with these fields. USE ONLY INFORMATION FROM TH
       "dependencies": ["List other milestones that must be completed first. Examples: 'Staff Hiring' depends on 'Program Approval', 'Service Delivery' depends on 'Staff Training'"]
     }
   ],
+  "forms": [
+    {
+      "name": "REQUIRED: Form name based on data collection needs (e.g., 'Client Intake Form', 'Quarterly Progress Survey', 'Service Delivery Log', 'Outcome Assessment Form')",
+      "description": "REQUIRED: Purpose of the form and what data it collects",
+      "category": "Choose from: 'intake', 'survey', 'assessment', 'tracking', 'reporting', 'evaluation'",
+      "linkedDataCollectionMethod": "Name of the data collection method this form supports",
+      "fields": [
+        {
+          "name": "Field name (e.g., 'client_name', 'service_date', 'satisfaction_score')",
+          "label": "Display label (e.g., 'Client Name', 'Service Date', 'Satisfaction Score')",
+          "type": "Field type: 'text' (short text), 'textarea' (long text), 'email', 'phone', 'number', 'date', 'select' (dropdown), 'radio' (single choice), 'checkbox' (multiple choice), 'rating' (1-5 stars), 'slider' (scale), 'file' (upload)",
+          "required": true or false,
+          "options": ["For select/radio/checkbox: list of choices"],
+          "validation": "Validation rules if needed",
+          "helpText": "Helper text for the field"
+        }
+      ],
+      "datasetFields": ["List all field names that will be stored in the dataset for analysis and reporting"]
+    }
+  ],
   "specialRequirements": "Any special requirements, compliance needs, reporting obligations, or important notes"
 }
 
@@ -472,15 +492,121 @@ This CHW platform has project management capabilities including:
 - "Mid-Year Evaluation" depends on "First Service Delivery"
 - "Final Report" depends on "Data Collection Complete"
 
+**FORM GENERATION - INTELLIGENT ANALYSIS:**
+This CHW platform has advanced form building capabilities with 75+ field types:
+1. **Text Entry**: Single line, multi-line, email, phone, URL, password
+2. **Multiple Choice**: Radio buttons, checkboxes, dropdowns, image choice
+3. **Matrix/Grid**: Matrix questions, ranking, side-by-side
+4. **Slider & Scale**: Likert scale, star rating, NPS, slider, visual analog
+5. **Date & Time**: Date picker, time picker, date range
+6. **Numeric**: Number input, currency, percentage, calculation
+7. **File & Media**: File upload, image upload, signature capture
+8. **Location**: Address, city/state, zip code, coordinates
+9. **Advanced**: Conditional logic, piping, validation, branching
+10. **Contact Info**: Name, email, phone, address fields
+11. **Specialized**: Consent forms, demographic questions, health assessments
+
+**YOUR TASK FOR FORM GENERATION:**
+1. Analyze the grant's data collection requirements from the document
+2. For EACH data collection method, create a corresponding form
+3. Design forms that capture ALL required data points mentioned
+4. Link forms to their data collection methods
+5. Create comprehensive field lists with appropriate field types
+6. Include validation and help text for clarity
+7. Design dataset structure for analysis and reporting
+
+**FORM CREATION LOGIC:**
+Based on data collection method type, create appropriate forms:
+- **Surveys/Assessments** → Survey form with rating scales, multiple choice, text responses
+- **Client Intake** → Intake form with demographics, contact info, eligibility questions
+- **Service Tracking** → Tracking form with dates, services provided, outcomes
+- **Progress Monitoring** → Progress form with metrics, indicators, status updates
+- **Outcome Evaluation** → Evaluation form with pre/post measures, satisfaction, impact
+- **Quarterly Reports** → Reporting form with aggregated data, narrative sections
+
+**FIELD TYPE SELECTION:**
+Choose appropriate field types based on data:
+- Names, titles, short text → 'text'
+- Comments, descriptions, narratives → 'textarea'
+- Contact info → 'email', 'phone'
+- Dates → 'date'
+- Yes/No questions → 'radio' with options ['Yes', 'No']
+- Satisfaction, ratings → 'rating' or 'slider'
+- Multiple selections → 'checkbox'
+- Single selection from list → 'select' or 'radio'
+- Numeric data → 'number'
+- Demographics → appropriate specialized fields
+
+**DATASET STRUCTURE:**
+For each form, define datasetFields that include:
+- All form field names
+- Metadata fields: submission_id, submitted_at, submitted_by, form_version
+- Calculated fields if needed
+- Linking fields to connect related data
+
+**FORM EXAMPLES:**
+
+Example 1: Client Intake Form
+```json
+{
+  "name": "Client Intake Form",
+  "description": "Collect client demographics and eligibility information",
+  "category": "intake",
+  "linkedDataCollectionMethod": "Client Demographics Collection",
+  "fields": [
+    {"name": "client_name", "label": "Client Name", "type": "text", "required": true},
+    {"name": "date_of_birth", "label": "Date of Birth", "type": "date", "required": true},
+    {"name": "phone", "label": "Phone Number", "type": "phone", "required": true},
+    {"name": "email", "label": "Email Address", "type": "email", "required": false},
+    {"name": "address", "label": "Address", "type": "textarea", "required": true},
+    {"name": "insurance_status", "label": "Insurance Status", "type": "radio", "required": true, "options": ["Insured", "Uninsured", "Medicaid", "Medicare"]},
+    {"name": "primary_language", "label": "Primary Language", "type": "select", "required": true, "options": ["English", "Spanish", "Other"]},
+    {"name": "consent", "label": "I consent to services", "type": "checkbox", "required": true}
+  ],
+  "datasetFields": ["client_name", "date_of_birth", "phone", "email", "address", "insurance_status", "primary_language", "consent", "submission_id", "submitted_at", "submitted_by"]
+}
+```
+
+Example 2: Quarterly Satisfaction Survey
+```json
+{
+  "name": "Quarterly Client Satisfaction Survey",
+  "description": "Measure client satisfaction with CHW services",
+  "category": "survey",
+  "linkedDataCollectionMethod": "Quarterly Surveys",
+  "fields": [
+    {"name": "overall_satisfaction", "label": "Overall Satisfaction", "type": "rating", "required": true, "helpText": "Rate 1-5 stars"},
+    {"name": "service_quality", "label": "Quality of Services", "type": "slider", "required": true, "helpText": "Scale 1-10"},
+    {"name": "chw_helpfulness", "label": "CHW Helpfulness", "type": "radio", "required": true, "options": ["Very Helpful", "Helpful", "Neutral", "Not Helpful"]},
+    {"name": "would_recommend", "label": "Would you recommend our services?", "type": "radio", "required": true, "options": ["Yes", "No", "Maybe"]},
+    {"name": "comments", "label": "Additional Comments", "type": "textarea", "required": false}
+  ],
+  "datasetFields": ["overall_satisfaction", "service_quality", "chw_helpfulness", "would_recommend", "comments", "submission_id", "submitted_at", "quarter"]
+}
+```
+
+**REQUIREMENTS:**
+1. Create AT LEAST 2-3 forms based on data collection methods
+2. Each form should have 5-15 fields
+3. Include required and optional fields appropriately
+4. Add help text for complex fields
+5. Link each form to its data collection method
+6. Define complete dataset structure
+7. Use appropriate field types for data being collected
+
 **FINAL REMINDER**: 
 - Use ONLY information from the document text provided above
 - Do NOT make up organization names, dates, or amounts
 - Extract and quote directly from the document
 - For data collection methods, be intelligent about mapping document requirements to platform capabilities
 - For project milestones, CREATE intelligent milestones even if not explicitly stated (use grant timeline and common project phases)
+- For forms, CREATE comprehensive forms for EACH data collection method with appropriate fields and dataset structure
 - Milestones should be actionable, realistic, and span the entire grant period
+- Forms should capture all required data points with appropriate field types
 - Include dependencies between milestones for proper project sequencing
-- If something is not in the document, leave it empty (EXCEPT for milestones - always create these based on grant timeline)
+- Link forms to their data collection methods
+- Define complete dataset structures for analysis
+- If something is not in the document, leave it empty (EXCEPT for milestones and forms - always create these based on data collection requirements)
 
 Return valid JSON with proper array types.`;
       
