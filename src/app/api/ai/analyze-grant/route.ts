@@ -381,8 +381,9 @@ Extract and return a JSON object with these fields. USE ONLY INFORMATION FROM TH
         "name": "REQUIRED: Metric name (e.g., 'Total Clients Served', 'Service Completion Rate', 'Budget Utilization')",
         "description": "What this metric measures",
         "type": "Metric type: 'count', 'percentage', 'currency', 'average', 'sum', 'rate'",
-        "dataSource": "Which form/dataset provides this data",
-        "calculation": "How to calculate (e.g., 'COUNT(client_id)', 'SUM(budget_spent)/total_budget*100')",
+        "linkedForm": "REQUIRED: Name of the form that provides this data (must match a form name from the forms array)",
+        "datasetField": "REQUIRED: Specific field from the form's dataset to use (must be in the form's datasetFields array)",
+        "calculation": "How to calculate using dataset field (e.g., 'COUNT(client_id)', 'AVG(satisfaction_score)', 'SUM(budget_spent)/total_budget*100')",
         "target": "Target value if specified in grant (e.g., '500 clients', '80%', '$250000')",
         "displayFormat": "How to display: 'number', 'percentage', 'currency', 'decimal'"
       }
@@ -391,32 +392,36 @@ Extract and return a JSON object with these fields. USE ONLY INFORMATION FROM TH
       {
         "title": "REQUIRED: Chart title (e.g., 'Monthly Client Enrollment Trend', 'Service Distribution by Type', 'Budget vs Actual Spending')",
         "type": "Chart type: 'line' (trends over time), 'bar' (comparisons), 'pie' (proportions), 'area' (cumulative trends), 'scatter' (correlations), 'gauge' (progress to goal), 'funnel' (conversion stages)",
-        "dataSource": "Which dataset/form provides the data",
-        "xAxis": "X-axis data (e.g., 'month', 'service_type', 'entity_name')",
-        "yAxis": "Y-axis data (e.g., 'client_count', 'budget_amount', 'satisfaction_score')",
-        "aggregation": "How to aggregate: 'count', 'sum', 'average', 'min', 'max'",
-        "filters": ["Optional filters to apply"],
+        "linkedForm": "REQUIRED: Name of the form that provides this data (must match a form name from the forms array)",
+        "xAxisField": "REQUIRED: Dataset field for X-axis (must be in the form's datasetFields array, e.g., 'submitted_at', 'service_type', 'entity_name')",
+        "yAxisField": "REQUIRED: Dataset field for Y-axis (must be in the form's datasetFields array, e.g., 'client_count', 'satisfaction_score', 'budget_amount')",
+        "aggregation": "How to aggregate yAxisField: 'count', 'sum', 'average', 'min', 'max'",
+        "groupBy": "Optional: How to group data (e.g., 'month', 'week', 'day', 'category')",
+        "filters": ["Optional filters to apply on dataset fields"],
         "colorScheme": "Color scheme: 'blue', 'green', 'multi', 'gradient'"
       }
     ],
     "kpis": [
       {
         "name": "REQUIRED: KPI name (e.g., 'Client Satisfaction', 'Grant Completion', 'Service Quality')",
-        "value": "Current value calculation",
+        "linkedForm": "REQUIRED: Name of the form that provides this data (must match a form name from the forms array)",
+        "datasetField": "REQUIRED: Specific field from the form's dataset to calculate KPI (must be in the form's datasetFields array)",
+        "calculation": "How to calculate KPI from dataset field (e.g., 'COUNT(*)', 'AVG(satisfaction_score)', 'SUM(amount)')",
         "target": "Target value from grant",
         "unit": "Unit of measurement (e.g., '%', 'clients', '$')",
-        "trend": "Trend direction: 'up', 'down', 'stable'",
-        "status": "Status: 'on-track', 'at-risk', 'behind', 'ahead'",
+        "trend": "Expected trend direction: 'up', 'down', 'stable'",
+        "status": "Initial status: 'on-track', 'at-risk', 'behind', 'ahead'",
         "icon": "Icon to display: 'users', 'dollar', 'chart', 'check', 'alert'"
       }
     ],
     "tables": [
       {
         "title": "REQUIRED: Table title (e.g., 'Recent Service Deliveries', 'Entity Performance Summary', 'Milestone Status')",
-        "dataSource": "Which dataset provides the data",
-        "columns": ["List of column names to display"],
-        "sortBy": "Default sort column",
-        "filters": ["Available filters"],
+        "linkedForm": "REQUIRED: Name of the form that provides this data (must match a form name from the forms array)",
+        "columns": ["REQUIRED: List of dataset field names to display as columns (must all be in the form's datasetFields array)"],
+        "sortBy": "Default sort column (must be one of the columns)",
+        "sortOrder": "Sort order: 'asc' or 'desc'",
+        "filters": ["Available filters (must be dataset fields)"],
         "pageSize": "Number of rows per page (e.g., 10, 25, 50)"
       }
     ]
@@ -625,7 +630,16 @@ This CHW platform has advanced data visualization capabilities using Recharts li
 4. Include KPI cards for critical success indicators
 5. Design charts that show progress over time
 6. Add tables for detailed data views
-7. Link dashboard elements to data sources (forms/datasets)
+7. **CRITICAL**: Link EVERY dashboard element (metric, chart, KPI, table) to a specific form and dataset field
+
+**FORM-DATASET-DASHBOARD LINKAGE (CRITICAL):**
+- Every metric MUST have a linkedForm that matches a form name from the forms array
+- Every metric MUST have a datasetField that exists in that form's datasetFields array
+- Every chart MUST have a linkedForm and use xAxisField/yAxisField from that form's datasetFields
+- Every KPI MUST have a linkedForm and datasetField from that form's datasetFields
+- Every table MUST have a linkedForm and columns that are all in that form's datasetFields
+- The dashboard is DRIVEN BY the form datasets - it visualizes the data collected by the forms
+- Example: If you create a "Client Intake Form" with datasetFields including "client_name", "date_of_birth", "submitted_at", then a chart showing enrollment over time would use linkedForm: "Client Intake Form", xAxisField: "submitted_at", yAxisField: "client_name", aggregation: "count"
 
 **DASHBOARD DESIGN PRINCIPLES:**
 - **Top Row**: KPI cards showing most important metrics (4-6 cards)
@@ -652,23 +666,24 @@ Choose appropriate chart types:
 - **Gauge Charts** → Progress to goal (budget utilization, milestone completion)
 - **Funnel Charts** → Conversion stages (referral to service completion)
 
-**KPI EXAMPLES:**
-Example KPIs: Total Clients Served (COUNT client_id, target 500, trend up, status on-track), Budget Utilization (SUM expenses divided by total_budget times 100, target 100%, trend up), Client Satisfaction (AVG satisfaction_score, target 4.5 out of 5, trend stable, status ahead).
+**KPI EXAMPLES WITH FORM LINKAGE:**
+Example: Total Clients Served KPI linked to "Client Intake Form", datasetField "client_id", calculation COUNT, target 500. Budget Utilization KPI linked to "Expense Tracking Form", datasetField "amount", calculation SUM divided by total_budget times 100. Client Satisfaction KPI linked to "Satisfaction Survey Form", datasetField "satisfaction_score", calculation AVG, target 4.5.
 
-**CHART EXAMPLES:**
-Example Charts: Monthly Client Enrollment Trend (line chart, xAxis month, yAxis client_count, aggregation count), Service Distribution by Type (pie chart, xAxis service_type, yAxis service_count), Budget vs Actual Spending (bar chart, xAxis category, yAxis amount, aggregation sum).
+**CHART EXAMPLES WITH FORM LINKAGE:**
+Example: Monthly Client Enrollment Trend chart linked to "Client Intake Form", xAxisField "submitted_at" grouped by month, yAxisField "client_id", aggregation count. Service Distribution pie chart linked to "Service Tracking Form", xAxisField "service_type", yAxisField "service_id", aggregation count. Budget Spending bar chart linked to "Expense Tracking Form", xAxisField "category", yAxisField "amount", aggregation sum.
 
-**TABLE EXAMPLES:**
-Example Tables: Recent Service Deliveries (columns: date, client_name, service_type, chw_name, status, sortBy date, filters for date_range and service_type, pageSize 25), Entity Performance Summary (columns: entity_name, clients_served, services_delivered, budget_used, satisfaction, sortBy clients_served, pageSize 10).
+**TABLE EXAMPLES WITH FORM LINKAGE:**
+Example: Recent Service Deliveries table linked to "Service Tracking Form", columns from datasetFields: date, client_name, service_type, chw_name, status, sortBy date. Entity Performance table linked to aggregated data from multiple forms, columns: entity_name, clients_served (from Client Intake Form), services_delivered (from Service Tracking Form), budget_used (from Expense Tracking Form).
 
 **REQUIREMENTS:**
-1. Create 4-6 KPI cards for most important metrics
-2. Design 3-5 charts showing different aspects of grant performance
-3. Include 1-2 detailed data tables
-4. Link all elements to appropriate data sources
-5. Use appropriate chart types for data being visualized
-6. Include targets/goals from grant document
-7. Design for real-time or daily refresh based on grant status
+1. Create 4-6 KPI cards, EACH linked to a specific form and dataset field
+2. Design 3-5 charts, EACH linked to a specific form with xAxis/yAxis from that form's dataset fields
+3. Include 1-2 detailed data tables, EACH linked to a specific form with columns from that form's dataset fields
+4. VERIFY all linkedForm names match form names in the forms array
+5. VERIFY all datasetField/xAxisField/yAxisField/columns exist in the linked form's datasetFields array
+6. Use appropriate chart types for the data being visualized
+7. Include targets/goals from grant document
+8. Design for real-time or daily refresh based on grant status
 
 **FINAL REMINDER**: 
 - Use ONLY information from the document text provided above
@@ -678,14 +693,17 @@ Example Tables: Recent Service Deliveries (columns: date, client_name, service_t
 - For project milestones, CREATE intelligent milestones even if not explicitly stated (use grant timeline and common project phases)
 - For forms, CREATE comprehensive forms for EACH data collection method with appropriate fields and dataset structure
 - For dashboard, CREATE a complete dashboard configuration with KPIs, charts, and tables based on grant metrics
+- **CRITICAL**: EVERY dashboard element (metric, chart, KPI, table) MUST be linked to a specific form via linkedForm field
+- **CRITICAL**: EVERY dashboard element MUST use datasetField/xAxisField/yAxisField/columns that exist in the linked form's datasetFields array
+- **CRITICAL**: The dashboard is DRIVEN BY the form datasets - verify all field references are valid
 - Milestones should be actionable, realistic, and span the entire grant period
 - Forms should capture all required data points with appropriate field types
-- Dashboard should visualize key metrics and track grant performance
+- Dashboard should visualize key metrics and track grant performance using the form datasets
 - Include dependencies between milestones for proper project sequencing
 - Link forms to their data collection methods
-- Link dashboard elements to data sources (forms/datasets)
-- Define complete dataset structures for analysis
+- Define complete dataset structures for analysis (these drive the dashboard)
 - Use appropriate chart types for the data being visualized
+- Ensure data flow: Forms collect data → Datasets store data → Dashboard visualizes data
 - If something is not in the document, leave it empty (EXCEPT for milestones, forms, and dashboard - always create these based on grant requirements)
 
 Return valid JSON with proper array types.`;
