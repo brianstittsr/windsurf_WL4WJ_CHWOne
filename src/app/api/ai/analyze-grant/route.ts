@@ -334,12 +334,12 @@ Extract and return a JSON object with these fields. USE ONLY INFORMATION FROM TH
   ],
   "dataCollectionMethods": [
     {
-      "name": "Method name (e.g., 'Quarterly Surveys', 'Monthly Site Visits')",
-      "description": "Detailed description of the data collection approach",
-      "frequency": "How often (e.g., 'monthly', 'quarterly', 'annually')",
-      "responsibleEntity": "Organization or role responsible for this data collection",
-      "dataPoints": ["specific", "metrics", "or", "indicators", "to", "collect"],
-      "tools": "Tools, software, or instruments used for data collection"
+      "name": "REQUIRED: Extract the data collection method name from the document (e.g., 'Quarterly Surveys', 'Monthly Site Visits', 'Client Intake Forms', 'Outcome Assessments')",
+      "description": "REQUIRED: Detailed description of what data will be collected and how. Extract from document text.",
+      "frequency": "REQUIRED: How often data is collected. Must be one of: 'once', 'daily', 'weekly', 'monthly', 'quarterly', 'annually'. Extract from document or infer from context (e.g., 'quarterly reports' → 'quarterly').",
+      "responsibleEntity": "REQUIRED: Organization or role responsible for collecting this data. Extract from document or use the lead organization name.",
+      "dataPoints": ["REQUIRED: List specific metrics, indicators, or data fields to collect. Examples: 'Number of clients served', 'Health outcomes', 'Service satisfaction scores', 'Demographics', 'Referral completions'. Extract from document text about reporting requirements, outcomes, or evaluation metrics."],
+      "tools": ["INTELLIGENT MAPPING: Based on the data collection method described, suggest appropriate tools from this CHW platform's capabilities: 'Custom Forms' (for surveys, assessments, intake forms), 'Referral Tracking System' (for tracking referrals and follow-ups), 'Client Management System' (for client demographics and history), 'Survey Builder' (for feedback and satisfaction surveys), 'Case Notes' (for qualitative observations), 'Outcome Tracking Dashboard' (for measuring program outcomes), 'Reporting Tools' (for generating reports). Map the document's requirements to these platform tools."]
     }
   ],
   "milestones": [
@@ -395,7 +395,34 @@ CRITICAL INSTRUCTIONS - READ CAREFULLY:
 - Extract EXACTLY as written in signature blocks, headers, or contact sections
 - Include names, titles, emails, phone numbers found in the document
 
-**DATA COLLECTION & MILESTONES:**
+**DATA COLLECTION METHODS - INTELLIGENT ANALYSIS:**
+This CHW platform has the following data collection capabilities:
+1. **Custom Forms** - Create surveys, assessments, intake forms, evaluation forms
+2. **Referral Tracking System** - Track referrals, follow-ups, and outcomes
+3. **Client Management System** - Store client demographics, history, and interactions
+4. **Survey Builder** - Build feedback surveys, satisfaction surveys, pre/post assessments
+5. **Case Notes** - Document qualitative observations and client interactions
+6. **Outcome Tracking Dashboard** - Track and visualize program outcomes and metrics
+7. **Reporting Tools** - Generate reports for funders and stakeholders
+
+**YOUR TASK FOR DATA COLLECTION METHODS:**
+1. Read the document for ANY mentions of: data collection, reporting requirements, evaluation, metrics, outcomes, monitoring, tracking, assessments, surveys, or performance measures
+2. For EACH data collection requirement found:
+   - Extract the method name (e.g., "Quarterly Client Surveys", "Monthly Service Reports")
+   - Extract what data needs to be collected (metrics, indicators, outcomes)
+   - Determine frequency (daily, weekly, monthly, quarterly, annually)
+   - Identify who is responsible
+   - **INTELLIGENTLY MAP** to platform tools: Based on what needs to be collected, suggest which platform tools would work best
+     * If document mentions "surveys" or "assessments" → suggest "Survey Builder" and "Custom Forms"
+     * If document mentions "referrals" or "follow-ups" → suggest "Referral Tracking System"
+     * If document mentions "client data" or "demographics" → suggest "Client Management System"
+     * If document mentions "outcomes" or "program metrics" → suggest "Outcome Tracking Dashboard"
+     * If document mentions "reports" or "reporting" → suggest "Reporting Tools"
+     * If document mentions "case management" or "notes" → suggest "Case Notes"
+3. Create AT LEAST 2-3 data collection methods if the document mentions reporting or evaluation requirements
+4. Be specific about dataPoints - list actual metrics mentioned in the document
+
+**MILESTONES:**
 - Extract ONLY if explicitly mentioned in the document
 - If not described in the document, return empty arrays []
 
@@ -403,6 +430,7 @@ CRITICAL INSTRUCTIONS - READ CAREFULLY:
 - Use ONLY information from the document text provided above
 - Do NOT make up organization names, dates, or amounts
 - Extract and quote directly from the document
+- For data collection methods, be intelligent about mapping document requirements to platform capabilities
 - If something is not in the document, leave it empty
 
 Return valid JSON with proper array types.`;
