@@ -1,15 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Use pdf-parse for simpler, more reliable PDF text extraction
+// Load multiple PDF libraries with fallback support
 let pdfParse: any = null;
+let pdfjsLib: any = null;
+let pdfExtract: any = null;
+
 if (typeof window === 'undefined') {
+  // Try to load pdf-parse (primary)
   try {
     pdfParse = require('pdf-parse');
-    console.log('pdf-parse loaded successfully');
+    console.log('✓ pdf-parse loaded successfully');
   } catch (e) {
-    console.error('Failed to load pdf-parse:', e);
+    console.warn('⚠ pdf-parse not available:', e instanceof Error ? e.message : 'Unknown error');
   }
+
+  // Try to load pdfjs-dist (secondary)
+  try {
+    pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+    console.log('✓ pdfjs-dist loaded successfully');
+  } catch (e) {
+    console.warn('⚠ pdfjs-dist not available:', e instanceof Error ? e.message : 'Unknown error');
+  }
+
+  // Try to load pdf.js-extract (tertiary)
+  try {
+    const PDFExtract = require('pdf.js-extract').PDFExtract;
+    pdfExtract = new PDFExtract();
+    console.log('✓ pdf.js-extract loaded successfully');
+  } catch (e) {
+    console.warn('⚠ pdf.js-extract not available:', e instanceof Error ? e.message : 'Unknown error');
+  }
+
+  console.log(`PDF libraries available: ${[pdfParse && 'pdf-parse', pdfjsLib && 'pdfjs-dist', pdfExtract && 'pdf.js-extract'].filter(Boolean).join(', ') || 'NONE'}`);
 }
 
 export const dynamic = 'force-dynamic';
@@ -140,35 +163,86 @@ export async function POST(request: NextRequest) {
       
       if (isPdf) {
         console.log('Detected PDF file');
-        try {
-          if (!pdfParse) {
-            console.error('pdf-parse library not loaded');
-            return NextResponse.json({
-              success: false,
-              error: 'PDF processing library not available. Please install pdf-parse: npm install pdf-parse',
-            }, { status: 500 });
+        
+        // Convert file once for all libraries
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        let extractionSuccess = false;
+        const errors: string[] = [];
+        
+        // Try pdf-parse first (simplest and most reliable)
+        if (pdfParse && !extractionSuccess) {
+          try {
+            console.log('Attempting extraction with pdf-parse...');
+            const pdfData = await pdfParse(buffer);
+            fileContent = pdfData.text;
+            console.log(`✓ pdf-parse: Extracted ${fileContent.length} characters from ${pdfData.numpages} pages`);
+            extractionSuccess = true;
+          } catch (e) {
+            const error = `pdf-parse failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            console.warn(`✗ ${error}`);
+            errors.push(error);
           }
-          
-          // Convert File to Buffer for pdf-parse
-          console.log('Converting PDF file to buffer...');
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          
-          console.log('Extracting text from PDF using pdf-parse...');
-          const pdfData = await pdfParse(buffer);
-          
-          fileContent = pdfData.text;
-          const numPages = pdfData.numpages;
-          const info = pdfData.info || {};
-          
-          console.log(`Successfully extracted ${fileContent.length} characters from ${numPages} pages`);
-          console.log(`PDF info:`, info);
-        } catch (pdfError) {
-          console.error('Error processing PDF:', pdfError);
+        }
+        
+        // Try pdfjs-dist if pdf-parse failed
+        if (pdfjsLib && !extractionSuccess) {
+          try {
+            console.log('Attempting extraction with pdfjs-dist...');
+            const uint8Array = new Uint8Array(arrayBuffer);
+            const loadingTask = pdfjsLib.getDocument({
+              data: uint8Array,
+              useSystemFonts: true,
+              standardFontDataUrl: undefined
+            });
+            const pdfDocument = await loadingTask.promise;
+            const numPages = pdfDocument.numPages;
+            
+            const textPromises: Promise<string>[] = [];
+            for (let i = 1; i <= numPages; i++) {
+              textPromises.push(
+                pdfDocument.getPage(i).then(async (page: any) => {
+                  const textContent = await page.getTextContent();
+                  return textContent.items.map((item: any) => item.str).join(' ');
+                })
+              );
+            }
+            
+            const pageTexts = await Promise.all(textPromises);
+            fileContent = pageTexts.join('\n\n');
+            console.log(`✓ pdfjs-dist: Extracted ${fileContent.length} characters from ${numPages} pages`);
+            extractionSuccess = true;
+          } catch (e) {
+            const error = `pdfjs-dist failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            console.warn(`✗ ${error}`);
+            errors.push(error);
+          }
+        }
+        
+        // Try pdf.js-extract as last resort
+        if (pdfExtract && !extractionSuccess) {
+          try {
+            console.log('Attempting extraction with pdf.js-extract...');
+            // pdf.js-extract needs a file path, so we'll skip it for now
+            // or implement a temp file solution if needed
+            console.warn('✗ pdf.js-extract requires file path (skipping for now)');
+            errors.push('pdf.js-extract: requires file path');
+          } catch (e) {
+            const error = `pdf.js-extract failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            console.warn(`✗ ${error}`);
+            errors.push(error);
+          }
+        }
+        
+        // If all methods failed
+        if (!extractionSuccess) {
+          console.error('All PDF extraction methods failed:', errors);
           return NextResponse.json({
             success: false,
-            error: 'Failed to extract text from PDF. The file may be corrupted or encrypted.',
-            details: pdfError instanceof Error ? pdfError.message : 'Unknown error'
+            error: 'Failed to extract text from PDF using all available methods.',
+            details: errors.join('; '),
+            availableLibraries: [pdfParse && 'pdf-parse', pdfjsLib && 'pdfjs-dist', pdfExtract && 'pdf.js-extract'].filter(Boolean)
           }, { status: 422 });
         }
       } else {
