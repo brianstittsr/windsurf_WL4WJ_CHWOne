@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Dynamic import for pdfjs-dist to avoid build issues
-let pdfjsLib: any = null;
+// Use pdf-parse for simpler, more reliable PDF text extraction
+let pdfParse: any = null;
 if (typeof window === 'undefined') {
   try {
-    // Try to load pdfjs-dist dynamically
-    pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+    pdfParse = require('pdf-parse');
+    console.log('pdf-parse loaded successfully');
   } catch (e) {
-    console.error('Failed to load pdfjs-dist:', e);
+    console.error('Failed to load pdf-parse:', e);
   }
 }
 
@@ -141,48 +141,28 @@ export async function POST(request: NextRequest) {
       if (isPdf) {
         console.log('Detected PDF file');
         try {
-          if (!pdfjsLib) {
-            console.error('pdfjs-dist library not loaded');
+          if (!pdfParse) {
+            console.error('pdf-parse library not loaded');
             return NextResponse.json({
               success: false,
-              error: 'PDF processing library not available. Please contact support.',
+              error: 'PDF processing library not available. Please install pdf-parse: npm install pdf-parse',
             }, { status: 500 });
           }
           
-          // Convert File to ArrayBuffer for pdfjs-dist
-          console.log('Converting PDF file to array buffer...');
+          // Convert File to Buffer for pdf-parse
+          console.log('Converting PDF file to buffer...');
           const arrayBuffer = await file.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
+          const buffer = Buffer.from(arrayBuffer);
           
-          console.log('Loading PDF document with pdfjs-dist...');
-          const loadingTask = pdfjsLib.getDocument({
-            data: uint8Array,
-            useSystemFonts: true,
-            standardFontDataUrl: undefined
-          });
+          console.log('Extracting text from PDF using pdf-parse...');
+          const pdfData = await pdfParse(buffer);
           
-          const pdfDocument = await loadingTask.promise;
-          const numPages = pdfDocument.numPages;
-          console.log(`PDF has ${numPages} pages`);
-          
-          // Extract text from all pages
-          const textPromises: Promise<string>[] = [];
-          for (let i = 1; i <= numPages; i++) {
-            textPromises.push(
-              pdfDocument.getPage(i).then(async (page) => {
-                const textContent = await page.getTextContent();
-                return textContent.items
-                  .map((item: any) => item.str)
-                  .join(' ');
-              })
-            );
-          }
-          
-          console.log('Extracting text from all pages...');
-          const pageTexts = await Promise.all(textPromises);
-          fileContent = pageTexts.join('\n\n');
+          fileContent = pdfData.text;
+          const numPages = pdfData.numpages;
+          const info = pdfData.info || {};
           
           console.log(`Successfully extracted ${fileContent.length} characters from ${numPages} pages`);
+          console.log(`PDF info:`, info);
         } catch (pdfError) {
           console.error('Error processing PDF:', pdfError);
           return NextResponse.json({
