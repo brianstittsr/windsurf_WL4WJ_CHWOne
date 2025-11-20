@@ -947,6 +947,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       const { Timestamp } = await import('firebase/firestore');
       
       // Prepare grant data for Firebase with required fields
+      // Firebase doesn't accept undefined values, so we provide defaults
       const grantToSave: any = {
         title: grantData.name || 'Untitled Grant',
         description: grantData.description || '',
@@ -960,13 +961,13 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         requirements: [],
         reportingSchedule: [],
         contactPerson: grantData.collaboratingEntities?.[0]?.contactName || 'Not specified',
-        // Include all the wizard data as additional fields
-        grantNumber: grantData.grantNumber,
-        collaboratingEntities: grantData.collaboratingEntities,
-        dataCollectionMethods: grantData.dataCollectionMethods,
-        projectMilestones: grantData.projectMilestones,
-        formTemplates: grantData.formTemplates,
-        datasets: grantData.datasets
+        // Include all the wizard data as additional fields (with defaults to prevent undefined)
+        grantNumber: grantData.grantNumber || '',
+        collaboratingEntities: grantData.collaboratingEntities || [],
+        dataCollectionMethods: grantData.dataCollectionMethods || [],
+        projectMilestones: grantData.projectMilestones || [],
+        formTemplates: grantData.formTemplates || [],
+        datasets: grantData.datasets || []
       };
       
       // Save to Firebase
