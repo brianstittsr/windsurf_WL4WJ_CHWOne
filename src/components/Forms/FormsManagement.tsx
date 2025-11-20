@@ -97,7 +97,12 @@ interface Form {
   updatedAt: Date;
 }
 
-export default function FormsManagement() {
+interface FormsManagementProps {
+  openCreateModal?: boolean;
+  onCreateModalClose?: () => void;
+}
+
+export default function FormsManagement({ openCreateModal, onCreateModalClose }: FormsManagementProps = {}) {
   const { currentUser } = useAuth();
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,6 +132,16 @@ export default function FormsManagement() {
   useEffect(() => {
     fetchForms();
   }, [currentUser]);
+
+  // Handle external modal trigger
+  useEffect(() => {
+    if (openCreateModal) {
+      openModal('create');
+      if (onCreateModalClose) {
+        onCreateModalClose();
+      }
+    }
+  }, [openCreateModal]);
 
   const fetchForms = async () => {
     if (!currentUser) {

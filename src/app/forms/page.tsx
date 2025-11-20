@@ -27,6 +27,7 @@ import AnimatedLoading from '@/components/Common/AnimatedLoading';
 function FormsContent() {
   const { currentUser, loading } = useAuth();
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   if (loading) {
     return <AnimatedLoading message="Loading Forms..." />;
@@ -42,6 +43,11 @@ function FormsContent() {
     setWizardOpen(false);
     // Reload the page to show the new form
     window.location.reload();
+  };
+
+  // Handle create form manually button
+  const handleCreateManually = () => {
+    setCreateModalOpen(true);
   };
 
   return (
@@ -68,11 +74,19 @@ function FormsContent() {
             >
               Create with AI Wizard
             </Button>
-            <Button component={Link} href="/forms/new" variant="outlined">Create Form Manually</Button>
+            <Button 
+              variant="outlined"
+              onClick={handleCreateManually}
+            >
+              Create Form Manually
+            </Button>
           </Stack>
         </Box>
         
-        <FormsManagement />
+        <FormsManagement 
+          openCreateModal={createModalOpen}
+          onCreateModalClose={() => setCreateModalOpen(false)}
+        />
       </Box>
 
       {/* AI Wizard Dialog */}
