@@ -128,6 +128,7 @@ export default function FormsManagement({ openCreateModal, onCreateModalClose }:
   const [formToDelete, setFormToDelete] = useState<Form | null>(null);
   const [deleteDataset, setDeleteDataset] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [fieldOptionsInput, setFieldOptionsInput] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchForms();
@@ -1027,13 +1028,35 @@ export default function FormsManagement({ openCreateModal, onCreateModalClose }:
                               <TextField
                                 fullWidth
                                 label="Options (comma-separated)"
-                                value={field.options?.join(', ') || ''}
-                                onChange={(e) => updateField(field.id, { 
-                                  options: e.target.value.split(',').map(opt => opt.trim()).filter(opt => opt) 
-                                })}
+                                value={fieldOptionsInput[field.id] ?? field.options?.join(', ') ?? ''}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  // Store the raw input value
+                                  setFieldOptionsInput(prev => ({
+                                    ...prev,
+                                    [field.id]: value
+                                  }));
+                                }}
+                                onBlur={(e) => {
+                                  // Parse and update options when user leaves the field
+                                  const value = e.target.value;
+                                  const options = value
+                                    .split(',')
+                                    .map(opt => opt.trim())
+                                    .filter(opt => opt.length > 0);
+                                  updateField(field.id, { options });
+                                  // Clear the input state after updating
+                                  setFieldOptionsInput(prev => {
+                                    const newState = { ...prev };
+                                    delete newState[field.id];
+                                    return newState;
+                                  });
+                                }}
                                 size="small"
                                 placeholder="Option 1, Option 2, Option 3"
-                                helperText="Enter options separated by commas"
+                                helperText="Enter options separated by commas (e.g., Yes, No, Maybe)"
+                                multiline
+                                rows={2}
                               />
                             </Grid>
                           )}
