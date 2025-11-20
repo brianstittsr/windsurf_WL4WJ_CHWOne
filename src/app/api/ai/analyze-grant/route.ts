@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-// Use legacy build for Node.js/serverless environments
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
+// Dynamic import for pdfjs-dist to avoid build issues
+let pdfjsLib: any = null;
+if (typeof window === 'undefined') {
+  try {
+    // Try to load pdfjs-dist dynamically
+    pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+  } catch (e) {
+    console.error('Failed to load pdfjs-dist:', e);
+  }
+}
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -132,6 +141,14 @@ export async function POST(request: NextRequest) {
       if (isPdf) {
         console.log('Detected PDF file');
         try {
+          if (!pdfjsLib) {
+            console.error('pdfjs-dist library not loaded');
+            return NextResponse.json({
+              success: false,
+              error: 'PDF processing library not available. Please contact support.',
+            }, { status: 500 });
+          }
+          
           // Convert File to ArrayBuffer for pdfjs-dist
           console.log('Converting PDF file to array buffer...');
           const arrayBuffer = await file.arrayBuffer();
