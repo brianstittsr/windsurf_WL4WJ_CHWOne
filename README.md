@@ -2,6 +2,8 @@
 
 A comprehensive HIPAA-compliant platform for managing Community Health Workers, built for **Women Leading for Wellness and Justice**. This NextJS application integrates with Firebase for secure data management and provides tools for managing CHWs, grants, projects, referrals, and survey data.
 
+<!-- Updated: 2025-11-19 - Grant analyzer with PDF extraction -->
+
 ## 🏥 Platform Overview
 
 CHWOne is designed specifically for community health organizations to:
