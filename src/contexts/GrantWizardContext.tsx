@@ -313,11 +313,11 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         };
       }
       
-      // We'll now handle PDFs through the API with the improved PDF.js-extract library
+      // We'll now handle PDFs through the API with the pdfjs-dist library
       // No special client-side handling needed anymore
       if (isPdf) {
         addAnalysisStep('Processing PDF document');
-        addAnalysisStep('Using pdf-parse for text extraction');
+        addAnalysisStep('Using pdfjs-dist for text extraction');
       }
       
       // Prepare for API call

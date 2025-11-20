@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import * as pdfjsLib from 'pdfjs-dist';
 
-// Dynamic import for pdf-parse (Node.js only)
-let pdfParse: any = null;
-try {
-  pdfParse = require('pdf-parse');
-} catch (e) {
-  console.warn('pdf-parse not available, PDF processing will be limited');
+// Set worker source for pdfjs
+if (typeof window === 'undefined') {
+  // Server-side: use legacy build without worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 }
 
 export const dynamic = 'force-dynamic';
@@ -136,26 +135,40 @@ export async function POST(request: NextRequest) {
       if (isPdf) {
         console.log('Detected PDF file');
         try {
-          if (!pdfParse) {
-            console.error('pdf-parse library not available');
-            return NextResponse.json({
-              success: false,
-              error: 'PDF processing library not available. Please contact support.',
-            }, { status: 500 });
+          // Convert File to ArrayBuffer for pdfjs-dist
+          console.log('Converting PDF file to array buffer...');
+          const arrayBuffer = await file.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          
+          console.log('Loading PDF document with pdfjs-dist...');
+          const loadingTask = pdfjsLib.getDocument({
+            data: uint8Array,
+            useSystemFonts: true,
+            standardFontDataUrl: undefined
+          });
+          
+          const pdfDocument = await loadingTask.promise;
+          const numPages = pdfDocument.numPages;
+          console.log(`PDF has ${numPages} pages`);
+          
+          // Extract text from all pages
+          const textPromises: Promise<string>[] = [];
+          for (let i = 1; i <= numPages; i++) {
+            textPromises.push(
+              pdfDocument.getPage(i).then(async (page) => {
+                const textContent = await page.getTextContent();
+                return textContent.items
+                  .map((item: any) => item.str)
+                  .join(' ');
+              })
+            );
           }
           
-          // Convert File to Buffer for pdf-parse
-          console.log('Converting PDF file to buffer...');
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
+          console.log('Extracting text from all pages...');
+          const pageTexts = await Promise.all(textPromises);
+          fileContent = pageTexts.join('\n\n');
           
-          console.log('Extracting text from PDF using pdf-parse...');
-          const pdfData = await pdfParse(buffer);
-          
-          fileContent = pdfData.text;
-          console.log(`Successfully extracted ${fileContent.length} characters from PDF`);
-          console.log(`PDF has ${pdfData.numpages} pages`);
-          console.log(`PDF info:`, pdfData.info);
+          console.log(`Successfully extracted ${fileContent.length} characters from ${numPages} pages`);
         } catch (pdfError) {
           console.error('Error processing PDF:', pdfError);
           return NextResponse.json({
