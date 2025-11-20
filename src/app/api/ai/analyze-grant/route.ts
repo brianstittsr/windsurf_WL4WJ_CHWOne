@@ -595,44 +595,9 @@ For each form, define datasetFields that include:
 
 **FORM EXAMPLES:**
 
-Example 1: Client Intake Form
-```json
-{
-  "name": "Client Intake Form",
-  "description": "Collect client demographics and eligibility information",
-  "category": "intake",
-  "linkedDataCollectionMethod": "Client Demographics Collection",
-  "fields": [
-    {"name": "client_name", "label": "Client Name", "type": "text", "required": true},
-    {"name": "date_of_birth", "label": "Date of Birth", "type": "date", "required": true},
-    {"name": "phone", "label": "Phone Number", "type": "phone", "required": true},
-    {"name": "email", "label": "Email Address", "type": "email", "required": false},
-    {"name": "address", "label": "Address", "type": "textarea", "required": true},
-    {"name": "insurance_status", "label": "Insurance Status", "type": "radio", "required": true, "options": ["Insured", "Uninsured", "Medicaid", "Medicare"]},
-    {"name": "primary_language", "label": "Primary Language", "type": "select", "required": true, "options": ["English", "Spanish", "Other"]},
-    {"name": "consent", "label": "I consent to services", "type": "checkbox", "required": true}
-  ],
-  "datasetFields": ["client_name", "date_of_birth", "phone", "email", "address", "insurance_status", "primary_language", "consent", "submission_id", "submitted_at", "submitted_by"]
-}
-```
+Example 1: Client Intake Form with fields for client_name (text), date_of_birth (date), phone (phone), email (email), address (textarea), insurance_status (radio with options), primary_language (select), consent (checkbox). Dataset includes all fields plus submission metadata.
 
-Example 2: Quarterly Satisfaction Survey
-```json
-{
-  "name": "Quarterly Client Satisfaction Survey",
-  "description": "Measure client satisfaction with CHW services",
-  "category": "survey",
-  "linkedDataCollectionMethod": "Quarterly Surveys",
-  "fields": [
-    {"name": "overall_satisfaction", "label": "Overall Satisfaction", "type": "rating", "required": true, "helpText": "Rate 1-5 stars"},
-    {"name": "service_quality", "label": "Quality of Services", "type": "slider", "required": true, "helpText": "Scale 1-10"},
-    {"name": "chw_helpfulness", "label": "CHW Helpfulness", "type": "radio", "required": true, "options": ["Very Helpful", "Helpful", "Neutral", "Not Helpful"]},
-    {"name": "would_recommend", "label": "Would you recommend our services?", "type": "radio", "required": true, "options": ["Yes", "No", "Maybe"]},
-    {"name": "comments", "label": "Additional Comments", "type": "textarea", "required": false}
-  ],
-  "datasetFields": ["overall_satisfaction", "service_quality", "chw_helpfulness", "would_recommend", "comments", "submission_id", "submitted_at", "quarter"]
-}
-```
+Example 2: Quarterly Satisfaction Survey with fields for overall_satisfaction (rating 1-5), service_quality (slider 1-10), chw_helpfulness (radio), would_recommend (radio Yes/No/Maybe), comments (textarea). Dataset includes all fields plus submission_id, submitted_at, quarter.
 
 **REQUIREMENTS:**
 1. Create AT LEAST 2-3 forms based on data collection methods
@@ -688,90 +653,13 @@ Choose appropriate chart types:
 - **Funnel Charts** → Conversion stages (referral to service completion)
 
 **KPI EXAMPLES:**
-```
-{
-  name: "Total Clients Served",
-  value: "COUNT(client_id)",
-  target: "500",
-  unit: "clients",
-  trend: "up",
-  status: "on-track",
-  icon: "users"
-}
-
-{
-  name: "Budget Utilization",
-  value: "SUM(expenses)/total_budget*100",
-  target: "100",
-  unit: "%",
-  trend: "up",
-  status: "on-track",
-  icon: "dollar"
-}
-
-{
-  name: "Client Satisfaction",
-  value: "AVG(satisfaction_score)",
-  target: "4.5",
-  unit: "/5",
-  trend: "stable",
-  status: "ahead",
-  icon: "chart"
-}
-```
+Example KPIs: Total Clients Served (COUNT client_id, target 500, trend up, status on-track), Budget Utilization (SUM expenses divided by total_budget times 100, target 100%, trend up), Client Satisfaction (AVG satisfaction_score, target 4.5 out of 5, trend stable, status ahead).
 
 **CHART EXAMPLES:**
-```
-{
-  title: "Monthly Client Enrollment Trend",
-  type: "line",
-  dataSource: "client_intake_form",
-  xAxis: "month",
-  yAxis: "client_count",
-  aggregation: "count",
-  colorScheme: "blue"
-}
-
-{
-  title: "Service Distribution by Type",
-  type: "pie",
-  dataSource: "service_tracking_form",
-  xAxis: "service_type",
-  yAxis: "service_count",
-  aggregation: "count",
-  colorScheme: "multi"
-}
-
-{
-  title: "Budget vs Actual Spending",
-  type: "bar",
-  dataSource: "expense_tracking",
-  xAxis: "category",
-  yAxis: "amount",
-  aggregation: "sum",
-  colorScheme: "green"
-}
-```
+Example Charts: Monthly Client Enrollment Trend (line chart, xAxis month, yAxis client_count, aggregation count), Service Distribution by Type (pie chart, xAxis service_type, yAxis service_count), Budget vs Actual Spending (bar chart, xAxis category, yAxis amount, aggregation sum).
 
 **TABLE EXAMPLES:**
-```
-{
-  title: "Recent Service Deliveries",
-  dataSource: "service_tracking_form",
-  columns: ["date", "client_name", "service_type", "chw_name", "status"],
-  sortBy: "date",
-  filters: ["date_range", "service_type", "status"],
-  pageSize: 25
-}
-
-{
-  title: "Entity Performance Summary",
-  dataSource: "aggregated_entity_data",
-  columns: ["entity_name", "clients_served", "services_delivered", "budget_used", "satisfaction"],
-  sortBy: "clients_served",
-  pageSize: 10
-}
-```
+Example Tables: Recent Service Deliveries (columns: date, client_name, service_type, chw_name, status, sortBy date, filters for date_range and service_type, pageSize 25), Entity Performance Summary (columns: entity_name, clients_served, services_delivered, budget_used, satisfaction, sortBy clients_served, pageSize 10).
 
 **REQUIREMENTS:**
 1. Create 4-6 KPI cards for most important metrics
