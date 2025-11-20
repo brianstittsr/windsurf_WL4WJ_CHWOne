@@ -382,8 +382,8 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         if (result.note) {
           console.warn(result.note);
           // Check if it's due to an API error
-          if (result.note.includes('Anthropic API error')) {
-            addAnalysisStep(`⚠ Anthropic API error: Check your API key`);
+          if (result.note.includes('API error') || result.note.includes('OpenAI')) {
+            addAnalysisStep(`⚠ OpenAI API error: Check your API key`);
           } else {
             addAnalysisStep(`⚠ Note: ${result.note}`);
           }
@@ -475,7 +475,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       addAnalysisStep('❌ Document analysis failed - please try again');
       return {
         success: false,
-        error: 'Document analysis failed. Please ensure you have a valid Anthropic API key configured.',
+        error: 'Document analysis failed. Please ensure you have a valid OpenAI API key configured in Vercel environment variables.',
         steps: analysisSteps
       };
     } finally {
@@ -483,10 +483,10 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
     }
   };
 
-  // Process the Anthropic API analysis results into our grant data structure
+  // Process the OpenAI API analysis results into our grant data structure
   const processAnalyzedData = (apiData: any): Partial<Grant> => {
     try {
-      console.log('Processing Anthropic analysis data:', apiData);
+      console.log('Processing OpenAI analysis data:', apiData);
       
       // Initialize the extracted data
       const extractedData: Partial<Grant> = {
