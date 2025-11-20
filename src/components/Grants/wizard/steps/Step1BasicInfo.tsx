@@ -46,6 +46,7 @@ export function Step1BasicInfo() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showAnalysisSuccess, setShowAnalysisSuccess] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [pastedText, setPastedText] = useState<string>('');
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -132,6 +133,41 @@ export function Step1BasicInfo() {
     const documents = [...(grantData.documents || [])];
     documents.splice(index, 1);
     updateGrantData({ documents });
+  };
+
+  const handleAnalyzePastedText = async () => {
+    if (!pastedText.trim()) {
+      setAnalysisError('Please paste some text to analyze');
+      return;
+    }
+
+    setAnalysisError(null);
+    setShowAnalysisModal(true);
+
+    // Create a fake File object from the pasted text
+    const blob = new Blob([pastedText], { type: 'text/plain' });
+    const file = new File([blob], 'pasted-text.txt', { type: 'text/plain' });
+
+    try {
+      const result = await analyzeDocument(file);
+      console.log('Pasted text analysis result:', result);
+
+      if (result.success) {
+        setShowAnalysisSuccess(true);
+        setTimeout(() => setShowAnalysisSuccess(false), 5000);
+        setPastedText(''); // Clear the text area after successful analysis
+      } else {
+        const errorMessage = result.error || 'Text analysis failed. Please check your OpenAI API configuration.';
+        setAnalysisError(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error during text analysis:', error);
+      let errorMessage = 'An unexpected error occurred while analyzing the text.';
+      if (error instanceof Error) {
+        errorMessage += ' ' + error.message;
+      }
+      setAnalysisError(errorMessage);
+    }
   };
 
   // Format date for display
@@ -327,6 +363,70 @@ export function Step1BasicInfo() {
             </Stack>
           </Box>
         )}
+      </Paper>
+
+      {/* OR Divider */}
+      <Box sx={{ display: 'flex', alignItems: 'center', my: 3 }}>
+        <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+        <Typography variant="body2" sx={{ mx: 2, color: 'text.secondary', fontWeight: 'medium' }}>
+          OR
+        </Typography>
+        <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+      </Box>
+
+      {/* Paste Text Section */}
+      <Paper variant="outlined" sx={{ 
+        p: 3, 
+        mb: 4, 
+        border: '1px dashed rgba(0, 0, 0, 0.2)', 
+        borderRadius: 2,
+        bgcolor: '#f8f9fa'
+      }}>
+        <Box sx={{ textAlign: 'center', mb: 2 }}>
+          <FileTextIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+          <Typography variant="h6" gutterBottom>
+            Paste Grant Text
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Copy and paste grant text directly for AI analysis
+          </Typography>
+        </Box>
+
+        <TextField
+          fullWidth
+          multiline
+          rows={8}
+          placeholder="Paste your grant document text here... (RFP, guidelines, requirements, etc.)"
+          value={pastedText}
+          onChange={(e) => setPastedText(e.target.value)}
+          disabled={isAnalyzingDocument}
+          sx={{ 
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              bgcolor: 'white'
+            }
+          }}
+        />
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={handleAnalyzePastedText}
+            disabled={isAnalyzingDocument || !pastedText.trim()}
+            startIcon={<CheckIcon />}
+          >
+            Analyze Text with AI
+          </Button>
+          {pastedText && (
+            <Button
+              variant="outlined"
+              onClick={() => setPastedText('')}
+              disabled={isAnalyzingDocument}
+            >
+              Clear
+            </Button>
+          )}
+        </Box>
       </Paper>
       
       {/* Grant Information Section */}
