@@ -372,6 +372,55 @@ Extract and return a JSON object with these fields. USE ONLY INFORMATION FROM TH
       "datasetFields": ["List all field names that will be stored in the dataset for analysis and reporting"]
     }
   ],
+  "dashboard": {
+    "title": "REQUIRED: Dashboard title (e.g., 'CHW Program Performance Dashboard', 'Grant Outcomes Tracker')",
+    "description": "REQUIRED: Purpose of the dashboard and what it tracks",
+    "refreshInterval": "How often to update: 'realtime', 'hourly', 'daily', 'weekly'",
+    "metrics": [
+      {
+        "name": "REQUIRED: Metric name (e.g., 'Total Clients Served', 'Service Completion Rate', 'Budget Utilization')",
+        "description": "What this metric measures",
+        "type": "Metric type: 'count', 'percentage', 'currency', 'average', 'sum', 'rate'",
+        "dataSource": "Which form/dataset provides this data",
+        "calculation": "How to calculate (e.g., 'COUNT(client_id)', 'SUM(budget_spent)/total_budget*100')",
+        "target": "Target value if specified in grant (e.g., '500 clients', '80%', '$250000')",
+        "displayFormat": "How to display: 'number', 'percentage', 'currency', 'decimal'"
+      }
+    ],
+    "charts": [
+      {
+        "title": "REQUIRED: Chart title (e.g., 'Monthly Client Enrollment Trend', 'Service Distribution by Type', 'Budget vs Actual Spending')",
+        "type": "Chart type: 'line' (trends over time), 'bar' (comparisons), 'pie' (proportions), 'area' (cumulative trends), 'scatter' (correlations), 'gauge' (progress to goal), 'funnel' (conversion stages)",
+        "dataSource": "Which dataset/form provides the data",
+        "xAxis": "X-axis data (e.g., 'month', 'service_type', 'entity_name')",
+        "yAxis": "Y-axis data (e.g., 'client_count', 'budget_amount', 'satisfaction_score')",
+        "aggregation": "How to aggregate: 'count', 'sum', 'average', 'min', 'max'",
+        "filters": ["Optional filters to apply"],
+        "colorScheme": "Color scheme: 'blue', 'green', 'multi', 'gradient'"
+      }
+    ],
+    "kpis": [
+      {
+        "name": "REQUIRED: KPI name (e.g., 'Client Satisfaction', 'Grant Completion', 'Service Quality')",
+        "value": "Current value calculation",
+        "target": "Target value from grant",
+        "unit": "Unit of measurement (e.g., '%', 'clients', '$')",
+        "trend": "Trend direction: 'up', 'down', 'stable'",
+        "status": "Status: 'on-track', 'at-risk', 'behind', 'ahead'",
+        "icon": "Icon to display: 'users', 'dollar', 'chart', 'check', 'alert'"
+      }
+    ],
+    "tables": [
+      {
+        "title": "REQUIRED: Table title (e.g., 'Recent Service Deliveries', 'Entity Performance Summary', 'Milestone Status')",
+        "dataSource": "Which dataset provides the data",
+        "columns": ["List of column names to display"],
+        "sortBy": "Default sort column",
+        "filters": ["Available filters"],
+        "pageSize": "Number of rows per page (e.g., 10, 25, 50)"
+      }
+    ]
+  },
   "specialRequirements": "Any special requirements, compliance needs, reporting obligations, or important notes"
 }
 
@@ -594,6 +643,145 @@ Example 2: Quarterly Satisfaction Survey
 6. Define complete dataset structure
 7. Use appropriate field types for data being collected
 
+**AI DASHBOARD - INTELLIGENT ANALYSIS:**
+This CHW platform has advanced data visualization capabilities using Recharts library:
+1. **Chart Types**: Line, Bar, Pie, Area, Scatter, Gauge, Funnel, Radar, Treemap
+2. **KPI Cards**: Metric cards with trends, targets, and status indicators
+3. **Real-time Updates**: Live data refresh with configurable intervals
+4. **Interactive Filters**: Date ranges, entity selection, metric filtering
+5. **Data Tables**: Sortable, filterable tables with pagination
+6. **Export Options**: PDF reports, CSV downloads, image exports
+7. **Responsive Design**: Mobile-friendly, adaptive layouts
+
+**YOUR TASK FOR DASHBOARD GENERATION:**
+1. Analyze ALL metrics, outcomes, and KPIs mentioned in the grant document
+2. Design a comprehensive dashboard that tracks grant performance
+3. Create visualizations for key metrics and trends
+4. Include KPI cards for critical success indicators
+5. Design charts that show progress over time
+6. Add tables for detailed data views
+7. Link dashboard elements to data sources (forms/datasets)
+
+**DASHBOARD DESIGN PRINCIPLES:**
+- **Top Row**: KPI cards showing most important metrics (4-6 cards)
+- **Middle Section**: Charts showing trends and comparisons (2-4 charts)
+- **Bottom Section**: Detailed tables and breakdowns (1-2 tables)
+- **Color Coding**: Green (on-track), Yellow (at-risk), Red (behind), Blue (neutral)
+- **Refresh**: Real-time for active grants, daily for completed grants
+
+**METRIC SELECTION:**
+Based on grant requirements, create metrics for:
+- **Client/Participant Metrics**: Total served, demographics, satisfaction
+- **Service Delivery**: Services provided, completion rates, quality scores
+- **Financial**: Budget utilization, spending by category, cost per client
+- **Outcomes**: Health improvements, goal achievement, impact measures
+- **Timeline**: Milestone completion, days remaining, progress percentage
+- **Entity Performance**: Contributions by partner, workload distribution
+
+**CHART TYPE SELECTION:**
+Choose appropriate chart types:
+- **Line Charts** → Trends over time (monthly enrollment, budget spending)
+- **Bar Charts** → Comparisons (services by type, entity performance)
+- **Pie Charts** → Proportions (budget allocation, demographic distribution)
+- **Area Charts** → Cumulative trends (total clients served over time)
+- **Gauge Charts** → Progress to goal (budget utilization, milestone completion)
+- **Funnel Charts** → Conversion stages (referral to service completion)
+
+**KPI EXAMPLES:**
+```
+{
+  name: "Total Clients Served",
+  value: "COUNT(client_id)",
+  target: "500",
+  unit: "clients",
+  trend: "up",
+  status: "on-track",
+  icon: "users"
+}
+
+{
+  name: "Budget Utilization",
+  value: "SUM(expenses)/total_budget*100",
+  target: "100",
+  unit: "%",
+  trend: "up",
+  status: "on-track",
+  icon: "dollar"
+}
+
+{
+  name: "Client Satisfaction",
+  value: "AVG(satisfaction_score)",
+  target: "4.5",
+  unit: "/5",
+  trend: "stable",
+  status: "ahead",
+  icon: "chart"
+}
+```
+
+**CHART EXAMPLES:**
+```
+{
+  title: "Monthly Client Enrollment Trend",
+  type: "line",
+  dataSource: "client_intake_form",
+  xAxis: "month",
+  yAxis: "client_count",
+  aggregation: "count",
+  colorScheme: "blue"
+}
+
+{
+  title: "Service Distribution by Type",
+  type: "pie",
+  dataSource: "service_tracking_form",
+  xAxis: "service_type",
+  yAxis: "service_count",
+  aggregation: "count",
+  colorScheme: "multi"
+}
+
+{
+  title: "Budget vs Actual Spending",
+  type: "bar",
+  dataSource: "expense_tracking",
+  xAxis: "category",
+  yAxis: "amount",
+  aggregation: "sum",
+  colorScheme: "green"
+}
+```
+
+**TABLE EXAMPLES:**
+```
+{
+  title: "Recent Service Deliveries",
+  dataSource: "service_tracking_form",
+  columns: ["date", "client_name", "service_type", "chw_name", "status"],
+  sortBy: "date",
+  filters: ["date_range", "service_type", "status"],
+  pageSize: 25
+}
+
+{
+  title: "Entity Performance Summary",
+  dataSource: "aggregated_entity_data",
+  columns: ["entity_name", "clients_served", "services_delivered", "budget_used", "satisfaction"],
+  sortBy: "clients_served",
+  pageSize: 10
+}
+```
+
+**REQUIREMENTS:**
+1. Create 4-6 KPI cards for most important metrics
+2. Design 3-5 charts showing different aspects of grant performance
+3. Include 1-2 detailed data tables
+4. Link all elements to appropriate data sources
+5. Use appropriate chart types for data being visualized
+6. Include targets/goals from grant document
+7. Design for real-time or daily refresh based on grant status
+
 **FINAL REMINDER**: 
 - Use ONLY information from the document text provided above
 - Do NOT make up organization names, dates, or amounts
@@ -601,12 +789,16 @@ Example 2: Quarterly Satisfaction Survey
 - For data collection methods, be intelligent about mapping document requirements to platform capabilities
 - For project milestones, CREATE intelligent milestones even if not explicitly stated (use grant timeline and common project phases)
 - For forms, CREATE comprehensive forms for EACH data collection method with appropriate fields and dataset structure
+- For dashboard, CREATE a complete dashboard configuration with KPIs, charts, and tables based on grant metrics
 - Milestones should be actionable, realistic, and span the entire grant period
 - Forms should capture all required data points with appropriate field types
+- Dashboard should visualize key metrics and track grant performance
 - Include dependencies between milestones for proper project sequencing
 - Link forms to their data collection methods
+- Link dashboard elements to data sources (forms/datasets)
 - Define complete dataset structures for analysis
-- If something is not in the document, leave it empty (EXCEPT for milestones and forms - always create these based on data collection requirements)
+- Use appropriate chart types for the data being visualized
+- If something is not in the document, leave it empty (EXCEPT for milestones, forms, and dashboard - always create these based on grant requirements)
 
 Return valid JSON with proper array types.`;
       
