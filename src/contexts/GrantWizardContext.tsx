@@ -317,7 +317,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       // No special client-side handling needed anymore
       if (isPdf) {
         addAnalysisStep('Processing PDF document');
-        addAnalysisStep('Using pdf.js-extract for text extraction');
+        addAnalysisStep('Using pdf-parse for text extraction');
       }
       
       // Prepare for API call

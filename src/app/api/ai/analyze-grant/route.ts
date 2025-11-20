@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+// Dynamic import for pdf-parse (Node.js only)
+let pdfParse: any = null;
+try {
+  pdfParse = require('pdf-parse');
+} catch (e) {
+  console.warn('pdf-parse not available, PDF processing will be limited');
+}
+
 export const dynamic = 'force-dynamic';
 
 // Helper function to provide mock data when Anthropic API is unavailable
@@ -128,14 +136,33 @@ export async function POST(request: NextRequest) {
       if (isPdf) {
         console.log('Detected PDF file');
         try {
-          // For PDF files, use basic text extraction
-          // This won't be perfect but avoids dependency issues
-          console.log('Using basic text extraction for PDF');
-          fileContent = await file.text();
-          console.log(`Extracted ${fileContent.length} characters from PDF using basic extraction`);
+          if (!pdfParse) {
+            console.error('pdf-parse library not available');
+            return NextResponse.json({
+              success: false,
+              error: 'PDF processing library not available. Please contact support.',
+            }, { status: 500 });
+          }
+          
+          // Convert File to Buffer for pdf-parse
+          console.log('Converting PDF file to buffer...');
+          const arrayBuffer = await file.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          
+          console.log('Extracting text from PDF using pdf-parse...');
+          const pdfData = await pdfParse(buffer);
+          
+          fileContent = pdfData.text;
+          console.log(`Successfully extracted ${fileContent.length} characters from PDF`);
+          console.log(`PDF has ${pdfData.numpages} pages`);
+          console.log(`PDF info:`, pdfData.info);
         } catch (pdfError) {
           console.error('Error processing PDF:', pdfError);
-          fileContent = '';
+          return NextResponse.json({
+            success: false,
+            error: 'Failed to extract text from PDF. The file may be corrupted or encrypted.',
+            details: pdfError instanceof Error ? pdfError.message : 'Unknown error'
+          }, { status: 422 });
         }
       } else {
         // For non-PDF files, use simple text extraction
