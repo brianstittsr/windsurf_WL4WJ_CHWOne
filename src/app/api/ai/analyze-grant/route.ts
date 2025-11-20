@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Set worker source for pdfjs
-if (typeof window === 'undefined') {
-  // Server-side: use legacy build without worker
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-}
+// Use legacy build for Node.js/serverless environments
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 export const dynamic = 'force-dynamic';
 
