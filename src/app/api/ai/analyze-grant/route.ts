@@ -344,11 +344,12 @@ Extract and return a JSON object with these fields. USE ONLY INFORMATION FROM TH
   ],
   "milestones": [
     {
-      "name": "Milestone name",
-      "description": "What needs to be accomplished",
-      "dueDate": "YYYY-MM-DD",
-      "responsibleParties": ["organizations", "or", "roles", "responsible"],
-      "dependencies": ["other", "milestones", "that", "must", "complete", "first"]
+      "name": "REQUIRED: Extract milestone name from document (e.g., 'Program Launch', 'Staff Training Complete', 'First Quarterly Report', 'Mid-Year Evaluation')",
+      "description": "REQUIRED: Detailed description of what needs to be accomplished. Extract from document or infer from grant timeline and requirements.",
+      "dueDate": "REQUIRED: Milestone due date in YYYY-MM-DD format. Calculate based on grant start/end dates and typical project phases if not explicitly stated.",
+      "status": "Set to 'not_started' for all milestones",
+      "responsibleParties": ["REQUIRED: List organizations or roles responsible. Extract from document or use collaborating entities."],
+      "dependencies": ["List other milestones that must be completed first. Examples: 'Staff Hiring' depends on 'Program Approval', 'Service Delivery' depends on 'Staff Training'"]
     }
   ],
   "specialRequirements": "Any special requirements, compliance needs, reporting obligations, or important notes"
@@ -422,16 +423,64 @@ This CHW platform has the following data collection capabilities:
 3. Create AT LEAST 2-3 data collection methods if the document mentions reporting or evaluation requirements
 4. Be specific about dataPoints - list actual metrics mentioned in the document
 
-**MILESTONES:**
-- Extract ONLY if explicitly mentioned in the document
-- If not described in the document, return empty arrays []
+**PROJECT MILESTONES - INTELLIGENT ANALYSIS:**
+This CHW platform has project management capabilities including:
+1. **Milestone Tracking** - Track key project deliverables and deadlines
+2. **Timeline Management** - Visualize project timeline and dependencies
+3. **Task Assignment** - Assign responsibilities to collaborating entities
+4. **Progress Monitoring** - Track milestone status (not_started, in_progress, delayed, completed)
+5. **Dependency Management** - Identify and track milestone dependencies
+6. **Gantt Charts** - Visual project timeline with milestones
+
+**YOUR TASK FOR PROJECT MILESTONES:**
+1. Read the document for ANY mentions of: deliverables, phases, timeline, deadlines, key dates, implementation steps, project stages, or activities
+2. If the document mentions specific milestones or deliverables, extract them EXACTLY
+3. If milestones are NOT explicitly stated, CREATE INTELLIGENT MILESTONES based on:
+   - Grant start and end dates
+   - Typical project phases: Planning → Implementation → Monitoring → Evaluation → Reporting
+   - Data collection frequency (if quarterly reports required, create quarterly milestones)
+   - Common grant milestones: Program Launch, Staff Training, First Service Delivery, Mid-Year Review, Final Report
+4. For EACH milestone:
+   - Create a clear, actionable name
+   - Describe what needs to be accomplished
+   - Calculate realistic due dates based on grant timeline
+   - Assign to appropriate responsible parties (from collaborating entities)
+   - Identify logical dependencies (e.g., training before service delivery)
+5. Create AT LEAST 4-6 milestones spanning the grant period
+6. Space milestones evenly across the grant timeline
+7. Include key milestones like:
+   - Project kickoff/launch (near start date)
+   - Staff hiring/training (early phase)
+   - Program implementation (middle phase)
+   - Data collection checkpoints (based on reporting frequency)
+   - Mid-point evaluation (halfway through grant)
+   - Final reporting (near end date)
+
+**MILESTONE CALCULATION EXAMPLES:**
+- Grant: 2025-01-01 to 2025-12-31 (1 year)
+  * Kickoff: 2025-01-15
+  * Staff Training: 2025-02-28
+  * Program Launch: 2025-03-31
+  * Q1 Report: 2025-04-15
+  * Mid-Year Review: 2025-06-30
+  * Q3 Report: 2025-10-15
+  * Final Report: 2025-12-15
+
+**DEPENDENCY LOGIC:**
+- "Program Launch" depends on "Staff Training Complete"
+- "First Service Delivery" depends on "Program Launch"
+- "Mid-Year Evaluation" depends on "First Service Delivery"
+- "Final Report" depends on "Data Collection Complete"
 
 **FINAL REMINDER**: 
 - Use ONLY information from the document text provided above
 - Do NOT make up organization names, dates, or amounts
 - Extract and quote directly from the document
 - For data collection methods, be intelligent about mapping document requirements to platform capabilities
-- If something is not in the document, leave it empty
+- For project milestones, CREATE intelligent milestones even if not explicitly stated (use grant timeline and common project phases)
+- Milestones should be actionable, realistic, and span the entire grant period
+- Include dependencies between milestones for proper project sequencing
+- If something is not in the document, leave it empty (EXCEPT for milestones - always create these based on grant timeline)
 
 Return valid JSON with proper array types.`;
       
