@@ -4,6 +4,15 @@ import OpenAI from 'openai';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 60; // 60 seconds max execution time
+
+// Configure for file uploads
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 // Helper function to provide mock data when Anthropic API is unavailable
 function getMockGrantData() {
