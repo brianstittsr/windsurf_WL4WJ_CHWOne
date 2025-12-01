@@ -52,6 +52,7 @@
     "deploy:firebase": "firebase deploy --only firestore:rules,firestore:indexes",
     "test:local": "echo 'Run local tests - see docs/LOCAL_TESTING_GUIDE.md'",
     "datasets:test": "echo 'Testing Datasets Admin Platform...' && npm run verify-env",
+    "check-chw-profiles": "node scripts/check-chw-profiles.js",
     "fix-fetch-errors": "node scripts/fix-fetch-errors.js",
     "fix-login": "node scripts/fix-login.js",
     "fix-build-cache": "node scripts/fix-build-cache.js",
