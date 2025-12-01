@@ -176,6 +176,135 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
+    
+    // ========================================
+    // DATASETS ADMIN PLATFORM RULES
+    // ========================================
+    
+    // Datasets collection - organization-based access with permissions
+    match /datasets/{datasetId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid in resource.data.permissions.owners ||
+        request.auth.uid in resource.data.permissions.editors ||
+        request.auth.uid in resource.data.permissions.viewers ||
+        resource.data.permissions.publicAccess in ['read', 'write'] ||
+        hasOrgAccess(resource.data.organizationId)
+      );
+      
+      allow create: if isAuthenticated() && hasOrgAccess(request.resource.data.organizationId);
+      
+      allow update: if isAuthenticated() && (
+        request.auth.uid in resource.data.permissions.owners ||
+        request.auth.uid in resource.data.permissions.editors ||
+        hasOrgAccess(resource.data.organizationId)
+      );
+      
+      allow delete: if isAuthenticated() && (
+        request.auth.uid in resource.data.permissions.owners ||
+        isAdmin()
+      );
+    }
+    
+    // Dataset Records collection - follows dataset permissions
+    match /datasetRecords/{recordId} {
+      function getDataset(datasetId) {
+        return get(/databases/$(database)/documents/datasets/$(datasetId)).data;
+      }
+      
+      allow read: if isAuthenticated() && (
+        exists(/databases/$(database)/documents/datasets/$(resource.data.datasetId)) &&
+        (request.auth.uid in getDataset(resource.data.datasetId).permissions.owners ||
+         request.auth.uid in getDataset(resource.data.datasetId).permissions.editors ||
+         request.auth.uid in getDataset(resource.data.datasetId).permissions.viewers ||
+         getDataset(resource.data.datasetId).permissions.publicAccess in ['read', 'write'] ||
+         hasOrgAccess(getDataset(resource.data.datasetId).organizationId))
+      );
+      
+      allow create: if isAuthenticated() && (
+        exists(/databases/$(database)/documents/datasets/$(request.resource.data.datasetId)) &&
+        (request.auth.uid in getDataset(request.resource.data.datasetId).permissions.owners ||
+         request.auth.uid in getDataset(request.resource.data.datasetId).permissions.editors ||
+         getDataset(request.resource.data.datasetId).permissions.publicAccess == 'write' ||
+         getDataset(request.resource.data.datasetId).permissions.apiAccess == true ||
+         hasOrgAccess(getDataset(request.resource.data.datasetId).organizationId))
+      );
+      
+      allow update: if isAuthenticated() && (
+        exists(/databases/$(database)/documents/datasets/$(resource.data.datasetId)) &&
+        (request.auth.uid in getDataset(resource.data.datasetId).permissions.owners ||
+         request.auth.uid in getDataset(resource.data.datasetId).permissions.editors ||
+         hasOrgAccess(getDataset(resource.data.datasetId).organizationId))
+      );
+      
+      allow delete: if isAuthenticated() && (
+        exists(/databases/$(database)/documents/datasets/$(resource.data.datasetId)) &&
+        (request.auth.uid in getDataset(resource.data.datasetId).permissions.owners ||
+         request.auth.uid in getDataset(resource.data.datasetId).permissions.editors ||
+         isAdmin())
+      );
+    }
+    
+    // Dataset API Keys collection - owners only
+    match /datasetApiKeys/{keyId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid in get(/databases/$(database)/documents/datasets/$(resource.data.datasetId)).data.permissions.owners ||
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated() && (
+        request.auth.uid in get(/databases/$(database)/documents/datasets/$(request.resource.data.datasetId)).data.permissions.owners ||
+        isAdmin()
+      );
+      
+      allow update, delete: if isAuthenticated() && (
+        request.auth.uid in get(/databases/$(database)/documents/datasets/$(resource.data.datasetId)).data.permissions.owners ||
+        isAdmin()
+      );
+    }
+    
+    // Dataset Audit Logs collection - read-only for owners, write by system
+    match /datasetAuditLogs/{logId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid in get(/databases/$(database)/documents/datasets/$(resource.data.datasetId)).data.permissions.owners ||
+        request.auth.uid in get(/databases/$(database)/documents/datasets/$(resource.data.datasetId)).data.permissions.editors ||
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable audit trail
+    }
+    
+    // Dataset Exports collection - owners and editors
+    match /datasetExports/{exportId} {
+      allow read: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid ||
+        request.auth.uid in get(/databases/$(database)/documents/datasets/$(resource.data.datasetId)).data.permissions.owners ||
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
+      allow delete: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid ||
+        isAdmin()
+      );
+    }
+    
+    // Dataset Imports collection - owners and editors
+    match /datasetImports/{importId} {
+      allow read: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid ||
+        request.auth.uid in get(/databases/$(database)/documents/datasets/$(resource.data.datasetId)).data.permissions.owners ||
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.createdBy == request.auth.uid;
+      allow delete: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid ||
+        isAdmin()
+      );
+    }
     */
   }
 }
