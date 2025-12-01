@@ -467,11 +467,19 @@ export default function MockCHWProfiles() {
       }
 
       // Only show non-admin CHW profiles
-      setAllCHWs(allProfiles);
-      console.log(`Loaded ${allProfiles.length} CHW profiles from Firebase (admins filtered out)`);
+      // If no profiles found in Firebase, use mock data
+      if (allProfiles.length === 0) {
+        console.log('No CHW profiles found in Firebase, using mock data');
+        setAllCHWs(mockCHWs);
+      } else {
+        setAllCHWs(allProfiles);
+        console.log(`Loaded ${allProfiles.length} CHW profiles from Firebase (admins filtered out)`);
+      }
     } catch (error) {
       console.error('Error loading CHW profiles from Firebase:', error);
-      setAllCHWs([]);
+      // On error, use mock data as fallback
+      console.log('Using mock data as fallback');
+      setAllCHWs(mockCHWs);
     } finally {
       setLoading(false);
     }
