@@ -184,7 +184,7 @@ function CHWProfileContent({ id }: { id: string }) {
 
               {isOwner && (
                 <Box sx={{ mt: 3 }}>
-                  <Button variant="contained" href="/chw-profile">
+                  <Button variant="contained" href="/profile">
                     Edit Your Profile
                   </Button>
                 </Box>
