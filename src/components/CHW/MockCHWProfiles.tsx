@@ -445,10 +445,11 @@ export default function MockCHWProfiles() {
           }
         }
         
-        // Skip admin profiles (they shouldn't appear in public CHW directory)
+        // TEMPORARILY DISABLED: Skip admin profiles (they shouldn't appear in public CHW directory)
+        // Showing all profiles for now, including admins
         if (isAdmin) {
-          console.log(`Skipping admin profile: ${profile.firstName} ${profile.lastName}`);
-          continue;
+          console.log(`Including admin profile for display: ${profile.firstName} ${profile.lastName}`);
+          // continue; // COMMENTED OUT - not skipping admin profiles
         }
         
         allProfiles.push({
