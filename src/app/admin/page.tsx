@@ -29,7 +29,8 @@ import {
   Backup as BackupIcon,
   Paid as PaidIcon,
   Map as MapIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  AccountBalance as AccountBalanceIcon
 } from '@mui/icons-material';
 import MainLayout from '@/components/Layout/MainLayout';
 import AdminSettings from '@/components/Admin/AdminSettings';
@@ -42,6 +43,7 @@ import AdminStates from '@/components/Admin/AdminStates';
 import AdminCHWAssociations from '@/components/Admin/AdminCHWAssociations';
 import AdminNonprofits from '@/components/Admin/AdminNonprofits';
 import AdminIdeas from '@/components/Admin/AdminIdeas';
+import AdminBillComAPI from '@/components/Admin/AdminBillComAPI';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -168,6 +170,11 @@ function AdminDashboardContent() {
       label: 'Grants',
       icon: <PaidIcon />,
       component: <AdminGrants />
+    },
+    {
+      label: 'Bill.com API',
+      icon: <AccountBalanceIcon />,
+      component: <AdminBillComAPI />
     }
   ];
 

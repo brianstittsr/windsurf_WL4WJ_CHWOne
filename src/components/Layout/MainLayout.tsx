@@ -27,6 +27,7 @@ import ClickableLink from './ClickableLink';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/Layout/LanguageSwitcher';
+import AdminRoleSwitcher from '@/components/Admin/AdminRoleSwitcher';
 // ThemeToggle removed - using light mode only
 
 interface MainLayoutProps {
@@ -40,6 +41,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { t } = useLanguage();
+
+  // Debug logging for AdminRoleSwitcher
+  React.useEffect(() => {
+    console.log('MainLayout - userProfile:', userProfile);
+    console.log('MainLayout - Rendering AdminRoleSwitcher');
+  }, [userProfile]);
 
   const handleLogout = async () => {
     try {
@@ -63,19 +70,19 @@ export default function MainLayout({ children }: MainLayoutProps) {
       href: '/dashboard', 
       icon: 'computer', 
       label: t('navigation.dashboard'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/dashboard/region-5', 
       icon: 'location', 
       label: t('navigation.region5'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
+      roles: [UserRole.ADMIN] 
     },
     { 
       href: '/dashboard/wl4wj', 
       icon: 'favorite', 
       label: t('navigation.wl4wj'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/admin', 
@@ -93,73 +100,43 @@ export default function MainLayout({ children }: MainLayoutProps) {
       href: '/projects', 
       icon: 'sparkle', 
       label: t('navigation.projects'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/grants', 
       icon: 'security', 
       label: t('navigation.grants'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
-      href: '/ideas', 
-      icon: 'lightbulb', 
-      label: 'Platform Ideas', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/referrals', 
-      icon: 'openLink', 
-      label: t('navigation.referrals'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/resources', 
-      icon: 'search', 
-      label: t('navigation.resources'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+      href: '/collaborations', 
+      icon: 'people', 
+      label: 'Collaborations', 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/forms', 
       icon: 'clipboard', 
       label: t('navigation.forms'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/datasets', 
       icon: 'database', 
       label: t('navigation.datasets'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/reports', 
       icon: 'analytics', 
       label: t('navigation.reports'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
     },
     { 
-      href: '/civicrm', 
-      icon: 'people', 
-      label: t('navigation.civicrm'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/ai-assistant', 
-      icon: 'chat', 
-      label: t('navigation.aiAssistant'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/training', 
-      icon: 'school', 
-      label: t('navigation.training'), 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
-    },
-    {
-      href: '/chw-tools',
-      icon: 'build',
-      label: 'CHW Tools',
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF]
+      href: '/profile', 
+      icon: 'person', 
+      label: 'My Profile', 
+      roles: [UserRole.CHW] 
     },
   ];
 
@@ -365,6 +342,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           {children}
         </Container>
       </Box>
+
+      {/* Admin Role Switcher - Always visible for admin users */}
+      <AdminRoleSwitcher />
     </Box>
   );
 }

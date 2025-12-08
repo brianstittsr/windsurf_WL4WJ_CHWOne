@@ -64,7 +64,7 @@ import {
   DEFAULT_CHW_PROFILE,
   EXPERTISE_OPTIONS,
   LANGUAGE_OPTIONS,
-  REGION5_COUNTIES
+  NC_COUNTIES
 } from '@/types/chw-profile.types';
 
 interface TabPanelProps {
@@ -265,13 +265,34 @@ export default function EnhancedProfileComponent({
 
       console.log('Saving CHW profile to Firestore...');
 
+      // Helper function to remove undefined values recursively
+      const removeUndefined = (obj: any): any => {
+        if (obj === null || obj === undefined) {
+          return null;
+        }
+        if (Array.isArray(obj)) {
+          return obj.map(removeUndefined).filter(item => item !== null && item !== undefined);
+        }
+        if (typeof obj === 'object') {
+          const cleaned: any = {};
+          Object.keys(obj).forEach(key => {
+            const value = removeUndefined(obj[key]);
+            if (value !== undefined && value !== null) {
+              cleaned[key] = value;
+            }
+          });
+          return cleaned;
+        }
+        return obj;
+      };
+
       // Prepare profile data for Firestore
-      const profileData = {
+      const profileData = removeUndefined({
         ...profile,
         userId: currentUser.uid,
         displayName: `${profile.firstName} ${profile.lastName}`,
         updatedAt: serverTimestamp()
-      };
+      });
 
       // Save to chwProfiles collection
       const profileRef = doc(db, COLLECTIONS.CHW_PROFILES, currentUser.uid);
@@ -424,10 +445,10 @@ export default function EnhancedProfileComponent({
               <Avatar
                 src={profile.profilePicture}
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 240,
+                  height: 240,
                   bgcolor: 'primary.main',
-                  fontSize: '2rem',
+                  fontSize: '6rem',
                   cursor: isEditing ? 'pointer' : 'default'
                 }}
                 onClick={() => {
@@ -1149,7 +1170,7 @@ export default function EnhancedProfileComponent({
                   onChange={(e) => handleInputChange('countyResideIn', e.target.value, 'serviceArea')}
                   startAdornment={<LocationOn sx={{ mr: 1, color: 'action.active' }} />}
                 >
-                  {REGION5_COUNTIES.map((county) => (
+                  {NC_COUNTIES.map((county) => (
                     <MenuItem key={county} value={county}>
                       {county} County
                     </MenuItem>
@@ -1180,7 +1201,7 @@ export default function EnhancedProfileComponent({
             <Grid item xs={12}>
               <Autocomplete
                 multiple
-                options={REGION5_COUNTIES}
+                options={NC_COUNTIES}
                 value={profile.serviceArea.countiesWorkedIn}
                 onChange={(_, newValue) => handleInputChange('countiesWorkedIn', newValue, 'serviceArea')}
                 disabled={!isEditing}

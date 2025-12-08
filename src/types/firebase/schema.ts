@@ -110,12 +110,9 @@ export interface CHWResource {
 export enum UserRole {
   ADMIN = 'ADMIN',
   CHW = 'CHW',
-  CHW_COORDINATOR = 'CHW_COORDINATOR',
   NONPROFIT_STAFF = 'NONPROFIT_STAFF',
   CHW_ASSOCIATION = 'CHW_ASSOCIATION',
   WL4WJ_CHW = 'WL4WJ_CHW',
-  CLIENT = 'CLIENT',
-  VIEWER = 'VIEWER',
   DEMO = 'DEMO'
 }
 

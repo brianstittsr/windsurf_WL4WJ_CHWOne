@@ -52,6 +52,7 @@ import {
   MoreVert as MoreVertIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  VpnKey as VpnKeyIcon,
 } from '@mui/icons-material';
 
 import { UserRole, UserPermissions } from '@/types/firebase/schema';
@@ -147,6 +148,11 @@ export default function AdminUsers() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // State for password reset
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [passwordResetUser, setPasswordResetUser] = useState<User | null>(null);
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
   
   // State for filtering and tabs
   const [searchTerm, setSearchTerm] = useState('');
@@ -440,6 +446,38 @@ export default function AdminUsers() {
       alert(err.message || 'Failed to update user status. Please try again.');
     }
   };
+  
+  // Open password reset dialog
+  const handleOpenPasswordDialog = (user: User) => {
+    setPasswordResetUser(user);
+    setOpenPasswordDialog(true);
+  };
+  
+  // Close password reset dialog
+  const handleClosePasswordDialog = () => {
+    setOpenPasswordDialog(false);
+    setPasswordResetUser(null);
+    setPasswordResetLoading(false);
+  };
+  
+  // Send password reset email
+  const handleSendPasswordReset = async () => {
+    if (!passwordResetUser) return;
+    
+    try {
+      setPasswordResetLoading(true);
+      setError(null);
+      
+      await UserManagementService.sendPasswordResetEmail(passwordResetUser.email);
+      
+      alert(`Password reset email sent to ${passwordResetUser.email}`);
+      handleClosePasswordDialog();
+    } catch (err: any) {
+      console.error('Error sending password reset email:', err);
+      setError(err.message || 'Failed to send password reset email. Please try again.');
+      setPasswordResetLoading(false);
+    }
+  };
 
   return (
     <Box>
@@ -594,6 +632,11 @@ export default function AdminUsers() {
                       <Tooltip title="Edit User">
                         <IconButton onClick={() => handleOpenEditDialog(user)} size="small">
                           <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Reset Password">
+                        <IconButton onClick={() => handleOpenPasswordDialog(user)} size="small" color="primary">
+                          <VpnKeyIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={user.isActive ? 'Deactivate User' : 'Activate User'}>
@@ -835,6 +878,57 @@ export default function AdminUsers() {
             onClick={isEditMode ? handleUpdateUser : handleCreateUser}
           >
             {isEditMode ? 'Update User' : 'Create User'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Password Reset Dialog */}
+      <Dialog open={openPasswordDialog} onClose={handleClosePasswordDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Reset Password
+        </DialogTitle>
+        <DialogContent dividers>
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+          
+          {passwordResetUser && (
+            <Box>
+              <Typography variant="body1" gutterBottom>
+                Send a password reset email to:
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+                <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                  {passwordResetUser.displayName ? passwordResetUser.displayName[0].toUpperCase() : 'U'}
+                </Avatar>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    {passwordResetUser.displayName || 'Unnamed User'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {passwordResetUser.email}
+                  </Typography>
+                </Box>
+              </Box>
+              <Alert severity="info" sx={{ mt: 3 }}>
+                The user will receive an email with a link to reset their password. This link will expire in 1 hour.
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePasswordDialog} disabled={passwordResetLoading}>
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSendPasswordReset}
+            disabled={passwordResetLoading}
+            startIcon={passwordResetLoading ? <CircularProgress size={20} /> : <VpnKeyIcon />}
+          >
+            {passwordResetLoading ? 'Sending...' : 'Send Reset Email'}
           </Button>
         </DialogActions>
       </Dialog>

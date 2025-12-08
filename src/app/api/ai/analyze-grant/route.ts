@@ -1,38 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Load multiple PDF libraries with fallback support
+// Load unpdf for modern PDF extraction (Docling-style document understanding)
+let extractText: any = null;
 let pdfParse: any = null;
-let pdfjsLib: any = null;
-let pdfExtract: any = null;
 
 if (typeof window === 'undefined') {
-  // Try to load pdf-parse (primary)
+  // Try to load unpdf (primary - modern, well-maintained)
+  try {
+    const unpdf = require('unpdf');
+    extractText = unpdf.extractText;
+    console.log('✓ unpdf loaded successfully (Docling-style extraction)');
+  } catch (e) {
+    console.warn('⚠ unpdf not available:', e instanceof Error ? e.message : 'Unknown error');
+  }
+
+  // Try to load pdf-parse as fallback
   try {
     pdfParse = require('pdf-parse');
-    console.log('✓ pdf-parse loaded successfully');
+    console.log('✓ pdf-parse loaded as fallback');
   } catch (e) {
     console.warn('⚠ pdf-parse not available:', e instanceof Error ? e.message : 'Unknown error');
   }
 
-  // Try to load pdfjs-dist (secondary)
-  try {
-    pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
-    console.log('✓ pdfjs-dist loaded successfully');
-  } catch (e) {
-    console.warn('⚠ pdfjs-dist not available:', e instanceof Error ? e.message : 'Unknown error');
-  }
-
-  // Try to load pdf.js-extract (tertiary)
-  try {
-    const PDFExtract = require('pdf.js-extract').PDFExtract;
-    pdfExtract = new PDFExtract();
-    console.log('✓ pdf.js-extract loaded successfully');
-  } catch (e) {
-    console.warn('⚠ pdf.js-extract not available:', e instanceof Error ? e.message : 'Unknown error');
-  }
-
-  console.log(`PDF libraries available: ${[pdfParse && 'pdf-parse', pdfjsLib && 'pdfjs-dist', pdfExtract && 'pdf.js-extract'].filter(Boolean).join(', ') || 'NONE'}`);
+  console.log(`PDF libraries available: ${[extractText && 'unpdf', pdfParse && 'pdf-parse'].filter(Boolean).join(', ') || 'NONE'}`);
 }
 
 export const dynamic = 'force-dynamic';
@@ -162,74 +153,43 @@ export async function POST(request: NextRequest) {
       const isPdf = fileName.toLowerCase().endsWith('.pdf') || fileType === 'application/pdf';
       
       if (isPdf) {
-        console.log('Detected PDF file');
+        console.log('Detected PDF file - using Docling-style extraction with unpdf');
         
-        // Convert file once for all libraries
+        // Convert file to buffer
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         
         let extractionSuccess = false;
         const errors: string[] = [];
         
-        // Try pdf-parse first (simplest and most reliable)
+        // Try unpdf first (modern, Docling-style extraction)
+        if (extractText && !extractionSuccess) {
+          try {
+            console.log('Attempting extraction with unpdf (Docling-style)...');
+            const result = await extractText(buffer);
+            fileContent = result.text || '';
+            console.log(`✓ unpdf: Extracted ${fileContent.length} characters (Docling-style)`);
+            if (result.totalPages) {
+              console.log(`   Document has ${result.totalPages} pages`);
+            }
+            extractionSuccess = true;
+          } catch (e) {
+            const error = `unpdf failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+            console.warn(`✗ ${error}`);
+            errors.push(error);
+          }
+        }
+        
+        // Try pdf-parse as fallback
         if (pdfParse && !extractionSuccess) {
           try {
-            console.log('Attempting extraction with pdf-parse...');
+            console.log('Attempting extraction with pdf-parse (fallback)...');
             const pdfData = await pdfParse(buffer);
             fileContent = pdfData.text;
             console.log(`✓ pdf-parse: Extracted ${fileContent.length} characters from ${pdfData.numpages} pages`);
             extractionSuccess = true;
           } catch (e) {
             const error = `pdf-parse failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
-            console.warn(`✗ ${error}`);
-            errors.push(error);
-          }
-        }
-        
-        // Try pdfjs-dist if pdf-parse failed
-        if (pdfjsLib && !extractionSuccess) {
-          try {
-            console.log('Attempting extraction with pdfjs-dist...');
-            const uint8Array = new Uint8Array(arrayBuffer);
-            const loadingTask = pdfjsLib.getDocument({
-              data: uint8Array,
-              useSystemFonts: true,
-              standardFontDataUrl: undefined
-            });
-            const pdfDocument = await loadingTask.promise;
-            const numPages = pdfDocument.numPages;
-            
-            const textPromises: Promise<string>[] = [];
-            for (let i = 1; i <= numPages; i++) {
-              textPromises.push(
-                pdfDocument.getPage(i).then(async (page: any) => {
-                  const textContent = await page.getTextContent();
-                  return textContent.items.map((item: any) => item.str).join(' ');
-                })
-              );
-            }
-            
-            const pageTexts = await Promise.all(textPromises);
-            fileContent = pageTexts.join('\n\n');
-            console.log(`✓ pdfjs-dist: Extracted ${fileContent.length} characters from ${numPages} pages`);
-            extractionSuccess = true;
-          } catch (e) {
-            const error = `pdfjs-dist failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
-            console.warn(`✗ ${error}`);
-            errors.push(error);
-          }
-        }
-        
-        // Try pdf.js-extract as last resort
-        if (pdfExtract && !extractionSuccess) {
-          try {
-            console.log('Attempting extraction with pdf.js-extract...');
-            // pdf.js-extract needs a file path, so we'll skip it for now
-            // or implement a temp file solution if needed
-            console.warn('✗ pdf.js-extract requires file path (skipping for now)');
-            errors.push('pdf.js-extract: requires file path');
-          } catch (e) {
-            const error = `pdf.js-extract failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
             console.warn(`✗ ${error}`);
             errors.push(error);
           }
@@ -242,7 +202,7 @@ export async function POST(request: NextRequest) {
             success: false,
             error: 'Failed to extract text from PDF using all available methods.',
             details: errors.join('; '),
-            availableLibraries: [pdfParse && 'pdf-parse', pdfjsLib && 'pdfjs-dist', pdfExtract && 'pdf.js-extract'].filter(Boolean)
+            availableLibraries: [extractText && 'unpdf', pdfParse && 'pdf-parse'].filter(Boolean)
           }, { status: 422 });
         }
       } else {

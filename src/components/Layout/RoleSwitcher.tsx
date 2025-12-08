@@ -30,20 +30,17 @@ const roleIcons: Record<string, React.ReactElement> = {
   [UserRole.NONPROFIT_STAFF]: <NonprofitIcon fontSize="small" />,
   [UserRole.CHW_ASSOCIATION]: <AssociationIcon fontSize="small" />,
   [UserRole.ADMIN]: <AdminIcon fontSize="small" />,
-  [UserRole.CHW_COORDINATOR]: <CHWIcon fontSize="small" />,
-  [UserRole.WL4WJ_CHW]: <CHWIcon fontSize="small" />
+  [UserRole.WL4WJ_CHW]: <CHWIcon fontSize="small" />,
+  [UserRole.DEMO]: <AdminIcon fontSize="small" />
 };
 
 // Map roles to display names
 const roleDisplayNames: Record<string, string> = {
   [UserRole.CHW]: 'Community Health Worker',
-  [UserRole.NONPROFIT_STAFF]: 'Nonprofit Staff',
+  [UserRole.NONPROFIT_STAFF]: 'Nonprofit Organization',
   [UserRole.CHW_ASSOCIATION]: 'CHW Association',
   [UserRole.ADMIN]: 'Administrator',
-  [UserRole.CHW_COORDINATOR]: 'CHW Coordinator',
   [UserRole.WL4WJ_CHW]: 'WL4WJ CHW',
-  [UserRole.CLIENT]: 'Client',
-  [UserRole.VIEWER]: 'Viewer',
   [UserRole.DEMO]: 'Demo Account'
 };
 
@@ -85,10 +82,7 @@ export default function RoleSwitcher({ compact = false }: RoleSwitcherProps) {
     UserRole.CHW,
     UserRole.NONPROFIT_STAFF,
     UserRole.CHW_ASSOCIATION,
-    UserRole.CHW_COORDINATOR,
     UserRole.WL4WJ_CHW,
-    UserRole.CLIENT,
-    UserRole.VIEWER,
     UserRole.DEMO
   ];
 
@@ -100,7 +94,7 @@ export default function RoleSwitcher({ compact = false }: RoleSwitcherProps) {
     return null;
   }
 
-  const currentRole = userProfile.primaryRole || userProfile.roles?.[0] || UserRole.VIEWER;
+  const currentRole = userProfile.primaryRole || userProfile.roles?.[0] || UserRole.CHW;
   const currentRoleDisplay = roleDisplayNames[currentRole] || currentRole;
   const currentRoleIcon = roleIcons[currentRole] || <CHWIcon fontSize="small" />;
 

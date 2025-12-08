@@ -163,29 +163,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('[AUTH] Auth state changed:', user ? 'User signed in' : 'No user');
       if (user) {
+        console.log('[AUTH] User UID:', user.uid);
+        console.log('[AUTH] User Email:', user.email);
+        
         const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          // Get user profile data and ensure it has an organizationType
-          const profileData = userDoc.data() as UserProfile;
-          const updatedProfile = ensureOrganizationType(profileData);
+        console.log('[AUTH] Fetching user document from Firestore...');
+        
+        try {
+          const userDoc = await getDoc(userDocRef);
+          console.log('[AUTH] User document exists:', userDoc.exists());
           
-          // If the profile needed to be updated with an organizationType, save it back
-          if (profileData.organizationType !== updatedProfile.organizationType) {
-            try {
-              await updateDoc(userDocRef, {
-                organizationType: updatedProfile.organizationType
-              });
-              console.log(`[AUTH] Updated user ${user.uid} with organization type: ${updatedProfile.organizationType}`);
-            } catch (error) {
-              console.error('[AUTH] Error updating organization type:', error);
+          if (userDoc.exists()) {
+            // Get user profile data and ensure it has an organizationType
+            const profileData = userDoc.data() as UserProfile;
+            console.log('[AUTH] User profile data:', profileData);
+            console.log('[AUTH] User role:', profileData.role);
+            
+            const updatedProfile = ensureOrganizationType(profileData);
+            
+            // If the profile needed to be updated with an organizationType, save it back
+            if (profileData.organizationType !== updatedProfile.organizationType) {
+              try {
+                await updateDoc(userDocRef, {
+                  organizationType: updatedProfile.organizationType
+                });
+                console.log(`[AUTH] Updated user ${user.uid} with organization type: ${updatedProfile.organizationType}`);
+              } catch (error) {
+                console.error('[AUTH] Error updating organization type:', error);
+              }
             }
+            
+            console.log('[AUTH] ✅ Setting user profile in state');
+            setState(prev => ({ ...prev, user: user, profile: updatedProfile, loading: false }));
+          } else {
+            // Handle case where user exists in Auth but not in Firestore
+            console.warn('[AUTH] ⚠️ User document does NOT exist in Firestore!');
+            console.warn('[AUTH] User is authenticated but has no profile document');
+            console.warn('[AUTH] Please create a user document at: users/' + user.uid);
+            setState(prev => ({ ...prev, user: user, profile: null, loading: false }));
           }
-          
-          setState(prev => ({ ...prev, user: user, profile: updatedProfile, loading: false }));
-        } else {
-          // Handle case where user exists in Auth but not in Firestore
-          setState(prev => ({ ...prev, user: user, profile: null, loading: false }));
+        } catch (error) {
+          console.error('[AUTH] ❌ Error fetching user document:', error);
+          setState(prev => ({ ...prev, user: user, profile: null, loading: false, error: String(error) }));
         }
       } else {
         setState({ user: null, profile: null, loading: false, error: null });
@@ -236,9 +255,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('User profile not loaded');
     }
     
-    // Check if user has this role
+    // Check if user has this role (admins can switch to any role for testing)
     const userRoles = state.profile.roles || [state.profile.role];
-    if (!userRoles.includes(role)) {
+    const isAdmin = userRoles.includes(UserRole.ADMIN);
+    
+    if (!isAdmin && !userRoles.includes(role)) {
       throw new Error('User does not have this role');
     }
     

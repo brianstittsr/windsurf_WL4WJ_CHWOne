@@ -18,7 +18,9 @@ import {
   User as FirebaseUser,
   signInWithEmailAndPassword,
   updateProfile,
-  deleteUser
+  deleteUser,
+  sendPasswordResetEmail,
+  updatePassword
 } from 'firebase/auth';
 import { UserRole, UserPermissions } from '@/types/firebase/schema';
 
@@ -350,6 +352,42 @@ export class UserManagementService {
       });
     } catch (error) {
       console.error('Error setting user active status:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Send password reset email to a user
+   * @param email - User email address
+   * @returns Promise resolving when email is sent
+   */
+  static async sendPasswordResetEmail(email: string): Promise<void> {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      console.log('Password reset email sent to:', email);
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Update user password (requires the user to be currently signed in)
+   * Note: This method can only update the password of the currently authenticated user
+   * For admin password resets, use sendPasswordResetEmail instead
+   * @param newPassword - New password
+   * @returns Promise resolving when password is updated
+   */
+  static async updateCurrentUserPassword(newPassword: string): Promise<void> {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('No user is currently signed in');
+      }
+      await updatePassword(user, newPassword);
+      console.log('Password updated successfully for user:', user.uid);
+    } catch (error) {
+      console.error('Error updating password:', error);
       throw error;
     }
   }

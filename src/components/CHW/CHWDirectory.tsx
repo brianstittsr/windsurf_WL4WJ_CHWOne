@@ -48,7 +48,7 @@ import {
   ProfileSearchFilters,
   EXPERTISE_OPTIONS,
   LANGUAGE_OPTIONS,
-  REGION5_COUNTIES
+  NC_COUNTIES
 } from '@/types/chw-profile.types';
 
 interface CHWDirectoryProps {
@@ -375,7 +375,7 @@ export default function CHWDirectory({ onMessageClick }: CHWDirectoryProps) {
               <Grid item xs={12} md={4}>
                 <Autocomplete
                   multiple
-                  options={REGION5_COUNTIES}
+                  options={NC_COUNTIES}
                   value={filters.counties || []}
                   onChange={(_, newValue) => handleFilterChange('counties', newValue)}
                   renderInput={(params) => (

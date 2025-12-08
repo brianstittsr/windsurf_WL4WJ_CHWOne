@@ -105,7 +105,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
     setAnalysisSteps([]);
   }, []);
 
-  const totalSteps = 7; // Updated for all 7 wizard steps
+  const totalSteps = 5; // Updated to 5 steps (removed Form Creator and AI Dashboard)
 
   const updateGrantData = (data: Partial<Grant>) => {
     console.log('Updating grant data with:', data);
@@ -558,6 +558,112 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         }));
       }
       
+      // Process form templates
+      if (apiData.forms || apiData.formTemplates) {
+        const forms = apiData.forms || apiData.formTemplates || [];
+        console.log('Processing forms from API:', forms);
+        extractedData.formTemplates = forms.map((form: any, index: number) => ({
+          id: `form-${Date.now()}-${index}`,
+          name: form.name || `Form ${index + 1}`,
+          description: form.description || '',
+          purpose: form.purpose || '',
+          linkedDataCollectionMethod: form.linkedDataCollectionMethod || '',
+          fields: Array.isArray(form.fields) ? form.fields.map((field: any, fieldIndex: number) => ({
+            id: `field-${Date.now()}-${index}-${fieldIndex}`,
+            name: field.name || `Field ${fieldIndex + 1}`,
+            label: field.label || field.name || `Field ${fieldIndex + 1}`,
+            type: field.type || 'text',
+            required: field.required !== undefined ? field.required : false,
+            options: field.options || [],
+            validation: field.validation || {},
+            helpText: field.helpText || ''
+          })) : [],
+          datasetFields: Array.isArray(form.datasetFields) ? form.datasetFields : []
+        }));
+        console.log('Processed form templates:', extractedData.formTemplates);
+      }
+      
+      // Process dashboard configuration
+      if (apiData.dashboard || apiData.dashboardMetrics) {
+        const dashboardData = apiData.dashboard || {};
+        console.log('Processing dashboard from API:', dashboardData);
+        
+        // Store the complete dashboard configuration
+        const dashboardMetrics: any[] = [];
+        
+        // Add metrics
+        if (Array.isArray(dashboardData.metrics)) {
+          dashboardData.metrics.forEach((metric: any, index: number) => {
+            dashboardMetrics.push({
+              id: `metric-${Date.now()}-${index}`,
+              type: 'metric',
+              name: metric.name || `Metric ${index + 1}`,
+              description: metric.description || '',
+              metricType: metric.type || 'count',
+              linkedForm: metric.linkedForm || '',
+              datasetField: metric.datasetField || '',
+              calculation: metric.calculation || '',
+              target: metric.target || '',
+              status: metric.status || 'on_track'
+            });
+          });
+        }
+        
+        // Add charts
+        if (Array.isArray(dashboardData.charts)) {
+          dashboardData.charts.forEach((chart: any, index: number) => {
+            dashboardMetrics.push({
+              id: `chart-${Date.now()}-${index}`,
+              type: 'chart',
+              name: chart.title || `Chart ${index + 1}`,
+              chartType: chart.type || 'line',
+              linkedForm: chart.linkedForm || '',
+              xAxisField: chart.xAxisField || '',
+              yAxisField: chart.yAxisField || '',
+              aggregation: chart.aggregation || 'count',
+              filters: chart.filters || []
+            });
+          });
+        }
+        
+        // Add KPIs
+        if (Array.isArray(dashboardData.kpis)) {
+          dashboardData.kpis.forEach((kpi: any, index: number) => {
+            dashboardMetrics.push({
+              id: `kpi-${Date.now()}-${index}`,
+              type: 'kpi',
+              name: kpi.name || `KPI ${index + 1}`,
+              linkedForm: kpi.linkedForm || '',
+              datasetField: kpi.datasetField || '',
+              calculation: kpi.calculation || '',
+              target: kpi.target || '',
+              current: kpi.current || 0,
+              status: kpi.status || 'on_track',
+              trend: kpi.trend || 'stable'
+            });
+          });
+        }
+        
+        // Add tables
+        if (Array.isArray(dashboardData.tables)) {
+          dashboardData.tables.forEach((table: any, index: number) => {
+            dashboardMetrics.push({
+              id: `table-${Date.now()}-${index}`,
+              type: 'table',
+              name: table.title || `Table ${index + 1}`,
+              linkedForm: table.linkedForm || '',
+              columns: Array.isArray(table.columns) ? table.columns : [],
+              sortBy: table.sortBy || '',
+              sortOrder: table.sortOrder || 'desc',
+              pageSize: table.pageSize || 10
+            });
+          });
+        }
+        
+        extractedData.dashboardMetrics = dashboardMetrics;
+        console.log('Processed dashboard metrics:', extractedData.dashboardMetrics);
+      }
+      
       // If API didn't return all expected data, add some minimal placeholder data
       if (!extractedData.collaboratingEntities?.length) {
         extractedData.collaboratingEntities = [{
@@ -946,13 +1052,39 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
       const { createGrant } = await import('@/lib/schema/data-access');
       const { Timestamp } = await import('firebase/firestore');
       
+      // Generate analysis summary for PDF storage
+      const analysisSummary = {
+        generatedAt: new Date().toISOString(),
+        grantTitle: grantData.name || 'Untitled Grant',
+        description: grantData.description || '',
+        fundingSource: grantData.fundingSource || '',
+        totalBudget: grantData.totalBudget || 0,
+        grantNumber: grantData.grantNumber || '',
+        startDate: grantData.startDate || '',
+        endDate: grantData.endDate || '',
+        collaboratingEntitiesCount: grantData.collaboratingEntities?.length || 0,
+        dataCollectionMethodsCount: grantData.dataCollectionMethods?.length || 0,
+        projectMilestonesCount: grantData.projectMilestones?.length || 0,
+        analysisRecommendationsCount: grantData.analysisRecommendations?.length || 0,
+        entityRelationshipNotes: grantData.entityRelationshipNotes || '',
+        // Include full details for PDF generation
+        collaboratingEntities: grantData.collaboratingEntities || [],
+        dataCollectionMethods: grantData.dataCollectionMethods || [],
+        projectMilestones: grantData.projectMilestones || [],
+        analysisRecommendations: grantData.analysisRecommendations || []
+      };
+      
       // Prepare grant data for Firebase with required fields
       // Firebase doesn't accept undefined values, so we provide defaults
       const grantToSave: any = {
+        // Use both 'title' and 'name' for compatibility
         title: grantData.name || 'Untitled Grant',
+        name: grantData.name || 'Untitled Grant',
         description: grantData.description || '',
         fundingSource: grantData.fundingSource || '',
+        // Use both 'amount' and 'totalBudget' for compatibility
         amount: grantData.totalBudget || 0,
+        totalBudget: grantData.totalBudget || 0,
         organizationId: grantData.organizationId || 'general',
         startDate: grantData.startDate ? Timestamp.fromDate(new Date(grantData.startDate)) : Timestamp.now(),
         endDate: grantData.endDate ? Timestamp.fromDate(new Date(grantData.endDate)) : Timestamp.now(),
@@ -966,8 +1098,14 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         collaboratingEntities: grantData.collaboratingEntities || [],
         dataCollectionMethods: grantData.dataCollectionMethods || [],
         projectMilestones: grantData.projectMilestones || [],
+        analysisRecommendations: grantData.analysisRecommendations || [],
+        entityRelationshipNotes: grantData.entityRelationshipNotes || '',
         formTemplates: grantData.formTemplates || [],
-        datasets: grantData.datasets || []
+        datasets: grantData.datasets || [],
+        // Store the analysis summary for PDF generation
+        analysisSummary: analysisSummary,
+        // Store uploaded document info if available
+        documents: grantData.documents || []
       };
       
       // Save to Firebase
