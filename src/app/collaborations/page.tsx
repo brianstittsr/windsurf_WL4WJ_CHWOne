@@ -71,9 +71,33 @@ function CollaborationsContent() {
 
       if (result.success && result.grants) {
         // Transform grants into collaboration cards
-        const collabData: CollaborationCardData[] = result.grants.map((grant: Grant) => {
+        const collabData: CollaborationCardData[] = result.grants.map((grant: any) => {
+          // Normalize grant data to handle both naming conventions
+          const grantTitle = grant.title || grant.name || 'Untitled Grant';
+          const grantDescription = grant.description || '';
+          const fundingAmount = grant.amount || grant.totalBudget || 0;
+          const fundingSource = grant.fundingSource || 'Unknown Funder';
+          
+          // Parse dates - handle both Timestamp and string formats
+          const parseDate = (date: any): Date => {
+            if (!date) return new Date();
+            if (date.toDate && typeof date.toDate === 'function') {
+              return date.toDate();
+            }
+            if (typeof date === 'string') {
+              return new Date(date);
+            }
+            if (date instanceof Date) {
+              return date;
+            }
+            return new Date();
+          };
+          
+          const startDate = parseDate(grant.startDate);
+          const endDate = parseDate(grant.endDate);
+          
           // Extract collaborating entities from the grant
-          const entities = (grant as any).collaboratingEntities || [];
+          const entities = grant.collaboratingEntities || [];
           const organizations = entities.length > 0 
             ? entities.map((entity: any) => ({
                 name: entity.name || 'Unknown Organization',
@@ -81,27 +105,27 @@ function CollaborationsContent() {
                 logoUrl: entity.logoUrl
               }))
             : [
-                { name: grant.fundingSource || 'Lead Organization', role: 'lead' },
+                { name: fundingSource, role: 'lead' },
                 { name: 'Partner Organization', role: 'partner' }
               ];
 
           // Calculate progress based on milestones or dates
-          const milestones = (grant as any).projectMilestones || [];
+          const milestones = grant.projectMilestones || [];
           const completedMilestones = milestones.filter((m: any) => m.status === 'completed').length;
           const progress = milestones.length > 0 
             ? Math.round((completedMilestones / milestones.length) * 100)
-            : calculateDateProgress(grant.startDate?.toDate(), grant.endDate?.toDate());
+            : calculateDateProgress(startDate, endDate);
 
           return {
             id: grant.id,
-            grantTitle: grant.title || 'Untitled Grant',
-            grantDescription: grant.description || '',
-            startDate: grant.startDate?.toDate() || new Date(),
-            endDate: grant.endDate?.toDate() || new Date(),
-            status: grant.status || 'active',
+            grantTitle,
+            grantDescription,
+            startDate,
+            endDate,
+            status: grant.status || 'draft',
             organizations,
             progress,
-            fundingAmount: grant.amount || 0
+            fundingAmount
           };
         });
 
@@ -198,19 +222,29 @@ function CollaborationsContent() {
                     </Box>
 
                     {/* Description */}
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        mb: 3,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      {collab.grantDescription}
-                    </Typography>
+                    {collab.grantDescription ? (
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        sx={{ 
+                          mb: 3,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {collab.grantDescription}
+                      </Typography>
+                    ) : (
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        sx={{ mb: 3, fontStyle: 'italic' }}
+                      >
+                        No description available. Upload a grant document to populate details.
+                      </Typography>
+                    )}
 
                     {/* Collaborating Organizations */}
                     <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>

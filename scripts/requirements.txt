@@ -1,0 +1,9 @@
+# Docling PDF Extraction Dependencies
+# Install with: pip install -r requirements.txt
+
+# Primary: IBM Docling for advanced document understanding
+docling>=2.0.0
+
+# Fallback options (if Docling fails)
+pymupdf>=1.24.0
+pdfplumber>=0.11.0

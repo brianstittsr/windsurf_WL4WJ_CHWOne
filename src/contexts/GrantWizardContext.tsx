@@ -313,11 +313,10 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         };
       }
       
-      // We'll now handle PDFs through the API with the pdfjs-dist library
-      // No special client-side handling needed anymore
+      // PDFs are processed server-side using Docling (Python) with fallback to unpdf
       if (isPdf) {
         addAnalysisStep('Processing PDF document');
-        addAnalysisStep('Using pdfjs-dist for text extraction');
+        addAnalysisStep('Using Docling for text extraction');
       }
       
       // Prepare for API call
@@ -1074,6 +1073,44 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         analysisRecommendations: grantData.analysisRecommendations || []
       };
       
+      // Build requirements from data collection methods and milestones
+      const requirements: string[] = [];
+      if (grantData.dataCollectionMethods && grantData.dataCollectionMethods.length > 0) {
+        grantData.dataCollectionMethods.forEach(method => {
+          requirements.push(`Data Collection: ${method.name} (${method.frequency})`);
+        });
+      }
+      if (grantData.projectMilestones && grantData.projectMilestones.length > 0) {
+        grantData.projectMilestones.forEach(milestone => {
+          requirements.push(`Milestone: ${milestone.name}`);
+        });
+      }
+      
+      // Build reporting schedule from reporting requirements or milestones
+      const reportingSchedule: any[] = [];
+      if (grantData.reportingRequirements && grantData.reportingRequirements.length > 0) {
+        grantData.reportingRequirements.forEach(req => {
+          reportingSchedule.push({
+            type: req.type || 'quarterly',
+            dueDate: req.dueDate ? Timestamp.fromDate(new Date(req.dueDate)) : Timestamp.now(),
+            completed: req.status === 'submitted',
+            submittedDate: req.submittedDate ? Timestamp.fromDate(new Date(req.submittedDate)) : undefined
+          });
+        });
+      } else if (grantData.projectMilestones && grantData.projectMilestones.length > 0) {
+        // Create reporting schedule from milestones
+        grantData.projectMilestones.forEach(milestone => {
+          if (milestone.dueDate) {
+            reportingSchedule.push({
+              type: 'milestone',
+              dueDate: Timestamp.fromDate(new Date(milestone.dueDate)),
+              completed: milestone.status === 'completed',
+              description: milestone.name
+            });
+          }
+        });
+      }
+      
       // Prepare grant data for Firebase with required fields
       // Firebase doesn't accept undefined values, so we provide defaults
       const grantToSave: any = {
@@ -1081,7 +1118,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         title: grantData.name || 'Untitled Grant',
         name: grantData.name || 'Untitled Grant',
         description: grantData.description || '',
-        fundingSource: grantData.fundingSource || '',
+        fundingSource: grantData.fundingSource || 'Not specified',
         // Use both 'amount' and 'totalBudget' for compatibility
         amount: grantData.totalBudget || 0,
         totalBudget: grantData.totalBudget || 0,
@@ -1089,10 +1126,12 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         startDate: grantData.startDate ? Timestamp.fromDate(new Date(grantData.startDate)) : Timestamp.now(),
         endDate: grantData.endDate ? Timestamp.fromDate(new Date(grantData.endDate)) : Timestamp.now(),
         status: grantData.status || 'draft',
-        projectIds: [],
-        requirements: [],
-        reportingSchedule: [],
-        contactPerson: grantData.collaboratingEntities?.[0]?.contactName || 'Not specified',
+        projectIds: [], // Projects are created separately and linked later
+        requirements: requirements,
+        reportingSchedule: reportingSchedule,
+        reportingRequirements: grantData.reportingRequirements || [],
+        contactPerson: grantData.collaboratingEntities?.[0]?.contactName || 
+                       grantData.keyContacts?.[0]?.name || 'Not specified',
         // Include all the wizard data as additional fields (with defaults to prevent undefined)
         grantNumber: grantData.grantNumber || '',
         collaboratingEntities: grantData.collaboratingEntities || [],
@@ -1102,6 +1141,7 @@ export const GrantWizardProvider: React.FC<{ children: ReactNode; organizationId
         entityRelationshipNotes: grantData.entityRelationshipNotes || '',
         formTemplates: grantData.formTemplates || [],
         datasets: grantData.datasets || [],
+        keyContacts: grantData.keyContacts || [],
         // Store the analysis summary for PDF generation
         analysisSummary: analysisSummary,
         // Store uploaded document info if available

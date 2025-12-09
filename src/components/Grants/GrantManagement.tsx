@@ -32,9 +32,10 @@ import {
   Assessment as AssessmentIcon,
   Close as CloseIcon,
   Download as DownloadIcon,
-  Groups as GroupsIcon
+  Groups as GroupsIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
-import { Sparkles, FileText } from 'lucide-react';
+import { Sparkles, FileText, LayoutDashboard, ClipboardList } from 'lucide-react';
 import { createGrant, getActiveGrantsCount } from '@/lib/schema/data-access';
 import { Grant } from '@/lib/schema/unified-schema';
 import { Grant as WizardGrant } from '@/types/grant.types';
@@ -50,6 +51,14 @@ export default function GrantManagement() {
   const [loading, setLoading] = useState(true);
   const [showWizardDialog, setShowWizardDialog] = useState(false);
   const [showGeneratorDialog, setShowGeneratorDialog] = useState(false);
+  const [showFormGeneratorDialog, setShowFormGeneratorDialog] = useState(false);
+  const [showDashboardGeneratorDialog, setShowDashboardGeneratorDialog] = useState(false);
+  const [formGeneratorGrant, setFormGeneratorGrant] = useState<ExtendedGrant | null>(null);
+  const [dashboardGeneratorGrant, setDashboardGeneratorGrant] = useState<ExtendedGrant | null>(null);
+  const [generatingForms, setGeneratingForms] = useState(false);
+  const [generatingDashboard, setGeneratingDashboard] = useState(false);
+  const [generatedForms, setGeneratedForms] = useState<any[]>([]);
+  const [generatedDashboard, setGeneratedDashboard] = useState<any>(null);
 
   useEffect(() => {
     fetchGrants();
@@ -303,6 +312,322 @@ export default function GrantManagement() {
     doc.save(fileName);
   };
 
+  // Open Form Generator for a grant
+  const handleOpenFormGenerator = (grant: ExtendedGrant) => {
+    setFormGeneratorGrant(grant);
+    setGeneratedForms([]);
+    setShowFormGeneratorDialog(true);
+  };
+
+  // Generate forms for a grant using AI
+  const handleGenerateForms = async () => {
+    if (!formGeneratorGrant) return;
+    
+    setGeneratingForms(true);
+    try {
+      // Build context from grant data
+      const grantContext = {
+        title: formGeneratorGrant.title || formGeneratorGrant.name,
+        description: formGeneratorGrant.description,
+        dataCollectionMethods: formGeneratorGrant.dataCollectionMethods || [],
+        projectMilestones: formGeneratorGrant.projectMilestones || [],
+        collaboratingEntities: formGeneratorGrant.collaboratingEntities || [],
+        requirements: formGeneratorGrant.requirements || []
+      };
+
+      // Call OpenAI to generate forms
+      const response = await fetch('/api/ai/generate-forms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grantContext })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setGeneratedForms(result.forms || []);
+      } else {
+        // Generate sample forms if API fails
+        const sampleForms = generateSampleForms(formGeneratorGrant);
+        setGeneratedForms(sampleForms);
+      }
+    } catch (error) {
+      console.error('Error generating forms:', error);
+      // Generate sample forms as fallback
+      const sampleForms = generateSampleForms(formGeneratorGrant);
+      setGeneratedForms(sampleForms);
+    } finally {
+      setGeneratingForms(false);
+    }
+  };
+
+  // Generate sample forms based on grant data
+  const generateSampleForms = (grant: ExtendedGrant) => {
+    const forms: any[] = [];
+    
+    // Create intake form
+    forms.push({
+      id: `form-intake-${Date.now()}`,
+      name: 'Participant Intake Form',
+      description: `Intake form for ${grant.title || 'grant'} participants`,
+      purpose: 'intake',
+      fields: [
+        { id: 'f1', name: 'participant_name', label: 'Participant Name', type: 'text', required: true },
+        { id: 'f2', name: 'date_of_birth', label: 'Date of Birth', type: 'date', required: true },
+        { id: 'f3', name: 'contact_email', label: 'Email Address', type: 'email', required: true },
+        { id: 'f4', name: 'contact_phone', label: 'Phone Number', type: 'phone', required: false },
+        { id: 'f5', name: 'address', label: 'Address', type: 'textarea', required: false },
+        { id: 'f6', name: 'consent', label: 'I consent to participate in this program', type: 'checkbox', required: true }
+      ]
+    });
+
+    // Create forms based on data collection methods
+    (grant.dataCollectionMethods || []).forEach((method, index) => {
+      forms.push({
+        id: `form-method-${Date.now()}-${index}`,
+        name: `${method.name} Tracking Form`,
+        description: method.description || `Form for tracking ${method.name}`,
+        purpose: 'tracking',
+        frequency: method.frequency,
+        fields: [
+          { id: 'f1', name: 'date', label: 'Date', type: 'date', required: true },
+          { id: 'f2', name: 'participant_id', label: 'Participant ID', type: 'text', required: true },
+          ...(method.dataPoints || []).map((dp, i) => ({
+            id: `f${i + 3}`,
+            name: dp.toLowerCase().replace(/\s+/g, '_'),
+            label: dp,
+            type: 'text',
+            required: true
+          })),
+          { id: 'fn', name: 'notes', label: 'Additional Notes', type: 'textarea', required: false }
+        ]
+      });
+    });
+
+    // Create progress report form
+    forms.push({
+      id: `form-progress-${Date.now()}`,
+      name: 'Progress Report Form',
+      description: 'Monthly/Quarterly progress report for grant reporting',
+      purpose: 'reporting',
+      fields: [
+        { id: 'f1', name: 'reporting_period', label: 'Reporting Period', type: 'select', required: true, options: ['Monthly', 'Quarterly', 'Annual'] },
+        { id: 'f2', name: 'start_date', label: 'Period Start Date', type: 'date', required: true },
+        { id: 'f3', name: 'end_date', label: 'Period End Date', type: 'date', required: true },
+        { id: 'f4', name: 'participants_served', label: 'Number of Participants Served', type: 'number', required: true },
+        { id: 'f5', name: 'activities_completed', label: 'Activities Completed', type: 'textarea', required: true },
+        { id: 'f6', name: 'challenges', label: 'Challenges Encountered', type: 'textarea', required: false },
+        { id: 'f7', name: 'next_steps', label: 'Next Steps', type: 'textarea', required: true }
+      ]
+    });
+
+    return forms;
+  };
+
+  // Save generated forms to grant
+  const handleSaveGeneratedForms = async () => {
+    if (!formGeneratorGrant || generatedForms.length === 0) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      await updateGrant(formGeneratorGrant.id, {
+        formTemplates: [...(formGeneratorGrant.formTemplates || []), ...generatedForms]
+      } as any);
+      
+      // Update local state
+      setGrants(prev => prev.map(g => 
+        g.id === formGeneratorGrant.id 
+          ? { ...g, formTemplates: [...(g.formTemplates || []), ...generatedForms] }
+          : g
+      ));
+      
+      setShowFormGeneratorDialog(false);
+      alert('Forms saved successfully!');
+    } catch (error) {
+      console.error('Error saving forms:', error);
+      alert('Failed to save forms. Please try again.');
+    }
+  };
+
+  // Open Dashboard Generator for a grant
+  const handleOpenDashboardGenerator = (grant: ExtendedGrant) => {
+    setDashboardGeneratorGrant(grant);
+    setGeneratedDashboard(null);
+    setShowDashboardGeneratorDialog(true);
+  };
+
+  // Generate dashboard for a grant using AI
+  const handleGenerateDashboard = async () => {
+    if (!dashboardGeneratorGrant) return;
+    
+    setGeneratingDashboard(true);
+    try {
+      // Build context from grant data
+      const grantContext = {
+        title: dashboardGeneratorGrant.title || dashboardGeneratorGrant.name,
+        description: dashboardGeneratorGrant.description,
+        dataCollectionMethods: dashboardGeneratorGrant.dataCollectionMethods || [],
+        projectMilestones: dashboardGeneratorGrant.projectMilestones || [],
+        reportingSchedule: dashboardGeneratorGrant.reportingSchedule || [],
+        formTemplates: dashboardGeneratorGrant.formTemplates || [],
+        amount: dashboardGeneratorGrant.amount || dashboardGeneratorGrant.totalBudget || 0
+      };
+
+      // Call OpenAI to generate dashboard
+      const response = await fetch('/api/ai/generate-dashboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grantContext })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setGeneratedDashboard(result.dashboard);
+      } else {
+        // Generate sample dashboard if API fails
+        const sampleDashboard = generateSampleDashboard(dashboardGeneratorGrant);
+        setGeneratedDashboard(sampleDashboard);
+      }
+    } catch (error) {
+      console.error('Error generating dashboard:', error);
+      // Generate sample dashboard as fallback
+      const sampleDashboard = generateSampleDashboard(dashboardGeneratorGrant);
+      setGeneratedDashboard(sampleDashboard);
+    } finally {
+      setGeneratingDashboard(false);
+    }
+  };
+
+  // Generate sample dashboard based on grant data
+  const generateSampleDashboard = (grant: ExtendedGrant) => {
+    const milestones = grant.projectMilestones || [];
+    const completedMilestones = milestones.filter(m => m.status === 'completed').length;
+    
+    return {
+      id: `dashboard-${Date.now()}`,
+      name: `${grant.title || 'Grant'} Dashboard`,
+      description: 'Real-time tracking dashboard for grant performance',
+      metrics: [
+        {
+          id: 'kpi-1',
+          name: 'Total Participants',
+          value: 0,
+          target: 100,
+          unit: 'participants',
+          status: 'info',
+          linkedForm: 'Participant Intake Form'
+        },
+        {
+          id: 'kpi-2',
+          name: 'Budget Utilization',
+          value: 0,
+          target: grant.amount || grant.totalBudget || 0,
+          unit: 'USD',
+          status: 'success',
+          visualization: 'percentage'
+        },
+        {
+          id: 'kpi-3',
+          name: 'Milestone Progress',
+          value: completedMilestones,
+          target: milestones.length || 5,
+          unit: 'milestones',
+          status: completedMilestones > 0 ? 'success' : 'warning'
+        },
+        {
+          id: 'kpi-4',
+          name: 'Reports Submitted',
+          value: (grant.reportingSchedule || []).filter(r => r.completed).length,
+          target: (grant.reportingSchedule || []).length || 4,
+          unit: 'reports',
+          status: 'info'
+        }
+      ],
+      charts: [
+        {
+          id: 'chart-1',
+          name: 'Participant Enrollment Over Time',
+          type: 'line',
+          xAxisField: 'date',
+          yAxisField: 'count',
+          linkedForm: 'Participant Intake Form'
+        },
+        {
+          id: 'chart-2',
+          name: 'Services by Type',
+          type: 'pie',
+          dataField: 'service_type',
+          linkedForm: 'Service Tracking Form'
+        },
+        {
+          id: 'chart-3',
+          name: 'Monthly Activity Summary',
+          type: 'bar',
+          xAxisField: 'month',
+          yAxisField: 'activities',
+          linkedForm: 'Progress Report Form'
+        }
+      ],
+      tables: [
+        {
+          id: 'table-1',
+          name: 'Recent Activities',
+          columns: ['Date', 'Activity', 'Participants', 'Status'],
+          linkedForm: 'Progress Report Form'
+        }
+      ]
+    };
+  };
+
+  // Save generated dashboard to grant
+  const handleSaveGeneratedDashboard = async () => {
+    if (!dashboardGeneratorGrant || !generatedDashboard) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      await updateGrant(dashboardGeneratorGrant.id, {
+        dashboardMetrics: generatedDashboard.metrics,
+        dashboardConfig: generatedDashboard
+      } as any);
+      
+      // Update local state
+      setGrants(prev => prev.map(g => 
+        g.id === dashboardGeneratorGrant.id 
+          ? { ...g, dashboardMetrics: generatedDashboard.metrics, dashboardConfig: generatedDashboard }
+          : g
+      ));
+      
+      setShowDashboardGeneratorDialog(false);
+      alert('Dashboard saved successfully!');
+    } catch (error) {
+      console.error('Error saving dashboard:', error);
+      alert('Failed to save dashboard. Please try again.');
+    }
+  };
+
+  // Delete a grant
+  const handleDeleteGrant = async (grant: ExtendedGrant) => {
+    if (!confirm(`Are you sure you want to delete "${grant.title}"? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      const { deleteGrant } = await import('@/lib/schema/data-access');
+      const result = await deleteGrant(grant.id);
+      
+      if (result.success) {
+        // Remove from local state
+        setGrants(prev => prev.filter(g => g.id !== grant.id));
+        console.log('Grant deleted successfully:', grant.id);
+      } else {
+        console.error('Error deleting grant:', result.error);
+        alert('Failed to delete grant. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting grant:', error);
+      alert('Failed to delete grant. Please try again.');
+    }
+  };
+
   // Export grant data as JSON
   const handleExportGrant = (grant: ExtendedGrant) => {
     const exportData = {
@@ -483,7 +808,7 @@ export default function GrantManagement() {
                     <Grid item xs={12} md={3}>
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                          {grant.projectIds.length} Projects
+                          {(grant as any).projectMilestones?.length || grant.projectIds?.length || 0} {(grant as any).projectMilestones?.length ? 'Milestones' : 'Projects'}
                         </Typography>
                         <LinearProgress
                           variant="determinate"
@@ -495,7 +820,7 @@ export default function GrantManagement() {
                   </Grid>
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Button
                     variant="outlined"
                     size="small"
@@ -511,10 +836,37 @@ export default function GrantManagement() {
                   <Button
                     variant="outlined"
                     size="small"
+                    color="secondary"
+                    startIcon={<ClipboardList size={16} />}
+                    onClick={() => handleOpenFormGenerator(grant)}
+                  >
+                    Generate Forms
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    color="info"
+                    startIcon={<LayoutDashboard size={16} />}
+                    onClick={() => handleOpenDashboardGenerator(grant)}
+                  >
+                    Generate Dashboard
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
                     startIcon={<DownloadIcon />}
                     onClick={() => handleExportGrant(grant)}
                   >
                     Export
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={() => handleDeleteGrant(grant)}
+                  >
+                    Delete
                   </Button>
                 </Box>
               </Box>
@@ -534,19 +886,33 @@ export default function GrantManagement() {
                           Requirements:
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {grant.requirements.map((req, index) => (
-                            <Chip key={index} label={req} size="small" variant="outlined" />
-                          ))}
+                          {grant.requirements && grant.requirements.length > 0 ? (
+                            grant.requirements.map((req, index) => (
+                              <Chip key={index} label={req} size="small" variant="outlined" />
+                            ))
+                          ) : (
+                            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                              No requirements defined
+                            </Typography>
+                          )}
                         </Box>
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                          Contact Person: {grant.contactPerson}
+                          Contact Person: {grant.contactPerson || 'Not specified'}
                         </Typography>
-                        {upcomingReport && (
+                        {upcomingReport ? (
                           <Alert severity="info" sx={{ mt: 1 }}>
                             Next report due: {formatDate(upcomingReport.dueDate)} ({upcomingReport.type})
                           </Alert>
+                        ) : grant.reportingSchedule && grant.reportingSchedule.length > 0 ? (
+                          <Typography variant="body2" color="text.secondary">
+                            {grant.reportingSchedule.length} reporting items scheduled
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                            No reporting schedule defined
+                          </Typography>
                         )}
                       </Grid>
                     </Grid>
@@ -909,6 +1275,288 @@ export default function GrantManagement() {
               </>
             )}
           </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* Form Generator Dialog */}
+      <Dialog
+        open={showFormGeneratorDialog}
+        onClose={() => setShowFormGeneratorDialog(false)}
+        maxWidth="lg"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '12px',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 3 }}>
+          <IconButton
+            onClick={() => setShowFormGeneratorDialog(false)}
+            sx={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              bgcolor: 'white',
+              boxShadow: 1,
+              zIndex: 10,
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+            }}
+            size="small"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <ClipboardList size={24} />
+              Form Generator
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Generate data collection forms based on grant requirements
+            </Typography>
+          </Box>
+
+          {formGeneratorGrant && (
+            <>
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  Grant: {formGeneratorGrant.title}
+                </Typography>
+                <Typography variant="body2">
+                  {formGeneratorGrant.dataCollectionMethods?.length || 0} data collection methods • 
+                  {formGeneratorGrant.projectMilestones?.length || 0} milestones
+                </Typography>
+              </Alert>
+
+              {generatedForms.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    Click the button below to analyze the grant and generate appropriate data collection forms.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleGenerateForms}
+                    disabled={generatingForms}
+                    startIcon={generatingForms ? <CircularProgress size={20} color="inherit" /> : <Sparkles size={20} />}
+                  >
+                    {generatingForms ? 'Generating Forms...' : 'Generate Forms with AI'}
+                  </Button>
+                </Box>
+              ) : (
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                    Generated Forms ({generatedForms.length})
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {generatedForms.map((form, index) => (
+                      <Grid item xs={12} md={6} key={form.id || index}>
+                        <Card variant="outlined" sx={{ height: '100%' }}>
+                          <CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                {form.name}
+                              </Typography>
+                              <Chip label={form.purpose} size="small" color="primary" variant="outlined" />
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                              {form.description}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {form.fields?.length || 0} fields
+                            </Typography>
+                            <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {form.fields?.slice(0, 4).map((field: any, i: number) => (
+                                <Chip key={i} label={field.label} size="small" variant="outlined" sx={{ fontSize: '0.7rem' }} />
+                              ))}
+                              {form.fields?.length > 4 && (
+                                <Chip label={`+${form.fields.length - 4} more`} size="small" sx={{ fontSize: '0.7rem' }} />
+                              )}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+                    <Button variant="outlined" onClick={() => setGeneratedForms([])}>
+                      Regenerate
+                    </Button>
+                    <Button variant="contained" color="success" onClick={handleSaveGeneratedForms}>
+                      Save Forms to Grant
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dashboard Generator Dialog */}
+      <Dialog
+        open={showDashboardGeneratorDialog}
+        onClose={() => setShowDashboardGeneratorDialog(false)}
+        maxWidth="lg"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: '12px',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 3 }}>
+          <IconButton
+            onClick={() => setShowDashboardGeneratorDialog(false)}
+            sx={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              bgcolor: 'white',
+              boxShadow: 1,
+              zIndex: 10,
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+            }}
+            size="small"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <LayoutDashboard size={24} />
+              AI Dashboard Generator
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Generate a real-time tracking dashboard based on grant reporting requirements
+            </Typography>
+          </Box>
+
+          {dashboardGeneratorGrant && (
+            <>
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  Grant: {dashboardGeneratorGrant.title}
+                </Typography>
+                <Typography variant="body2">
+                  Budget: ${(dashboardGeneratorGrant.amount || dashboardGeneratorGrant.totalBudget || 0).toLocaleString()} • 
+                  {dashboardGeneratorGrant.reportingSchedule?.length || 0} reporting items • 
+                  {dashboardGeneratorGrant.formTemplates?.length || 0} forms
+                </Typography>
+              </Alert>
+
+              {!generatedDashboard ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    Click the button below to analyze the grant and generate a customized dashboard with KPIs, charts, and tables.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleGenerateDashboard}
+                    disabled={generatingDashboard}
+                    startIcon={generatingDashboard ? <CircularProgress size={20} color="inherit" /> : <Sparkles size={20} />}
+                  >
+                    {generatingDashboard ? 'Generating Dashboard...' : 'Generate Dashboard with AI'}
+                  </Button>
+                </Box>
+              ) : (
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                    {generatedDashboard.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    {generatedDashboard.description}
+                  </Typography>
+
+                  {/* KPI Metrics */}
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                    Key Performance Indicators ({generatedDashboard.metrics?.length || 0})
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    {generatedDashboard.metrics?.map((metric: any, index: number) => (
+                      <Grid item xs={12} sm={6} md={3} key={metric.id || index}>
+                        <Card variant="outlined">
+                          <CardContent sx={{ textAlign: 'center' }}>
+                            <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                              {metric.value}
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {metric.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Target: {metric.target} {metric.unit}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  {/* Charts */}
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                    Charts ({generatedDashboard.charts?.length || 0})
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    {generatedDashboard.charts?.map((chart: any, index: number) => (
+                      <Grid item xs={12} md={4} key={chart.id || index}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                {chart.name}
+                              </Typography>
+                              <Chip label={chart.type} size="small" variant="outlined" />
+                            </Box>
+                            <Typography variant="caption" color="text.secondary">
+                              Linked to: {chart.linkedForm}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  {/* Tables */}
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                    Data Tables ({generatedDashboard.tables?.length || 0})
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    {generatedDashboard.tables?.map((table: any, index: number) => (
+                      <Grid item xs={12} md={6} key={table.id || index}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                              {table.name}
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {table.columns?.map((col: string, i: number) => (
+                                <Chip key={i} label={col} size="small" variant="outlined" sx={{ fontSize: '0.7rem' }} />
+                              ))}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+                    <Button variant="outlined" onClick={() => setGeneratedDashboard(null)}>
+                      Regenerate
+                    </Button>
+                    <Button variant="contained" color="success" onClick={handleSaveGeneratedDashboard}>
+                      Save Dashboard to Grant
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </Box>

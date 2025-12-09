@@ -614,6 +614,30 @@ export async function updateGrant(id: string, updates: Partial<Grant>): Promise<
 }
 
 /**
+ * Delete a grant
+ */
+export async function deleteGrant(id: string): Promise<{ success: boolean; error?: any }> {
+  try {
+    const grantRef = doc(db, COLLECTIONS.GRANTS, id);
+    
+    await deleteDoc(grantRef);
+    
+    // Log activity
+    await logActivity({
+      action: 'delete',
+      resourceType: 'grant',
+      resourceId: id,
+      description: `Grant deleted: ${id}`
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting grant:', error);
+    return { success: false, error };
+  }
+}
+
+/**
  * Get all grants
  */
 export async function getAllGrants(options: {

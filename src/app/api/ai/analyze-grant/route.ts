@@ -1,29 +1,104 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { spawn } from 'child_process';
+import { writeFile, unlink } from 'fs/promises';
+import { join } from 'path';
+import { tmpdir } from 'os';
 
-// Load unpdf for modern PDF extraction (Docling-style document understanding)
+// Load unpdf for modern PDF extraction (fallback if Docling not available)
 let extractText: any = null;
 let pdfParse: any = null;
 
 if (typeof window === 'undefined') {
-  // Try to load unpdf (primary - modern, well-maintained)
+  // Try to load unpdf (fallback - modern, well-maintained)
   try {
     const unpdf = require('unpdf');
     extractText = unpdf.extractText;
-    console.log('✓ unpdf loaded successfully (Docling-style extraction)');
+    console.log('✓ unpdf loaded successfully (fallback extraction)');
   } catch (e) {
     console.warn('⚠ unpdf not available:', e instanceof Error ? e.message : 'Unknown error');
   }
 
-  // Try to load pdf-parse as fallback
+  // Try to load pdf-parse as secondary fallback
   try {
     pdfParse = require('pdf-parse');
-    console.log('✓ pdf-parse loaded as fallback');
+    console.log('✓ pdf-parse loaded as secondary fallback');
   } catch (e) {
     console.warn('⚠ pdf-parse not available:', e instanceof Error ? e.message : 'Unknown error');
   }
 
-  console.log(`PDF libraries available: ${[extractText && 'unpdf', pdfParse && 'pdf-parse'].filter(Boolean).join(', ') || 'NONE'}`);
+  console.log(`PDF libraries available: Docling (Python), ${[extractText && 'unpdf', pdfParse && 'pdf-parse'].filter(Boolean).join(', ') || 'NONE'}`);
+}
+
+// Function to extract text using Docling Python script
+async function extractWithDocling(buffer: Buffer): Promise<{ success: boolean; text?: string; error?: string; method?: string }> {
+  return new Promise(async (resolve) => {
+    try {
+      // Write buffer to temp file
+      const tempPath = join(tmpdir(), `docling-${Date.now()}.pdf`);
+      await writeFile(tempPath, buffer);
+      
+      // Get the path to the Python script
+      const scriptPath = join(process.cwd(), 'scripts', 'docling-extractor.py');
+      
+      // Spawn Python process
+      const python = spawn('python', [scriptPath, tempPath]);
+      
+      let stdout = '';
+      let stderr = '';
+      
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+      
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+      
+      python.on('close', async (code) => {
+        // Clean up temp file
+        try {
+          await unlink(tempPath);
+        } catch (e) {
+          console.warn('Failed to delete temp file:', tempPath);
+        }
+        
+        if (code === 0 && stdout) {
+          try {
+            const result = JSON.parse(stdout);
+            if (result.success) {
+              console.log(`✓ Docling extraction successful using ${result.method}: ${result.text?.length || 0} characters`);
+              resolve({ success: true, text: result.text, method: result.method });
+            } else {
+              console.warn(`✗ Docling extraction failed: ${result.error}`);
+              resolve({ success: false, error: result.error, method: 'docling' });
+            }
+          } catch (e) {
+            console.warn('Failed to parse Docling output:', stdout);
+            resolve({ success: false, error: 'Failed to parse Docling output', method: 'docling' });
+          }
+        } else {
+          console.warn(`Docling process exited with code ${code}: ${stderr}`);
+          resolve({ success: false, error: stderr || 'Docling process failed', method: 'docling' });
+        }
+      });
+      
+      python.on('error', (err) => {
+        console.warn('Failed to start Docling process:', err.message);
+        resolve({ success: false, error: `Failed to start Python: ${err.message}`, method: 'docling' });
+      });
+      
+      // Timeout after 30 seconds
+      setTimeout(() => {
+        python.kill();
+        resolve({ success: false, error: 'Docling extraction timed out', method: 'docling' });
+      }, 30000);
+      
+    } catch (e) {
+      console.warn('Docling extraction error:', e);
+      resolve({ success: false, error: e instanceof Error ? e.message : 'Unknown error', method: 'docling' });
+    }
+  });
 }
 
 export const dynamic = 'force-dynamic';
@@ -153,22 +228,38 @@ export async function POST(request: NextRequest) {
       const isPdf = fileName.toLowerCase().endsWith('.pdf') || fileType === 'application/pdf';
       
       if (isPdf) {
-        console.log('Detected PDF file - using Docling-style extraction with unpdf');
+        console.log('Detected PDF file - attempting Docling extraction first');
         
         // Convert file to buffer
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         
         let extractionSuccess = false;
+        let extractionMethod = '';
         const errors: string[] = [];
         
-        // Try unpdf first (modern, Docling-style extraction)
+        // Try Docling first (Python-based, best quality)
+        console.log('Attempting extraction with Docling (Python)...');
+        const doclingResult = await extractWithDocling(buffer);
+        if (doclingResult.success && doclingResult.text) {
+          fileContent = doclingResult.text;
+          extractionMethod = doclingResult.method || 'docling';
+          console.log(`✓ Docling: Extracted ${fileContent.length} characters using ${extractionMethod}`);
+          extractionSuccess = true;
+        } else {
+          const error = `Docling failed: ${doclingResult.error || 'Unknown error'}`;
+          console.warn(`✗ ${error}`);
+          errors.push(error);
+        }
+        
+        // Try unpdf as fallback
         if (extractText && !extractionSuccess) {
           try {
-            console.log('Attempting extraction with unpdf (Docling-style)...');
+            console.log('Attempting extraction with unpdf (fallback)...');
             const result = await extractText(buffer);
             fileContent = result.text || '';
-            console.log(`✓ unpdf: Extracted ${fileContent.length} characters (Docling-style)`);
+            extractionMethod = 'unpdf';
+            console.log(`✓ unpdf: Extracted ${fileContent.length} characters`);
             if (result.totalPages) {
               console.log(`   Document has ${result.totalPages} pages`);
             }
@@ -180,12 +271,13 @@ export async function POST(request: NextRequest) {
           }
         }
         
-        // Try pdf-parse as fallback
+        // Try pdf-parse as secondary fallback
         if (pdfParse && !extractionSuccess) {
           try {
-            console.log('Attempting extraction with pdf-parse (fallback)...');
+            console.log('Attempting extraction with pdf-parse (secondary fallback)...');
             const pdfData = await pdfParse(buffer);
             fileContent = pdfData.text;
+            extractionMethod = 'pdf-parse';
             console.log(`✓ pdf-parse: Extracted ${fileContent.length} characters from ${pdfData.numpages} pages`);
             extractionSuccess = true;
           } catch (e) {
@@ -202,9 +294,11 @@ export async function POST(request: NextRequest) {
             success: false,
             error: 'Failed to extract text from PDF using all available methods.',
             details: errors.join('; '),
-            availableLibraries: [extractText && 'unpdf', pdfParse && 'pdf-parse'].filter(Boolean)
+            availableLibraries: ['Docling (Python)', extractText && 'unpdf', pdfParse && 'pdf-parse'].filter(Boolean)
           }, { status: 422 });
         }
+        
+        console.log(`PDF extraction successful using: ${extractionMethod}`);
       } else {
         // For non-PDF files, use simple text extraction
         fileContent = await file.text();

@@ -17,33 +17,13 @@ type GrantWizardProps = {
   onComplete?: (grantId: string) => void;
 };
 
-export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
+// Inner component that uses the context - MUST be inside GrantWizardProvider
+function GrantWizardContent({ organizationId, onComplete }: GrantWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const { submitGrant } = useGrantWizard();
-  
-  // Create a component for the prepopulate button to use the context
-  const PrepopulateButton = () => {
-    const { generatePrepopulatedData, hasPrepopulatedData } = useGrantWizard();
-    
-    return (
-      <MuiButton
-        variant="outlined"
-        color="secondary"
-        onClick={() => {
-          if (!hasPrepopulatedData) {
-            generatePrepopulatedData();
-          }
-        }}
-        sx={{ px: 3 }}
-        startIcon={<CheckCircle style={{ height: 16, width: 16 }} />}
-      >
-        Prepopulate Form with Sample Data
-      </MuiButton>
-    );
-  };
+  const { submitGrant, generatePrepopulatedData, hasPrepopulatedData, grantData } = useGrantWizard();
 
   const steps = [
     { title: 'Upload & Info', component: Step1BasicInfo, icon: <Upload className="h-5 w-5" />, description: 'Upload grant documents and enter basic information' },
@@ -59,6 +39,8 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
   const handleComplete = async () => {
     try {
       setIsSubmitting(true);
+      console.log('Submitting grant with data:', grantData);
+      
       // Submit the grant using the context
       const grantId = await submitGrant();
       
@@ -70,7 +52,7 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
       if (onComplete) {
         onComplete(grantId);
       } else {
-        router.push(`/grants/${grantId}`);
+        router.push(`/grants`);
       }
     } catch (error) {
       console.error('Error creating grant:', error);
@@ -87,8 +69,7 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
   const CurrentStepComponent = steps[currentStep].component;
 
   return (
-    <GrantWizardProvider organizationId={organizationId}>
-      <Box sx={{ maxWidth: '1000px', mx: 'auto', p: 2 }}>
+    <Box sx={{ maxWidth: '1000px', mx: 'auto', p: 2 }}>
         {/* Heading */}
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
@@ -100,7 +81,19 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
           
           {/* Demo Prepopulate Button */}
           <Box sx={{ mt: 2, mb: 3 }}>
-            <PrepopulateButton />
+            <MuiButton
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                if (!hasPrepopulatedData) {
+                  generatePrepopulatedData();
+                }
+              }}
+              sx={{ px: 3 }}
+              startIcon={<CheckCircle style={{ height: 16, width: 16 }} />}
+            >
+              Prepopulate Form with Sample Data
+            </MuiButton>
           </Box>
         </Box>
 
@@ -237,6 +230,14 @@ export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
           )}
         </Box>
       </Box>
+  );
+}
+
+// Wrapper component that provides the context
+export function GrantWizard({ organizationId, onComplete }: GrantWizardProps) {
+  return (
+    <GrantWizardProvider organizationId={organizationId}>
+      <GrantWizardContent organizationId={organizationId} onComplete={onComplete} />
     </GrantWizardProvider>
   );
 }
