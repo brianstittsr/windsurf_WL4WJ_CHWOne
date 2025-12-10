@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, Tabs, Tab, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, Chip, IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid,
+  Alert, Snackbar
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -12,10 +13,13 @@ import {
   Delete as DeleteIcon,
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Search as SearchIcon,
+  CloudDownload as ImportIcon
 } from '@mui/icons-material';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
+import IRSSearchModal from './IRSSearchModal';
 
 interface Nonprofit {
   id: string;
@@ -41,6 +45,12 @@ export default function AdminNonprofits() {
   const [loading, setLoading] = useState(true);
   const [selectedNonprofit, setSelectedNonprofit] = useState<Nonprofit | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showIRSSearchModal, setShowIRSSearchModal] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
   useEffect(() => {
     fetchNonprofits();
@@ -131,6 +141,211 @@ export default function AdminNonprofits() {
     setShowDetailDialog(true);
   };
 
+  // Handle importing organization from IRS search
+  const handleImportFromIRS = async (orgData: any) => {
+    try {
+      // Check if organization already exists by EIN
+      const existingOrg = nonprofits.find(n => n.ein === orgData.ein);
+      
+      if (existingOrg) {
+        // Update existing organization with new IRS data
+        const nonprofitRef = doc(db, 'nonprofits', existingOrg.id);
+        
+        // Create history entry for the update
+        const irsDataHistory = {
+          importedAt: new Date().toISOString(),
+          taxPeriod: orgData.taxPeriod,
+          assetAmount: orgData.assetAmount,
+          incomeAmount: orgData.incomeAmount,
+          revenueAmount: orgData.revenueAmount,
+          latestFiling: orgData.latestFiling,
+          filingHistory: orgData.filingHistory
+        };
+
+        await updateDoc(nonprofitRef, {
+          // Update basic info
+          organizationName: orgData.organizationName,
+          address: {
+            street: orgData.address || '',
+            city: orgData.city || '',
+            state: orgData.state || '',
+            zipCode: orgData.zipCode || ''
+          },
+          // IRS specific data
+          irsData: {
+            nteeCode: orgData.nteeCode,
+            subsectionCode: orgData.subsectionCode,
+            rulingDate: orgData.rulingDate,
+            deductibilityCode: orgData.deductibilityCode,
+            foundationCode: orgData.foundationCode,
+            exemptStatusCode: orgData.exemptStatusCode,
+            affiliationCode: orgData.affiliationCode,
+            classificationCodes: orgData.classificationCodes,
+            activityCodes: orgData.activityCodes,
+            accountingPeriod: orgData.accountingPeriod,
+            lastUpdated: new Date().toISOString()
+          },
+          // Financial data
+          financialData: {
+            assetAmount: orgData.assetAmount,
+            incomeAmount: orgData.incomeAmount,
+            revenueAmount: orgData.revenueAmount,
+            taxPeriod: orgData.taxPeriod,
+            latestFiling: orgData.latestFiling
+          },
+          // Append to history
+          irsDataHistory: [...(existingOrg as any).irsDataHistory || [], irsDataHistory],
+          updatedAt: serverTimestamp(),
+          lastIRSSync: serverTimestamp()
+        });
+
+        setSnackbar({
+          open: true,
+          message: `Updated ${orgData.organizationName} with latest IRS data`,
+          severity: 'success'
+        });
+      } else {
+        // Create new nonprofit record
+        const newNonprofit = {
+          organizationName: orgData.organizationName,
+          organizationType: getOrganizationType(orgData.subsectionCode),
+          ein: orgData.ein,
+          address: {
+            street: orgData.address || '',
+            city: orgData.city || '',
+            state: orgData.state || '',
+            zipCode: orgData.zipCode || ''
+          },
+          primaryContact: {
+            name: orgData.careOfName || '',
+            email: '',
+            phone: ''
+          },
+          services: {
+            categories: getNTEECategories(orgData.nteeCode)
+          },
+          // IRS specific data
+          irsData: {
+            nteeCode: orgData.nteeCode,
+            subsectionCode: orgData.subsectionCode,
+            rulingDate: orgData.rulingDate,
+            deductibilityCode: orgData.deductibilityCode,
+            foundationCode: orgData.foundationCode,
+            exemptStatusCode: orgData.exemptStatusCode,
+            affiliationCode: orgData.affiliationCode,
+            classificationCodes: orgData.classificationCodes,
+            activityCodes: orgData.activityCodes,
+            accountingPeriod: orgData.accountingPeriod,
+            lastUpdated: new Date().toISOString()
+          },
+          // Financial data
+          financialData: {
+            assetAmount: orgData.assetAmount,
+            incomeAmount: orgData.incomeAmount,
+            revenueAmount: orgData.revenueAmount,
+            taxPeriod: orgData.taxPeriod,
+            latestFiling: orgData.latestFiling
+          },
+          // Filing history
+          irsDataHistory: [{
+            importedAt: new Date().toISOString(),
+            taxPeriod: orgData.taxPeriod,
+            assetAmount: orgData.assetAmount,
+            incomeAmount: orgData.incomeAmount,
+            revenueAmount: orgData.revenueAmount,
+            latestFiling: orgData.latestFiling,
+            filingHistory: orgData.filingHistory
+          }],
+          status: 'pending',
+          approvalStatus: 'pending',
+          isActive: false,
+          isApproved: false,
+          importedFromIRS: true,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          lastIRSSync: serverTimestamp()
+        };
+
+        await addDoc(collection(db, 'nonprofits'), newNonprofit);
+
+        setSnackbar({
+          open: true,
+          message: `Imported ${orgData.organizationName} from IRS database`,
+          severity: 'success'
+        });
+      }
+
+      // Refresh the list
+      await fetchNonprofits();
+    } catch (error) {
+      console.error('Error importing from IRS:', error);
+      setSnackbar({
+        open: true,
+        message: `Failed to import: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        severity: 'error'
+      });
+      throw error;
+    }
+  };
+
+  // Helper function to determine organization type from subsection code
+  const getOrganizationType = (subsectionCode: number): string => {
+    const types: Record<number, string> = {
+      3: 'Charitable Organization',
+      4: 'Social Welfare Organization',
+      5: 'Labor/Agricultural Organization',
+      6: 'Business League',
+      7: 'Social Club',
+      8: 'Fraternal Beneficiary Society',
+      9: 'Voluntary Employees Association',
+      10: 'Domestic Fraternal Society',
+      13: 'Cemetery Company',
+      14: 'Credit Union',
+      19: 'Veterans Organization'
+    };
+    return types[subsectionCode] || 'Tax Exempt Organization';
+  };
+
+  // Helper function to get service categories from NTEE code
+  const getNTEECategories = (nteeCode: string): string[] => {
+    if (!nteeCode) return ['General'];
+    
+    const firstChar = nteeCode.charAt(0).toUpperCase();
+    const categories: Record<string, string[]> = {
+      'A': ['Arts, Culture & Humanities'],
+      'B': ['Education'],
+      'C': ['Environment'],
+      'D': ['Animal-Related'],
+      'E': ['Health Care'],
+      'F': ['Mental Health'],
+      'G': ['Disease & Disorders'],
+      'H': ['Medical Research'],
+      'I': ['Crime & Legal'],
+      'J': ['Employment'],
+      'K': ['Food, Agriculture & Nutrition'],
+      'L': ['Housing & Shelter'],
+      'M': ['Public Safety'],
+      'N': ['Recreation & Sports'],
+      'O': ['Youth Development'],
+      'P': ['Human Services'],
+      'Q': ['International Affairs'],
+      'R': ['Civil Rights'],
+      'S': ['Community Improvement'],
+      'T': ['Philanthropy & Voluntarism'],
+      'U': ['Science & Technology'],
+      'V': ['Social Science'],
+      'W': ['Public & Societal Benefit'],
+      'X': ['Religion'],
+      'Y': ['Mutual & Membership Benefit'],
+      'Z': ['Unknown']
+    };
+    
+    return categories[firstChar] || ['General'];
+  };
+
+  // Get list of existing EINs for duplicate detection
+  const existingEINs = nonprofits.map(n => n.ein).filter(Boolean);
+
   const getFilteredNonprofits = () => {
     switch (activeTab) {
       case 0: // All
@@ -164,13 +379,23 @@ export default function AdminNonprofits() {
         <Typography variant="h5" fontWeight="bold">
           Nonprofit Organization Management
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={fetchNonprofits}
-        >
-          Refresh
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<ImportIcon />}
+            onClick={() => setShowIRSSearchModal(true)}
+          >
+            Import from IRS
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={fetchNonprofits}
+          >
+            Refresh
+          </Button>
+        </Box>
       </Box>
 
       <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ mb: 3 }}>
@@ -323,6 +548,30 @@ export default function AdminNonprofits() {
           <Button onClick={() => setShowDetailDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* IRS Search Modal */}
+      <IRSSearchModal
+        open={showIRSSearchModal}
+        onClose={() => setShowIRSSearchModal(false)}
+        onImport={handleImportFromIRS}
+        existingEINs={existingEINs}
+      />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
