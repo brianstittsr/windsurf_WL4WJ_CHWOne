@@ -907,7 +907,19 @@ export default function ReferralManagement() {
   const [orgCategoryFilter, setOrgCategoryFilter] = useState('All');
   const [formData, setFormData] = useState({
     clientId: '',
-    resourceId: '',
+    organizationId: '',
+    organizationName: '',
+    address: '',
+    city: '',
+    state: 'North Carolina',
+    zipCode: '',
+    county: '',
+    category: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    website: '',
+    description: '',
     urgency: ReferralUrgency.MEDIUM,
     reason: '',
     notes: ''
@@ -1035,7 +1047,19 @@ export default function ReferralManagement() {
     try {
       const referralData = {
         clientId: formData.clientId,
-        resourceId: formData.resourceId,
+        organizationId: formData.organizationId,
+        organizationName: formData.organizationName,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        county: formData.county,
+        category: formData.category,
+        contactName: formData.contactName,
+        email: formData.email,
+        phone: formData.phone,
+        website: formData.website,
+        description: formData.description,
         chwId: 'current-user', // Would get from auth context
         status: ReferralStatus.PENDING,
         urgency: formData.urgency,
@@ -1067,18 +1091,65 @@ export default function ReferralManagement() {
   const resetForm = () => {
     setFormData({
       clientId: '',
-      resourceId: '',
+      organizationId: '',
+      organizationName: '',
+      address: '',
+      city: '',
+      state: 'North Carolina',
+      zipCode: '',
+      county: '',
+      category: '',
+      contactName: '',
+      email: '',
+      phone: '',
+      website: '',
+      description: '',
       urgency: ReferralUrgency.MEDIUM,
       reason: '',
       notes: ''
     });
   };
 
+  // Handle organization selection - auto-fill form fields
+  const handleOrganizationSelect = (orgId: string) => {
+    const org = organizationsData.find(o => o.id === orgId);
+    if (org) {
+      setFormData(prev => ({
+        ...prev,
+        organizationId: org.id,
+        organizationName: org.name,
+        address: org.address,
+        city: org.city,
+        state: org.state,
+        zipCode: org.zipCode,
+        county: org.county,
+        category: org.category,
+        contactName: org.contactName || '',
+        email: org.email || '',
+        phone: org.phone || '',
+        website: org.website || '',
+        description: org.description
+      }));
+    }
+  };
+
   const editReferral = (referral: Referral) => {
     setSelectedReferral(referral);
     setFormData({
       clientId: referral.clientId,
-      resourceId: referral.resourceId,
+      organizationId: '',
+      organizationName: '',
+      address: '',
+      city: '',
+      state: 'North Carolina',
+      zipCode: '',
+      county: '',
+      category: '',
+      contactName: '',
+      email: '',
+      phone: '',
+      website: '',
+      description: '',
       urgency: referral.urgency,
       reason: referral.reason,
       notes: referral.notes || ''
@@ -1338,13 +1409,19 @@ export default function ReferralManagement() {
         </Card>
 
         {/* Add/Edit Referral Modal */}
-        <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="md" fullWidth>
+        <Dialog open={showModal} onClose={() => setShowModal(false)} maxWidth="lg" fullWidth>
           <DialogTitle>
             {selectedReferral ? 'Edit Referral' : 'New Referral'}
           </DialogTitle>
           <form onSubmit={handleSubmit}>
             <DialogContent>
-              <Grid container spacing={3}>
+              <Grid container spacing={2}>
+                {/* Client Selection */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'primary.main' }}>
+                    Client Information
+                  </Typography>
+                </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -1353,6 +1430,7 @@ export default function ReferralManagement() {
                     value={formData.clientId}
                     onChange={(e) => setFormData({...formData, clientId: e.target.value})}
                     required
+                    size="small"
                   >
                     {clients.map(client => (
                       <MenuItem key={client.id} value={client.id}>
@@ -1365,26 +1443,10 @@ export default function ReferralManagement() {
                   <TextField
                     fullWidth
                     select
-                    label="Resource"
-                    value={formData.resourceId}
-                    onChange={(e) => setFormData({...formData, resourceId: e.target.value})}
-                    required
-                  >
-                    {resources.map(resource => (
-                      <MenuItem key={resource.id} value={resource.id}>
-                        {resource.name} - {resource.organization}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    select
                     label="Urgency"
                     value={formData.urgency}
                     onChange={(e) => setFormData({...formData, urgency: e.target.value as ReferralUrgency})}
+                    size="small"
                   >
                     {Object.values(ReferralUrgency).map(urgency => (
                       <MenuItem key={urgency} value={urgency}>
@@ -1393,16 +1455,166 @@ export default function ReferralManagement() {
                     ))}
                   </TextField>
                 </Grid>
+
+                {/* Organization Selection */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, mt: 2, fontWeight: 600, color: 'primary.main' }}>
+                    Organization Information
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Select Organization (auto-fills fields below)"
+                    value={formData.organizationId}
+                    onChange={(e) => handleOrganizationSelect(e.target.value)}
+                    size="small"
+                    helperText="Select an existing organization or enter details manually"
+                  >
+                    <MenuItem value="">-- Select an Organization --</MenuItem>
+                    {organizationsData.map(org => (
+                      <MenuItem key={org.id} value={org.id}>
+                        {org.name} ({org.category})
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
                 <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Organization Name"
+                    value={formData.organizationName}
+                    onChange={(e) => setFormData({...formData, organizationName: e.target.value})}
+                    required
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    required
+                    size="small"
+                  >
+                    {orgCategories.filter(c => c !== 'All').map(cat => (
+                      <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="City"
+                    value={formData.city}
+                    onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="State"
+                    value={formData.state}
+                    onChange={(e) => setFormData({...formData, state: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Zip Code"
+                    value={formData.zipCode}
+                    onChange={(e) => setFormData({...formData, zipCode: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="County"
+                    value={formData.county}
+                    onChange={(e) => setFormData({...formData, county: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Contact Name"
+                    value={formData.contactName}
+                    onChange={(e) => setFormData({...formData, contactName: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({...formData, website: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    label="Organization Description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    size="small"
+                  />
+                </Grid>
+
+                {/* Referral Details */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, mt: 2, fontWeight: 600, color: 'primary.main' }}>
+                    Referral Details
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Reason for Referral"
                     value={formData.reason}
                     onChange={(e) => setFormData({...formData, reason: e.target.value})}
                     required
+                    size="small"
                   />
                 </Grid>
-
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
@@ -1412,6 +1624,7 @@ export default function ReferralManagement() {
                     value={formData.notes}
                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
                     placeholder="Any additional information about this referral..."
+                    size="small"
                   />
                 </Grid>
               </Grid>
