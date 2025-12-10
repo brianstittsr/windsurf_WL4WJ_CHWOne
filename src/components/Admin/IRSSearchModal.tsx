@@ -315,9 +315,14 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     }
   };
 
+  // State for auto-import confirmation dialog
+  const [showAutoImportConfirm, setShowAutoImportConfirm] = useState(false);
+  const [firstPageImportComplete, setFirstPageImportComplete] = useState(false);
+
   const handleBatchImport = async () => {
     setBatchImporting(true);
     setBatchProgress(0);
+    setFirstPageImportComplete(false);
     
     const toImport = results.filter(r => !existingEINs.includes(r.ein) && !importSuccess.includes(r.ein));
     
@@ -341,6 +346,27 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     }
     
     setBatchImporting(false);
+    setFirstPageImportComplete(true);
+    
+    // Show confirmation dialog to ask about auto-importing all remaining records
+    if (totalPages > 1 && currentPage < totalPages - 1) {
+      setShowAutoImportConfirm(true);
+    }
+  };
+
+  // Handle user confirming they want to auto-import all remaining records
+  const handleConfirmAutoImportAll = () => {
+    setShowAutoImportConfirm(false);
+    // Set start page to next page (current + 1)
+    setAutoImportStartPage(currentPage + 1);
+    // Start auto-import
+    setTimeout(() => {
+      handleAutoImport();
+    }, 100);
+  };
+
+  const handleDeclineAutoImport = () => {
+    setShowAutoImportConfirm(false);
   };
 
   // Auto-import: Fetches and imports 25 records at a time, page by page
@@ -1018,6 +1044,56 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
         </Typography>
         <Button onClick={onClose}>Close</Button>
       </DialogActions>
+
+      {/* Auto-Import Confirmation Dialog */}
+      <Dialog 
+        open={showAutoImportConfirm} 
+        onClose={handleDeclineAutoImport}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CheckCircleIcon color="success" />
+          First Page Import Complete!
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Successfully imported {results.filter(r => importSuccess.includes(r.ein)).length} organizations from page {currentPage + 1}.
+          </Alert>
+          
+          <Typography variant="body1" gutterBottom>
+            Would you like to automatically import all remaining records?
+          </Typography>
+          
+          <Box sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Remaining:</strong> {totalResults - ((currentPage + 1) * 25)} organizations across {totalPages - currentPage - 1} pages
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <strong>Estimated time:</strong> ~{Math.ceil((totalPages - currentPage - 1) * 25 * 0.5 / 60)} minutes
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              You can stop the import at any time. Already imported organizations will be skipped.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button 
+            onClick={handleDeclineAutoImport}
+            variant="outlined"
+          >
+            No, I&apos;ll Import Manually
+          </Button>
+          <Button 
+            onClick={handleConfirmAutoImportAll}
+            variant="contained"
+            color="success"
+            startIcon={<RefreshIcon />}
+          >
+            Yes, Auto-Import All Remaining
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 }
