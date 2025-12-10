@@ -59,19 +59,24 @@ export default function AdminNonprofits() {
   const fetchNonprofits = async () => {
     try {
       setLoading(true);
+      console.log('Fetching nonprofits from Firestore...');
       const nonprofitsRef = collection(db, 'nonprofits');
       const querySnapshot = await getDocs(nonprofitsRef);
       
       const fetchedNonprofits: Nonprofit[] = [];
-      querySnapshot.forEach((doc) => {
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        console.log('Found nonprofit:', docSnap.id, data.organizationName, 'Status:', data.approvalStatus);
         fetchedNonprofits.push({
-          id: doc.id,
-          ...doc.data()
+          id: docSnap.id,
+          ...data
         } as Nonprofit);
       });
       
       setNonprofits(fetchedNonprofits);
-      console.log('Fetched nonprofits:', fetchedNonprofits.length);
+      console.log('Total nonprofits fetched:', fetchedNonprofits.length);
+      console.log('Pending:', fetchedNonprofits.filter(n => n.approvalStatus === 'pending').length);
+      console.log('Approved:', fetchedNonprofits.filter(n => n.approvalStatus === 'approved').length);
     } catch (error) {
       console.error('Error fetching nonprofits:', error);
     } finally {
@@ -266,16 +271,36 @@ export default function AdminNonprofits() {
           lastIRSSync: serverTimestamp()
         };
 
-        await addDoc(collection(db, 'nonprofits'), newNonprofit);
+        const docRef = await addDoc(collection(db, 'nonprofits'), newNonprofit);
+        console.log('Created new nonprofit with ID:', docRef.id, 'Name:', orgData.organizationName);
 
         setSnackbar({
           open: true,
           message: `Imported ${orgData.organizationName} from IRS database`,
           severity: 'success'
         });
+        
+        // Add to local state immediately for faster UI update
+        setNonprofits(prev => [...prev, {
+          id: docRef.id,
+          organizationName: orgData.organizationName,
+          organizationType: getOrganizationType(orgData.subsectionCode),
+          ein: orgData.ein,
+          primaryContact: {
+            name: orgData.careOfName || '',
+            email: '',
+            phone: ''
+          },
+          services: {
+            categories: getNTEECategories(orgData.nteeCode)
+          },
+          status: 'pending',
+          approvalStatus: 'pending',
+          createdAt: new Date()
+        } as Nonprofit]);
       }
 
-      // Refresh the list
+      // Also refresh from server to ensure consistency
       await fetchNonprofits();
     } catch (error) {
       console.error('Error importing from IRS:', error);
@@ -552,7 +577,11 @@ export default function AdminNonprofits() {
       {/* IRS Search Modal */}
       <IRSSearchModal
         open={showIRSSearchModal}
-        onClose={() => setShowIRSSearchModal(false)}
+        onClose={() => {
+          setShowIRSSearchModal(false);
+          // Refresh the list when modal closes to ensure all imports are visible
+          fetchNonprofits();
+        }}
         onImport={handleImportFromIRS}
         existingEINs={existingEINs}
       />
