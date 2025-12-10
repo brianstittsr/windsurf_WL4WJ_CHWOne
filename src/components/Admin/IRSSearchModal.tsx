@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -216,6 +216,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
   
   // Auto-import state
   const [autoImporting, setAutoImporting] = useState(false);
+  const autoImportingRef = useRef(false); // Ref to track import state in async loops
   const [autoImportStartPage, setAutoImportStartPage] = useState(0);
   const [autoImportStats, setAutoImportStats] = useState({
     totalImported: 0,
@@ -380,6 +381,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
   // Auto-import: Fetches and imports 25 records at a time, page by page
   const handleAutoImport = async () => {
     setAutoImporting(true);
+    autoImportingRef.current = true; // Set ref for async loop tracking
     setAutoImportLog([]);
     setAutoImportStats({
       totalImported: 0,
@@ -402,7 +404,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
 
     addLog(`Starting auto-import for ${state ? US_STATES.find(s => s.code === state)?.name : 'all states'}${autoImportStartPage > 0 ? ` from page ${autoImportStartPage + 1}` : ''}...`);
 
-    while (hasMore && autoImporting !== false) {
+    while (hasMore && autoImportingRef.current) {
       try {
         addLog(`Fetching page ${page + 1}...`);
         
@@ -503,10 +505,12 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     }
 
     addLog(`Auto-import complete! Imported: ${totalImported}, Skipped: ${totalSkipped}, Failed: ${totalFailed}`);
+    autoImportingRef.current = false; // Reset ref when complete
     setAutoImporting(false);
   };
 
   const stopAutoImport = () => {
+    autoImportingRef.current = false; // Stop the async loop
     setAutoImporting(false);
     setAutoImportLog(prev => [...prev, 'Auto-import stopped by user']);
   };
