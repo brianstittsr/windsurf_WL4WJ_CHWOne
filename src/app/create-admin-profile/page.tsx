@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { UserRole, OrganizationType } from '@/types/firebase/schema';
@@ -288,21 +288,23 @@ function CreateAdminProfileContent() {
 
 export default function CreateAdminProfilePage() {
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
-      <AppBar position="static" sx={{ mb: 4 }}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            CHWOne Platform
-          </Typography>
-          <Button color="inherit" href="/">
-            Home
-          </Button>
-          <Button color="inherit" href="/login">
-            Login
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <CreateAdminProfileContent />
-    </Box>
+    <AuthProvider>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
+        <AppBar position="static" sx={{ mb: 4 }}>
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              CHWOne Platform
+            </Typography>
+            <Button color="inherit" href="/">
+              Home
+            </Button>
+            <Button color="inherit" href="/login">
+              Login
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <CreateAdminProfileContent />
+      </Box>
+    </AuthProvider>
   );
 }

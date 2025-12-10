@@ -409,7 +409,7 @@ export class UserManagementService {
           canUploadFiles: true,
           canAccessAllOrganizations: true,
         };
-      case UserRole.CHW_COORDINATOR:
+      case UserRole.CHW_ASSOCIATION:
         return {
           canCreateForms: true,
           canEditForms: true,

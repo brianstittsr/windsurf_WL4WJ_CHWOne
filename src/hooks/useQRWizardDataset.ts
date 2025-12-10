@@ -44,7 +44,7 @@ export function useQRWizardDataset() {
     try {
       const result = await createDatasetFromQRWizard(
         programName,
-        currentUser.organizationId || currentUser.uid,
+        (currentUser as any).organizationId || currentUser.uid,
         currentUser.uid,
         participantData,
         standardFields,

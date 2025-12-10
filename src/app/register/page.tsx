@@ -308,7 +308,7 @@ function RegisterContent() {
                     row
                   >
                     <FormControlLabel value={UserRole.CHW} control={<Radio />} label="Community Health Worker" />
-                    <FormControlLabel value={UserRole.CHW_COORDINATOR} control={<Radio />} label="CHW Coordinator" />
+                    <FormControlLabel value={UserRole.CHW_ASSOCIATION} control={<Radio />} label="CHW Association" />
                     <FormControlLabel value={UserRole.NONPROFIT_STAFF} control={<Radio />} label="Nonprofit Staff" />
                   </RadioGroup>
                 </FormControl>
@@ -378,7 +378,7 @@ function RegisterContent() {
                   <Typography variant="subtitle2" color="text.secondary">Role</Typography>
                   <Typography variant="body1">
                     {formData.role === UserRole.CHW ? 'Community Health Worker' : 
-                     formData.role === UserRole.CHW_COORDINATOR ? 'CHW Coordinator' : 'Nonprofit Staff'}
+                     formData.role === UserRole.CHW_ASSOCIATION ? 'CHW Association' : 'Nonprofit Staff'}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>

@@ -167,7 +167,7 @@ export async function addParticipantRecord(
   userId: string
 ): Promise<string> {
   try {
-    const record: CreateDatasetRecord = {
+    const record = {
       datasetId,
       data: participantData,
       status: 'active',
@@ -175,7 +175,7 @@ export async function addParticipantRecord(
         application: 'QR Wizard',
         step: 'Participant Addition'
       }
-    };
+    } as any;
     
     const createdRecord = await datasetService.createRecord(datasetId, record, userId);
     return createdRecord.id;
@@ -300,7 +300,8 @@ export async function recordQRScan(
  */
 export async function getDatasetStats(datasetId: string) {
   try {
-    const stats = await datasetService.getDatasetStatistics(datasetId);
+    const stats = await (datasetService as any).getDatasetStatistics?.(datasetId) || 
+                  await datasetService.getStatistics(datasetId);
     return stats;
   } catch (error) {
     console.error('Error getting dataset stats:', error);

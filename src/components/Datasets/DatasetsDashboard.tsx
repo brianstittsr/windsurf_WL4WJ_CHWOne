@@ -32,7 +32,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { datasetService } from '@/services/DatasetService';
 import { Dataset, DatasetStatistics } from '@/types/dataset.types';
 import DatasetList from './DatasetList';
-import CreateDatasetDialog from './CreateDatasetDialog';
+import CreateDatasetDialog from './CreateDataCollectionDialog';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -94,13 +94,14 @@ export default function DatasetsDashboard() {
     setError(null);
 
     try {
-      // Load statistics
-      const stats = await datasetService.getStatistics(currentUser.organizationId);
+      // Load statistics - use uid as organizationId fallback
+      const orgId = (currentUser as any).organizationId || currentUser.uid;
+      const stats = await datasetService.getStatistics(orgId);
       setStatistics(stats);
 
       // Load datasets
       const allDatasets = await datasetService.listDatasets({
-        organizationId: currentUser.organizationId,
+        organizationId: orgId,
         status: 'active'
       });
       setDatasets(allDatasets);
@@ -344,15 +345,25 @@ export default function DatasetsDashboard() {
       {/* Dataset List */}
       <TabPanel value={currentTab} index={0}>
         <DatasetList
-          datasets={filteredDatasets}
-          onRefresh={loadData}
+          datasets={filteredDatasets as any}
+          onViewDataset={(dataset) => console.log('View:', dataset)}
+          onDeleteDataset={(dataset) => console.log('Delete:', dataset)}
+          onExportDataset={(dataset) => console.log('Export:', dataset)}
+          onEditDataset={(dataset) => console.log('Edit:', dataset)}
+          onAnalyzeDataset={(dataset) => console.log('Analyze:', dataset)}
+          onSelectForMerge={(dataset) => console.log('Merge:', dataset)}
         />
       </TabPanel>
 
       <TabPanel value={currentTab} index={1}>
         <DatasetList
-          datasets={filteredDatasets.slice(0, 10)}
-          onRefresh={loadData}
+          datasets={filteredDatasets.slice(0, 10) as any}
+          onViewDataset={(dataset) => console.log('View:', dataset)}
+          onDeleteDataset={(dataset) => console.log('Delete:', dataset)}
+          onExportDataset={(dataset) => console.log('Export:', dataset)}
+          onEditDataset={(dataset) => console.log('Edit:', dataset)}
+          onAnalyzeDataset={(dataset) => console.log('Analyze:', dataset)}
+          onSelectForMerge={(dataset) => console.log('Merge:', dataset)}
         />
       </TabPanel>
 

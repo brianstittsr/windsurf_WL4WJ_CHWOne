@@ -45,6 +45,7 @@ class DatasetService {
   async createDataset(data: CreateDataset, userId: string): Promise<Dataset> {
     const datasetId = `dataset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
+    const inputData = data as any;
     const dataset: Dataset = {
       ...data,
       id: datasetId,
@@ -52,9 +53,9 @@ class DatasetService {
       updatedAt: Timestamp.now(),
       metadata: {
         recordCount: 0,
-        tags: data.metadata?.tags || [],
-        category: data.metadata?.category || 'general',
-        isPublic: data.metadata?.isPublic || false
+        tags: inputData.metadata?.tags || [],
+        category: inputData.metadata?.category || 'general',
+        isPublic: inputData.metadata?.isPublic || false
       },
       status: 'active'
     };

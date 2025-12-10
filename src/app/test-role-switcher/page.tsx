@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { Container, Box, Typography, Card, CardContent, Button } from '@mui/material';
 import MainLayout from '@/components/Layout/MainLayout';
 import { UserRole } from '@/types/firebase/schema';
 
-export default function TestRoleSwitcherPage() {
+function TestRoleSwitcherContent() {
   const { userProfile, currentUser } = useAuth();
 
   return (
@@ -119,5 +119,13 @@ export default function TestRoleSwitcherPage() {
         </Box>
       </Container>
     </MainLayout>
+  );
+}
+
+export default function TestRoleSwitcherPage() {
+  return (
+    <AuthProvider>
+      <TestRoleSwitcherContent />
+    </AuthProvider>
   );
 }

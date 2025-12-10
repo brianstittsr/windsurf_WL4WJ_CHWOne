@@ -25,7 +25,8 @@ import {
   Merge as MergeIcon,
   Analytics as AnalyticsIcon
 } from '@mui/icons-material';
-import { Dataset } from '@/types/bmad.types';
+// Using any type for Dataset to support both bmad.types and dataset.types
+type Dataset = any;
 
 interface DatasetListProps {
   datasets: Dataset[];
@@ -161,32 +162,46 @@ export default function DatasetList({
               )}
               
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                <Chip 
-                  label={dataset.format.toUpperCase()} 
-                  size="small" 
-                  color="primary" 
-                  variant="outlined" 
-                />
-                <Chip 
-                  label={`${dataset.rowCount} rows`} 
-                  size="small" 
-                  color="secondary" 
-                  variant="outlined" 
-                />
-                <Chip 
-                  label={`${dataset.columns.length} columns`} 
-                  size="small" 
-                  color="info" 
-                  variant="outlined" 
-                />
+                {dataset.format && (
+                  <Chip 
+                    label={dataset.format.toUpperCase()} 
+                    size="small" 
+                    color="primary" 
+                    variant="outlined" 
+                  />
+                )}
+                {dataset.rowCount !== undefined && (
+                  <Chip 
+                    label={`${dataset.rowCount} rows`} 
+                    size="small" 
+                    color="secondary" 
+                    variant="outlined" 
+                  />
+                )}
+                {dataset.columns?.length !== undefined && (
+                  <Chip 
+                    label={`${dataset.columns.length} columns`} 
+                    size="small" 
+                    color="info" 
+                    variant="outlined" 
+                  />
+                )}
+                {dataset.schema?.fields?.length !== undefined && (
+                  <Chip 
+                    label={`${dataset.schema.fields.length} fields`} 
+                    size="small" 
+                    color="info" 
+                    variant="outlined" 
+                  />
+                )}
               </Box>
               
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto' }}>
                 <Typography variant="caption" color="text.secondary">
-                  {formatDate(dataset.createdAt)}
+                  {dataset.createdAt?.toDate ? formatDate(dataset.createdAt.toDate()) : formatDate(dataset.createdAt)}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {formatFileSize(dataset.size)}
+                  {dataset.size ? formatFileSize(dataset.size) : dataset.metadata?.recordCount ? `${dataset.metadata.recordCount} records` : ''}
                 </Typography>
               </Box>
             </CardContent>

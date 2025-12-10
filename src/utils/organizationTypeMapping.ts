@@ -11,7 +11,7 @@ export function mapRoleToOrganizationType(role: UserRole): OrganizationType {
       return OrganizationType.ADMIN;
     case UserRole.CHW:
       return OrganizationType.CHW;
-    case UserRole.CHW_COORDINATOR:
+    case UserRole.CHW_ASSOCIATION:
       return OrganizationType.CHW_ASSOCIATION;
     case UserRole.NONPROFIT_STAFF:
       return OrganizationType.NONPROFIT;

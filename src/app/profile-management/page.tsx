@@ -45,8 +45,8 @@ const roleIcons: Record<string, React.ReactElement> = {
   [UserRole.NONPROFIT_STAFF]: <NonprofitIcon />,
   [UserRole.CHW_ASSOCIATION]: <AssociationIcon />,
   [UserRole.ADMIN]: <AdminIcon />,
-  [UserRole.CHW_COORDINATOR]: <CHWIcon />,
-  [UserRole.WL4WJ_CHW]: <CHWIcon />
+  [UserRole.WL4WJ_CHW]: <CHWIcon />,
+  [UserRole.DEMO]: <CHWIcon />
 };
 
 // Map roles to display names
@@ -55,11 +55,8 @@ const roleDisplayNames: Record<string, string> = {
   [UserRole.NONPROFIT_STAFF]: 'Nonprofit Staff',
   [UserRole.CHW_ASSOCIATION]: 'CHW Association',
   [UserRole.ADMIN]: 'Administrator',
-  [UserRole.CHW_COORDINATOR]: 'CHW Coordinator',
   [UserRole.WL4WJ_CHW]: 'WL4WJ CHW',
-  [UserRole.CLIENT]: 'Client',
-  [UserRole.VIEWER]: 'Viewer',
-  [UserRole.DEMO]: 'Demo Account'
+  [UserRole.DEMO]: 'Demo User'
 };
 
 // Map roles to descriptions
@@ -68,8 +65,8 @@ const roleDescriptions: Record<string, string> = {
   [UserRole.NONPROFIT_STAFF]: 'Manage your organization, create projects, and coordinate with CHWs',
   [UserRole.CHW_ASSOCIATION]: 'Oversee CHW programs, manage resources, and support professional development',
   [UserRole.ADMIN]: 'Full platform administration and system management',
-  [UserRole.CHW_COORDINATOR]: 'Supervise CHW teams and coordinate community health initiatives',
-  [UserRole.WL4WJ_CHW]: 'Special access for Women Leading 4 Wellness and Justice CHWs'
+  [UserRole.WL4WJ_CHW]: 'Special access for Women Leading 4 Wellness and Justice CHWs',
+  [UserRole.DEMO]: 'Demo account for testing platform features'
 };
 
 // Map roles to profile links

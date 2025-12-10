@@ -64,22 +64,16 @@ const ROLE_OPTIONS: RoleOption[] = [
     description: 'Association management',
   },
   {
-    role: UserRole.CHW_COORDINATOR,
-    label: 'CHW Coordinator',
+    role: UserRole.WL4WJ_CHW,
+    label: 'WL4WJ CHW',
     icon: <PersonIcon />,
-    description: 'Coordinator tools',
+    description: 'Women Leading 4 Wellness & Justice',
   },
   {
-    role: UserRole.CLIENT,
-    label: 'Client',
-    icon: <PersonIcon />,
-    description: 'Client portal view',
-  },
-  {
-    role: UserRole.VIEWER,
-    label: 'Viewer',
+    role: UserRole.DEMO,
+    label: 'Demo User',
     icon: <VisibilityIcon />,
-    description: 'Read-only access',
+    description: 'Demo account view',
   },
 ];
 

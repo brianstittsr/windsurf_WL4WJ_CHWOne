@@ -58,19 +58,19 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
       href: '/dashboard', 
       icon: 'computer', 
       label: 'Main Dashboard', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.CHW_ASSOCIATION, UserRole.CHW, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/dashboard/region-5', 
       icon: 'location', 
       label: 'Region 5', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
+      roles: [UserRole.ADMIN, UserRole.CHW_ASSOCIATION] 
     },
     { 
       href: '/dashboard/wl4wj', 
       icon: 'favorite', 
       label: 'WL4WJ', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR, UserRole.NONPROFIT_STAFF] 
+      roles: [UserRole.ADMIN, UserRole.CHW_ASSOCIATION, UserRole.NONPROFIT_STAFF] 
     },
     { 
       href: '/admin', 
@@ -82,13 +82,13 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
       href: '/chws', 
       icon: 'person', 
       label: 'CHWs', 
-      roles: [UserRole.ADMIN, UserRole.CHW_COORDINATOR] 
+      roles: [UserRole.ADMIN, UserRole.CHW_ASSOCIATION] 
     },
   ];
 
   // Mock user role for testing - replace with actual auth context
   const userRole = currentUser?.email?.includes('chw') ? UserRole.CHW : 
-                 (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_COORDINATOR);
+                 (currentUser?.email === 'admin@example.com' ? UserRole.ADMIN : UserRole.CHW_ASSOCIATION);
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
 
   return (

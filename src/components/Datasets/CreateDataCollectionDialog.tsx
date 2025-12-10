@@ -190,12 +190,6 @@ export default function CreateDataCollectionDialog({
             fields,
             version: '1.0'
           },
-          metadata: {
-            recordCount: 0,
-            tags,
-            category,
-            isPublic
-          },
           permissions: {
             owners: [currentUser.uid],
             editors: [],

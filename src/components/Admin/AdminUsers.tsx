@@ -94,7 +94,7 @@ const getDefaultPermissions = (role: UserRole): UserPermissions => {
         canUploadFiles: true,
         canAccessAllOrganizations: true,
       };
-    case UserRole.CHW_COORDINATOR:
+    case UserRole.CHW_ASSOCIATION:
       return {
         canCreateForms: true,
         canEditForms: true,
@@ -217,7 +217,7 @@ export default function AdminUsers() {
       case 1: // Admins
         return matchesSearch && user.role === UserRole.ADMIN;
       case 2: // CHW Coordinators
-        return matchesSearch && user.role === UserRole.CHW_COORDINATOR;
+        return matchesSearch && user.role === UserRole.CHW_ASSOCIATION;
       case 3: // CHWs
         return matchesSearch && user.role === UserRole.CHW;
       case 4: // Pending Approval
@@ -599,7 +599,7 @@ export default function AdminUsers() {
                       size="small" 
                       color={
                         user.role === UserRole.ADMIN ? 'error' : 
-                        user.role === UserRole.CHW_COORDINATOR ? 'warning' : 
+                        user.role === UserRole.CHW_ASSOCIATION ? 'warning' : 
                         user.role === UserRole.NONPROFIT_STAFF ? 'info' : 
                         'default'
                       } 
@@ -744,7 +744,7 @@ export default function AdminUsers() {
                   onChange={(e) => handleFormChange('role', e.target.value)}
                 >
                   <MenuItem value={UserRole.ADMIN}>Administrator</MenuItem>
-                  <MenuItem value={UserRole.CHW_COORDINATOR}>CHW Coordinator</MenuItem>
+                  <MenuItem value={UserRole.CHW_ASSOCIATION}>CHW Coordinator</MenuItem>
                   <MenuItem value={UserRole.NONPROFIT_STAFF}>Nonprofit Staff</MenuItem>
                   <MenuItem value={UserRole.CHW}>Community Health Worker</MenuItem>
                 </Select>

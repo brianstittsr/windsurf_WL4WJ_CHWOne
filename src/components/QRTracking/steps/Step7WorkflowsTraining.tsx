@@ -56,7 +56,7 @@ export default function Step7WorkflowsTraining() {
   const { wizardState, updateStep7 } = useQRWizard();
   
   const [trainingData, setTrainingData] = useState<WorkflowsTraining>(
-    wizardState.step7_workflows || {
+    (wizardState.step7_workflows as WorkflowsTraining) || {
       trainingTopics: ['qr_basics', 'scanning', 'form_filling'],
       staffRoles: ['admin', 'instructor'],
       trainingFormat: 'mixed',

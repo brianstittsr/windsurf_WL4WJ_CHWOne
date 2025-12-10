@@ -449,7 +449,7 @@ export interface GeneratedForm {
   layoutMockup: string;
 }
 
-export interface FormField {
+export interface StandardFormField {
   id: string;
   name: string;
   label: string;

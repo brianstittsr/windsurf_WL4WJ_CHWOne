@@ -97,6 +97,9 @@ function CollaborationDetailContent() {
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [newFormName, setNewFormName] = useState('');
   const [newFormType, setNewFormType] = useState('intake');
+  const [showFormViewDialog, setShowFormViewDialog] = useState(false);
+  const [selectedForm, setSelectedForm] = useState<any>(null);
+  const [editingForm, setEditingForm] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -172,6 +175,35 @@ function CollaborationDetailContent() {
       router.push(`/forms/new?name=${encodeURIComponent(newFormName)}&type=${newFormType}&grantId=${collaborationId}`);
       setShowFormDialog(false);
       setNewFormName('');
+    }
+  };
+
+  const handleViewForm = (form: any) => {
+    setSelectedForm(form);
+    setEditingForm(false);
+    setShowFormViewDialog(true);
+  };
+
+  const handleEditForm = (form: any) => {
+    setSelectedForm(form);
+    setEditingForm(true);
+    setShowFormViewDialog(true);
+  };
+
+  const handleSaveFormChanges = async () => {
+    if (!selectedForm || !grant) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const updatedTemplates = formTemplates.map((f: any) => 
+        f.id === selectedForm.id ? selectedForm : f
+      );
+      await updateGrant(grant.id, { formTemplates: updatedTemplates } as any);
+      setGrant({ ...grant, formTemplates: updatedTemplates } as any);
+      setShowFormViewDialog(false);
+      setEditingForm(false);
+    } catch (error) {
+      console.error('Error saving form:', error);
     }
   };
 
@@ -446,8 +478,8 @@ function CollaborationDetailContent() {
                         <Chip label={form.purpose || 'data'} size="small" />
                       </Box>
                       <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                        <Button size="small" variant="outlined">View Form</Button>
-                        <Button size="small" variant="outlined">Edit</Button>
+                        <Button size="small" variant="outlined" onClick={() => handleViewForm(form)}>View Form</Button>
+                        <Button size="small" variant="outlined" onClick={() => handleEditForm(form)}>Edit</Button>
                       </Box>
                     </CardContent>
                   </Card>
@@ -747,6 +779,122 @@ function CollaborationDetailContent() {
             <Button variant="contained" onClick={handleCreateForm} disabled={!newFormName}>
               Create Form
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Form View/Edit Dialog */}
+        <Dialog 
+          open={showFormViewDialog} 
+          onClose={() => setShowFormViewDialog(false)} 
+          maxWidth="md" 
+          fullWidth
+        >
+          <DialogTitle>
+            {editingForm ? 'Edit Form' : 'View Form'}: {selectedForm?.name}
+          </DialogTitle>
+          <DialogContent>
+            {selectedForm && (
+              <Box sx={{ mt: 2 }}>
+                {/* Form Name */}
+                <TextField
+                  fullWidth
+                  label="Form Name"
+                  value={selectedForm.name || ''}
+                  onChange={(e) => setSelectedForm({ ...selectedForm, name: e.target.value })}
+                  disabled={!editingForm}
+                  sx={{ mb: 2 }}
+                />
+
+                {/* Form Description */}
+                <TextField
+                  fullWidth
+                  label="Description"
+                  value={selectedForm.description || ''}
+                  onChange={(e) => setSelectedForm({ ...selectedForm, description: e.target.value })}
+                  disabled={!editingForm}
+                  multiline
+                  rows={2}
+                  sx={{ mb: 2 }}
+                />
+
+                {/* Form Purpose */}
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                  <InputLabel>Purpose</InputLabel>
+                  <Select
+                    value={selectedForm.purpose || 'data'}
+                    label="Purpose"
+                    onChange={(e) => setSelectedForm({ ...selectedForm, purpose: e.target.value })}
+                    disabled={!editingForm}
+                  >
+                    <MenuItem value="intake">Intake</MenuItem>
+                    <MenuItem value="tracking">Tracking</MenuItem>
+                    <MenuItem value="reporting">Reporting</MenuItem>
+                    <MenuItem value="data">Data Collection</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Form Fields */}
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Form Fields ({selectedForm.fields?.length || 0})
+                </Typography>
+                
+                {selectedForm.fields?.length > 0 ? (
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><strong>Label</strong></TableCell>
+                          <TableCell><strong>Type</strong></TableCell>
+                          <TableCell><strong>Required</strong></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {selectedForm.fields.map((field: any, index: number) => (
+                          <TableRow key={field.id || index}>
+                            <TableCell>{field.label}</TableCell>
+                            <TableCell>
+                              <Chip label={field.type} size="small" variant="outlined" />
+                            </TableCell>
+                            <TableCell>
+                              {field.required ? (
+                                <Chip label="Required" size="small" color="error" />
+                              ) : (
+                                <Chip label="Optional" size="small" variant="outlined" />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Alert severity="info">No fields defined for this form.</Alert>
+                )}
+
+                {/* Frequency if available */}
+                {selectedForm.frequency && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Collection Frequency:</strong> {selectedForm.frequency}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowFormViewDialog(false)}>
+              {editingForm ? 'Cancel' : 'Close'}
+            </Button>
+            {editingForm ? (
+              <Button variant="contained" onClick={handleSaveFormChanges}>
+                Save Changes
+              </Button>
+            ) : (
+              <Button variant="outlined" onClick={() => setEditingForm(true)}>
+                Edit Form
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
       </Box>
