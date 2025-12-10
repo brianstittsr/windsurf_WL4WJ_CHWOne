@@ -325,15 +325,21 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     setFirstPageImportComplete(false);
     
     const toImport = results.filter(r => !existingEINs.includes(r.ein) && !importSuccess.includes(r.ein));
+    console.log('Batch import starting. Organizations to import:', toImport.length);
     
     for (let i = 0; i < toImport.length; i++) {
       try {
+        console.log(`Fetching details for ${toImport[i].organizationName} (${toImport[i].ein})...`);
         const response = await fetch(`/api/nonprofit-search?ein=${toImport[i].ein}`);
         const data = await response.json();
         
         if (data.success && data.organization) {
+          console.log(`Importing ${data.organization.organizationName}...`);
           await onImport(data.organization);
+          console.log(`✓ Successfully imported ${data.organization.organizationName}`);
           setImportSuccess(prev => [...prev, toImport[i].ein]);
+        } else {
+          console.error(`Failed to get details for ${toImport[i].ein}:`, data.error || 'Unknown error');
         }
       } catch (err) {
         console.error(`Failed to import ${toImport[i].ein}:`, err);
@@ -344,6 +350,8 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
       // Small delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 500));
     }
+    
+    console.log('Batch import complete. Total imported:', importSuccess.length);
     
     setBatchImporting(false);
     setFirstPageImportComplete(true);

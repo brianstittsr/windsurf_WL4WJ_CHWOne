@@ -148,9 +148,13 @@ export default function AdminNonprofits() {
 
   // Handle importing organization from IRS search
   const handleImportFromIRS = async (orgData: any) => {
+    console.log('=== handleImportFromIRS called ===');
+    console.log('Organization data received:', orgData?.organizationName, orgData?.ein);
+    
     try {
       // Check if organization already exists by EIN
       const existingOrg = nonprofits.find(n => n.ein === orgData.ein);
+      console.log('Existing org check:', existingOrg ? 'Found existing' : 'New organization');
       
       if (existingOrg) {
         // Update existing organization with new IRS data
