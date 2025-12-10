@@ -213,6 +213,17 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
   // Batch import state
   const [batchImporting, setBatchImporting] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
+  
+  // Auto-import state
+  const [autoImporting, setAutoImporting] = useState(false);
+  const [autoImportStats, setAutoImportStats] = useState({
+    totalImported: 0,
+    totalSkipped: 0,
+    totalFailed: 0,
+    currentPage: 0,
+    pagesProcessed: 0
+  });
+  const [autoImportLog, setAutoImportLog] = useState<string[]>([]);
 
   const handleSearch = useCallback(async (page: number = 0) => {
     setLoading(true);
@@ -329,6 +340,140 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     }
     
     setBatchImporting(false);
+  };
+
+  // Auto-import: Fetches and imports 25 records at a time, page by page
+  const handleAutoImport = async () => {
+    setAutoImporting(true);
+    setAutoImportLog([]);
+    setAutoImportStats({
+      totalImported: 0,
+      totalSkipped: 0,
+      totalFailed: 0,
+      currentPage: 0,
+      pagesProcessed: 0
+    });
+
+    let page = 0;
+    let hasMore = true;
+    let totalImported = 0;
+    let totalSkipped = 0;
+    let totalFailed = 0;
+    let pagesProcessed = 0;
+
+    const addLog = (message: string) => {
+      setAutoImportLog(prev => [...prev.slice(-50), message]); // Keep last 50 log entries
+    };
+
+    addLog(`Starting auto-import for ${state ? US_STATES.find(s => s.code === state)?.name : 'all states'}...`);
+
+    while (hasMore && autoImporting !== false) {
+      try {
+        addLog(`Fetching page ${page + 1}...`);
+        
+        // Fetch a page of results
+        const response = await fetch('/api/nonprofit-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            searchTerm,
+            state,
+            city,
+            nteeCode: nteeCode || undefined,
+            page
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          addLog(`Error fetching page ${page + 1}: ${data.error}`);
+          break;
+        }
+
+        const orgs = data.organizations || [];
+        addLog(`Found ${orgs.length} organizations on page ${page + 1}`);
+
+        // Update results display
+        setResults(orgs);
+        setTotalResults(data.totalResults);
+        setCurrentPage(data.currentPage);
+        setTotalPages(data.totalPages);
+
+        // Import each organization on this page
+        for (let i = 0; i < orgs.length; i++) {
+          const org = orgs[i];
+          
+          // Check if already imported
+          if (existingEINs.includes(org.ein) || importSuccess.includes(org.ein)) {
+            totalSkipped++;
+            addLog(`Skipped ${org.organizationName} (already imported)`);
+            continue;
+          }
+
+          try {
+            // Fetch full details
+            const detailResponse = await fetch(`/api/nonprofit-search?ein=${org.ein}`);
+            const detailData = await detailResponse.json();
+
+            if (detailData.success && detailData.organization) {
+              await onImport(detailData.organization);
+              setImportSuccess(prev => [...prev, org.ein]);
+              totalImported++;
+              addLog(`✓ Imported: ${org.organizationName}`);
+            } else {
+              totalFailed++;
+              addLog(`✗ Failed to get details for ${org.organizationName}`);
+            }
+          } catch (err) {
+            totalFailed++;
+            addLog(`✗ Error importing ${org.organizationName}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          }
+
+          // Update stats
+          setAutoImportStats({
+            totalImported,
+            totalSkipped,
+            totalFailed,
+            currentPage: page,
+            pagesProcessed
+          });
+
+          // Small delay to avoid rate limiting (300ms between each org)
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        pagesProcessed++;
+        page++;
+        hasMore = data.hasMore && page < data.totalPages;
+
+        setAutoImportStats({
+          totalImported,
+          totalSkipped,
+          totalFailed,
+          currentPage: page,
+          pagesProcessed
+        });
+
+        if (hasMore) {
+          addLog(`Completed page ${page}. Moving to next page...`);
+          // Delay between pages (1 second)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+      } catch (err) {
+        addLog(`Error on page ${page + 1}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        break;
+      }
+    }
+
+    addLog(`Auto-import complete! Imported: ${totalImported}, Skipped: ${totalSkipped}, Failed: ${totalFailed}`);
+    setAutoImporting(false);
+  };
+
+  const stopAutoImport = () => {
+    setAutoImporting(false);
+    setAutoImportLog(prev => [...prev, 'Auto-import stopped by user']);
   };
 
   const formatCurrency = (amount: number) => {
@@ -460,19 +605,111 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
                 variant="outlined"
                 startIcon={<DownloadIcon />}
                 onClick={handleBatchImport}
-                disabled={batchImporting || results.every(r => isAlreadyImported(r.ein))}
+                disabled={batchImporting || autoImporting || results.every(r => isAlreadyImported(r.ein))}
               >
-                Import All New ({results.filter(r => !isAlreadyImported(r.ein)).length})
+                Import Page ({results.filter(r => !isAlreadyImported(r.ein)).length})
               </Button>
+              {!autoImporting ? (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  startIcon={<RefreshIcon />}
+                  onClick={handleAutoImport}
+                  disabled={batchImporting || loading}
+                >
+                  Auto-Import All (25/page)
+                </Button>
+              ) : (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="error"
+                  onClick={stopAutoImport}
+                >
+                  Stop Auto-Import
+                </Button>
+              )}
             </Box>
           </Box>
+        )}
+
+        {/* Auto-Import Status Panel */}
+        {(autoImporting || autoImportLog.length > 0) && (
+          <Paper sx={{ p: 2, mb: 2, bgcolor: autoImporting ? 'primary.50' : 'grey.50' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="subtitle2" color="primary">
+                {autoImporting ? '🔄 Auto-Import in Progress...' : '✅ Auto-Import Complete'}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Chip 
+                  icon={<CheckCircleIcon />} 
+                  label={`Imported: ${autoImportStats.totalImported}`} 
+                  color="success" 
+                  size="small" 
+                />
+                <Chip 
+                  label={`Skipped: ${autoImportStats.totalSkipped}`} 
+                  color="default" 
+                  size="small" 
+                />
+                <Chip 
+                  icon={<WarningIcon />} 
+                  label={`Failed: ${autoImportStats.totalFailed}`} 
+                  color="error" 
+                  size="small" 
+                  variant="outlined"
+                />
+                <Chip 
+                  label={`Pages: ${autoImportStats.pagesProcessed}`} 
+                  color="info" 
+                  size="small" 
+                  variant="outlined"
+                />
+              </Box>
+            </Box>
+            
+            {autoImporting && (
+              <LinearProgress sx={{ mb: 2 }} />
+            )}
+            
+            {/* Log Output */}
+            <Box 
+              sx={{ 
+                maxHeight: 150, 
+                overflow: 'auto', 
+                bgcolor: 'grey.900', 
+                color: 'grey.100',
+                p: 1.5, 
+                borderRadius: 1,
+                fontFamily: 'monospace',
+                fontSize: '0.75rem',
+                lineHeight: 1.6
+              }}
+            >
+              {autoImportLog.map((log, idx) => (
+                <Box key={idx} sx={{ 
+                  color: log.startsWith('✓') ? 'success.light' : 
+                         log.startsWith('✗') ? 'error.light' : 
+                         log.includes('Skipped') ? 'grey.500' : 'grey.100'
+                }}>
+                  {log}
+                </Box>
+              ))}
+              {autoImportLog.length === 0 && (
+                <Typography variant="caption" color="grey.500">
+                  Waiting to start...
+                </Typography>
+              )}
+            </Box>
+          </Paper>
         )}
 
         {/* Batch Import Progress */}
         {batchImporting && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              Importing organizations...
+              Importing organizations from current page...
             </Typography>
             <LinearProgress variant="determinate" value={batchProgress} />
           </Box>
@@ -713,7 +950,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
         )}
 
         {/* Initial State */}
-        {!loading && results.length === 0 && !searchTerm && (
+        {!loading && results.length === 0 && !searchTerm && !autoImporting && autoImportLog.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <InfoIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
             <Typography variant="h6" color="text.secondary">
@@ -722,10 +959,31 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Enter a search term or select filters above to find nonprofits
             </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+              <Button
+                variant="contained"
+                color="success"
+                size="large"
+                startIcon={<RefreshIcon />}
+                onClick={handleAutoImport}
+                disabled={loading}
+              >
+                Auto-Import All NC Nonprofits (25/page)
+              </Button>
+            </Box>
+            
             <Alert severity="info" sx={{ maxWidth: 600, mx: 'auto' }}>
               <Typography variant="body2">
                 <strong>Data Source:</strong> ProPublica Nonprofit Explorer, which aggregates IRS Form 990 data.
                 This includes detailed financial information and filing history for most 501(c)(3) organizations.
+              </Typography>
+            </Alert>
+            
+            <Alert severity="warning" sx={{ maxWidth: 600, mx: 'auto', mt: 2 }}>
+              <Typography variant="body2">
+                <strong>Note:</strong> North Carolina has ~84,000+ registered nonprofits. Auto-import processes 25 organizations per page.
+                You can stop the import at any time and resume later - already imported organizations will be skipped.
               </Typography>
             </Alert>
           </Box>
