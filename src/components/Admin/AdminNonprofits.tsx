@@ -213,14 +213,25 @@ export default function AdminNonprofits() {
             accountingPeriod: orgData.accountingPeriod,
             lastUpdated: new Date().toISOString()
           },
-          // Financial data
+          // Financial data from latest filing
           financialData: {
             assetAmount: orgData.assetAmount,
             incomeAmount: orgData.incomeAmount,
             revenueAmount: orgData.revenueAmount,
             taxPeriod: orgData.taxPeriod,
+            // Latest filing details
+            totalRevenue: orgData.latestFiling?.totalRevenue,
+            totalExpenses: orgData.latestFiling?.totalExpenses,
+            totalAssets: orgData.latestFiling?.totalAssets,
+            totalLiabilities: orgData.latestFiling?.totalLiabilities,
+            compensationPercent: orgData.latestFiling?.compensationPercent,
+            latestFilingYear: orgData.latestFiling?.taxYear,
+            latestFilingPdfUrl: orgData.latestFiling?.pdfUrl,
             latestFiling: orgData.latestFiling
           },
+          // Complete filing history with all years
+          filingHistory: orgData.filingHistory || [],
+          allFilings: orgData.allFilings || [],
           // Append to history
           irsDataHistory: [...(existingOrg as any).irsDataHistory || [], sanitizeForFirestore(irsDataHistory)]
         });
@@ -270,15 +281,26 @@ export default function AdminNonprofits() {
             accountingPeriod: orgData.accountingPeriod,
             lastUpdated: new Date().toISOString()
           },
-          // Financial data
+          // Financial data from latest filing
           financialData: {
             assetAmount: orgData.assetAmount,
             incomeAmount: orgData.incomeAmount,
             revenueAmount: orgData.revenueAmount,
             taxPeriod: orgData.taxPeriod,
+            // Latest filing details
+            totalRevenue: orgData.latestFiling?.totalRevenue,
+            totalExpenses: orgData.latestFiling?.totalExpenses,
+            totalAssets: orgData.latestFiling?.totalAssets,
+            totalLiabilities: orgData.latestFiling?.totalLiabilities,
+            compensationPercent: orgData.latestFiling?.compensationPercent,
+            latestFilingYear: orgData.latestFiling?.taxYear,
+            latestFilingPdfUrl: orgData.latestFiling?.pdfUrl,
             latestFiling: orgData.latestFiling
           },
-          // Filing history
+          // Complete filing history with all years
+          filingHistory: orgData.filingHistory || [],
+          allFilings: orgData.allFilings || [],
+          // IRS data import history
           irsDataHistory: [{
             importedAt: new Date().toISOString(),
             taxPeriod: orgData.taxPeriod,
@@ -286,7 +308,8 @@ export default function AdminNonprofits() {
             incomeAmount: orgData.incomeAmount,
             revenueAmount: orgData.revenueAmount,
             latestFiling: orgData.latestFiling,
-            filingHistory: orgData.filingHistory
+            filingHistory: orgData.filingHistory,
+            allFilings: orgData.allFilings
           }],
           status: 'pending',
           approvalStatus: 'pending',

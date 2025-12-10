@@ -277,8 +277,30 @@ export async function GET(request: NextRequest) {
           pdfUrl: f.pdf_url,
           totalRevenue: f.totrevenue,
           totalExpenses: f.totfuncexpns,
-          totalAssets: f.totassetsend
-        })) || []
+          totalAssets: f.totassetsend,
+          totalLiabilities: f.totliabend,
+          compensationPercent: f.pct_compnsatncurrofcr
+        })) || [],
+        // All filings including those without data
+        allFilings: [
+          ...(data.filings_with_data?.map(f => ({
+            taxPeriod: f.tax_prd,
+            taxYear: f.tax_prd_yr,
+            formType: f.formtype,
+            pdfUrl: f.pdf_url,
+            hasData: true,
+            totalRevenue: f.totrevenue,
+            totalExpenses: f.totfuncexpns,
+            totalAssets: f.totassetsend,
+            totalLiabilities: f.totliabend
+          })) || []),
+          ...(data.filings_without_data?.map(f => ({
+            taxPeriod: f.tax_prd,
+            formType: f.formtype,
+            pdfUrl: f.pdf_url,
+            hasData: false
+          })) || [])
+        ]
       },
       dataSource: 'ProPublica Nonprofit Explorer'
     });
