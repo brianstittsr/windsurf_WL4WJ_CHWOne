@@ -146,6 +146,25 @@ export default function AdminNonprofits() {
     setShowDetailDialog(true);
   };
 
+  // Helper function to sanitize data for Firestore (remove undefined values)
+  const sanitizeForFirestore = (obj: any): any => {
+    if (obj === undefined) return null;
+    if (obj === null) return null;
+    if (Array.isArray(obj)) {
+      return obj.map(item => sanitizeForFirestore(item));
+    }
+    if (typeof obj === 'object') {
+      const sanitized: any = {};
+      for (const key in obj) {
+        const value = obj[key];
+        // Convert undefined to null, Firestore doesn't accept undefined
+        sanitized[key] = value === undefined ? null : sanitizeForFirestore(value);
+      }
+      return sanitized;
+    }
+    return obj;
+  };
+
   // Handle importing organization from IRS search
   const handleImportFromIRS = async (orgData: any) => {
     console.log('=== handleImportFromIRS called ===');
@@ -171,7 +190,7 @@ export default function AdminNonprofits() {
           filingHistory: orgData.filingHistory
         };
 
-        await updateDoc(nonprofitRef, {
+        const updateData = sanitizeForFirestore({
           // Update basic info
           organizationName: orgData.organizationName,
           address: {
@@ -203,7 +222,11 @@ export default function AdminNonprofits() {
             latestFiling: orgData.latestFiling
           },
           // Append to history
-          irsDataHistory: [...(existingOrg as any).irsDataHistory || [], irsDataHistory],
+          irsDataHistory: [...(existingOrg as any).irsDataHistory || [], sanitizeForFirestore(irsDataHistory)]
+        });
+        
+        await updateDoc(nonprofitRef, {
+          ...updateData,
           updatedAt: serverTimestamp(),
           lastIRSSync: serverTimestamp()
         });
@@ -275,7 +298,10 @@ export default function AdminNonprofits() {
           lastIRSSync: serverTimestamp()
         };
 
-        const docRef = await addDoc(collection(db, 'nonprofits'), newNonprofit);
+        // Sanitize the data to remove undefined values (Firestore doesn't accept undefined)
+        const sanitizedNonprofit = sanitizeForFirestore(newNonprofit);
+        
+        const docRef = await addDoc(collection(db, 'nonprofits'), sanitizedNonprofit);
         console.log('Created new nonprofit with ID:', docRef.id, 'Name:', orgData.organizationName);
 
         setSnackbar({
