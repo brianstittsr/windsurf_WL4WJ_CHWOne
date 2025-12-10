@@ -216,6 +216,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
   
   // Auto-import state
   const [autoImporting, setAutoImporting] = useState(false);
+  const [autoImportStartPage, setAutoImportStartPage] = useState(0);
   const [autoImportStats, setAutoImportStats] = useState({
     totalImported: 0,
     totalSkipped: 0,
@@ -350,11 +351,11 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
       totalImported: 0,
       totalSkipped: 0,
       totalFailed: 0,
-      currentPage: 0,
+      currentPage: autoImportStartPage,
       pagesProcessed: 0
     });
 
-    let page = 0;
+    let page = autoImportStartPage;
     let hasMore = true;
     let totalImported = 0;
     let totalSkipped = 0;
@@ -365,7 +366,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
       setAutoImportLog(prev => [...prev.slice(-50), message]); // Keep last 50 log entries
     };
 
-    addLog(`Starting auto-import for ${state ? US_STATES.find(s => s.code === state)?.name : 'all states'}...`);
+    addLog(`Starting auto-import for ${state ? US_STATES.find(s => s.code === state)?.name : 'all states'}${autoImportStartPage > 0 ? ` from page ${autoImportStartPage + 1}` : ''}...`);
 
     while (hasMore && autoImporting !== false) {
       try {
@@ -610,16 +611,27 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
                 Import Page ({results.filter(r => !isAlreadyImported(r.ein)).length})
               </Button>
               {!autoImporting ? (
-                <Button
-                  size="small"
-                  variant="contained"
-                  color="success"
-                  startIcon={<RefreshIcon />}
-                  onClick={handleAutoImport}
-                  disabled={batchImporting || loading}
-                >
-                  Auto-Import All (25/page)
-                </Button>
+                <>
+                  <TextField
+                    size="small"
+                    type="number"
+                    label="Start Page"
+                    value={autoImportStartPage + 1}
+                    onChange={(e) => setAutoImportStartPage(Math.max(0, parseInt(e.target.value) - 1) || 0)}
+                    sx={{ width: 100 }}
+                    inputProps={{ min: 1 }}
+                  />
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="success"
+                    startIcon={<RefreshIcon />}
+                    onClick={handleAutoImport}
+                    disabled={batchImporting || loading}
+                  >
+                    Auto-Import (25/page)
+                  </Button>
+                </>
               ) : (
                 <Button
                   size="small"
@@ -960,7 +972,17 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
               Enter a search term or select filters above to find nonprofits
             </Typography>
             
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mb: 3 }}>
+              <TextField
+                size="small"
+                type="number"
+                label="Start from Page"
+                value={autoImportStartPage + 1}
+                onChange={(e) => setAutoImportStartPage(Math.max(0, parseInt(e.target.value) - 1) || 0)}
+                sx={{ width: 130 }}
+                inputProps={{ min: 1 }}
+                helperText="Resume from page"
+              />
               <Button
                 variant="contained"
                 color="success"
@@ -969,7 +991,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
                 onClick={handleAutoImport}
                 disabled={loading}
               >
-                Auto-Import All NC Nonprofits (25/page)
+                Auto-Import NC Nonprofits (25/page)
               </Button>
             </Box>
             
