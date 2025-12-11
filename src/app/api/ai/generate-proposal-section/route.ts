@@ -318,6 +318,84 @@ Write a comprehensive evaluation plan (4-5 paragraphs) that includes:
 Write in professional grant proposal language. Be specific and actionable.`;
         break;
 
+      case 'budget_items':
+        prompt = `Generate 5-8 recommended budget line items with dollar amounts for this grant project:
+
+PROJECT CONTEXT:
+- Project Title: ${proposalData.projectTitle || 'Not provided'}
+- Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+- Target Population: ${proposalData.targetPopulation || 'Not provided'}
+- Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+- Project Activities: ${(proposalData.activities || []).map((a: any) => a.activity || a.title || a).join('; ') || 'Not provided'}
+- Expected Outcomes: ${(proposalData.outcomes || []).map((o: any) => o.outcome).join('; ') || 'Not provided'}
+
+BUDGET CATEGORIES TO USE:
+- Personnel (staff salaries, wages)
+- Fringe Benefits (health insurance, retirement, FICA)
+- Travel (local and out-of-area travel)
+- Equipment (items over $5,000)
+- Supplies (office supplies, program materials)
+- Contractual (consultants, subcontracts)
+- Other Direct Costs (training, printing, communications)
+- Indirect Costs (overhead, administrative costs)
+
+For each budget item, provide:
+1. category: One of the categories above
+2. item: Specific description of the expense
+3. amount: Recommended dollar amount (realistic for the project scope)
+4. justification: Why this expense is necessary
+
+Return a JSON object with a "budgetItems" array. Example:
+{
+  "budgetItems": [
+    {
+      "category": "Personnel",
+      "item": "Project Coordinator (1.0 FTE @ $55,000/year)",
+      "amount": 55000,
+      "justification": "Full-time coordinator to manage daily program operations, coordinate with partners, and ensure program deliverables are met."
+    },
+    {
+      "category": "Fringe Benefits",
+      "item": "Benefits for Project Coordinator (30% of salary)",
+      "amount": 16500,
+      "justification": "Standard fringe benefits including health insurance, retirement contributions, and FICA."
+    }
+  ]
+}
+
+Generate realistic amounts based on typical nonprofit/grant budgets. Return ONLY the JSON object.`;
+        break;
+
+      case 'budget_narrative':
+        prompt = `Generate a comprehensive budget narrative for this grant project:
+
+PROJECT CONTEXT:
+- Project Title: ${proposalData.projectTitle || 'Not provided'}
+- Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+- Target Population: ${proposalData.targetPopulation || 'Not provided'}
+- Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+- Project Activities: ${(proposalData.activities || []).map((a: any) => a.activity || a.title || a).join('; ') || 'Not provided'}
+- Expected Outcomes: ${(proposalData.outcomes || []).map((o: any) => o.outcome).join('; ') || 'Not provided'}
+
+BUDGET DETAILS:
+- Total Budget: $${(proposalData.totalBudget || 0).toLocaleString()}
+- Budget Items:
+${(proposalData.budgetItems || []).map((item: any) => `  • ${item.category}: ${item.item} - $${(item.amount || 0).toLocaleString()}
+    Justification: ${item.justification || 'Not provided'}`).join('\n')}
+
+Write a comprehensive budget narrative (3-4 paragraphs) that:
+
+1. OVERVIEW: Explain how the overall budget supports the project goals and is cost-effective for the proposed outcomes.
+
+2. PERSONNEL & STAFFING: Justify personnel costs, explaining roles and why each position is necessary for project success.
+
+3. PROGRAM COSTS: Explain how supplies, equipment, travel, and other direct costs support program activities and participant outcomes.
+
+4. SUSTAINABILITY & VALUE: Address cost-effectiveness, how funds will be maximized, and any cost-sharing or leveraged resources.
+
+Connect each budget category to specific project activities and outcomes. Write in professional grant proposal language.`;
+        break;
+
       default:
         return NextResponse.json({
           success: false,
@@ -346,23 +424,35 @@ Write in professional grant proposal language. Be specific and actionable.`;
     const content = completion.choices[0]?.message?.content || '';
     console.log('Section generated successfully');
 
-    // Handle JSON responses for smart_goals, objectives, and expected_outcomes
-    if (section === 'smart_goals' || section === 'objectives' || section === 'expected_outcomes') {
+    // Handle JSON responses for smart_goals, objectives, expected_outcomes, and budget_items
+    if (section === 'smart_goals' || section === 'objectives' || section === 'expected_outcomes' || section === 'budget_items') {
       try {
         // Try to parse JSON from the response
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
+          
+          // Different suggestions based on section type
+          const suggestions = section === 'budget_items' 
+            ? [
+                'Review each budget item for accuracy',
+                'Adjust amounts based on your actual costs',
+                'Ensure all items have clear justifications',
+                'Consider adding fringe benefits for personnel',
+                'Include indirect costs if applicable'
+              ]
+            : [
+                'Review each item for relevance to your project',
+                'Adjust targets based on your capacity and timeline',
+                'Ensure measurement methods are feasible',
+                'Consider adding baseline data collection',
+                'Include both quantitative and qualitative methods'
+              ];
+          
           return NextResponse.json({
             success: true,
             ...parsed,
-            suggestions: [
-              'Review each item for relevance to your project',
-              'Adjust targets based on your capacity and timeline',
-              'Ensure measurement methods are feasible',
-              'Consider adding baseline data collection',
-              'Include both quantitative and qualitative methods'
-            ]
+            suggestions
           });
         }
       } catch (parseError) {

@@ -12,9 +12,11 @@ import {
   IconButton,
   MenuItem,
   Alert,
-  Divider
+  Divider,
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
-import { Plus, Trash2, Sparkles, DollarSign } from 'lucide-react';
+import { Plus, Trash2, Sparkles, DollarSign, Calculator, FileText } from 'lucide-react';
 import { useGrantGenerator } from '@/contexts/GrantGeneratorContext';
 
 const BUDGET_CATEGORIES = [
@@ -32,6 +34,7 @@ const BUDGET_CATEGORIES = [
 export function GeneratorStep6Budget() {
   const { proposalData, updateProposalData, generateSection } = useGrantGenerator();
   const [generating, setGenerating] = useState(false);
+  const [generatingBudgetItems, setGeneratingBudgetItems] = useState(false);
   const [totalBudget, setTotalBudget] = useState(0);
 
   useEffect(() => {
@@ -66,12 +69,54 @@ export function GeneratorStep6Budget() {
   const handleGenerateBudgetNarrative = async () => {
     try {
       setGenerating(true);
-      const narrative = await generateSection('budget');
-      updateProposalData({ generatedBudgetJustification: narrative });
+      const response = await fetch('/api/ai/generate-proposal-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section: 'budget_narrative',
+          proposalData
+        })
+      });
+      const result = await response.json();
+      if (result.success && result.content) {
+        updateProposalData({ generatedBudgetJustification: result.content });
+      }
     } catch (error) {
       console.error('Error generating budget narrative:', error);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleGenerateBudgetItems = async () => {
+    try {
+      setGeneratingBudgetItems(true);
+      const response = await fetch('/api/ai/generate-proposal-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section: 'budget_items',
+          proposalData
+        })
+      });
+      const result = await response.json();
+      if (result.success && result.budgetItems) {
+        // Add the generated budget items
+        const newItems = result.budgetItems.map((item: any, index: number) => ({
+          id: `budget-${Date.now()}-${index}`,
+          category: item.category || 'Other Direct Costs',
+          item: item.item || item.description || '',
+          amount: item.amount || 0,
+          justification: item.justification || ''
+        }));
+        updateProposalData({
+          budgetItems: [...(proposalData.budgetItems || []), ...newItems]
+        });
+      }
+    } catch (error) {
+      console.error('Error generating budget items:', error);
+    } finally {
+      setGeneratingBudgetItems(false);
     }
   };
 
@@ -107,17 +152,40 @@ export function GeneratorStep6Budget() {
         </CardContent>
       </Card>
 
-      {/* Add Budget Item Button */}
-      <Box sx={{ mb: 2 }}>
+      {/* Add Budget Item Buttons */}
+      <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Tooltip title="AI will recommend budget line items with dollar amounts based on your project scope, activities, and target population">
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={generatingBudgetItems ? <CircularProgress size={16} color="inherit" /> : <Calculator size={16} />}
+            onClick={handleGenerateBudgetItems}
+            disabled={generatingBudgetItems || !proposalData.problemStatement}
+          >
+            {generatingBudgetItems ? 'Generating...' : 'AI Recommend Budget Items'}
+          </Button>
+        </Tooltip>
         <Button variant="outlined" startIcon={<Plus />} onClick={addBudgetItem}>
           Add Budget Item
         </Button>
       </Box>
 
+      {/* AI Generation Info */}
+      {generatingBudgetItems && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CircularProgress size={16} />
+            <Typography variant="body2">
+              AI is generating recommended budget items with dollar amounts based on your project...
+            </Typography>
+          </Box>
+        </Alert>
+      )}
+
       {/* Budget Items */}
       {(proposalData.budgetItems || []).length === 0 ? (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          No budget items yet. Click "Add Budget Item" to start building your budget.
+          No budget items yet. Click "AI Recommend Budget Items" or "Add Budget Item" to start building your budget.
         </Alert>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
@@ -215,25 +283,39 @@ export function GeneratorStep6Budget() {
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Budget Narrative</Typography>
-          <Button
-            variant="outlined"
-            startIcon={<Sparkles />}
-            onClick={handleGenerateBudgetNarrative}
-            disabled={generating || (proposalData.budgetItems || []).length === 0}
-            size="small"
-          >
-            {generating ? 'Generating...' : 'AI Generate Narrative'}
-          </Button>
+          <Tooltip title="AI will generate a comprehensive budget narrative using your project context, budget items, and justifications">
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={generating ? <CircularProgress size={16} color="inherit" /> : <FileText size={16} />}
+              onClick={handleGenerateBudgetNarrative}
+              disabled={generating || (proposalData.budgetItems || []).length === 0}
+              size="small"
+            >
+              {generating ? 'Generating...' : 'AI Generate Narrative'}
+            </Button>
+          </Tooltip>
         </Box>
+
+        {generating && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={16} />
+              <Typography variant="body2">
+                AI is generating a comprehensive budget narrative based on your project and budget items...
+              </Typography>
+            </Box>
+          </Alert>
+        )}
 
         <TextField
           fullWidth
           multiline
-          rows={6}
+          rows={8}
           value={proposalData.generatedBudgetJustification || ''}
           onChange={(e) => updateProposalData({ generatedBudgetJustification: e.target.value })}
           placeholder="Provide an overall budget narrative explaining how the budget supports your project goals..."
-          helperText="AI can generate this based on your budget items, or you can write it yourself"
+          helperText="AI will use your project context, problem statement, activities, and budget items to generate a comprehensive narrative"
         />
       </Box>
     </Box>
