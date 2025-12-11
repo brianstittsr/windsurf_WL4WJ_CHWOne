@@ -69,7 +69,15 @@ import {
   TaskAlt as TaskIcon,
   PlayArrow as PlayIcon,
   Pause as PauseIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Send as SendIcon,
+  History as HistoryIcon,
+  ThumbUp as ApproveIcon,
+  ThumbDown as RejectIcon,
+  Visibility as ViewIcon,
+  Close as CloseIcon,
+  Payment as PaymentIcon
 } from '@mui/icons-material';
 import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
@@ -105,6 +113,42 @@ function CollaborationDetailContent() {
   const [showFormViewDialog, setShowFormViewDialog] = useState(false);
   const [selectedForm, setSelectedForm] = useState<any>(null);
   const [editingForm, setEditingForm] = useState(false);
+  
+  // Milestone state
+  const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState<any>(null);
+  const [milestoneForm, setMilestoneForm] = useState({
+    name: '',
+    description: '',
+    dueDate: '',
+    assignedTo: '',
+    status: 'not_started',
+    completionDescription: '',
+    completedAt: '',
+    completedBy: ''
+  });
+  const [showMilestoneHistory, setShowMilestoneHistory] = useState(false);
+  const [selectedMilestoneHistory, setSelectedMilestoneHistory] = useState<any>(null);
+  const [showChangeRequestDialog, setShowChangeRequestDialog] = useState(false);
+  const [changeRequestForm, setChangeRequestForm] = useState({
+    milestoneId: '',
+    changeDescription: '',
+    proposedChanges: {} as any
+  });
+  
+  // Invoice state
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<any>(null);
+  const [invoiceForm, setInvoiceForm] = useState({
+    description: '',
+    amount: '',
+    linkedMilestoneId: '',
+    dueDate: '',
+    notes: '',
+    submittedBy: ''
+  });
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [milestoneChanges, setMilestoneChanges] = useState<any[]>([]);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -210,6 +254,372 @@ function CollaborationDetailContent() {
     } catch (error) {
       console.error('Error saving form:', error);
     }
+  };
+
+  // ============ MILESTONE HANDLERS ============
+  const resetMilestoneForm = () => {
+    setMilestoneForm({
+      name: '',
+      description: '',
+      dueDate: '',
+      assignedTo: '',
+      status: 'not_started',
+      completionDescription: '',
+      completedAt: '',
+      completedBy: ''
+    });
+    setEditingMilestone(null);
+  };
+
+  const handleOpenMilestoneDialog = (milestone?: any) => {
+    if (milestone) {
+      setEditingMilestone(milestone);
+      setMilestoneForm({
+        name: milestone.name || milestone.title || '',
+        description: milestone.description || '',
+        dueDate: milestone.dueDate ? new Date(milestone.dueDate).toISOString().split('T')[0] : '',
+        assignedTo: milestone.assignedTo || '',
+        status: milestone.status || 'not_started',
+        completionDescription: milestone.completionDescription || '',
+        completedAt: milestone.completedAt || '',
+        completedBy: milestone.completedBy || ''
+      });
+    } else {
+      resetMilestoneForm();
+    }
+    setShowMilestoneDialog(true);
+  };
+
+  const handleSaveMilestone = async () => {
+    if (!grant || !milestoneForm.name) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentMilestones = (grant as any).projectMilestones || [];
+      
+      const milestoneData = {
+        id: editingMilestone?.id || `milestone_${Date.now()}`,
+        name: milestoneForm.name,
+        title: milestoneForm.name,
+        description: milestoneForm.description,
+        dueDate: milestoneForm.dueDate,
+        assignedTo: milestoneForm.assignedTo,
+        status: milestoneForm.status,
+        completionDescription: milestoneForm.completionDescription,
+        completedAt: milestoneForm.status === 'completed' ? (milestoneForm.completedAt || new Date().toISOString()) : null,
+        completedBy: milestoneForm.status === 'completed' ? milestoneForm.completedBy : null,
+        updatedAt: new Date().toISOString(),
+        changeHistory: editingMilestone?.changeHistory || []
+      };
+
+      // If editing and there are changes, add to change history
+      if (editingMilestone) {
+        const changes: string[] = [];
+        if (editingMilestone.name !== milestoneForm.name) changes.push(`Name changed from "${editingMilestone.name}" to "${milestoneForm.name}"`);
+        if (editingMilestone.description !== milestoneForm.description) changes.push('Description updated');
+        if (editingMilestone.dueDate !== milestoneForm.dueDate) changes.push(`Due date changed to ${milestoneForm.dueDate}`);
+        if (editingMilestone.status !== milestoneForm.status) changes.push(`Status changed from "${editingMilestone.status}" to "${milestoneForm.status}"`);
+        
+        if (changes.length > 0) {
+          milestoneData.changeHistory = [
+            ...(editingMilestone.changeHistory || []),
+            {
+              id: `change_${Date.now()}`,
+              timestamp: new Date().toISOString(),
+              changedBy: currentUser?.email || 'Unknown',
+              changes,
+              status: 'pending_approval',
+              approvedBy: null,
+              approvedAt: null
+            }
+          ];
+        }
+      }
+
+      let updatedMilestones;
+      if (editingMilestone) {
+        updatedMilestones = currentMilestones.map((m: any) => 
+          m.id === editingMilestone.id ? milestoneData : m
+        );
+      } else {
+        updatedMilestones = [...currentMilestones, milestoneData];
+      }
+
+      await updateGrant(grant.id, { projectMilestones: updatedMilestones } as any);
+      setGrant({ ...grant, projectMilestones: updatedMilestones } as any);
+      setShowMilestoneDialog(false);
+      resetMilestoneForm();
+    } catch (error) {
+      console.error('Error saving milestone:', error);
+    }
+  };
+
+  const handleDeleteMilestone = async (milestoneId: string) => {
+    if (!grant || !confirm('Are you sure you want to delete this milestone?')) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentMilestones = (grant as any).projectMilestones || [];
+      const updatedMilestones = currentMilestones.filter((m: any) => m.id !== milestoneId);
+      
+      await updateGrant(grant.id, { projectMilestones: updatedMilestones } as any);
+      setGrant({ ...grant, projectMilestones: updatedMilestones } as any);
+    } catch (error) {
+      console.error('Error deleting milestone:', error);
+    }
+  };
+
+  const handleMarkMilestoneComplete = async (milestone: any) => {
+    setEditingMilestone(milestone);
+    setMilestoneForm({
+      ...milestoneForm,
+      name: milestone.name || milestone.title,
+      description: milestone.description,
+      dueDate: milestone.dueDate,
+      assignedTo: milestone.assignedTo,
+      status: 'completed',
+      completionDescription: '',
+      completedAt: new Date().toISOString(),
+      completedBy: currentUser?.email || ''
+    });
+    setShowMilestoneDialog(true);
+  };
+
+  const handleViewMilestoneHistory = (milestone: any) => {
+    setSelectedMilestoneHistory(milestone);
+    setShowMilestoneHistory(true);
+  };
+
+  const handleApproveChange = async (milestone: any, changeId: string) => {
+    if (!grant) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentMilestones = (grant as any).projectMilestones || [];
+      
+      const updatedMilestones = currentMilestones.map((m: any) => {
+        if (m.id === milestone.id) {
+          return {
+            ...m,
+            changeHistory: m.changeHistory?.map((ch: any) => 
+              ch.id === changeId 
+                ? { ...ch, status: 'approved', approvedBy: currentUser?.email, approvedAt: new Date().toISOString() }
+                : ch
+            )
+          };
+        }
+        return m;
+      });
+      
+      await updateGrant(grant.id, { projectMilestones: updatedMilestones } as any);
+      setGrant({ ...grant, projectMilestones: updatedMilestones } as any);
+      
+      // Update the selected milestone history view
+      const updatedMilestone = updatedMilestones.find((m: any) => m.id === milestone.id);
+      setSelectedMilestoneHistory(updatedMilestone);
+    } catch (error) {
+      console.error('Error approving change:', error);
+    }
+  };
+
+  const handleRejectChange = async (milestone: any, changeId: string, reason?: string) => {
+    if (!grant) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentMilestones = (grant as any).projectMilestones || [];
+      
+      const updatedMilestones = currentMilestones.map((m: any) => {
+        if (m.id === milestone.id) {
+          return {
+            ...m,
+            changeHistory: m.changeHistory?.map((ch: any) => 
+              ch.id === changeId 
+                ? { ...ch, status: 'rejected', rejectedBy: currentUser?.email, rejectedAt: new Date().toISOString(), rejectionReason: reason }
+                : ch
+            )
+          };
+        }
+        return m;
+      });
+      
+      await updateGrant(grant.id, { projectMilestones: updatedMilestones } as any);
+      setGrant({ ...grant, projectMilestones: updatedMilestones } as any);
+      
+      const updatedMilestone = updatedMilestones.find((m: any) => m.id === milestone.id);
+      setSelectedMilestoneHistory(updatedMilestone);
+    } catch (error) {
+      console.error('Error rejecting change:', error);
+    }
+  };
+
+  // ============ INVOICE HANDLERS ============
+  const resetInvoiceForm = () => {
+    setInvoiceForm({
+      description: '',
+      amount: '',
+      linkedMilestoneId: '',
+      dueDate: '',
+      notes: '',
+      submittedBy: ''
+    });
+    setEditingInvoice(null);
+  };
+
+  const handleOpenInvoiceDialog = (invoice?: any) => {
+    if (invoice) {
+      setEditingInvoice(invoice);
+      setInvoiceForm({
+        description: invoice.description || '',
+        amount: invoice.amount?.toString() || '',
+        linkedMilestoneId: invoice.linkedMilestoneId || '',
+        dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString().split('T')[0] : '',
+        notes: invoice.notes || '',
+        submittedBy: invoice.submittedBy || ''
+      });
+    } else {
+      resetInvoiceForm();
+    }
+    setShowInvoiceDialog(true);
+  };
+
+  const handleSaveInvoice = async () => {
+    if (!grant || !invoiceForm.description || !invoiceForm.amount) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentInvoices = (grant as any).invoices || [];
+      
+      const invoiceData = {
+        id: editingInvoice?.id || `INV-${Date.now().toString().slice(-6)}`,
+        invoiceNumber: editingInvoice?.invoiceNumber || `INV-${String(currentInvoices.length + 1).padStart(4, '0')}`,
+        description: invoiceForm.description,
+        amount: parseFloat(invoiceForm.amount),
+        linkedMilestoneId: invoiceForm.linkedMilestoneId,
+        linkedMilestoneName: milestones.find((m: any) => m.id === invoiceForm.linkedMilestoneId)?.name || '',
+        dueDate: invoiceForm.dueDate,
+        notes: invoiceForm.notes,
+        submittedBy: invoiceForm.submittedBy || currentUser?.email,
+        status: editingInvoice?.status || 'draft',
+        createdAt: editingInvoice?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        billComId: editingInvoice?.billComId || null,
+        billComStatus: editingInvoice?.billComStatus || null,
+        paidAt: editingInvoice?.paidAt || null
+      };
+
+      let updatedInvoices;
+      if (editingInvoice) {
+        updatedInvoices = currentInvoices.map((inv: any) => 
+          inv.id === editingInvoice.id ? invoiceData : inv
+        );
+      } else {
+        updatedInvoices = [...currentInvoices, invoiceData];
+      }
+
+      await updateGrant(grant.id, { invoices: updatedInvoices } as any);
+      setGrant({ ...grant, invoices: updatedInvoices } as any);
+      setInvoices(updatedInvoices);
+      setShowInvoiceDialog(false);
+      resetInvoiceForm();
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!grant || !confirm('Are you sure you want to delete this invoice?')) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentInvoices = (grant as any).invoices || [];
+      const updatedInvoices = currentInvoices.filter((inv: any) => inv.id !== invoiceId);
+      
+      await updateGrant(grant.id, { invoices: updatedInvoices } as any);
+      setGrant({ ...grant, invoices: updatedInvoices } as any);
+      setInvoices(updatedInvoices);
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+    }
+  };
+
+  const handleSubmitToBillCom = async (invoice: any) => {
+    if (!grant) return;
+    
+    try {
+      // Simulate Bill.com API integration
+      // In production, this would call the actual Bill.com API
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentInvoices = (grant as any).invoices || [];
+      
+      const updatedInvoices = currentInvoices.map((inv: any) => {
+        if (inv.id === invoice.id) {
+          return {
+            ...inv,
+            status: 'submitted',
+            billComId: `BC-${Date.now().toString().slice(-8)}`,
+            billComStatus: 'pending',
+            submittedAt: new Date().toISOString()
+          };
+        }
+        return inv;
+      });
+      
+      await updateGrant(grant.id, { invoices: updatedInvoices } as any);
+      setGrant({ ...grant, invoices: updatedInvoices } as any);
+      setInvoices(updatedInvoices);
+      
+      alert('Invoice submitted to Bill.com successfully! Invoice ID: ' + updatedInvoices.find((i: any) => i.id === invoice.id)?.billComId);
+    } catch (error) {
+      console.error('Error submitting to Bill.com:', error);
+      alert('Failed to submit invoice to Bill.com');
+    }
+  };
+
+  const handleMarkInvoicePaid = async (invoice: any) => {
+    if (!grant) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentInvoices = (grant as any).invoices || [];
+      
+      const updatedInvoices = currentInvoices.map((inv: any) => {
+        if (inv.id === invoice.id) {
+          return {
+            ...inv,
+            status: 'paid',
+            billComStatus: 'paid',
+            paidAt: new Date().toISOString()
+          };
+        }
+        return inv;
+      });
+      
+      await updateGrant(grant.id, { invoices: updatedInvoices } as any);
+      setGrant({ ...grant, invoices: updatedInvoices } as any);
+      setInvoices(updatedInvoices);
+    } catch (error) {
+      console.error('Error marking invoice as paid:', error);
+    }
+  };
+
+  const getInvoiceStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'success';
+      case 'submitted': return 'info';
+      case 'pending': return 'warning';
+      case 'overdue': return 'error';
+      default: return 'default';
+    }
+  };
+
+  // Calculate invoice totals
+  const calculateInvoiceTotals = () => {
+    const grantInvoices = (grant as any)?.invoices || [];
+    const totalInvoiced = grantInvoices.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
+    const totalPaid = grantInvoices.filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
+    const budget = (grant as any)?.budget || 0;
+    return { totalInvoiced, totalPaid, remaining: budget - totalInvoiced };
   };
 
   if (authLoading || loading) {
@@ -761,7 +1171,7 @@ function CollaborationDetailContent() {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => {/* TODO: Add invoice creation */}}
+              onClick={() => handleOpenInvoiceDialog()}
             >
               Create Invoice
             </Button>
@@ -783,7 +1193,7 @@ function CollaborationDetailContent() {
               <Card>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>
-                    $0
+                    ${calculateInvoiceTotals().totalInvoiced.toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">Invoiced</Typography>
                 </CardContent>
@@ -793,7 +1203,7 @@ function CollaborationDetailContent() {
               <Card>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: 'info.main' }}>
-                    $0
+                    ${calculateInvoiceTotals().totalPaid.toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">Paid</Typography>
                 </CardContent>
@@ -803,7 +1213,7 @@ function CollaborationDetailContent() {
               <Card>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: 'warning.main' }}>
-                    ${(grant as any).budget?.toLocaleString() || '0'}
+                    ${calculateInvoiceTotals().remaining.toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">Remaining</Typography>
                 </CardContent>
@@ -820,28 +1230,149 @@ function CollaborationDetailContent() {
                   <TableCell><strong>Invoice #</strong></TableCell>
                   <TableCell><strong>Date</strong></TableCell>
                   <TableCell><strong>Description</strong></TableCell>
+                  <TableCell><strong>Linked Milestone</strong></TableCell>
                   <TableCell><strong>Amount</strong></TableCell>
                   <TableCell><strong>Status</strong></TableCell>
+                  <TableCell><strong>Bill.com ID</strong></TableCell>
                   <TableCell><strong>Actions</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <Typography color="text.secondary" sx={{ py: 3 }}>
-                      No invoices have been created yet.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                {((grant as any).invoices || []).length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center">
+                      <Typography color="text.secondary" sx={{ py: 3 }}>
+                        No invoices have been created yet. Click "Create Invoice" to add one.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  ((grant as any).invoices || []).map((invoice: any) => (
+                    <TableRow key={invoice.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {invoice.invoiceNumber}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {invoice.createdAt ? new Date(invoice.createdAt).toLocaleDateString() : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ maxWidth: 200 }} noWrap>
+                          {invoice.description}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {invoice.linkedMilestoneName ? (
+                          <Chip label={invoice.linkedMilestoneName} size="small" variant="outlined" />
+                        ) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          ${invoice.amount?.toLocaleString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={invoice.status} 
+                          size="small" 
+                          color={getInvoiceStatusColor(invoice.status) as any}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {invoice.billComId ? (
+                          <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                            {invoice.billComId}
+                          </Typography>
+                        ) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleOpenInvoiceDialog(invoice)}
+                            title="Edit Invoice"
+                            disabled={invoice.status === 'paid'}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          {invoice.status === 'draft' && (
+                            <IconButton 
+                              size="small" 
+                              color="primary"
+                              onClick={() => handleSubmitToBillCom(invoice)}
+                              title="Submit to Bill.com"
+                            >
+                              <SendIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          {invoice.status === 'submitted' && (
+                            <IconButton 
+                              size="small" 
+                              color="success"
+                              onClick={() => handleMarkInvoicePaid(invoice)}
+                              title="Mark as Paid"
+                            >
+                              <PaymentIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          {invoice.status === 'draft' && (
+                            <IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => handleDeleteInvoice(invoice.id)}
+                              title="Delete Invoice"
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>
 
           {/* Payment Schedule */}
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 4, mb: 2 }}>Payment Schedule</Typography>
-          <Alert severity="info">
-            Payment schedule will be displayed here based on grant terms and milestones.
-          </Alert>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 4, mb: 2 }}>Payment Schedule by Milestone</Typography>
+          {milestones.length > 0 ? (
+            <Grid container spacing={2}>
+              {milestones.map((milestone: any, index: number) => {
+                const linkedInvoices = ((grant as any).invoices || []).filter((inv: any) => inv.linkedMilestoneId === milestone.id);
+                const totalForMilestone = linkedInvoices.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
+                return (
+                  <Grid item xs={12} md={6} key={index}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Box>
+                            <Typography variant="subtitle2">{milestone.name || milestone.title}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Due: {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString() : 'Not set'}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'right' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              ${totalForMilestone.toLocaleString()}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {linkedInvoices.length} invoice(s)
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          ) : (
+            <Alert severity="info">
+              No milestones defined. Create milestones to link invoices to specific project deliverables.
+            </Alert>
+          )}
         </TabPanel>
 
         {/* Milestones / Tasks Tab */}
@@ -851,7 +1382,7 @@ function CollaborationDetailContent() {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => {/* TODO: Add milestone creation */}}
+              onClick={() => handleOpenMilestoneDialog()}
             >
               Add Milestone
             </Button>
@@ -896,13 +1427,16 @@ function CollaborationDetailContent() {
                             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                               {milestone.name || milestone.title}
                             </Typography>
+                            {milestone.changeHistory?.some((ch: any) => ch.status === 'pending_approval') && (
+                              <Chip label="Pending Approval" size="small" color="warning" />
+                            )}
                           </Box>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                             {milestone.description}
                           </Typography>
-                          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                             <Chip 
-                              label={milestone.status?.replace('_', ' ') || 'pending'} 
+                              label={milestone.status?.replace('_', ' ') || 'not started'} 
                               size="small"
                               color={milestone.status === 'completed' ? 'success' : 
                                      milestone.status === 'in_progress' ? 'warning' : 'default'}
@@ -919,17 +1453,57 @@ function CollaborationDetailContent() {
                                 {milestone.assignedTo}
                               </Typography>
                             )}
+                            {milestone.completedAt && (
+                              <Typography variant="caption" color="success.main">
+                                <CheckCircleIcon sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
+                                Completed: {new Date(milestone.completedAt).toLocaleDateString()}
+                              </Typography>
+                            )}
                           </Box>
+                          {milestone.completionDescription && (
+                            <Box sx={{ mt: 1, p: 1, bgcolor: 'success.50', borderRadius: 1 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                <strong>Completion Notes:</strong> {milestone.completionDescription}
+                              </Typography>
+                            </Box>
+                          )}
                         </Box>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <IconButton size="small" title="Edit milestone">
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleOpenMilestoneDialog(milestone)}
+                            title="Edit milestone"
+                          >
                             <EditIcon fontSize="small" />
                           </IconButton>
                           {milestone.status !== 'completed' && (
-                            <IconButton size="small" color="success" title="Mark complete">
+                            <IconButton 
+                              size="small" 
+                              color="success" 
+                              onClick={() => handleMarkMilestoneComplete(milestone)}
+                              title="Mark complete"
+                            >
                               <CheckCircleIcon fontSize="small" />
                             </IconButton>
                           )}
+                          {milestone.changeHistory?.length > 0 && (
+                            <IconButton 
+                              size="small" 
+                              color="info"
+                              onClick={() => handleViewMilestoneHistory(milestone)}
+                              title="View change history"
+                            >
+                              <HistoryIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => handleDeleteMilestone(milestone.id)}
+                            title="Delete milestone"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
                         </Box>
                       </Box>
 
@@ -1144,6 +1718,335 @@ function CollaborationDetailContent() {
                 Edit Form
               </Button>
             )}
+          </DialogActions>
+        </Dialog>
+
+        {/* Milestone Create/Edit Dialog */}
+        <Dialog 
+          open={showMilestoneDialog} 
+          onClose={() => { setShowMilestoneDialog(false); resetMilestoneForm(); }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            {editingMilestone ? 'Edit Milestone' : 'Add New Milestone'}
+          </DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Milestone Name"
+                  value={milestoneForm.name}
+                  onChange={(e) => setMilestoneForm({ ...milestoneForm, name: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  value={milestoneForm.description}
+                  onChange={(e) => setMilestoneForm({ ...milestoneForm, description: e.target.value })}
+                  multiline
+                  rows={3}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Due Date"
+                  type="date"
+                  value={milestoneForm.dueDate}
+                  onChange={(e) => setMilestoneForm({ ...milestoneForm, dueDate: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Assigned To</InputLabel>
+                  <Select
+                    value={milestoneForm.assignedTo}
+                    label="Assigned To"
+                    onChange={(e) => setMilestoneForm({ ...milestoneForm, assignedTo: e.target.value })}
+                  >
+                    {entities.map((entity: any, i: number) => (
+                      <MenuItem key={i} value={entity.name}>{entity.name} ({entity.role})</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={milestoneForm.status}
+                    label="Status"
+                    onChange={(e) => setMilestoneForm({ ...milestoneForm, status: e.target.value })}
+                  >
+                    <MenuItem value="not_started">Not Started</MenuItem>
+                    <MenuItem value="in_progress">In Progress</MenuItem>
+                    <MenuItem value="completed">Completed</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              {milestoneForm.status === 'completed' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Completed By</InputLabel>
+                      <Select
+                        value={milestoneForm.completedBy}
+                        label="Completed By"
+                        onChange={(e) => setMilestoneForm({ ...milestoneForm, completedBy: e.target.value })}
+                      >
+                        {entities.map((entity: any, i: number) => (
+                          <MenuItem key={i} value={entity.contactEmail || entity.name}>
+                            {entity.contactName || entity.name}
+                          </MenuItem>
+                        ))}
+                        <MenuItem value={currentUser?.email || ''}>{currentUser?.email} (Me)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Completion Description"
+                      value={milestoneForm.completionDescription}
+                      onChange={(e) => setMilestoneForm({ ...milestoneForm, completionDescription: e.target.value })}
+                      multiline
+                      rows={3}
+                      placeholder="Describe how this milestone was completed..."
+                      helperText="Provide details about the work completed, deliverables, and any relevant notes."
+                    />
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setShowMilestoneDialog(false); resetMilestoneForm(); }}>
+              Cancel
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveMilestone}
+              disabled={!milestoneForm.name}
+            >
+              {editingMilestone ? 'Save Changes' : 'Create Milestone'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Milestone Change History Dialog */}
+        <Dialog
+          open={showMilestoneHistory}
+          onClose={() => setShowMilestoneHistory(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <HistoryIcon />
+              Change History: {selectedMilestoneHistory?.name || selectedMilestoneHistory?.title}
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            {selectedMilestoneHistory?.changeHistory?.length > 0 ? (
+              <List>
+                {selectedMilestoneHistory.changeHistory.map((change: any, index: number) => (
+                  <ListItem 
+                    key={change.id || index}
+                    sx={{ 
+                      flexDirection: 'column', 
+                      alignItems: 'flex-start',
+                      borderLeft: 3,
+                      borderColor: change.status === 'approved' ? 'success.main' : 
+                                   change.status === 'rejected' ? 'error.main' : 'warning.main',
+                      mb: 2,
+                      bgcolor: 'grey.50',
+                      borderRadius: 1
+                    }}
+                  >
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="subtitle2">
+                        {new Date(change.timestamp).toLocaleString()}
+                      </Typography>
+                      <Chip 
+                        label={change.status?.replace('_', ' ')} 
+                        size="small"
+                        color={change.status === 'approved' ? 'success' : 
+                               change.status === 'rejected' ? 'error' : 'warning'}
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      Changed by: {change.changedBy}
+                    </Typography>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Changes:</Typography>
+                      <ul style={{ margin: '4px 0', paddingLeft: 20 }}>
+                        {change.changes?.map((c: string, i: number) => (
+                          <li key={i}><Typography variant="body2">{c}</Typography></li>
+                        ))}
+                      </ul>
+                    </Box>
+                    {change.status === 'approved' && (
+                      <Typography variant="caption" color="success.main">
+                        Approved by {change.approvedBy} on {new Date(change.approvedAt).toLocaleString()}
+                      </Typography>
+                    )}
+                    {change.status === 'rejected' && (
+                      <Typography variant="caption" color="error.main">
+                        Rejected by {change.rejectedBy}: {change.rejectionReason || 'No reason provided'}
+                      </Typography>
+                    )}
+                    {change.status === 'pending_approval' && (
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          startIcon={<ApproveIcon />}
+                          onClick={() => handleApproveChange(selectedMilestoneHistory, change.id)}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          startIcon={<RejectIcon />}
+                          onClick={() => {
+                            const reason = prompt('Please provide a reason for rejection:');
+                            if (reason !== null) {
+                              handleRejectChange(selectedMilestoneHistory, change.id, reason);
+                            }
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      </Box>
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Alert severity="info">No change history available for this milestone.</Alert>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowMilestoneHistory(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Invoice Create/Edit Dialog */}
+        <Dialog
+          open={showInvoiceDialog}
+          onClose={() => { setShowInvoiceDialog(false); resetInvoiceForm(); }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            {editingInvoice ? `Edit Invoice ${editingInvoice.invoiceNumber}` : 'Create New Invoice'}
+          </DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  value={invoiceForm.description}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })}
+                  required
+                  placeholder="Describe the services or deliverables being invoiced..."
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Amount ($)"
+                  type="number"
+                  value={invoiceForm.amount}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
+                  required
+                  InputProps={{ startAdornment: '$' }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Link to Milestone</InputLabel>
+                  <Select
+                    value={invoiceForm.linkedMilestoneId}
+                    label="Link to Milestone"
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, linkedMilestoneId: e.target.value })}
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {milestones.map((m: any, i: number) => (
+                      <MenuItem key={i} value={m.id}>{m.name || m.title}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Due Date"
+                  type="date"
+                  value={invoiceForm.dueDate}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Submitted By</InputLabel>
+                  <Select
+                    value={invoiceForm.submittedBy}
+                    label="Submitted By"
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, submittedBy: e.target.value })}
+                  >
+                    {entities.map((entity: any, i: number) => (
+                      <MenuItem key={i} value={entity.contactEmail || entity.name}>
+                        {entity.contactName || entity.name}
+                      </MenuItem>
+                    ))}
+                    <MenuItem value={currentUser?.email || ''}>{currentUser?.email} (Me)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Additional Notes"
+                  value={invoiceForm.notes}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                  multiline
+                  rows={3}
+                  placeholder="Any additional notes or payment instructions..."
+                />
+              </Grid>
+            </Grid>
+            
+            {/* Bill.com Integration Info */}
+            <Alert severity="info" sx={{ mt: 3 }}>
+              <Typography variant="body2">
+                <strong>Bill.com Integration:</strong> After saving, you can submit this invoice to Bill.com for payment processing. 
+                The invoice status will be updated automatically when payment is received.
+              </Typography>
+            </Alert>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setShowInvoiceDialog(false); resetInvoiceForm(); }}>
+              Cancel
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveInvoice}
+              disabled={!invoiceForm.description || !invoiceForm.amount}
+            >
+              {editingInvoice ? 'Save Changes' : 'Create Invoice'}
+            </Button>
           </DialogActions>
         </Dialog>
       </Box>
