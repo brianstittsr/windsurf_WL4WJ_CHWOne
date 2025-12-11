@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { GrantWizard } from '@/components/Grants/wizard/GrantWizard';
 import { GrantWizardProvider } from '@/contexts/GrantWizardContext';
 import { GrantGeneratorWizard } from '@/components/Grants/generator/GrantGeneratorWizard';
@@ -43,6 +44,8 @@ import { Timestamp } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
 
 export default function GrantManagement() {
+  const router = useRouter();
+  
   // Extended grant type that handles both unified-schema and wizard grant types
   type ExtendedGrant = Grant & Partial<WizardGrant>;
   const [grants, setGrants] = useState<ExtendedGrant[]>([]);
@@ -827,8 +830,7 @@ export default function GrantManagement() {
                     color="primary"
                     startIcon={<VisibilityIcon />}
                     onClick={() => {
-                      setSelectedGrant(grant);
-                      setShowDetailsDialog(true);
+                      router.push(`/collaborations/${grant.id}`);
                     }}
                   >
                     View Details
