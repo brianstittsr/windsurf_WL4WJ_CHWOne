@@ -158,6 +158,91 @@ Provide an enhanced geographic area description that includes:
 Keep it concise (2-4 sentences) but informative. Return ONLY the enhanced description, no headers.`;
         break;
 
+      case 'smart_goals':
+        prompt = `Generate 2-3 SMART goals for this grant project:
+
+PROJECT CONTEXT:
+- Project Title: ${proposalData.projectTitle || 'Not provided'}
+- Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+- Community Need: ${proposalData.communityNeed || 'Not provided'}
+- Target Population: ${proposalData.targetPopulation || 'Not provided'}
+- Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+
+SMART CRITERIA:
+- Specific: Clear and well-defined
+- Measurable: Quantifiable with specific metrics
+- Achievable: Realistic given resources and timeline
+- Relevant: Aligned with the project's purpose
+- Time-bound: Has a specific timeframe
+
+For each goal, provide:
+1. goal: The SMART goal statement
+2. indicator: How success will be measured
+3. target: Specific numeric target
+4. measurementMethod: How data will be collected
+5. dataSource: Where data comes from
+6. frequency: How often measured (weekly/monthly/quarterly/annually/pre-post)
+
+Return a JSON object with a "goals" array containing 2-3 goal objects. Example:
+{
+  "goals": [
+    {
+      "goal": "By the end of Year 1, 80% of program participants will demonstrate a 25% improvement in health literacy scores",
+      "indicator": "Pre/post health literacy assessment scores",
+      "target": "80% of participants show 25% improvement",
+      "measurementMethod": "Validated health literacy assessment (REALM-SF)",
+      "dataSource": "Program participant assessments",
+      "frequency": "pre-post"
+    }
+  ]
+}
+
+Return ONLY the JSON object, no additional text.`;
+        break;
+
+      case 'objectives':
+        prompt = `Generate 3-4 specific, measurable objectives for this grant project:
+
+PROJECT CONTEXT:
+- Project Title: ${proposalData.projectTitle || 'Not provided'}
+- Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+- Community Need: ${proposalData.communityNeed || 'Not provided'}
+- Target Population: ${proposalData.targetPopulation || 'Not provided'}
+- Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+- Existing Outcomes: ${(proposalData.outcomes || []).map((o: any) => o.outcome).join('; ') || 'None defined'}
+
+OBJECTIVE CRITERIA:
+- Action-oriented (starts with action verb)
+- Specific and measurable
+- Tied to program activities
+- Achievable within project timeline
+- Supports overall project goals
+
+For each objective, provide:
+1. objective: The objective statement (action-oriented)
+2. indicator: How progress will be measured
+3. target: Specific numeric target
+4. measurementMethod: How data will be collected
+5. dataSource: Where data comes from
+6. frequency: How often measured (weekly/monthly/quarterly/annually/pre-post)
+
+Return a JSON object with an "objectives" array containing 3-4 objective objects. Example:
+{
+  "objectives": [
+    {
+      "objective": "Conduct 12 monthly health education workshops reaching at least 25 participants each",
+      "indicator": "Number of workshops conducted and attendance",
+      "target": "12 workshops with 25+ participants each (300 total)",
+      "measurementMethod": "Workshop sign-in sheets and attendance tracking",
+      "dataSource": "Program attendance records",
+      "frequency": "monthly"
+    }
+  ]
+}
+
+Return ONLY the JSON object, no additional text.`;
+        break;
+
       default:
         return NextResponse.json({
           success: false,
@@ -185,6 +270,28 @@ Keep it concise (2-4 sentences) but informative. Return ONLY the enhanced descri
 
     const content = completion.choices[0]?.message?.content || '';
     console.log('Section generated successfully');
+
+    // Handle JSON responses for smart_goals and objectives
+    if (section === 'smart_goals' || section === 'objectives') {
+      try {
+        // Try to parse JSON from the response
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          return NextResponse.json({
+            success: true,
+            ...parsed,
+            suggestions: [
+              'Review each goal/objective for relevance to your project',
+              'Adjust targets based on your capacity and timeline',
+              'Ensure measurement methods are feasible'
+            ]
+          });
+        }
+      } catch (parseError) {
+        console.error('Error parsing JSON response:', parseError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

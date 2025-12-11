@@ -13,14 +13,18 @@ import {
   MenuItem,
   Alert,
   Chip,
-  Divider
+  Divider,
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
-import { Plus, Trash2, Sparkles, Target } from 'lucide-react';
+import { Plus, Trash2, Sparkles, Target, Goal, ListChecks } from 'lucide-react';
 import { useGrantGenerator } from '@/contexts/GrantGeneratorContext';
 
 export function GeneratorStep5Outcomes() {
   const { proposalData, updateProposalData, generateSection } = useGrantGenerator();
   const [generatingEvaluation, setGeneratingEvaluation] = useState(false);
+  const [generatingGoals, setGeneratingGoals] = useState(false);
+  const [generatingObjectives, setGeneratingObjectives] = useState(false);
 
   const addOutcome = () => {
     const newOutcome = {
@@ -62,6 +66,74 @@ export function GeneratorStep5Outcomes() {
     }
   };
 
+  const handleGenerateSMARTGoals = async () => {
+    try {
+      setGeneratingGoals(true);
+      const response = await fetch('/api/ai/generate-proposal-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section: 'smart_goals',
+          proposalData
+        })
+      });
+      const result = await response.json();
+      if (result.success && result.goals) {
+        // Add the generated goals as outcomes
+        const newOutcomes = result.goals.map((goal: any, index: number) => ({
+          id: `outcome-${Date.now()}-${index}`,
+          outcome: goal.goal || goal,
+          indicator: goal.indicator || '',
+          measurementMethod: goal.measurementMethod || '',
+          dataSource: goal.dataSource || '',
+          frequency: goal.frequency || 'quarterly',
+          target: goal.target || ''
+        }));
+        updateProposalData({
+          outcomes: [...(proposalData.outcomes || []), ...newOutcomes]
+        });
+      }
+    } catch (error) {
+      console.error('Error generating SMART goals:', error);
+    } finally {
+      setGeneratingGoals(false);
+    }
+  };
+
+  const handleGenerateObjectives = async () => {
+    try {
+      setGeneratingObjectives(true);
+      const response = await fetch('/api/ai/generate-proposal-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section: 'objectives',
+          proposalData
+        })
+      });
+      const result = await response.json();
+      if (result.success && result.objectives) {
+        // Add the generated objectives as outcomes
+        const newOutcomes = result.objectives.map((obj: any, index: number) => ({
+          id: `outcome-${Date.now()}-${index}`,
+          outcome: obj.objective || obj,
+          indicator: obj.indicator || '',
+          measurementMethod: obj.measurementMethod || '',
+          dataSource: obj.dataSource || '',
+          frequency: obj.frequency || 'monthly',
+          target: obj.target || ''
+        }));
+        updateProposalData({
+          outcomes: [...(proposalData.outcomes || []), ...newOutcomes]
+        });
+      }
+    } catch (error) {
+      console.error('Error generating objectives:', error);
+    } finally {
+      setGeneratingObjectives(false);
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 1 }}>
@@ -81,15 +153,53 @@ export function GeneratorStep5Outcomes() {
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Expected Outcomes</Typography>
-          <Button
-            variant="outlined"
-            startIcon={<Plus />}
-            onClick={addOutcome}
-            size="small"
-          >
-            Add Outcome
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Tooltip title="AI will recommend SMART goals based on your project description, target population, and community need">
+              <Button
+                variant="contained"
+                color="secondary"
+                startIcon={generatingGoals ? <CircularProgress size={16} color="inherit" /> : <Goal size={16} />}
+                onClick={handleGenerateSMARTGoals}
+                disabled={generatingGoals || !proposalData.problemStatement}
+                size="small"
+              >
+                {generatingGoals ? 'Generating...' : 'AI Recommend SMART Goals'}
+              </Button>
+            </Tooltip>
+            <Tooltip title="AI will recommend specific, measurable objectives for your project">
+              <Button
+                variant="contained"
+                color="info"
+                startIcon={generatingObjectives ? <CircularProgress size={16} color="inherit" /> : <ListChecks size={16} />}
+                onClick={handleGenerateObjectives}
+                disabled={generatingObjectives || !proposalData.problemStatement}
+                size="small"
+              >
+                {generatingObjectives ? 'Generating...' : 'AI Recommend Objectives'}
+              </Button>
+            </Tooltip>
+            <Button
+              variant="outlined"
+              startIcon={<Plus />}
+              onClick={addOutcome}
+              size="small"
+            >
+              Add Outcome
+            </Button>
+          </Box>
         </Box>
+
+        {/* AI Generation Info */}
+        {(generatingGoals || generatingObjectives) && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={16} />
+              <Typography variant="body2">
+                {generatingGoals ? 'AI is generating SMART goals based on your project...' : 'AI is generating objectives based on your project...'}
+              </Typography>
+            </Box>
+          </Alert>
+        )}
 
         {(proposalData.outcomes || []).length === 0 ? (
           <Card variant="outlined">
