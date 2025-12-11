@@ -5,7 +5,8 @@ import {
   Box, Typography, Button, Tabs, Tab, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, Chip, IconButton,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid,
-  Alert, Snackbar
+  Alert, Snackbar, TablePagination, FormControl, InputLabel, Select, MenuItem,
+  InputAdornment
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -51,6 +52,11 @@ export default function AdminNonprofits() {
     message: '',
     severity: 'info'
   });
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchNonprofits();
@@ -425,17 +431,56 @@ export default function AdminNonprofits() {
   const existingEINs = nonprofits.map(n => n.ein).filter(Boolean);
 
   const getFilteredNonprofits = () => {
+    let filtered = nonprofits;
+    
+    // Filter by tab
     switch (activeTab) {
-      case 0: // All
-        return nonprofits;
       case 1: // Active
-        return nonprofits.filter(n => n.approvalStatus === 'approved');
+        filtered = filtered.filter(n => n.approvalStatus === 'approved');
+        break;
       case 2: // Pending
-        return nonprofits.filter(n => n.approvalStatus === 'pending');
-      default:
-        return nonprofits;
+        filtered = filtered.filter(n => n.approvalStatus === 'pending');
+        break;
+      default: // All
+        break;
     }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(n => 
+        n.organizationName?.toLowerCase().includes(query) ||
+        n.ein?.toLowerCase().includes(query) ||
+        n.primaryContact?.name?.toLowerCase().includes(query) ||
+        n.organizationType?.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
   };
+  
+  // Get paginated results
+  const getPaginatedNonprofits = () => {
+    const filtered = getFilteredNonprofits();
+    const startIndex = page * rowsPerPage;
+    return filtered.slice(startIndex, startIndex + rowsPerPage);
+  };
+  
+  // Handle page change
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+  
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+  
+  // Reset page when tab or search changes
+  useEffect(() => {
+    setPage(0);
+  }, [activeTab, searchQuery]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -476,11 +521,32 @@ export default function AdminNonprofits() {
         </Box>
       </Box>
 
-      <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ mb: 3 }}>
+      <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ mb: 2 }}>
         <Tab label={`ALL NONPROFITS (${nonprofits.length})`} />
         <Tab label={`ACTIVE NONPROFITS (${nonprofits.filter(n => n.approvalStatus === 'approved').length})`} />
         <Tab label={`PENDING APPROVAL (${nonprofits.filter(n => n.approvalStatus === 'pending').length})`} />
       </Tabs>
+      
+      {/* Search and filter bar */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+        <TextField
+          size="small"
+          placeholder="Search by name, EIN, contact..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ width: 300 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Typography variant="body2" color="text.secondary">
+          Showing {getPaginatedNonprofits().length} of {getFilteredNonprofits().length} results
+        </Typography>
+      </Box>
 
       {loading ? (
         <Typography>Loading nonprofits...</Typography>
@@ -499,16 +565,16 @@ export default function AdminNonprofits() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {getFilteredNonprofits().length === 0 ? (
+              {getPaginatedNonprofits().length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center">
                     <Typography color="text.secondary">
-                      No nonprofits found. Click "Add New Nonprofit" to create one.
+                      {searchQuery ? 'No nonprofits match your search.' : 'No nonprofits found. Click "Import from IRS" to add organizations.'}
                     </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                getFilteredNonprofits().map((nonprofit) => (
+                getPaginatedNonprofits().map((nonprofit) => (
                   <TableRow key={nonprofit.id} hover>
                     <TableCell>
                       <Typography variant="body2" fontWeight="bold">
@@ -578,6 +644,20 @@ export default function AdminNonprofits() {
               )}
             </TableBody>
           </Table>
+          
+          {/* Pagination */}
+          <TablePagination
+            component="div"
+            count={getFilteredNonprofits().length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+            showFirstButton
+            showLastButton
+            sx={{ borderTop: '1px solid', borderColor: 'divider' }}
+          />
         </TableContainer>
       )}
 
