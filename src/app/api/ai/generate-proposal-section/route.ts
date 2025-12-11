@@ -106,6 +106,58 @@ Write a narrative that:
 - Addresses sustainability`;
         break;
 
+      case 'community_need':
+        prompt = `Enhance and expand this community need description for a grant proposal:
+
+Project Title: ${proposalData.projectTitle || 'Not provided'}
+Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+Current Community Need Text: ${proposalData.existingContent || proposalData.communityNeed || 'Not provided'}
+Target Population: ${proposalData.targetPopulation || 'Not provided'}
+Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+
+Write an enhanced community need statement (2-3 paragraphs) that:
+- Clearly explains why this need exists in the community
+- Describes the impact on residents if the need is not addressed
+- Connects the need to broader social, economic, or health factors
+- Uses compelling language that resonates with funders
+- Maintains the original intent but makes it more professional and persuasive
+
+Return ONLY the enhanced text, no headers or labels.`;
+        break;
+
+      case 'target_population':
+        prompt = `Enhance this target population description for a grant proposal:
+
+Project Title: ${proposalData.projectTitle || 'Not provided'}
+Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+Current Target Population: ${proposalData.existingContent || proposalData.targetPopulation || 'Not provided'}
+Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+
+Provide an enhanced target population description that includes:
+- Specific demographic details (age range, income level, etc.)
+- Estimated number of people to be served
+- Key characteristics that make this population vulnerable or in need
+- Why this population was selected for the program
+
+Keep it concise (2-4 sentences) but comprehensive. Return ONLY the enhanced description, no headers.`;
+        break;
+
+      case 'geographic_area':
+        prompt = `Enhance this geographic area description for a grant proposal:
+
+Project Title: ${proposalData.projectTitle || 'Not provided'}
+Current Geographic Area: ${proposalData.existingContent || proposalData.geographicArea || 'Not provided'}
+Target Population: ${proposalData.targetPopulation || 'Not provided'}
+
+Provide an enhanced geographic area description that includes:
+- Specific location details (city, county, region, state)
+- Relevant demographic or socioeconomic characteristics of the area
+- Why this area was selected (high need, underserved, etc.)
+- Any relevant statistics about the area
+
+Keep it concise (2-4 sentences) but informative. Return ONLY the enhanced description, no headers.`;
+        break;
+
       default:
         return NextResponse.json({
           success: false,
