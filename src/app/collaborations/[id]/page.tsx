@@ -64,7 +64,12 @@ import {
   CalendarToday as CalendarIcon,
   AttachMoney as MoneyIcon,
   Link as LinkIcon,
-  SmartToy as AIIcon
+  SmartToy as AIIcon,
+  Receipt as ReceiptIcon,
+  TaskAlt as TaskIcon,
+  PlayArrow as PlayIcon,
+  Pause as PauseIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
@@ -384,12 +389,14 @@ function CollaborationDetailContent() {
 
         {/* Tabs */}
         <Paper sx={{ mb: 3 }}>
-          <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
+          <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} variant="scrollable" scrollButtons="auto">
             <Tab label="Documents" icon={<DocumentIcon />} iconPosition="start" />
             <Tab label="Forms & Data" icon={<FormIcon />} iconPosition="start" />
             <Tab label="Datasets" icon={<DatasetIcon />} iconPosition="start" />
             <Tab label="AI Reports" icon={<AIIcon />} iconPosition="start" />
             <Tab label="Partners" icon={<GroupsIcon />} iconPosition="start" />
+            <Tab label="Billing / Invoices" icon={<ReceiptIcon />} iconPosition="start" />
+            <Tab label="Milestones / Tasks" icon={<TaskIcon />} iconPosition="start" />
           </Tabs>
         </Paper>
 
@@ -745,6 +752,248 @@ function CollaborationDetailContent() {
           {entities.length === 0 && (
             <Alert severity="info">No collaborating organizations defined for this grant.</Alert>
           )}
+        </TabPanel>
+
+        {/* Billing / Invoices Tab */}
+        <TabPanel value={tabValue} index={5}>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Billing & Invoices</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {/* TODO: Add invoice creation */}}
+            >
+              Create Invoice
+            </Button>
+          </Box>
+
+          {/* Budget Overview */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    ${(grant as any).budget?.toLocaleString() || '0'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">Total Budget</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main' }}>
+                    $0
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">Invoiced</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'info.main' }}>
+                    $0
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">Paid</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card>
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: 'warning.main' }}>
+                    ${(grant as any).budget?.toLocaleString() || '0'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">Remaining</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* Invoices Table */}
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>Invoice History</Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>Invoice #</strong></TableCell>
+                  <TableCell><strong>Date</strong></TableCell>
+                  <TableCell><strong>Description</strong></TableCell>
+                  <TableCell><strong>Amount</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                  <TableCell><strong>Actions</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Typography color="text.secondary" sx={{ py: 3 }}>
+                      No invoices have been created yet.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Payment Schedule */}
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 4, mb: 2 }}>Payment Schedule</Typography>
+          <Alert severity="info">
+            Payment schedule will be displayed here based on grant terms and milestones.
+          </Alert>
+        </TabPanel>
+
+        {/* Milestones / Tasks Tab */}
+        <TabPanel value={tabValue} index={6}>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Milestones & Tasks</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {/* TODO: Add milestone creation */}}
+            >
+              Add Milestone
+            </Button>
+          </Box>
+
+          {/* Milestones Progress */}
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2">Overall Progress</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {milestones.filter((m: any) => m.status === 'completed').length} / {milestones.length} completed
+              </Typography>
+            </Box>
+            <LinearProgress 
+              variant="determinate" 
+              value={milestones.length > 0 ? (milestones.filter((m: any) => m.status === 'completed').length / milestones.length) * 100 : 0}
+              sx={{ height: 10, borderRadius: 5 }}
+            />
+          </Box>
+
+          {/* Milestones List */}
+          {milestones.length > 0 ? (
+            <Grid container spacing={2}>
+              {milestones.map((milestone: any, index: number) => (
+                <Grid item xs={12} key={milestone.id || index}>
+                  <Card sx={{ 
+                    borderLeft: 4, 
+                    borderColor: milestone.status === 'completed' ? 'success.main' : 
+                                 milestone.status === 'in_progress' ? 'warning.main' : 'grey.300'
+                  }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            {milestone.status === 'completed' ? (
+                              <CheckCircleIcon color="success" />
+                            ) : milestone.status === 'in_progress' ? (
+                              <PlayIcon color="warning" />
+                            ) : (
+                              <ScheduleIcon color="disabled" />
+                            )}
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                              {milestone.name || milestone.title}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                            {milestone.description}
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                            <Chip 
+                              label={milestone.status?.replace('_', ' ') || 'pending'} 
+                              size="small"
+                              color={milestone.status === 'completed' ? 'success' : 
+                                     milestone.status === 'in_progress' ? 'warning' : 'default'}
+                            />
+                            {milestone.dueDate && (
+                              <Typography variant="caption" color="text.secondary">
+                                <CalendarIcon sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
+                                Due: {new Date(milestone.dueDate).toLocaleDateString()}
+                              </Typography>
+                            )}
+                            {milestone.assignedTo && (
+                              <Typography variant="caption" color="text.secondary">
+                                <GroupsIcon sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
+                                {milestone.assignedTo}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton size="small" title="Edit milestone">
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          {milestone.status !== 'completed' && (
+                            <IconButton size="small" color="success" title="Mark complete">
+                              <CheckCircleIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Box>
+                      </Box>
+
+                      {/* Tasks under this milestone */}
+                      {milestone.tasks && milestone.tasks.length > 0 && (
+                        <Box sx={{ mt: 2, pl: 4 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                            Tasks ({milestone.tasks.filter((t: any) => t.completed).length}/{milestone.tasks.length})
+                          </Typography>
+                          <List dense>
+                            {milestone.tasks.map((task: any, taskIndex: number) => (
+                              <ListItem key={taskIndex} sx={{ py: 0 }}>
+                                <ListItemIcon sx={{ minWidth: 32 }}>
+                                  {task.completed ? (
+                                    <CheckCircleIcon fontSize="small" color="success" />
+                                  ) : (
+                                    <ScheduleIcon fontSize="small" color="disabled" />
+                                  )}
+                                </ListItemIcon>
+                                <ListItemText 
+                                  primary={task.name || task.title}
+                                  primaryTypographyProps={{ 
+                                    variant: 'body2',
+                                    sx: { textDecoration: task.completed ? 'line-through' : 'none' }
+                                  }}
+                                />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Alert severity="info">
+              No milestones have been defined for this collaboration. Click "Add Milestone" to create project milestones and track progress.
+            </Alert>
+          )}
+
+          {/* Quick Add Task */}
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>Quick Add Task</Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                size="small"
+                placeholder="Enter task description..."
+                sx={{ flex: 1 }}
+              />
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel>Assign to Milestone</InputLabel>
+                <Select label="Assign to Milestone">
+                  {milestones.map((m: any, i: number) => (
+                    <MenuItem key={i} value={m.id || i}>{m.name || m.title}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button variant="contained" startIcon={<AddIcon />}>
+                Add Task
+              </Button>
+            </Box>
+          </Box>
         </TabPanel>
 
         {/* Create Form Dialog */}

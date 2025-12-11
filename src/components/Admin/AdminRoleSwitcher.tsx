@@ -94,8 +94,12 @@ export default function AdminRoleSwitcher() {
     console.log('===============================');
   }, [userProfile]);
 
-  // Only show for admin users - check both role and roles array
-  const isAdmin = userProfile?.role === UserRole.ADMIN || 
+  // Only show for admin users - check both role and roles array (case-insensitive)
+  const roleUpperCase = userProfile?.role?.toUpperCase();
+  const rolesUpperCase = userProfile?.roles?.map(r => r?.toUpperCase());
+  const isAdmin = roleUpperCase === 'ADMIN' || 
+                  rolesUpperCase?.includes('ADMIN') ||
+                  userProfile?.role === UserRole.ADMIN || 
                   userProfile?.roles?.includes(UserRole.ADMIN);
 
   if (!userProfile || !isAdmin) {
