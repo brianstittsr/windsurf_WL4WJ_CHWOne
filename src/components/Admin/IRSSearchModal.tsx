@@ -379,9 +379,10 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
   };
 
   // Auto-import: Fetches and imports 25 records at a time, page by page
+  // Optimized for memory efficiency - reduces state updates and uses Set for O(1) lookups
   const handleAutoImport = async () => {
     setAutoImporting(true);
-    autoImportingRef.current = true; // Set ref for async loop tracking
+    autoImportingRef.current = true;
     setAutoImportLog([]);
     setAutoImportStats({
       totalImported: 0,
@@ -397,16 +398,27 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     let totalSkipped = 0;
     let totalFailed = 0;
     let pagesProcessed = 0;
-
+    
+    // Use Set for O(1) lookup instead of array includes
+    const importedEINsSet = new Set([...existingEINs, ...importSuccess]);
+    // Keep only last 20 log entries to reduce memory
+    const logBuffer: string[] = [];
+    
     const addLog = (message: string) => {
-      setAutoImportLog(prev => [...prev.slice(-50), message]); // Keep last 50 log entries
+      logBuffer.push(message);
+      // Only keep last 20 entries in buffer
+      if (logBuffer.length > 20) {
+        logBuffer.shift();
+      }
+      // Batch update logs less frequently
+      setAutoImportLog([...logBuffer]);
     };
 
     addLog(`Starting auto-import for ${state ? US_STATES.find(s => s.code === state)?.name : 'all states'}${autoImportStartPage > 0 ? ` from page ${autoImportStartPage + 1}` : ''}...`);
 
     while (hasMore && autoImportingRef.current) {
       try {
-        addLog(`Fetching page ${page + 1}...`);
+        addLog(`📄 Page ${page + 1}...`);
         
         // Fetch a page of results
         const response = await fetch('/api/nonprofit-search', {
@@ -424,27 +436,30 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
         const data = await response.json();
 
         if (!data.success) {
-          addLog(`Error fetching page ${page + 1}: ${data.error}`);
+          addLog(`❌ Error fetching page ${page + 1}: ${data.error}`);
           break;
         }
 
         const orgs = data.organizations || [];
-        addLog(`Found ${orgs.length} organizations on page ${page + 1}`);
-
-        // Update results display
-        setResults(orgs);
+        
+        // Update pagination info only (not results to save memory)
         setTotalResults(data.totalResults);
         setCurrentPage(data.currentPage);
         setTotalPages(data.totalPages);
 
+        let pageImported = 0;
+        let pageSkipped = 0;
+        
         // Import each organization on this page
         for (let i = 0; i < orgs.length; i++) {
+          if (!autoImportingRef.current) break; // Check for stop signal
+          
           const org = orgs[i];
           
-          // Check if already imported
-          if (existingEINs.includes(org.ein) || importSuccess.includes(org.ein)) {
+          // Check if already imported using Set (O(1) lookup)
+          if (importedEINsSet.has(org.ein)) {
             totalSkipped++;
-            addLog(`Skipped ${org.organizationName} (already imported)`);
+            pageSkipped++;
             continue;
           }
 
@@ -455,26 +470,15 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
 
             if (detailData.success && detailData.organization) {
               await onImport(detailData.organization);
-              setImportSuccess(prev => [...prev, org.ein]);
+              importedEINsSet.add(org.ein); // Add to Set instead of state array
               totalImported++;
-              addLog(`✓ Imported: ${org.organizationName}`);
+              pageImported++;
             } else {
               totalFailed++;
-              addLog(`✗ Failed to get details for ${org.organizationName}`);
             }
           } catch (err) {
             totalFailed++;
-            addLog(`✗ Error importing ${org.organizationName}: ${err instanceof Error ? err.message : 'Unknown error'}`);
           }
-
-          // Update stats
-          setAutoImportStats({
-            totalImported,
-            totalSkipped,
-            totalFailed,
-            currentPage: page,
-            pagesProcessed
-          });
 
           // Small delay to avoid rate limiting (300ms between each org)
           await new Promise(resolve => setTimeout(resolve, 300));
@@ -484,6 +488,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
         page++;
         hasMore = data.hasMore && page < data.totalPages;
 
+        // Update stats once per page (not per org) to reduce re-renders
         setAutoImportStats({
           totalImported,
           totalSkipped,
@@ -491,21 +496,29 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
           currentPage: page,
           pagesProcessed
         });
+        
+        addLog(`✅ Page ${page}: +${pageImported} imported, ${pageSkipped} skipped`);
+
+        // Update importSuccess state periodically (every 5 pages) to sync with parent
+        if (pagesProcessed % 5 === 0) {
+          setImportSuccess(Array.from(importedEINsSet).filter(ein => !existingEINs.includes(ein)));
+        }
 
         if (hasMore) {
-          addLog(`Completed page ${page}. Moving to next page...`);
           // Delay between pages (1 second)
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
       } catch (err) {
-        addLog(`Error on page ${page + 1}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        addLog(`❌ Error on page ${page + 1}: ${err instanceof Error ? err.message : 'Unknown error'}`);
         break;
       }
     }
 
-    addLog(`Auto-import complete! Imported: ${totalImported}, Skipped: ${totalSkipped}, Failed: ${totalFailed}`);
-    autoImportingRef.current = false; // Reset ref when complete
+    // Final sync of imported EINs
+    setImportSuccess(Array.from(importedEINsSet).filter(ein => !existingEINs.includes(ein)));
+    addLog(`🎉 Complete! Imported: ${totalImported}, Skipped: ${totalSkipped}, Failed: ${totalFailed}`);
+    autoImportingRef.current = false;
     setAutoImporting(false);
   };
 
