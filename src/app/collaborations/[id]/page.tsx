@@ -794,6 +794,96 @@ function CollaborationDetailContent() {
                 </Box>
               </Grid>
             </Grid>
+
+            {/* Billing & Invoicing Summary */}
+            <Divider sx={{ my: 3 }} />
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <ReceiptIcon color="primary" />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Billing & Invoicing Status</Typography>
+              </Box>
+              <Grid container spacing={2}>
+                <Grid item xs={6} sm={2.4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                      ${((grant as any).budget || 0).toLocaleString()}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Total Budget
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={6} sm={2.4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'info.main' }}>
+                      {((grant as any).invoices || []).length}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Total Invoices
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={6} sm={2.4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.50' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'warning.main' }}>
+                      ${calculateInvoiceTotals().totalInvoiced.toLocaleString()}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Invoiced
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={6} sm={2.4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'success.main' }}>
+                      ${calculateInvoiceTotals().totalPaid.toLocaleString()}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Paid
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={6} sm={2.4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.100' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                      ${calculateInvoiceTotals().remaining.toLocaleString()}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Remaining
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              {/* Invoice Status Breakdown */}
+              <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Chip 
+                  icon={<ReceiptIcon />}
+                  label={`${((grant as any).invoices || []).filter((i: any) => i.status === 'draft').length} Draft`}
+                  variant="outlined"
+                  size="small"
+                />
+                <Chip 
+                  icon={<SendIcon />}
+                  label={`${((grant as any).invoices || []).filter((i: any) => i.status === 'submitted').length} Submitted`}
+                  color="info"
+                  size="small"
+                />
+                <Chip 
+                  icon={<PaymentIcon />}
+                  label={`${((grant as any).invoices || []).filter((i: any) => i.status === 'paid').length} Paid`}
+                  color="success"
+                  size="small"
+                />
+                {((grant as any).budget || 0) > 0 && (
+                  <Chip 
+                    label={`${Math.round((calculateInvoiceTotals().totalPaid / ((grant as any).budget || 1)) * 100)}% Budget Utilized`}
+                    color={calculateInvoiceTotals().totalPaid / ((grant as any).budget || 1) > 0.8 ? 'warning' : 'default'}
+                    size="small"
+                  />
+                )}
+              </Box>
+            </Box>
           </CardContent>
         </Card>
 
