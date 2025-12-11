@@ -125,9 +125,55 @@ export default function GrantManagement() {
   };
 
   const getUpcomingReporting = (grant: ExtendedGrant) => {
-    if (!grant.reportingSchedule || grant.reportingSchedule.length === 0) return null;
-    const upcoming = grant.reportingSchedule.filter(r => !r.completed);
-    return upcoming.length > 0 ? upcoming[0] : null;
+    // First check if there's a defined reporting schedule
+    if (grant.reportingSchedule && grant.reportingSchedule.length > 0) {
+      const upcoming = grant.reportingSchedule.filter(r => !r.completed);
+      if (upcoming.length > 0) {
+        return { ...upcoming[0], source: 'schedule' };
+      }
+    }
+    
+    // Fall back to milestones if no reporting schedule is defined
+    const milestones = (grant as any).projectMilestones || [];
+    if (milestones.length > 0) {
+      const upcomingMilestones = milestones
+        .filter((m: any) => m.status !== 'completed' && m.dueDate)
+        .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+      
+      if (upcomingMilestones.length > 0) {
+        return {
+          dueDate: upcomingMilestones[0].dueDate,
+          type: upcomingMilestones[0].name || upcomingMilestones[0].title || 'Milestone',
+          source: 'milestone'
+        };
+      }
+    }
+    
+    return null;
+  };
+  
+  // Get reporting schedule items (from schedule or milestones)
+  const getReportingScheduleItems = (grant: ExtendedGrant) => {
+    // If reporting schedule exists, use it
+    if (grant.reportingSchedule && grant.reportingSchedule.length > 0) {
+      return { items: grant.reportingSchedule, source: 'schedule' };
+    }
+    
+    // Fall back to milestones
+    const milestones = (grant as any).projectMilestones || [];
+    if (milestones.length > 0) {
+      const milestoneReports = milestones
+        .filter((m: any) => m.dueDate)
+        .map((m: any) => ({
+          dueDate: m.dueDate,
+          type: m.name || m.title || 'Milestone Report',
+          completed: m.status === 'completed',
+          description: m.description
+        }));
+      return { items: milestoneReports, source: 'milestone' };
+    }
+    
+    return { items: [], source: null };
   };
 
   // Helper function to format dates (handles both Timestamp and string)
@@ -903,19 +949,44 @@ export default function GrantManagement() {
                         <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                           Contact Person: {grant.contactPerson || 'Not specified'}
                         </Typography>
-                        {upcomingReport ? (
-                          <Alert severity="info" sx={{ mt: 1 }}>
-                            Next report due: {formatDate(upcomingReport.dueDate)} ({upcomingReport.type})
-                          </Alert>
-                        ) : grant.reportingSchedule && grant.reportingSchedule.length > 0 ? (
-                          <Typography variant="body2" color="text.secondary">
-                            {grant.reportingSchedule.length} reporting items scheduled
-                          </Typography>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            No reporting schedule defined
-                          </Typography>
-                        )}
+                        {(() => {
+                          const scheduleInfo = getReportingScheduleItems(grant);
+                          if (upcomingReport) {
+                            return (
+                              <Alert severity="info" sx={{ mt: 1 }}>
+                                Next {upcomingReport.source === 'milestone' ? 'milestone' : 'report'} due: {formatDate(upcomingReport.dueDate)} ({upcomingReport.type})
+                                {upcomingReport.source === 'milestone' && (
+                                  <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                    (Based on milestone schedule)
+                                  </Typography>
+                                )}
+                              </Alert>
+                            );
+                          } else if (scheduleInfo.items.length > 0) {
+                            return (
+                              <Box>
+                                <Typography variant="body2" color="text.secondary">
+                                  {scheduleInfo.items.length} {scheduleInfo.source === 'milestone' ? 'milestone' : 'reporting'} items scheduled
+                                </Typography>
+                                {scheduleInfo.source === 'milestone' && (
+                                  <Chip 
+                                    label="Using milestone dates" 
+                                    size="small" 
+                                    variant="outlined" 
+                                    color="info"
+                                    sx={{ mt: 0.5 }}
+                                  />
+                                )}
+                              </Box>
+                            );
+                          } else {
+                            return (
+                              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                No reporting schedule or milestones defined
+                              </Typography>
+                            );
+                          }
+                        })()}
                       </Grid>
                     </Grid>
                   </AccordionDetails>
