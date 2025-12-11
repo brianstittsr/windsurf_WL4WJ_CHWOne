@@ -243,6 +243,81 @@ Return a JSON object with an "objectives" array containing 3-4 objective objects
 Return ONLY the JSON object, no additional text.`;
         break;
 
+      case 'expected_outcomes':
+        prompt = `Generate 3-4 expected outcomes for this grant project following evaluation best practices:
+
+PROJECT CONTEXT:
+- Project Title: ${proposalData.projectTitle || 'Not provided'}
+- Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+- Community Need: ${proposalData.communityNeed || 'Not provided'}
+- Target Population: ${proposalData.targetPopulation || 'Not provided'}
+- Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+
+BEST PRACTICES TO FOLLOW:
+1. Use outcome-based indicators that measure CHANGE, not just activities
+2. Ensure indicators are SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
+3. Include both quantitative AND qualitative data collection methods
+4. Plan for baseline data collection BEFORE the program starts
+5. Consider using validated assessment tools when available
+
+For each outcome, provide:
+1. outcome: The expected outcome statement (what change or benefit will occur)
+2. indicator: SMART indicator for measuring this outcome
+3. target: Specific, achievable numeric target
+4. measurementMethod: Include both quantitative and qualitative methods
+5. dataSource: Where data comes from (consider validated tools)
+6. frequency: How often measured (include baseline/pre-post)
+
+Return a JSON object with an "outcomes" array containing 3-4 outcome objects. Example:
+{
+  "outcomes": [
+    {
+      "outcome": "Participants will demonstrate improved health literacy and self-management skills",
+      "indicator": "Percentage increase in health literacy scores using validated REALM-SF assessment",
+      "target": "75% of participants will show at least 20% improvement from baseline",
+      "measurementMethod": "Pre/post validated assessment (REALM-SF) plus qualitative focus groups",
+      "dataSource": "Participant assessments at intake and program completion; quarterly focus groups",
+      "frequency": "pre-post"
+    }
+  ]
+}
+
+Return ONLY the JSON object, no additional text.`;
+        break;
+
+      case 'evaluation_plan':
+        prompt = `Generate a comprehensive evaluation plan for this grant project following best practices:
+
+PROJECT CONTEXT:
+- Project Title: ${proposalData.projectTitle || 'Not provided'}
+- Problem Statement: ${proposalData.problemStatement || 'Not provided'}
+- Community Need: ${proposalData.communityNeed || 'Not provided'}
+- Target Population: ${proposalData.targetPopulation || 'Not provided'}
+- Geographic Area: ${proposalData.geographicArea || 'Not provided'}
+- Defined Outcomes: ${(proposalData.outcomes || []).map((o: any) => o.outcome).join('; ') || 'None defined yet'}
+
+BEST PRACTICES TO INCORPORATE:
+1. Use outcome-based indicators that measure CHANGE, not just activities
+2. Ensure all indicators are SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
+3. Include both quantitative AND qualitative data collection methods
+4. Plan for baseline data collection BEFORE the program starts
+5. Consider using validated assessment tools when available
+
+Write a comprehensive evaluation plan (4-5 paragraphs) that includes:
+
+1. EVALUATION APPROACH: Describe the overall evaluation methodology (formative and summative), logic model approach, and how evaluation supports continuous improvement.
+
+2. DATA COLLECTION METHODS: Detail both quantitative methods (surveys, assessments, tracking data) AND qualitative methods (interviews, focus groups, observations). Mention specific validated tools if applicable.
+
+3. BASELINE DATA COLLECTION: Explain how baseline data will be collected BEFORE program implementation to enable meaningful comparison.
+
+4. DATA ANALYSIS & REPORTING: Describe how data will be analyzed, who will conduct analysis, and how findings will be reported to stakeholders.
+
+5. QUALITY ASSURANCE: Address data quality, validity, reliability, and how the evaluation will be used for program improvement.
+
+Write in professional grant proposal language. Be specific and actionable.`;
+        break;
+
       default:
         return NextResponse.json({
           success: false,
@@ -271,8 +346,8 @@ Return ONLY the JSON object, no additional text.`;
     const content = completion.choices[0]?.message?.content || '';
     console.log('Section generated successfully');
 
-    // Handle JSON responses for smart_goals and objectives
-    if (section === 'smart_goals' || section === 'objectives') {
+    // Handle JSON responses for smart_goals, objectives, and expected_outcomes
+    if (section === 'smart_goals' || section === 'objectives' || section === 'expected_outcomes') {
       try {
         // Try to parse JSON from the response
         const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -282,9 +357,11 @@ Return ONLY the JSON object, no additional text.`;
             success: true,
             ...parsed,
             suggestions: [
-              'Review each goal/objective for relevance to your project',
+              'Review each item for relevance to your project',
               'Adjust targets based on your capacity and timeline',
-              'Ensure measurement methods are feasible'
+              'Ensure measurement methods are feasible',
+              'Consider adding baseline data collection',
+              'Include both quantitative and qualitative methods'
             ]
           });
         }

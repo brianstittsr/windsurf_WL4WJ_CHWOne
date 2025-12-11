@@ -17,7 +17,7 @@ import {
   CircularProgress,
   Tooltip
 } from '@mui/material';
-import { Plus, Trash2, Sparkles, Target, Goal, ListChecks } from 'lucide-react';
+import { Plus, Trash2, Sparkles, Target, Goal, ListChecks, TrendingUp, ClipboardCheck } from 'lucide-react';
 import { useGrantGenerator } from '@/contexts/GrantGeneratorContext';
 
 export function GeneratorStep5Outcomes() {
@@ -25,6 +25,7 @@ export function GeneratorStep5Outcomes() {
   const [generatingEvaluation, setGeneratingEvaluation] = useState(false);
   const [generatingGoals, setGeneratingGoals] = useState(false);
   const [generatingObjectives, setGeneratingObjectives] = useState(false);
+  const [generatingOutcomes, setGeneratingOutcomes] = useState(false);
 
   const addOutcome = () => {
     const newOutcome = {
@@ -134,6 +135,62 @@ export function GeneratorStep5Outcomes() {
     }
   };
 
+  const handleGenerateOutcomes = async () => {
+    try {
+      setGeneratingOutcomes(true);
+      const response = await fetch('/api/ai/generate-proposal-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section: 'expected_outcomes',
+          proposalData
+        })
+      });
+      const result = await response.json();
+      if (result.success && result.outcomes) {
+        // Add the generated outcomes
+        const newOutcomes = result.outcomes.map((outcome: any, index: number) => ({
+          id: `outcome-${Date.now()}-${index}`,
+          outcome: outcome.outcome || outcome,
+          indicator: outcome.indicator || '',
+          measurementMethod: outcome.measurementMethod || '',
+          dataSource: outcome.dataSource || '',
+          frequency: outcome.frequency || 'quarterly',
+          target: outcome.target || ''
+        }));
+        updateProposalData({
+          outcomes: [...(proposalData.outcomes || []), ...newOutcomes]
+        });
+      }
+    } catch (error) {
+      console.error('Error generating outcomes:', error);
+    } finally {
+      setGeneratingOutcomes(false);
+    }
+  };
+
+  const handleGenerateEvaluationPlan = async () => {
+    try {
+      setGeneratingEvaluation(true);
+      const response = await fetch('/api/ai/generate-proposal-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section: 'evaluation_plan',
+          proposalData
+        })
+      });
+      const result = await response.json();
+      if (result.success && result.content) {
+        updateProposalData({ evaluationPlan: result.content });
+      }
+    } catch (error) {
+      console.error('Error generating evaluation plan:', error);
+    } finally {
+      setGeneratingEvaluation(false);
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 1 }}>
@@ -154,6 +211,18 @@ export function GeneratorStep5Outcomes() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Expected Outcomes</Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Tooltip title="AI will recommend expected outcomes with SMART indicators, measurement methods, and data sources based on best practices">
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={generatingOutcomes ? <CircularProgress size={16} color="inherit" /> : <TrendingUp size={16} />}
+                onClick={handleGenerateOutcomes}
+                disabled={generatingOutcomes || !proposalData.problemStatement}
+                size="small"
+              >
+                {generatingOutcomes ? 'Generating...' : 'AI Recommend Outcomes'}
+              </Button>
+            </Tooltip>
             <Tooltip title="AI will recommend SMART goals based on your project description, target population, and community need">
               <Button
                 variant="contained"
@@ -190,12 +259,14 @@ export function GeneratorStep5Outcomes() {
         </Box>
 
         {/* AI Generation Info */}
-        {(generatingGoals || generatingObjectives) && (
+        {(generatingGoals || generatingObjectives || generatingOutcomes) && (
           <Alert severity="info" sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CircularProgress size={16} />
               <Typography variant="body2">
-                {generatingGoals ? 'AI is generating SMART goals based on your project...' : 'AI is generating objectives based on your project...'}
+                {generatingOutcomes ? 'AI is generating expected outcomes with best practices...' :
+                 generatingGoals ? 'AI is generating SMART goals based on your project...' : 
+                 'AI is generating objectives based on your project...'}
               </Typography>
             </Box>
           </Alert>
@@ -326,26 +397,40 @@ export function GeneratorStep5Outcomes() {
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Evaluation Plan</Typography>
-          <Button
-            variant="outlined"
-            startIcon={<Sparkles />}
-            onClick={handleGenerateEvaluation}
-            disabled={generatingEvaluation || (proposalData.outcomes || []).length === 0}
-            size="small"
-          >
-            {generatingEvaluation ? 'Generating...' : 'AI Generate Plan'}
-          </Button>
+          <Tooltip title="AI will generate a comprehensive evaluation plan following best practices: outcome-based indicators, SMART criteria, quantitative & qualitative methods, baseline data collection, and validated assessment tools">
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={generatingEvaluation ? <CircularProgress size={16} color="inherit" /> : <ClipboardCheck size={16} />}
+              onClick={handleGenerateEvaluationPlan}
+              disabled={generatingEvaluation || !proposalData.problemStatement}
+              size="small"
+            >
+              {generatingEvaluation ? 'Generating...' : 'AI Recommend Evaluation Plan'}
+            </Button>
+          </Tooltip>
         </Box>
+
+        {generatingEvaluation && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={16} />
+              <Typography variant="body2">
+                AI is generating a comprehensive evaluation plan with best practices...
+              </Typography>
+            </Box>
+          </Alert>
+        )}
 
         <TextField
           fullWidth
           multiline
-          rows={6}
+          rows={8}
           label="Evaluation Plan Narrative"
           value={proposalData.evaluationPlan || ''}
           onChange={(e) => updateProposalData({ evaluationPlan: e.target.value })}
           placeholder="Describe your overall evaluation approach, including how you will use outcome data to improve the program..."
-          helperText="AI can generate this based on your outcomes, or you can write it yourself"
+          helperText="AI can generate this based on your project details and best practices, or you can write it yourself"
         />
       </Box>
 
