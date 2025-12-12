@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { UserRole } from '@/types/firebase/schema';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -95,8 +96,8 @@ function AdminDashboardContent() {
 
   // Check if user is admin based on their role in Firestore
   const isAdmin = 
-    userProfile?.role === 'ADMIN' || 
-    userProfile?.roles?.includes('ADMIN') ||
+    userProfile?.role === UserRole.ADMIN || 
+    userProfile?.roles?.includes(UserRole.ADMIN) ||
     currentUser.email === 'admin@example.com'; // Fallback for legacy admin
 
   if (!isAdmin) {
