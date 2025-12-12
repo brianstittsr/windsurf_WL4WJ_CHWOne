@@ -59,7 +59,11 @@ import {
   Person as PersonIcon,
   Work as WorkIcon,
   AttachMoney as AttachMoneyIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material';
+import { useAuth } from '@/contexts/AuthContext';
+import BillComService from '@/services/BillComService';
+import { Timestamp } from 'firebase/firestore';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -130,8 +134,11 @@ interface Collaboration {
 }
 
 export default function AdminBillComAPI() {
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [savingCredentials, setSavingCredentials] = useState(false);
+  const [loadingCredentials, setLoadingCredentials] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
@@ -147,7 +154,10 @@ export default function AdminBillComAPI() {
     orgId: '',
     environment: 'production',
   });
+  const [testCredentialsId, setTestCredentialsId] = useState<string | null>(null);
+  const [prodCredentialsId, setProdCredentialsId] = useState<string | null>(null);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [credentialsModified, setCredentialsModified] = useState(false);
   
   // Transaction Testing State
   const [testTransaction, setTestTransaction] = useState({
@@ -219,8 +229,121 @@ export default function AdminBillComAPI() {
     { id: 'collab-004', name: 'Maternal Health Support', budget: 25000, spent: 12000, remaining: 13000 },
   ]);
   
+  // Load saved credentials on mount
+  useEffect(() => {
+    const loadCredentials = async () => {
+      try {
+        setLoadingCredentials(true);
+        
+        // Load test credentials
+        const testCreds = await BillComService.getCredentials('test');
+        if (testCreds) {
+          setTestCredentials({
+            apiKey: testCreds.apiKey,
+            orgId: testCreds.organizationId,
+            environment: 'test',
+          });
+          setTestCredentialsId(testCreds.id);
+          if (testCreds.connectionStatus === 'connected') {
+            setConnectionStatus('connected');
+          }
+        }
+        
+        // Load production credentials
+        const prodCreds = await BillComService.getCredentials('production');
+        if (prodCreds) {
+          setProdCredentials({
+            apiKey: prodCreds.apiKey,
+            orgId: prodCreds.organizationId,
+            environment: 'production',
+          });
+          setProdCredentialsId(prodCreds.id);
+        }
+        
+        // Load transaction history
+        const savedTransactions = await BillComService.getTransactions();
+        if (savedTransactions.length > 0) {
+          setTransactions(savedTransactions.map(t => ({
+            id: t.id,
+            type: t.type,
+            amount: t.amount,
+            status: t.status,
+            date: t.createdAt.toDate(),
+            description: t.description,
+            environment: t.environment,
+            paymentLink: t.paymentLink,
+            recipientEmail: t.recipientEmail,
+            collaborationId: t.collaborationId,
+            chwId: t.chwId,
+          })));
+        }
+        
+      } catch (err) {
+        console.error('Error loading Bill.com credentials:', err);
+      } finally {
+        setLoadingCredentials(false);
+      }
+    };
+    
+    loadCredentials();
+  }, []);
+  
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+  };
+  
+  // Save credentials to Firebase
+  const handleSaveCredentials = async () => {
+    setSavingCredentials(true);
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      if (!currentUser?.uid) {
+        throw new Error('You must be logged in to save credentials');
+      }
+      
+      const credentials = isTestMode ? testCredentials : prodCredentials;
+      const credentialsId = isTestMode ? testCredentialsId : prodCredentialsId;
+      
+      if (!credentials.apiKey || !credentials.orgId) {
+        throw new Error('API Key and Organization ID are required');
+      }
+      
+      // Map 'checking' to 'disconnected' for storage
+      const storageStatus = connectionStatus === 'checking' ? 'disconnected' : connectionStatus;
+      
+      if (credentialsId) {
+        // Update existing credentials
+        await BillComService.updateCredentials(credentialsId, {
+          organizationId: credentials.orgId,
+          apiKey: credentials.apiKey,
+          connectionStatus: storageStatus,
+        });
+      } else {
+        // Create new credentials
+        const newId = await BillComService.saveCredentials({
+          organizationId: credentials.orgId,
+          apiKey: credentials.apiKey,
+          environment: isTestMode ? 'test' : 'production',
+          isActive: true,
+          connectionStatus: storageStatus,
+        }, currentUser.uid);
+        
+        if (isTestMode) {
+          setTestCredentialsId(newId);
+        } else {
+          setProdCredentialsId(newId);
+        }
+      }
+      
+      setCredentialsModified(false);
+      setSuccess(`${isTestMode ? 'Test' : 'Production'} credentials saved successfully`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save credentials');
+    } finally {
+      setSavingCredentials(false);
+    }
   };
   
   const handleTestConnection = async () => {
@@ -582,6 +705,7 @@ export default function AdminBillComAPI() {
                   label="Organization ID"
                   value={isTestMode ? testCredentials.orgId : prodCredentials.orgId}
                   onChange={(e) => {
+                    setCredentialsModified(true);
                     if (isTestMode) {
                       setTestCredentials({ ...testCredentials, orgId: e.target.value });
                     } else {
@@ -606,6 +730,7 @@ export default function AdminBillComAPI() {
                   type={showApiKey ? 'text' : 'password'}
                   value={isTestMode ? testCredentials.apiKey : prodCredentials.apiKey}
                   onChange={(e) => {
+                    setCredentialsModified(true);
                     if (isTestMode) {
                       setTestCredentials({ ...testCredentials, apiKey: e.target.value });
                     } else {
@@ -634,7 +759,16 @@ export default function AdminBillComAPI() {
               </Grid>
               
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    startIcon={savingCredentials ? <CircularProgress size={20} /> : <SaveIcon />}
+                    onClick={handleSaveCredentials}
+                    disabled={savingCredentials || !credentialsModified}
+                  >
+                    {savingCredentials ? 'Saving...' : 'Save Credentials'}
+                  </Button>
                   <Button
                     variant="contained"
                     startIcon={loading ? <CircularProgress size={20} /> : <CheckCircleIcon />}
@@ -647,6 +781,7 @@ export default function AdminBillComAPI() {
                     variant="outlined"
                     startIcon={<RefreshIcon />}
                     onClick={() => {
+                      setCredentialsModified(true);
                       if (isTestMode) {
                         setTestCredentials({ apiKey: '', orgId: '', environment: 'test' });
                       } else {
@@ -657,6 +792,17 @@ export default function AdminBillComAPI() {
                     Clear Credentials
                   </Button>
                 </Box>
+                {credentialsModified && (
+                  <Typography variant="caption" color="warning.main" sx={{ mt: 1, display: 'block' }}>
+                    You have unsaved changes. Click &quot;Save Credentials&quot; to persist them.
+                  </Typography>
+                )}
+                {loadingCredentials && (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    <CircularProgress size={12} sx={{ mr: 1 }} />
+                    Loading saved credentials...
+                  </Typography>
+                )}
               </Grid>
               
               <Grid item xs={12}>

@@ -524,6 +524,79 @@ export enum NotificationType {
 }
 
 // ============================================================================
+// BILL.COM INTEGRATION
+// ============================================================================
+
+export interface BillComCredentials {
+  id: string;
+  organizationId: string; // Bill.com Organization ID
+  apiKey: string; // Encrypted API Key
+  environment: 'test' | 'production';
+  isActive: boolean;
+  lastTestedAt?: Timestamp;
+  connectionStatus: 'connected' | 'disconnected' | 'error';
+  createdBy: string; // User UID who created
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface BillComInvoice {
+  id: string;
+  invoiceNumber: string;
+  payorName: string;
+  payorEmail: string;
+  amount: number;
+  description: string;
+  dueDate: Timestamp;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  paymentLink: string;
+  billComInvoiceId?: string; // ID from Bill.com API
+  paidAt?: Timestamp;
+  paidAmount?: number;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface BillComPayment {
+  id: string;
+  chwId: string;
+  chwName: string;
+  chwEmail: string;
+  collaborationId: string;
+  collaborationName: string;
+  amount: number;
+  description: string;
+  paymentMethod: 'ach' | 'check' | 'virtual_card';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  billComPaymentId?: string; // ID from Bill.com API
+  bankAccountLast4?: string;
+  processedAt?: Timestamp;
+  failureReason?: string;
+  environment: 'test' | 'production';
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface BillComTransaction {
+  id: string;
+  type: 'invoice' | 'payment' | 'chw_payment' | 'vendor';
+  amount: number;
+  status: 'pending' | 'completed' | 'failed' | 'sent';
+  description: string;
+  environment: 'test' | 'production';
+  paymentLink?: string;
+  recipientEmail?: string;
+  collaborationId?: string;
+  chwId?: string;
+  billComTransactionId?: string;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ============================================================================
 // FIRESTORE COLLECTION REFERENCES
 // ============================================================================
 
@@ -535,7 +608,11 @@ export const COLLECTIONS = {
   ORGANIZATIONS: 'organizations',
   DASHBOARD_METRICS: 'dashboardMetrics',
   ACTIVITY_LOGS: 'activityLogs',
-  NOTIFICATIONS: 'notifications'
+  NOTIFICATIONS: 'notifications',
+  BILLCOM_CREDENTIALS: 'billcomCredentials',
+  BILLCOM_INVOICES: 'billcomInvoices',
+  BILLCOM_PAYMENTS: 'billcomPayments',
+  BILLCOM_TRANSACTIONS: 'billcomTransactions'
 } as const;
 
 // ============================================================================
