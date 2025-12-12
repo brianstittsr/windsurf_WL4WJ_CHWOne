@@ -69,7 +69,7 @@ function TabPanel(props: TabPanelProps) {
 
 // Inner component that uses the auth context
 function AdminDashboardContent() {
-  const { currentUser, loading } = useAuth();
+  const { currentUser, userProfile, loading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
 
@@ -93,8 +93,11 @@ function AdminDashboardContent() {
     return null;
   }
 
-  // Check if user is admin (you would implement proper role checking here)
-  const isAdmin = currentUser.email === 'admin@example.com'; // Placeholder
+  // Check if user is admin based on their role in Firestore
+  const isAdmin = 
+    userProfile?.role === 'ADMIN' || 
+    userProfile?.roles?.includes('ADMIN') ||
+    currentUser.email === 'admin@example.com'; // Fallback for legacy admin
 
   if (!isAdmin) {
     return (
