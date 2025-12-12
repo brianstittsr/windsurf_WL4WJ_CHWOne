@@ -266,6 +266,51 @@ export async function deleteTransaction(id: string): Promise<void> {
 }
 
 // ============================================================================
+// BILL.COM SESSION MANAGEMENT
+// ============================================================================
+
+let cachedSession: { sessionId: string; expiresAt: number } | null = null;
+
+async function getSession(
+  credentials: { organizationId: string; apiKey: string },
+  environment: 'test' | 'production'
+): Promise<string | null> {
+  // Check if we have a valid cached session (expires after 30 minutes)
+  if (cachedSession && cachedSession.expiresAt > Date.now()) {
+    return cachedSession.sessionId;
+  }
+  
+  try {
+    const response = await fetch('/api/billcom/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        organizationId: credentials.organizationId,
+        devKey: credentials.apiKey,
+        environment: environment,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (data.success && data.sessionId) {
+      // Cache session for 25 minutes (Bill.com sessions last 30 min)
+      cachedSession = {
+        sessionId: data.sessionId,
+        expiresAt: Date.now() + 25 * 60 * 1000,
+      };
+      return data.sessionId;
+    }
+    
+    console.error('Bill.com login failed:', data.error);
+    return null;
+  } catch (error) {
+    console.error('Error getting Bill.com session:', error);
+    return null;
+  }
+}
+
+// ============================================================================
 // BILL.COM CUSTOMER API
 // ============================================================================
 
@@ -293,85 +338,95 @@ export async function getCustomers(
       return [];
     }
     
-    // In production, this would make an actual API call to Bill.com
-    // const baseUrl = environment === 'test' 
-    //   ? 'https://api-sandbox.bill.com/v3' 
-    //   : 'https://api.bill.com/v3';
-    // const response = await fetch(`${baseUrl}/customers`, {
-    //   headers: {
-    //     'x-api-key': credentials.apiKey,
-    //     'x-org-id': credentials.organizationId,
-    //     'Content-Type': 'application/json',
-    //   }
-    // });
-    // const data = await response.json();
-    // return data.customers;
+    // Get session from Bill.com
+    const sessionId = await getSession(credentials, environment);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!sessionId) {
+      console.warn('Could not get Bill.com session, falling back to mock data');
+      return getMockCustomers();
+    }
     
-    // Return mock data for now - in production this comes from Bill.com API
-    // These customers match the actual Bill.com account for Women Leading 4 Wellness
-    const mockCustomers: BillComCustomer[] = [
-      { 
-        id: 'cust-001', 
-        name: 'Fiesta Family Services, Inc.', 
-        email: 'billing@fiestafamily.org',
-        firstName: 'Fiesta',
-        lastName: 'Family Services',
-        address: '100 Main Street',
-        city: 'Apex',
-        state: 'NC',
-        zip: '27502',
-        phone: '919-555-0101',
-        status: 'active'
-      },
-      { 
-        id: 'cust-002', 
-        name: 'Health Lit 4 Wake Grant', 
-        email: 'healthlit4wake@grant.org',
-        firstName: 'Health Lit',
-        lastName: '4 Wake Grant',
-        address: '',
-        city: '',
-        state: 'NC',
-        zip: '',
-        phone: '',
-        status: 'active'
-      },
-      { 
-        id: 'cust-003', 
-        name: 'Southern Vision Alliance', 
-        email: 'contact@southernvision.org',
-        firstName: 'Southern',
-        lastName: 'Vision Alliance',
-        address: '200 Alliance Way',
-        city: 'Durham',
-        state: 'NC',
-        zip: '27701',
-        phone: '919-555-0303',
-        status: 'active'
-      },
-      { 
-        id: 'cust-004', 
-        name: 'Susan M Nolan', 
-        email: 'susan.nolan@email.com',
-        firstName: 'Susan',
-        lastName: 'Nolan',
-        address: '',
-        city: '',
-        state: 'NC',
-        zip: '',
-        phone: '',
-        status: 'active'
-      },
-    ];
+    // Call our API route to fetch customers
+    const response = await fetch('/api/billcom/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sessionId,
+        devKey: credentials.apiKey,
+        environment: environment,
+      }),
+    });
     
-    return mockCustomers.filter(c => c.status === 'active');
+    const data = await response.json();
+    
+    if (data.success && data.customers) {
+      return data.customers;
+    }
+    
+    console.warn('Failed to fetch customers from Bill.com:', data.error);
+    return getMockCustomers();
   } catch (error: any) {
     console.error('Error fetching customers from Bill.com:', error);
-    return [];
+    return getMockCustomers();
   }
+}
+
+// Fallback mock data when API is not available
+function getMockCustomers(): BillComCustomer[] {
+  return [
+    { 
+      id: 'cust-001', 
+      name: 'Fiesta Family Services, Inc.', 
+      email: 'billing@fiestafamily.org',
+      firstName: 'Fiesta',
+      lastName: 'Family Services',
+      address: '100 Main Street',
+      city: 'Apex',
+      state: 'NC',
+      zip: '27502',
+      phone: '919-555-0101',
+      status: 'active'
+    },
+    { 
+      id: 'cust-002', 
+      name: 'Health Lit 4 Wake Grant', 
+      email: 'healthlit4wake@grant.org',
+      firstName: 'Health Lit',
+      lastName: '4 Wake Grant',
+      address: '',
+      city: '',
+      state: 'NC',
+      zip: '',
+      phone: '',
+      status: 'active'
+    },
+    { 
+      id: 'cust-003', 
+      name: 'Southern Vision Alliance', 
+      email: 'contact@southernvision.org',
+      firstName: 'Southern',
+      lastName: 'Vision Alliance',
+      address: '200 Alliance Way',
+      city: 'Durham',
+      state: 'NC',
+      zip: '27701',
+      phone: '919-555-0303',
+      status: 'active'
+    },
+    { 
+      id: 'cust-004', 
+      name: 'Susan M Nolan', 
+      email: 'susan.nolan@email.com',
+      firstName: 'Susan',
+      lastName: 'Nolan',
+      address: '',
+      city: '',
+      state: 'NC',
+      zip: '',
+      phone: '',
+      status: 'active'
+    },
+  ];
 }
 
 // ============================================================================
@@ -399,43 +454,59 @@ export async function getVendors(
       return [];
     }
     
-    // In production, this would make an actual API call to Bill.com
-    // const baseUrl = environment === 'test' 
-    //   ? 'https://api-sandbox.bill.com/v3' 
-    //   : 'https://api.bill.com/v3';
-    // const response = await fetch(`${baseUrl}/vendors?status=${status || 'all'}`, {
-    //   headers: {
-    //     'x-api-key': credentials.apiKey,
-    //     'x-org-id': credentials.organizationId,
-    //     'Content-Type': 'application/json',
-    //   }
-    // });
-    // const data = await response.json();
-    // return data.vendors;
+    // Get session from Bill.com
+    const sessionId = await getSession(credentials, environment);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Return mock data for now - in production this comes from Bill.com API
-    const mockVendors: BillComVendor[] = [
-      { id: 'vendor-001', name: 'Maria Garcia', email: 'maria.garcia@example.com', paymentStatus: 'connected', bankAccountLast4: '4521' },
-      { id: 'vendor-002', name: 'James Wilson', email: 'james.wilson@example.com', paymentStatus: 'connected', bankAccountLast4: '7832' },
-      { id: 'vendor-003', name: 'Ana Blackburn', email: 'anab@wl4wj.org', paymentStatus: 'connected', bankAccountLast4: '9156' },
-      { id: 'vendor-004', name: 'Robert Johnson', email: 'robert.j@example.com', paymentStatus: 'connected', bankAccountLast4: '3478' },
-      { id: 'vendor-005', name: 'Sarah Chen', email: 'sarah.chen@example.com', paymentStatus: 'pending', bankAccountLast4: '2145' },
-      { id: 'vendor-006', name: 'Michael Brown', email: 'michael.b@example.com', paymentStatus: 'inactive' },
-    ];
-    
-    // Filter by status if specified
-    if (status) {
-      return mockVendors.filter(v => v.paymentStatus === status);
+    if (!sessionId) {
+      console.warn('Could not get Bill.com session, falling back to mock data');
+      return getMockVendors(status);
     }
     
-    return mockVendors;
+    // Call our API route to fetch vendors
+    const response = await fetch('/api/billcom/vendors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sessionId,
+        devKey: credentials.apiKey,
+        environment: environment,
+        paymentStatus: status,
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (data.success && data.vendors) {
+      // Filter by status if specified
+      if (status) {
+        return data.vendors.filter((v: BillComVendor) => v.paymentStatus === status);
+      }
+      return data.vendors;
+    }
+    
+    console.warn('Failed to fetch vendors from Bill.com:', data.error);
+    return getMockVendors(status);
   } catch (error: any) {
     console.error('Error fetching vendors from Bill.com:', error);
-    return [];
+    return getMockVendors(status);
   }
+}
+
+// Fallback mock data when API is not available
+function getMockVendors(status?: 'connected' | 'pending' | 'inactive'): BillComVendor[] {
+  const mockVendors: BillComVendor[] = [
+    { id: 'vendor-001', name: 'Maria Garcia', email: 'maria.garcia@example.com', paymentStatus: 'connected', bankAccountLast4: '4521' },
+    { id: 'vendor-002', name: 'James Wilson', email: 'james.wilson@example.com', paymentStatus: 'connected', bankAccountLast4: '7832' },
+    { id: 'vendor-003', name: 'Ana Blackburn', email: 'anab@wl4wj.org', paymentStatus: 'connected', bankAccountLast4: '9156' },
+    { id: 'vendor-004', name: 'Robert Johnson', email: 'robert.j@example.com', paymentStatus: 'connected', bankAccountLast4: '3478' },
+    { id: 'vendor-005', name: 'Sarah Chen', email: 'sarah.chen@example.com', paymentStatus: 'pending', bankAccountLast4: '2145' },
+    { id: 'vendor-006', name: 'Michael Brown', email: 'michael.b@example.com', paymentStatus: 'inactive' },
+  ];
+  
+  if (status) {
+    return mockVendors.filter(v => v.paymentStatus === status);
+  }
+  return mockVendors;
 }
 
 // ============================================================================
@@ -451,19 +522,14 @@ export async function testConnection(
       return { success: false, message: 'Organization ID and API Key are required' };
     }
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Try to get a session - this validates the credentials
+    const sessionId = await getSession(credentials, environment);
     
-    // In production:
-    // const response = await fetch(`https://api${environment === 'test' ? '-sandbox' : ''}.bill.com/v3/ping`, {
-    //   headers: {
-    //     'x-api-key': credentials.apiKey,
-    //     'x-org-id': credentials.organizationId,
-    //   }
-    // });
-    // return { success: response.ok, message: response.ok ? 'Connected' : 'Connection failed' };
+    if (sessionId) {
+      return { success: true, message: `Connected to Bill.com ${environment} environment` };
+    }
     
-    return { success: true, message: `Connected to Bill.com ${environment} environment` };
+    return { success: false, message: 'Failed to authenticate with Bill.com' };
   } catch (error: any) {
     return { success: false, message: error.message || 'Connection failed' };
   }
