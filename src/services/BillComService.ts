@@ -266,6 +266,127 @@ export async function deleteTransaction(id: string): Promise<void> {
 }
 
 // ============================================================================
+// BILL.COM CUSTOMER API
+// ============================================================================
+
+export interface BillComCustomer {
+  id: string;
+  name: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  phone?: string;
+  status: 'active' | 'inactive';
+}
+
+export async function getCustomers(
+  credentials: { organizationId: string; apiKey: string },
+  environment: 'test' | 'production'
+): Promise<BillComCustomer[]> {
+  try {
+    if (!credentials.organizationId || !credentials.apiKey) {
+      console.warn('Bill.com credentials not configured');
+      return [];
+    }
+    
+    // In production, this would make an actual API call to Bill.com
+    // const baseUrl = environment === 'test' 
+    //   ? 'https://api-sandbox.bill.com/v3' 
+    //   : 'https://api.bill.com/v3';
+    // const response = await fetch(`${baseUrl}/customers`, {
+    //   headers: {
+    //     'x-api-key': credentials.apiKey,
+    //     'x-org-id': credentials.organizationId,
+    //     'Content-Type': 'application/json',
+    //   }
+    // });
+    // const data = await response.json();
+    // return data.customers;
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return mock data for now - in production this comes from Bill.com API
+    const mockCustomers: BillComCustomer[] = [
+      { 
+        id: 'cust-001', 
+        name: 'Acme Healthcare Inc.', 
+        email: 'billing@acmehealthcare.com',
+        firstName: 'John',
+        lastName: 'Smith',
+        address: '123 Medical Center Dr',
+        city: 'Raleigh',
+        state: 'NC',
+        zip: '27601',
+        phone: '919-555-0101',
+        status: 'active'
+      },
+      { 
+        id: 'cust-002', 
+        name: 'Community Health Partners', 
+        email: 'accounts@chpartners.org',
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        address: '456 Wellness Way',
+        city: 'Durham',
+        state: 'NC',
+        zip: '27705',
+        phone: '919-555-0202',
+        status: 'active'
+      },
+      { 
+        id: 'cust-003', 
+        name: 'Regional Medical Foundation', 
+        email: 'finance@rmfoundation.org',
+        firstName: 'Michael',
+        lastName: 'Williams',
+        address: '789 Foundation Blvd',
+        city: 'Chapel Hill',
+        state: 'NC',
+        zip: '27514',
+        phone: '919-555-0303',
+        status: 'active'
+      },
+      { 
+        id: 'cust-004', 
+        name: 'Wake County Health Dept', 
+        email: 'billing@wakecounty.gov',
+        firstName: 'Emily',
+        lastName: 'Davis',
+        address: '10 Government Center',
+        city: 'Raleigh',
+        state: 'NC',
+        zip: '27602',
+        phone: '919-555-0404',
+        status: 'active'
+      },
+      { 
+        id: 'cust-005', 
+        name: 'Triangle Nonprofit Alliance', 
+        email: 'treasurer@trianglealliance.org',
+        firstName: 'Robert',
+        lastName: 'Brown',
+        address: '222 Alliance Ave',
+        city: 'Cary',
+        state: 'NC',
+        zip: '27511',
+        phone: '919-555-0505',
+        status: 'active'
+      },
+    ];
+    
+    return mockCustomers.filter(c => c.status === 'active');
+  } catch (error: any) {
+    console.error('Error fetching customers from Bill.com:', error);
+    return [];
+  }
+}
+
+// ============================================================================
 // BILL.COM VENDOR API
 // ============================================================================
 
@@ -387,6 +508,9 @@ const BillComService = {
   createTransaction,
   getTransactions,
   deleteTransaction,
+  
+  // Customers
+  getCustomers,
   
   // Vendors
   getVendors,

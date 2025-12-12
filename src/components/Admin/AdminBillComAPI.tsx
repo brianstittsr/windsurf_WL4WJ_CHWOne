@@ -62,7 +62,7 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import BillComService, { BillComVendor } from '@/services/BillComService';
+import BillComService, { BillComVendor, BillComCustomer } from '@/services/BillComService';
 import { CollaborationService } from '@/services/CollaborationService';
 import { Timestamp } from 'firebase/firestore';
 
@@ -197,12 +197,21 @@ export default function AdminBillComAPI() {
   const [invoiceForm, setInvoiceForm] = useState({
     payorName: '',
     payorEmail: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
     amount: '',
     description: '',
     dueDate: '',
   });
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [generatedPaymentLink, setGeneratedPaymentLink] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<BillComCustomer[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<BillComCustomer | null>(null);
   
   // CHW Payment State
   const [chwPaymentForm, setChwPaymentForm] = useState({
@@ -338,6 +347,29 @@ export default function AdminBillComAPI() {
     
     loadCollaborations();
   }, []);
+  
+  // Load customers from Bill.com when credentials are available
+  useEffect(() => {
+    const loadCustomers = async () => {
+      const credentials = isTestMode ? testCredentials : prodCredentials;
+      if (!credentials.apiKey || !credentials.orgId) return;
+      
+      try {
+        setLoadingCustomers(true);
+        const customerList = await BillComService.getCustomers(
+          { organizationId: credentials.orgId, apiKey: credentials.apiKey },
+          isTestMode ? 'test' : 'production'
+        );
+        setCustomers(customerList);
+      } catch (err) {
+        console.error('Error loading customers from Bill.com:', err);
+      } finally {
+        setLoadingCustomers(false);
+      }
+    };
+    
+    loadCustomers();
+  }, [isTestMode, testCredentials.apiKey, testCredentials.orgId, prodCredentials.apiKey, prodCredentials.orgId]);
   
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -559,10 +591,17 @@ export default function AdminBillComAPI() {
       setInvoiceForm({
         payorName: '',
         payorEmail: '',
+        firstName: '',
+        lastName: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
         amount: '',
         description: '',
         dueDate: '',
       });
+      setSelectedCustomer(null);
     } catch (err: any) {
       setError(err.message || 'Failed to send invoice');
     } finally {
@@ -909,17 +948,114 @@ export default function AdminBillComAPI() {
                 </Typography>
               </Grid>
               
+              {/* Customer Selection from Bill.com */}
+              <Grid item xs={12}>
+                <Autocomplete
+                  options={customers}
+                  loading={loadingCustomers}
+                  getOptionLabel={(option) => option.name}
+                  value={selectedCustomer}
+                  onChange={(_, newValue) => {
+                    setSelectedCustomer(newValue);
+                    if (newValue) {
+                      // Auto-populate form fields from selected customer
+                      setInvoiceForm({
+                        ...invoiceForm,
+                        payorName: newValue.name,
+                        payorEmail: newValue.email,
+                        firstName: newValue.firstName || '',
+                        lastName: newValue.lastName || '',
+                        address: newValue.address || '',
+                        city: newValue.city || '',
+                        state: newValue.state || '',
+                        zip: newValue.zip || '',
+                      });
+                    }
+                  }}
+                  noOptionsText={
+                    loadingCustomers 
+                      ? "Loading customers from Bill.com..." 
+                      : connectionStatus !== 'connected'
+                        ? "Configure Bill.com credentials first"
+                        : "No customers found"
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select Customer"
+                      placeholder="Search for a customer..."
+                      helperText="Select a customer from Bill.com to auto-populate contact details"
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <PersonIcon color="action" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                        endAdornment: (
+                          <>
+                            {loadingCustomers ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box>
+                        <Typography variant="body1">{option.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {option.email} • {option.city}, {option.state}
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  Contact Information
+                </Typography>
+              </Grid>
+              
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Payor Name"
-                  value={invoiceForm.payorName}
-                  onChange={(e) => setInvoiceForm({ ...invoiceForm, payorName: e.target.value })}
-                  placeholder="Enter payor/customer name"
+                  label="Contact First Name"
+                  value={invoiceForm.firstName}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, firstName: e.target.value })}
+                  placeholder="First name"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Contact Last Name"
+                  value={invoiceForm.lastName}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, lastName: e.target.value })}
+                  placeholder="Last name"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  type="email"
+                  value={invoiceForm.payorEmail}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, payorEmail: e.target.value })}
+                  placeholder="email@example.com"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <PersonIcon color="action" />
+                        <EmailIcon color="action" />
                       </InputAdornment>
                     ),
                   }}
@@ -929,19 +1065,48 @@ export default function AdminBillComAPI() {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Payor Email"
-                  type="email"
-                  value={invoiceForm.payorEmail}
-                  onChange={(e) => setInvoiceForm({ ...invoiceForm, payorEmail: e.target.value })}
-                  placeholder="payor@example.com"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
+                  label="Address"
+                  value={invoiceForm.address}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, address: e.target.value })}
+                  placeholder="Street address"
                 />
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={invoiceForm.city}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, city: e.target.value })}
+                  placeholder="City"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="State"
+                  value={invoiceForm.state}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, state: e.target.value })}
+                  placeholder="State"
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Zip Code"
+                  value={invoiceForm.zip}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, zip: e.target.value })}
+                  placeholder="Zip"
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  Invoice Details
+                </Typography>
               </Grid>
               
               <Grid item xs={12} md={6}>
