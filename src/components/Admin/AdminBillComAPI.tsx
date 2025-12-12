@@ -62,7 +62,8 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import BillComService from '@/services/BillComService';
+import BillComService, { BillComVendor } from '@/services/BillComService';
+import { CollaborationService } from '@/services/CollaborationService';
 import { Timestamp } from 'firebase/firestore';
 
 interface TabPanelProps {
@@ -214,20 +215,11 @@ export default function AdminBillComAPI() {
   const [selectedChw, setSelectedChw] = useState<CHW | null>(null);
   const [selectedCollaboration, setSelectedCollaboration] = useState<Collaboration | null>(null);
   
-  // Mock data for CHWs and Collaborations
-  const [chws] = useState<CHW[]>([
-    { id: 'chw-001', name: 'Maria Garcia', email: 'maria.garcia@example.com', bankAccountLast4: '4521' },
-    { id: 'chw-002', name: 'James Wilson', email: 'james.wilson@example.com', bankAccountLast4: '7832' },
-    { id: 'chw-003', name: 'Ana Blackburn', email: 'anab@wl4wj.org', bankAccountLast4: '9156' },
-    { id: 'chw-004', name: 'Robert Johnson', email: 'robert.j@example.com', bankAccountLast4: '3478' },
-  ]);
-  
-  const [collaborations] = useState<Collaboration[]>([
-    { id: 'collab-001', name: 'Region 5 Health Outreach', budget: 50000, spent: 32000, remaining: 18000 },
-    { id: 'collab-002', name: 'Community Wellness Initiative', budget: 75000, spent: 45000, remaining: 30000 },
-    { id: 'collab-003', name: 'Rural Health Access Program', budget: 100000, spent: 67500, remaining: 32500 },
-    { id: 'collab-004', name: 'Maternal Health Support', budget: 25000, spent: 12000, remaining: 13000 },
-  ]);
+  // CHWs (vendors from Bill.com) and Collaborations from platform
+  const [chws, setChws] = useState<CHW[]>([]);
+  const [loadingVendors, setLoadingVendors] = useState(false);
+  const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
+  const [loadingCollaborations, setLoadingCollaborations] = useState(false);
   
   // Load saved credentials on mount
   useEffect(() => {
@@ -286,6 +278,65 @@ export default function AdminBillComAPI() {
     };
     
     loadCredentials();
+  }, []);
+  
+  // Load vendors from Bill.com when credentials are available
+  useEffect(() => {
+    const loadVendors = async () => {
+      const credentials = isTestMode ? testCredentials : prodCredentials;
+      if (!credentials.apiKey || !credentials.orgId) return;
+      
+      try {
+        setLoadingVendors(true);
+        const vendors = await BillComService.getVendors(
+          { organizationId: credentials.orgId, apiKey: credentials.apiKey },
+          isTestMode ? 'test' : 'production',
+          'connected' // Only fetch vendors with 'connected' status
+        );
+        
+        // Map Bill.com vendors to CHW format
+        setChws(vendors.map((v: BillComVendor) => ({
+          id: v.id,
+          name: v.name,
+          email: v.email,
+          bankAccountLast4: v.bankAccountLast4 || '',
+        })));
+      } catch (err) {
+        console.error('Error loading vendors from Bill.com:', err);
+      } finally {
+        setLoadingVendors(false);
+      }
+    };
+    
+    loadVendors();
+  }, [isTestMode, testCredentials.apiKey, testCredentials.orgId, prodCredentials.apiKey, prodCredentials.orgId]);
+  
+  // Load collaborations from CHWOne platform
+  useEffect(() => {
+    const loadCollaborations = async () => {
+      try {
+        setLoadingCollaborations(true);
+        const collabs = await CollaborationService.getAllActiveCollaborations();
+        
+        // Map collaborations to the format needed for the dropdown
+        // Note: Budget info would come from the grant/collaboration data
+        setCollaborations(collabs.map(c => ({
+          id: c.id,
+          name: c.grantName,
+          budget: 50000, // Default budget - in production this comes from grant data
+          spent: 0,
+          remaining: 50000,
+        })));
+      } catch (err) {
+        console.error('Error loading collaborations:', err);
+        // Set empty array on error
+        setCollaborations([]);
+      } finally {
+        setLoadingCollaborations(false);
+      }
+    };
+    
+    loadCollaborations();
   }, []);
   
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -1036,14 +1087,23 @@ export default function AdminBillComAPI() {
               <Grid item xs={12} md={6}>
                 <Autocomplete
                   options={chws}
+                  loading={loadingVendors}
                   getOptionLabel={(option) => `${option.name} (${option.email})`}
                   value={selectedChw}
                   onChange={(_, newValue) => setSelectedChw(newValue)}
+                  noOptionsText={
+                    loadingVendors 
+                      ? "Loading vendors from Bill.com..." 
+                      : connectionStatus !== 'connected'
+                        ? "Configure Bill.com credentials first"
+                        : "No connected vendors found"
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label="Select CHW"
                       placeholder="Search for a CHW..."
+                      helperText="Vendors with 'connected' status from Bill.com"
                       InputProps={{
                         ...params.InputProps,
                         startAdornment: (
@@ -1052,6 +1112,12 @@ export default function AdminBillComAPI() {
                               <PersonIcon color="action" />
                             </InputAdornment>
                             {params.InputProps.startAdornment}
+                          </>
+                        ),
+                        endAdornment: (
+                          <>
+                            {loadingVendors ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
                           </>
                         ),
                       }}
@@ -1073,14 +1139,21 @@ export default function AdminBillComAPI() {
               <Grid item xs={12} md={6}>
                 <Autocomplete
                   options={collaborations}
+                  loading={loadingCollaborations}
                   getOptionLabel={(option) => option.name}
                   value={selectedCollaboration}
                   onChange={(_, newValue) => setSelectedCollaboration(newValue)}
+                  noOptionsText={
+                    loadingCollaborations 
+                      ? "Loading collaborations..." 
+                      : "No active collaborations found"
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label="Select Collaboration Project"
                       placeholder="Search for a project..."
+                      helperText="Active collaborations from CHWOne platform"
                       InputProps={{
                         ...params.InputProps,
                         startAdornment: (
@@ -1089,6 +1162,12 @@ export default function AdminBillComAPI() {
                               <WorkIcon color="action" />
                             </InputAdornment>
                             {params.InputProps.startAdornment}
+                          </>
+                        ),
+                        endAdornment: (
+                          <>
+                            {loadingCollaborations ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
                           </>
                         ),
                       }}

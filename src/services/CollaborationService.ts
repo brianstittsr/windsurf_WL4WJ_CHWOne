@@ -143,6 +143,31 @@ export class CollaborationService {
   }
 
   /**
+   * Get all active collaborations (for payment selection)
+   */
+  static async getAllActiveCollaborations(): Promise<GrantCollaboration[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.COLLABORATIONS),
+        where('status', 'in', ['active', 'draft']),
+        orderBy('grantName', 'asc')
+      );
+
+      const querySnapshot = await getDocs(q);
+      const collaborations: GrantCollaboration[] = [];
+
+      querySnapshot.forEach((doc) => {
+        collaborations.push(doc.data() as GrantCollaboration);
+      });
+
+      return collaborations;
+    } catch (error) {
+      console.error('Error getting all collaborations:', error);
+      return [];
+    }
+  }
+
+  /**
    * Update collaboration
    */
   static async updateCollaboration(

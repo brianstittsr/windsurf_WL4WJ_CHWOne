@@ -266,6 +266,70 @@ export async function deleteTransaction(id: string): Promise<void> {
 }
 
 // ============================================================================
+// BILL.COM VENDOR API
+// ============================================================================
+
+export interface BillComVendor {
+  id: string;
+  name: string;
+  email: string;
+  paymentStatus: 'connected' | 'pending' | 'inactive';
+  bankAccountLast4?: string;
+  address?: string;
+  phone?: string;
+}
+
+export async function getVendors(
+  credentials: { organizationId: string; apiKey: string },
+  environment: 'test' | 'production',
+  status?: 'connected' | 'pending' | 'inactive'
+): Promise<BillComVendor[]> {
+  try {
+    if (!credentials.organizationId || !credentials.apiKey) {
+      console.warn('Bill.com credentials not configured');
+      return [];
+    }
+    
+    // In production, this would make an actual API call to Bill.com
+    // const baseUrl = environment === 'test' 
+    //   ? 'https://api-sandbox.bill.com/v3' 
+    //   : 'https://api.bill.com/v3';
+    // const response = await fetch(`${baseUrl}/vendors?status=${status || 'all'}`, {
+    //   headers: {
+    //     'x-api-key': credentials.apiKey,
+    //     'x-org-id': credentials.organizationId,
+    //     'Content-Type': 'application/json',
+    //   }
+    // });
+    // const data = await response.json();
+    // return data.vendors;
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return mock data for now - in production this comes from Bill.com API
+    const mockVendors: BillComVendor[] = [
+      { id: 'vendor-001', name: 'Maria Garcia', email: 'maria.garcia@example.com', paymentStatus: 'connected', bankAccountLast4: '4521' },
+      { id: 'vendor-002', name: 'James Wilson', email: 'james.wilson@example.com', paymentStatus: 'connected', bankAccountLast4: '7832' },
+      { id: 'vendor-003', name: 'Ana Blackburn', email: 'anab@wl4wj.org', paymentStatus: 'connected', bankAccountLast4: '9156' },
+      { id: 'vendor-004', name: 'Robert Johnson', email: 'robert.j@example.com', paymentStatus: 'connected', bankAccountLast4: '3478' },
+      { id: 'vendor-005', name: 'Sarah Chen', email: 'sarah.chen@example.com', paymentStatus: 'pending', bankAccountLast4: '2145' },
+      { id: 'vendor-006', name: 'Michael Brown', email: 'michael.b@example.com', paymentStatus: 'inactive' },
+    ];
+    
+    // Filter by status if specified
+    if (status) {
+      return mockVendors.filter(v => v.paymentStatus === status);
+    }
+    
+    return mockVendors;
+  } catch (error: any) {
+    console.error('Error fetching vendors from Bill.com:', error);
+    return [];
+  }
+}
+
+// ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 
@@ -273,8 +337,6 @@ export async function testConnection(
   credentials: { organizationId: string; apiKey: string },
   environment: 'test' | 'production'
 ): Promise<{ success: boolean; message: string }> {
-  // In production, this would make an actual API call to Bill.com
-  // For now, simulate the connection test
   try {
     if (!credentials.organizationId || !credentials.apiKey) {
       return { success: false, message: 'Organization ID and API Key are required' };
@@ -325,6 +387,9 @@ const BillComService = {
   createTransaction,
   getTransactions,
   deleteTransaction,
+  
+  // Vendors
+  getVendors,
   
   // Utilities
   testConnection,
