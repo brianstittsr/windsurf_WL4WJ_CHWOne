@@ -27,6 +27,7 @@ import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
 import ClickableLink from './ClickableLink';
 import AdminProfileSwitcher from './AdminProfileSwitcher';
+import AdminRoleSwitcher from '@/components/Admin/AdminRoleSwitcher';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -419,6 +420,9 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
           </Container>
         </Box>
       )}
+
+      {/* Admin Role Switcher - Always visible for admin users */}
+      <AdminRoleSwitcher />
     </Box>
   );
 }

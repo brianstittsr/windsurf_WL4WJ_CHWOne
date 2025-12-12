@@ -256,6 +256,22 @@ function CollaborationDetailContent() {
     }
   };
 
+  const handleDeleteFormTemplate = async (form: any) => {
+    if (!grant || !confirm(`Are you sure you want to delete the form "${form.name}"?`)) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentTemplates = (grant as any).formTemplates || [];
+      const updatedTemplates = currentTemplates.filter((f: any) => f.id !== form.id);
+      
+      await updateGrant(grant.id, { formTemplates: updatedTemplates } as any);
+      setGrant({ ...grant, formTemplates: updatedTemplates } as any);
+    } catch (error) {
+      console.error('Error deleting form template:', error);
+      alert('Failed to delete form. Please try again.');
+    }
+  };
+
   // ============ MILESTONE HANDLERS ============
   const resetMilestoneForm = () => {
     setMilestoneForm({
@@ -984,9 +1000,43 @@ function CollaborationDetailContent() {
                         </Box>
                         <Chip label={form.purpose || 'data'} size="small" />
                       </Box>
-                      <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                        <Button size="small" variant="outlined" onClick={() => handleViewForm(form)}>View Form</Button>
-                        <Button size="small" variant="outlined" onClick={() => handleEditForm(form)}>Edit</Button>
+                      <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Button 
+                          size="small" 
+                          variant="outlined" 
+                          startIcon={<ViewIcon />}
+                          onClick={() => handleViewForm(form)}
+                        >
+                          View
+                        </Button>
+                        <Button 
+                          size="small" 
+                          variant="outlined" 
+                          startIcon={<EditIcon />}
+                          onClick={() => handleEditForm(form)}
+                        >
+                          Edit
+                        </Button>
+                        {form.datasetId && (
+                          <Button 
+                            size="small" 
+                            variant="outlined" 
+                            startIcon={<DatasetIcon />}
+                            color="success"
+                            onClick={() => router.push(`/datasets/${form.datasetId}`)}
+                          >
+                            Data
+                          </Button>
+                        )}
+                        <Button 
+                          size="small" 
+                          variant="outlined" 
+                          startIcon={<DeleteIcon />}
+                          color="error"
+                          onClick={() => handleDeleteFormTemplate(form)}
+                        >
+                          Delete
+                        </Button>
                       </Box>
                     </CardContent>
                   </Card>
