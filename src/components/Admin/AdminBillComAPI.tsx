@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -35,6 +35,11 @@ import {
   CircularProgress,
   Tooltip,
   InputAdornment,
+  Autocomplete,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -49,6 +54,11 @@ import {
   Visibility as VisibilityIcon,
   ContentCopy as ContentCopyIcon,
   Delete as DeleteIcon,
+  Email as EmailIcon,
+  Link as LinkIcon,
+  Person as PersonIcon,
+  Work as WorkIcon,
+  AttachMoney as AttachMoneyIcon,
 } from '@mui/icons-material';
 
 interface TabPanelProps {
@@ -74,18 +84,49 @@ function TabPanel(props: TabPanelProps) {
 
 interface Transaction {
   id: string;
-  type: 'payment' | 'invoice' | 'vendor';
+  type: 'payment' | 'invoice' | 'vendor' | 'chw_payment';
   amount: number;
-  status: 'pending' | 'completed' | 'failed';
+  status: 'pending' | 'completed' | 'failed' | 'sent';
   date: Date;
   description: string;
   environment: 'test' | 'production';
+  paymentLink?: string;
+  recipientEmail?: string;
+  collaborationId?: string;
+  chwId?: string;
 }
 
 interface APICredentials {
   apiKey: string;
   orgId: string;
   environment: 'test' | 'production';
+}
+
+interface Invoice {
+  id: string;
+  payorName: string;
+  payorEmail: string;
+  amount: number;
+  description: string;
+  dueDate: Date;
+  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  paymentLink: string;
+  createdAt: Date;
+}
+
+interface CHW {
+  id: string;
+  name: string;
+  email: string;
+  bankAccountLast4?: string;
+}
+
+interface Collaboration {
+  id: string;
+  name: string;
+  budget: number;
+  spent: number;
+  remaining: number;
 }
 
 export default function AdminBillComAPI() {
@@ -140,6 +181,43 @@ export default function AdminBillComAPI() {
   
   // Connection Status
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'checking'>('disconnected');
+  
+  // Invoice State
+  const [invoiceForm, setInvoiceForm] = useState({
+    payorName: '',
+    payorEmail: '',
+    amount: '',
+    description: '',
+    dueDate: '',
+  });
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [generatedPaymentLink, setGeneratedPaymentLink] = useState<string | null>(null);
+  
+  // CHW Payment State
+  const [chwPaymentForm, setChwPaymentForm] = useState({
+    chwId: '',
+    collaborationId: '',
+    amount: '',
+    description: '',
+    paymentMethod: 'ach',
+  });
+  const [selectedChw, setSelectedChw] = useState<CHW | null>(null);
+  const [selectedCollaboration, setSelectedCollaboration] = useState<Collaboration | null>(null);
+  
+  // Mock data for CHWs and Collaborations
+  const [chws] = useState<CHW[]>([
+    { id: 'chw-001', name: 'Maria Garcia', email: 'maria.garcia@example.com', bankAccountLast4: '4521' },
+    { id: 'chw-002', name: 'James Wilson', email: 'james.wilson@example.com', bankAccountLast4: '7832' },
+    { id: 'chw-003', name: 'Ana Blackburn', email: 'anab@wl4wj.org', bankAccountLast4: '9156' },
+    { id: 'chw-004', name: 'Robert Johnson', email: 'robert.j@example.com', bankAccountLast4: '3478' },
+  ]);
+  
+  const [collaborations] = useState<Collaboration[]>([
+    { id: 'collab-001', name: 'Region 5 Health Outreach', budget: 50000, spent: 32000, remaining: 18000 },
+    { id: 'collab-002', name: 'Community Wellness Initiative', budget: 75000, spent: 45000, remaining: 30000 },
+    { id: 'collab-003', name: 'Rural Health Access Program', budget: 100000, spent: 67500, remaining: 32500 },
+    { id: 'collab-004', name: 'Maternal Health Support', budget: 25000, spent: 12000, remaining: 13000 },
+  ]);
   
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -240,6 +318,157 @@ export default function AdminBillComAPI() {
     setSuccess('Transaction deleted');
   };
   
+  // Generate and send invoice with payment link
+  const handleSendInvoice = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    setGeneratedPaymentLink(null);
+    
+    try {
+      if (!invoiceForm.payorEmail || !invoiceForm.amount || !invoiceForm.payorName) {
+        throw new Error('Payor name, email, and amount are required');
+      }
+      
+      if (parseFloat(invoiceForm.amount) <= 0) {
+        throw new Error('Please enter a valid amount');
+      }
+      
+      // Simulate Bill.com API call to create invoice and generate payment link
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In production, you would make actual Bill.com API calls:
+      // 1. Create customer/payor if not exists
+      // 2. Create invoice
+      // 3. Generate payment link
+      // const response = await fetch('https://api.bill.com/v3/invoices', {
+      //   method: 'POST',
+      //   headers: { 'x-api-key': credentials.apiKey, 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ ... })
+      // });
+      
+      const invoiceId = `INV-${Date.now()}`;
+      const paymentLink = `https://app.bill.com/pay/${isTestMode ? 'test-' : ''}${invoiceId}`;
+      
+      const newInvoice: Invoice = {
+        id: invoiceId,
+        payorName: invoiceForm.payorName,
+        payorEmail: invoiceForm.payorEmail,
+        amount: parseFloat(invoiceForm.amount),
+        description: invoiceForm.description || 'Invoice',
+        dueDate: invoiceForm.dueDate ? new Date(invoiceForm.dueDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        status: 'sent',
+        paymentLink: paymentLink,
+        createdAt: new Date(),
+      };
+      
+      setInvoices([newInvoice, ...invoices]);
+      setGeneratedPaymentLink(paymentLink);
+      
+      // Add to transaction history
+      const newTransaction: Transaction = {
+        id: invoiceId,
+        type: 'invoice',
+        amount: parseFloat(invoiceForm.amount),
+        status: 'sent',
+        date: new Date(),
+        description: `Invoice to ${invoiceForm.payorName}: ${invoiceForm.description || 'Invoice'}`,
+        environment: isTestMode ? 'test' : 'production',
+        paymentLink: paymentLink,
+        recipientEmail: invoiceForm.payorEmail,
+      };
+      setTransactions([newTransaction, ...transactions]);
+      
+      setSuccess(`Invoice sent to ${invoiceForm.payorEmail} with payment link`);
+      
+      // Reset form
+      setInvoiceForm({
+        payorName: '',
+        payorEmail: '',
+        amount: '',
+        description: '',
+        dueDate: '',
+      });
+    } catch (err: any) {
+      setError(err.message || 'Failed to send invoice');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Pay CHW for collaboration work
+  const handlePayCHW = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      if (!selectedChw || !selectedCollaboration || !chwPaymentForm.amount) {
+        throw new Error('Please select a CHW, collaboration project, and enter an amount');
+      }
+      
+      const amount = parseFloat(chwPaymentForm.amount);
+      if (amount <= 0) {
+        throw new Error('Please enter a valid amount');
+      }
+      
+      if (amount > selectedCollaboration.remaining) {
+        throw new Error(`Amount exceeds remaining budget ($${selectedCollaboration.remaining.toLocaleString()})`);
+      }
+      
+      // Simulate Bill.com API call to process vendor payment
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In production, you would make actual Bill.com API calls:
+      // 1. Create vendor (CHW) if not exists
+      // 2. Create bill/payment
+      // 3. Process ACH or check payment
+      // const response = await fetch('https://api.bill.com/v3/vendorPayments', {
+      //   method: 'POST',
+      //   headers: { 'x-api-key': credentials.apiKey, 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ ... })
+      // });
+      
+      const paymentId = `PAY-${Date.now()}`;
+      
+      // Add to transaction history
+      const newTransaction: Transaction = {
+        id: paymentId,
+        type: 'chw_payment',
+        amount: amount,
+        status: 'completed',
+        date: new Date(),
+        description: `Payment to ${selectedChw.name} for ${selectedCollaboration.name}`,
+        environment: isTestMode ? 'test' : 'production',
+        collaborationId: selectedCollaboration.id,
+        chwId: selectedChw.id,
+      };
+      setTransactions([newTransaction, ...transactions]);
+      
+      setSuccess(`Payment of $${amount.toFixed(2)} sent to ${selectedChw.name} (Account ending in ${selectedChw.bankAccountLast4})`);
+      
+      // Reset form
+      setChwPaymentForm({
+        chwId: '',
+        collaborationId: '',
+        amount: '',
+        description: '',
+        paymentMethod: 'ach',
+      });
+      setSelectedChw(null);
+      setSelectedCollaboration(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to process CHW payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleCopyPaymentLink = (link: string) => {
+    navigator.clipboard.writeText(link);
+    setSuccess('Payment link copied to clipboard');
+  };
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -318,8 +547,10 @@ export default function AdminBillComAPI() {
       
       <Card sx={{ mb: 4 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
+          <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
             <Tab icon={<SettingsIcon />} label="API Configuration" iconPosition="start" />
+            <Tab icon={<EmailIcon />} label="Send Invoice" iconPosition="start" />
+            <Tab icon={<AttachMoneyIcon />} label="Pay CHW" iconPosition="start" />
             <Tab icon={<SendIcon />} label="Test Transactions" iconPosition="start" />
             <Tab icon={<ReceiptIcon />} label="Transaction History" iconPosition="start" />
           </Tabs>
@@ -468,8 +699,375 @@ export default function AdminBillComAPI() {
           </CardContent>
         </TabPanel>
         
-        {/* Test Transactions Tab */}
+        {/* Send Invoice Tab */}
         <TabPanel value={activeTab} index={1}>
+          <CardContent>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Send Invoice with Payment Link
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Create and send an invoice to a payor with a Bill.com payment link
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Payor Name"
+                  value={invoiceForm.payorName}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, payorName: e.target.value })}
+                  placeholder="Enter payor/customer name"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Payor Email"
+                  type="email"
+                  value={invoiceForm.payorEmail}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, payorEmail: e.target.value })}
+                  placeholder="payor@example.com"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Invoice Amount"
+                  type="number"
+                  value={invoiceForm.amount}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
+                  placeholder="0.00"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Due Date"
+                  type="date"
+                  value={invoiceForm.dueDate}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Invoice Description"
+                  multiline
+                  rows={3}
+                  value={invoiceForm.description}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })}
+                  placeholder="Describe the services or products being invoiced"
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+                  onClick={handleSendInvoice}
+                  disabled={loading || connectionStatus !== 'connected'}
+                >
+                  {loading ? 'Sending Invoice...' : 'Send Invoice & Generate Payment Link'}
+                </Button>
+                {connectionStatus !== 'connected' && (
+                  <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                    Please configure and test API connection first
+                  </Typography>
+                )}
+              </Grid>
+              
+              {generatedPaymentLink && (
+                <Grid item xs={12}>
+                  <Alert 
+                    severity="success" 
+                    icon={<LinkIcon />}
+                    action={
+                      <Button 
+                        color="inherit" 
+                        size="small" 
+                        startIcon={<ContentCopyIcon />}
+                        onClick={() => handleCopyPaymentLink(generatedPaymentLink)}
+                      >
+                        Copy Link
+                      </Button>
+                    }
+                  >
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Payment Link Generated:
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                      {generatedPaymentLink}
+                    </Typography>
+                  </Alert>
+                </Grid>
+              )}
+              
+              {invoices.length > 0 && (
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Recent Invoices
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Invoice ID</TableCell>
+                          <TableCell>Payor</TableCell>
+                          <TableCell>Amount</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell>Payment Link</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {invoices.slice(0, 5).map((invoice) => (
+                          <TableRow key={invoice.id}>
+                            <TableCell sx={{ fontFamily: 'monospace' }}>{invoice.id}</TableCell>
+                            <TableCell>
+                              <Typography variant="body2">{invoice.payorName}</Typography>
+                              <Typography variant="caption" color="text.secondary">{invoice.payorEmail}</Typography>
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>${invoice.amount.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <Chip label={invoice.status} size="small" color={invoice.status === 'paid' ? 'success' : 'warning'} />
+                            </TableCell>
+                            <TableCell>
+                              <Tooltip title="Copy Payment Link">
+                                <IconButton size="small" onClick={() => handleCopyPaymentLink(invoice.paymentLink)}>
+                                  <ContentCopyIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Grid>
+              )}
+            </Grid>
+          </CardContent>
+        </TabPanel>
+        
+        {/* Pay CHW Tab */}
+        <TabPanel value={activeTab} index={2}>
+          <CardContent>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Pay Community Health Worker
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Process payment to a CHW for services rendered on a collaboration project
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Autocomplete
+                  options={chws}
+                  getOptionLabel={(option) => `${option.name} (${option.email})`}
+                  value={selectedChw}
+                  onChange={(_, newValue) => setSelectedChw(newValue)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select CHW"
+                      placeholder="Search for a CHW..."
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <PersonIcon color="action" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box>
+                        <Typography variant="body1">{option.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {option.email} • Account ****{option.bankAccountLast4}
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Autocomplete
+                  options={collaborations}
+                  getOptionLabel={(option) => option.name}
+                  value={selectedCollaboration}
+                  onChange={(_, newValue) => setSelectedCollaboration(newValue)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select Collaboration Project"
+                      placeholder="Search for a project..."
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <WorkIcon color="action" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box sx={{ width: '100%' }}>
+                        <Typography variant="body1">{option.name}</Typography>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            Budget: ${option.budget.toLocaleString()}
+                          </Typography>
+                          <Typography variant="caption" color="success.main">
+                            Remaining: ${option.remaining.toLocaleString()}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </li>
+                  )}
+                />
+              </Grid>
+              
+              {selectedCollaboration && (
+                <Grid item xs={12}>
+                  <Alert severity="info" icon={<InfoIcon />}>
+                    <Typography variant="body2">
+                      <strong>{selectedCollaboration.name}</strong><br />
+                      Total Budget: ${selectedCollaboration.budget.toLocaleString()} | 
+                      Spent: ${selectedCollaboration.spent.toLocaleString()} | 
+                      <strong style={{ color: '#2e7d32' }}> Remaining: ${selectedCollaboration.remaining.toLocaleString()}</strong>
+                    </Typography>
+                  </Alert>
+                </Grid>
+              )}
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Payment Amount"
+                  type="number"
+                  value={chwPaymentForm.amount}
+                  onChange={(e) => setChwPaymentForm({ ...chwPaymentForm, amount: e.target.value })}
+                  placeholder="0.00"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                  helperText={selectedCollaboration ? `Max: $${selectedCollaboration.remaining.toLocaleString()}` : ''}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Payment Method</InputLabel>
+                  <Select
+                    value={chwPaymentForm.paymentMethod}
+                    label="Payment Method"
+                    onChange={(e) => setChwPaymentForm({ ...chwPaymentForm, paymentMethod: e.target.value })}
+                  >
+                    <MenuItem value="ach">ACH Bank Transfer</MenuItem>
+                    <MenuItem value="check">Physical Check</MenuItem>
+                    <MenuItem value="virtual_card">Virtual Card</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Payment Description / Memo"
+                  multiline
+                  rows={2}
+                  value={chwPaymentForm.description}
+                  onChange={(e) => setChwPaymentForm({ ...chwPaymentForm, description: e.target.value })}
+                  placeholder="e.g., Payment for home visits - November 2025"
+                />
+              </Grid>
+              
+              {selectedChw && (
+                <Grid item xs={12}>
+                  <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Payment Recipient Details
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="caption" color="text.secondary">Name</Typography>
+                        <Typography variant="body2">{selectedChw.name}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="caption" color="text.secondary">Email</Typography>
+                        <Typography variant="body2">{selectedChw.email}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="caption" color="text.secondary">Bank Account</Typography>
+                        <Typography variant="body2">****{selectedChw.bankAccountLast4}</Typography>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grid>
+              )}
+              
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  color="success"
+                  startIcon={loading ? <CircularProgress size={20} /> : <PaymentIcon />}
+                  onClick={handlePayCHW}
+                  disabled={loading || connectionStatus !== 'connected' || !selectedChw || !selectedCollaboration}
+                >
+                  {loading ? 'Processing Payment...' : 'Process CHW Payment'}
+                </Button>
+                {connectionStatus !== 'connected' && (
+                  <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                    Please configure and test API connection first
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
+          </CardContent>
+        </TabPanel>
+        
+        {/* Test Transactions Tab */}
+        <TabPanel value={activeTab} index={3}>
           <CardContent>
             <Grid container spacing={3}>
               <Grid item xs={12}>
@@ -553,7 +1151,7 @@ export default function AdminBillComAPI() {
         </TabPanel>
         
         {/* Transaction History Tab */}
-        <TabPanel value={activeTab} index={2}>
+        <TabPanel value={activeTab} index={4}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
               <Typography variant="h6">
