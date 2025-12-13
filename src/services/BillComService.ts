@@ -277,10 +277,14 @@ async function getSession(
 ): Promise<string | null> {
   // Check if we have a valid cached session (expires after 30 minutes)
   if (cachedSession && cachedSession.expiresAt > Date.now()) {
+    console.log('[BillComService] Using cached session');
     return cachedSession.sessionId;
   }
   
   try {
+    console.log('[BillComService] Requesting new session for environment:', environment);
+    console.log('[BillComService] Org ID:', credentials.organizationId);
+    
     const response = await fetch('/api/billcom/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -292,6 +296,7 @@ async function getSession(
     });
     
     const data = await response.json();
+    console.log('[BillComService] Login response:', data);
     
     if (data.success && data.sessionId) {
       // Cache session for 25 minutes (Bill.com sessions last 30 min)
@@ -299,13 +304,14 @@ async function getSession(
         sessionId: data.sessionId,
         expiresAt: Date.now() + 25 * 60 * 1000,
       };
+      console.log('[BillComService] Session obtained successfully');
       return data.sessionId;
     }
     
-    console.error('Bill.com login failed:', data.error);
+    console.error('[BillComService] Bill.com login failed:', data.error, data.hint || '');
     return null;
   } catch (error) {
-    console.error('Error getting Bill.com session:', error);
+    console.error('[BillComService] Error getting Bill.com session:', error);
     return null;
   }
 }

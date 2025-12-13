@@ -8,13 +8,24 @@ export async function POST(request: NextRequest) {
   try {
     const { organizationId, devKey, environment } = await request.json();
     
+    console.log('[Bill.com Login] Environment:', environment);
+    console.log('[Bill.com Login] Org ID provided:', !!organizationId);
+    console.log('[Bill.com Login] Dev Key provided:', !!devKey);
+    
     // Get credentials from environment variables
     const username = process.env.BILLCOM_USERNAME;
     const password = process.env.BILLCOM_PASSWORD;
     
+    console.log('[Bill.com Login] Username from env:', username ? 'SET' : 'NOT SET');
+    console.log('[Bill.com Login] Password from env:', password ? 'SET' : 'NOT SET');
+    
     if (!username || !password) {
+      console.error('[Bill.com Login] Missing credentials in environment variables');
       return NextResponse.json(
-        { error: 'Bill.com credentials not configured in environment variables' },
+        { 
+          error: 'Bill.com credentials not configured in environment variables',
+          hint: 'Add BILLCOM_USERNAME and BILLCOM_PASSWORD to your .env.local file'
+        },
         { status: 500 }
       );
     }
@@ -47,8 +58,11 @@ export async function POST(request: NextRequest) {
     
     const data = await response.json();
     
+    console.log('[Bill.com Login] Full response:', JSON.stringify(data, null, 2));
+    
     if (data.response_status === 0) {
       // Success
+      console.log('[Bill.com Login] SUCCESS - Session obtained');
       return NextResponse.json({
         success: true,
         sessionId: data.response_data.sessionId,
@@ -56,6 +70,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Error from Bill.com
+      console.error('[Bill.com Login] FAILED:', data.response_message);
       return NextResponse.json(
         { 
           success: false,
@@ -66,7 +81,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error: any) {
-    console.error('Bill.com login error:', error);
+    console.error('[Bill.com Login] Exception:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to authenticate with Bill.com' },
       { status: 500 }
