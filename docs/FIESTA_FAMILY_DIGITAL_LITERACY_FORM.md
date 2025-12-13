@@ -9,6 +9,55 @@
 
 ---
 
+## QR Code Self-Check-In Feature
+
+### Overview
+Students can sign into each class by scanning a QR code with their smartphone. This provides a contactless, efficient way to track attendance.
+
+### How It Works
+
+1. **Instructor Setup (Before Class)**
+   - Instructor opens the class attendance page in CHWOne
+   - Clicks "Generate Class QR Code" for the specific class (1-6)
+   - Displays QR code on screen or prints it for the classroom
+
+2. **Student Check-In (During Class)**
+   - Student scans QR code with smartphone camera
+   - Opens a mobile-friendly check-in page
+   - Student enters their registered email or phone number
+   - System looks up their record and marks them present
+   - Confirmation message displays: "✓ You're checked in for Class X"
+
+3. **Automatic Recording**
+   - Timestamp automatically recorded
+   - Student's attendance record updated in real-time
+   - Instructor sees live attendance count on their dashboard
+
+### QR Code Types
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| **Class-Specific QR** | Unique QR for each class session | Display at start of each class |
+| **Student-Specific QR** | Unique QR per student | Student shows QR, instructor scans |
+| **Universal Check-In QR** | Single QR, student selects class | Permanent poster in classroom |
+
+### Mobile Check-In Page Features
+
+- **Auto-detect language** based on phone settings (English/Spanish)
+- **Simple interface** - just email/phone lookup
+- **Offline support** - queues check-in if no internet, syncs when connected
+- **Confirmation screen** with class details and timestamp
+- **Error handling** - "Email not found" prompts registration link
+
+### Security Features
+
+- QR codes can be **time-limited** (valid only during class hours)
+- **Location verification** (optional) - GPS check to ensure student is at venue
+- **Duplicate prevention** - Can't check in twice for same class
+- **Audit trail** - All check-ins logged with device info
+
+---
+
 ## Form Structure
 
 ### Section 1: General Information (Información General)
@@ -25,7 +74,14 @@
 
 ### Section 2: Class Attendance (Asistencia a Clases)
 
-**Design:** Each class has a "Mark Present" button that timestamps attendance when clicked.
+**Design:** Two attendance options:
+1. **Instructor marks present** - Click "Mark Present" button to timestamp attendance
+2. **Student self-check-in** - Student scans QR code with smartphone
+
+**QR Code Check-In Flow:**
+```
+[QR Code Scanned] → [Mobile Page Opens] → [Student Enters Email/Phone] → [System Finds Record] → [Marks Present + Timestamp] → [Confirmation]
+```
 
 #### Class 1 (Clase 1)
 - **Unidad 1:** Introducción a Navegando el Mundo Digital
