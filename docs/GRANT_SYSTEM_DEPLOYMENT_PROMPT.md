@@ -1,23 +1,23 @@
-# Grant Management System - AI Deployment Prompt
+# Proposal & Agreement Management System - AI Deployment Prompt
 
 ## Purpose
-This prompt enables an AI assistant to deploy a **Grant Analyzer and Grant Creator system** into a new web application. The AI will first analyze the target system's existing architecture, then integrate the grant management components in a way that leverages existing dropdowns, data models, and UI patterns.
+This prompt enables an AI assistant to deploy a **Document Analyzer, Proposal Creator, and Agreement Creator system** into a new web application. The AI will first analyze the target system's existing architecture, then integrate the proposal/agreement management components in a way that leverages existing dropdowns, data models, and UI patterns.
 
-The system also generates **professional grant submission documents** in both Markdown and branded PDF formats based on grant deliverables.
+The system also generates **professional proposal/agreement submission documents** in both Markdown and branded PDF formats based on deliverables, with **DocuSeal integration** for digital signatures and automated document filing.
 
 ---
 
 ## SYSTEM OVERVIEW
 
-You are deploying a comprehensive **Grant Management System** with two core modules:
+You are deploying a comprehensive **Proposal & Agreement Management System** with three core modules:
 
-### 1. Grant Analyzer (AI-Powered Document Analysis)
-- Uploads grant documents (PDF, Word, text)
-- Uses OpenAI GPT-4o to extract and structure grant information
+### 1. Document Analyzer (AI-Powered Document Analysis)
+- Uploads documents (PDF, Word, text) - grants, RFPs, RFIs, contracts
+- Uses OpenAI GPT-4o to extract and structure information
 - Auto-populates wizard steps with extracted data
 - Generates forms, dashboards, and project plans
 
-### 2. Grant Creator Wizard (7-Step Process)
+### 2. Proposal Creator Wizard (8-Step Process)
 - Step 1: Basic Info & Document Upload
 - Step 2: Entity Details (Collaborating Organizations)
 - Step 3: Data Collection Methods
@@ -25,6 +25,13 @@ You are deploying a comprehensive **Grant Management System** with two core modu
 - Step 5: Review & Analysis
 - Step 6: Form Generator
 - Step 7: AI Dashboard Configuration
+- Step 8: Export & Digital Signature (DocuSeal)
+
+### 3. Agreement Creator Wizard
+- Creates formal agreements between parties
+- Generates contracts, MOUs, partnership agreements
+- Integrates with DocuSeal for digital signatures
+- Auto-files signed documents to appropriate folders
 
 ---
 
@@ -34,10 +41,11 @@ You are deploying a comprehensive **Grant Management System** with two core modu
 
 ### 1. Existing Data Models
 Ask the user or analyze the codebase for:
-- User/Organization models (to link grants)
+- User/Organization models (to link proposals/agreements)
 - Existing form/survey systems (to integrate or replace)
 - Dashboard/reporting infrastructure
 - File storage configuration
+- Document management system (for signed agreement storage)
 
 ### 2. Existing Dropdown Lists
 Identify and catalog existing lists that should be reused:
@@ -70,18 +78,19 @@ Understand:
 
 ## DATA MODELS TO IMPLEMENT
 
-### Grant (Core Entity)
+### Proposal (Core Entity)
 ```typescript
-interface Grant {
+interface Proposal {
   id: string;
   name: string;
   description: string;
+  type: 'grant' | 'rfp_response' | 'rfi_response' | 'contract' | 'agreement' | 'mou';
   startDate: string;           // YYYY-MM-DD
   endDate: string;             // YYYY-MM-DD
   fundingSource: string;       // Use existing funding source dropdown if available
-  grantNumber: string;
+  referenceNumber: string;     // Grant number, contract number, etc.
   totalBudget: number;
-  status: 'draft' | 'active' | 'inactive' | 'completed';
+  status: 'draft' | 'pending_signature' | 'active' | 'inactive' | 'completed';
   organizationId: string;      // Link to existing organization model
   
   // Nested data
@@ -94,10 +103,67 @@ interface Grant {
   dashboardMetrics: DashboardMetric[];
   
   // Metadata
-  documents: GrantDocument[];
+  documents: ProposalDocument[];
   entityRelationshipNotes: string;
   createdAt: Date;
   updatedAt: Date;
+  
+  // Digital Signature Integration
+  docuSealSubmissionId?: string;
+  signatureStatus?: 'not_sent' | 'pending' | 'partially_signed' | 'completed' | 'declined';
+  signedDocumentUrl?: string;
+  signedAt?: Date;
+}
+```
+
+### Agreement (Core Entity)
+```typescript
+interface Agreement {
+  id: string;
+  name: string;
+  type: 'service_agreement' | 'partnership_mou' | 'subcontract' | 'vendor_agreement' | 'employment' | 'nda' | 'other';
+  description: string;
+  parties: AgreementParty[];
+  effectiveDate: string;
+  expirationDate?: string;
+  terms: string;
+  totalValue?: number;
+  status: 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated';
+  linkedProposalId?: string;   // Optional link to parent proposal
+  
+  // Digital Signature
+  docuSealSubmissionId?: string;
+  signatureStatus: 'not_sent' | 'pending' | 'partially_signed' | 'completed' | 'declined';
+  signers: Signer[];
+  
+  // Document Storage
+  draftDocumentUrl?: string;
+  signedDocumentUrl?: string;
+  filedLocation?: string;      // Path in document management system
+  filedUnderPersonId?: string; // Person this agreement is filed under
+  
+  createdAt: Date;
+  updatedAt: Date;
+  signedAt?: Date;
+}
+
+interface AgreementParty {
+  id: string;
+  name: string;
+  role: 'primary' | 'secondary' | 'witness';
+  organizationName?: string;
+  email: string;
+  phone?: string;
+  address?: string;
+}
+
+interface Signer {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  signedAt?: Date;
+  status: 'pending' | 'signed' | 'declined';
 }
 ```
 
@@ -249,15 +315,16 @@ If no dashboard exists:
 
 ## AI ANALYSIS API
 
-### Endpoint: `/api/ai/analyze-grant`
+### Endpoint: `/api/ai/analyze-document`
 
 **Request:**
 ```typescript
-POST /api/ai/analyze-grant
+POST /api/ai/analyze-document
 Content-Type: multipart/form-data
 
 {
-  file: File  // PDF, DOCX, or TXT
+  file: File;                  // PDF, DOCX, or TXT
+  documentType?: 'grant' | 'rfp' | 'rfi' | 'contract' | 'agreement' | 'auto';  // 'auto' for AI detection
 }
 ```
 
@@ -265,11 +332,12 @@ Content-Type: multipart/form-data
 ```typescript
 {
   success: boolean;
+  detectedType: string;        // AI-detected document type
   data: {
-    grantTitle: string;
+    title: string;
     description: string;
     fundingSource: string;
-    grantNumber: string;
+    referenceNumber: string;
     startDate: string;
     endDate: string;
     totalBudget: number;
@@ -319,20 +387,23 @@ Content-Type: multipart/form-data
 
 ### OpenAI Prompt Structure
 The AI analysis uses a comprehensive prompt that:
-1. Extracts exact information from documents
-2. Intelligently infers missing data
-3. Maps requirements to platform capabilities
-4. Generates forms with appropriate field types
-5. Creates dashboard configurations linked to forms
+1. Detects document type (grant, RFP, RFI, contract, agreement)
+2. Extracts exact information from documents
+3. Intelligently infers missing data
+4. Maps requirements to platform capabilities
+5. Generates forms with appropriate field types
+6. Creates dashboard configurations linked to forms
+7. Identifies signature requirements and parties
 
 **Key AI Instructions:**
 - Extract ONLY from document text (no fabrication)
 - Use exact organization names as written
 - Convert dates to YYYY-MM-DD format
 - Convert budgets to numbers (remove $ and commas)
-- Create 4-6 milestones spanning grant period
-- Generate 2-3 forms per grant
+- Create 4-6 milestones spanning project period
+- Generate 2-3 forms per proposal
 - Link all dashboard elements to form datasets
+- Identify all parties requiring signatures
 
 ---
 
@@ -343,8 +414,9 @@ The AI analysis uses a comprehensive prompt that:
 // Features:
 // - File upload (PDF, DOCX, TXT)
 // - Text paste option
-// - AI analysis trigger
-// - Basic grant fields (name, description, dates, budget)
+// - Document type selection (grant, RFP, RFI, contract, agreement)
+// - AI analysis trigger with auto-detection
+// - Basic fields (name, description, dates, budget)
 // - Progress indicator during analysis
 ```
 
@@ -407,6 +479,19 @@ The AI analysis uses a comprehensive prompt that:
 // - Data tables with sorting/filtering
 // - Real-time refresh configuration
 // - All elements linked to form datasets
+```
+
+### Step 8: Export & Digital Signature
+```typescript
+// Features:
+// - Preview generated documents
+// - Configure branding options
+// - Select export format (Markdown, PDF, both)
+// - DocuSeal integration for digital signatures
+// - Configure signers and signature order
+// - Send for signature via email
+// - Track signature status
+// - Auto-file signed documents
 ```
 
 ---
@@ -491,16 +576,20 @@ The AI analysis uses a comprehensive prompt that:
 - [ ] Implement CRUD services
 
 ### Phase 3: API Layer
-- [ ] Implement `/api/ai/analyze-grant` endpoint
+- [ ] Implement `/api/ai/analyze-document` endpoint
 - [ ] Set up OpenAI integration
 - [ ] Implement PDF text extraction
-- [ ] Create grant CRUD endpoints
+- [ ] Create proposal/agreement CRUD endpoints
+- [ ] Implement DocuSeal API integration
+- [ ] Create webhook endpoint for signature notifications
 
 ### Phase 4: UI Components
-- [ ] Create GrantWizard container
-- [ ] Implement all 7 wizard steps
+- [ ] Create ProposalWizard container
+- [ ] Create AgreementWizard container
+- [ ] Implement all 8 wizard steps
 - [ ] Build FormBuilder component
 - [ ] Create Dashboard components
+- [ ] Build DocuSeal signature UI
 - [ ] Integrate with existing UI library
 
 ### Phase 5: Integration
@@ -509,6 +598,8 @@ The AI analysis uses a comprehensive prompt that:
 - [ ] Integrate existing dropdowns
 - [ ] Add navigation routes
 - [ ] Implement permissions
+- [ ] Configure DocuSeal webhooks
+- [ ] Set up document filing automation
 
 ### Phase 6: Testing
 - [ ] Test document upload/analysis
@@ -516,6 +607,8 @@ The AI analysis uses a comprehensive prompt that:
 - [ ] Test dashboard rendering
 - [ ] Validate data persistence
 - [ ] Check dropdown integration
+- [ ] Test DocuSeal signature flow
+- [ ] Verify signed document auto-filing
 
 ---
 
@@ -530,6 +623,12 @@ NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 FIREBASE_PRIVATE_KEY=
+
+# DocuSeal Integration (Digital Signatures)
+DOCUSEAL_API_KEY=
+DOCUSEAL_API_URL=https://api.docuseal.co
+DOCUSEAL_WEBHOOK_SECRET=
+NEXT_PUBLIC_APP_URL=https://your-app.com  # For webhook callbacks
 ```
 
 ---
@@ -538,41 +637,55 @@ FIREBASE_PRIVATE_KEY=
 
 ### Context Provider
 ```typescript
-// GrantWizardContext.tsx
+// ProposalWizardContext.tsx
 import { createContext, useContext, useState } from 'react';
 
-interface GrantWizardContextType {
+interface ProposalWizardContextType {
   currentStep: number;
-  grantData: Partial<Grant>;
-  updateGrantData: (data: Partial<Grant>) => void;
-  analyzeDocument: (file: File) => Promise<AnalysisResult>;
-  submitGrant: () => Promise<string>;
+  proposalData: Partial<Proposal>;
+  updateProposalData: (data: Partial<Proposal>) => void;
+  analyzeDocument: (file: File, type?: string) => Promise<AnalysisResult>;
+  submitProposal: () => Promise<string>;
+  sendForSignature: (signers: Signer[]) => Promise<SignatureResult>;
   // ... additional methods
 }
 
-export const GrantWizardProvider = ({ children }) => {
-  const [grantData, setGrantData] = useState<Partial<Grant>>({});
+export const ProposalWizardProvider = ({ children }) => {
+  const [proposalData, setProposalData] = useState<Partial<Proposal>>({});
   
-  const analyzeDocument = async (file: File) => {
+  const analyzeDocument = async (file: File, type?: string) => {
     const formData = new FormData();
     formData.append('file', file);
+    if (type) formData.append('documentType', type);
     
-    const response = await fetch('/api/ai/analyze-grant', {
+    const response = await fetch('/api/ai/analyze-document', {
       method: 'POST',
       body: formData,
     });
     
     const result = await response.json();
     if (result.success) {
-      // Map AI response to grant data structure
-      setGrantData(prev => ({
+      setProposalData(prev => ({
         ...prev,
-        name: result.data.grantTitle,
+        name: result.data.title,
+        type: result.detectedType,
         description: result.data.description,
         // ... map all fields
       }));
     }
     return result;
+  };
+  
+  const sendForSignature = async (signers: Signer[]) => {
+    const response = await fetch('/api/docuseal/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        proposalId: proposalData.id,
+        signers,
+      }),
+    });
+    return response.json();
   };
   
   // ... rest of implementation
@@ -587,7 +700,7 @@ import { useSystemConfig } from '@/hooks/useSystemConfig';
 function EntityRoleSelect({ value, onChange }) {
   const { organizationRoles } = useSystemConfig();
   
-  // Map system roles to grant entity roles
+  // Map system roles to proposal entity roles
   const roleOptions = organizationRoles?.length > 0
     ? organizationRoles.map(r => ({ value: r.id, label: r.name }))
     : [
@@ -600,6 +713,22 @@ function EntityRoleSelect({ value, onChange }) {
   
   return (
     <Select value={value} onChange={onChange} options={roleOptions} />
+  );
+}
+
+// Document type dropdown
+function DocumentTypeSelect({ value, onChange }) {
+  const documentTypes = [
+    { value: 'grant', label: 'Grant Application' },
+    { value: 'rfp_response', label: 'RFP Response' },
+    { value: 'rfi_response', label: 'RFI Response' },
+    { value: 'contract', label: 'Contract' },
+    { value: 'agreement', label: 'Agreement' },
+    { value: 'mou', label: 'Memorandum of Understanding' },
+  ];
+  
+  return (
+    <Select value={value} onChange={onChange} options={documentTypes} />
   );
 }
 ```
@@ -618,43 +747,51 @@ function EntityRoleSelect({ value, onChange }) {
 8. **Do you have an OpenAI API key configured?**
 9. **What chart library do you prefer?**
 10. **Are there any specific compliance requirements?**
+11. **Do you have a DocuSeal account for digital signatures?**
+12. **Where should signed agreements be stored?** (folder structure)
+13. **How should signed documents be filed?** (by person, by project, by date)
 
 ---
 
 ## SUCCESS CRITERIA
 
 The deployment is successful when:
-1. ✅ Users can upload grant documents and get AI analysis
-2. ✅ All 7 wizard steps function correctly
+1. ✅ Users can upload documents (grants, RFPs, contracts) and get AI analysis
+2. ✅ All 8 wizard steps function correctly
 3. ✅ Forms are generated with appropriate field types
 4. ✅ Dashboard displays metrics linked to form data
 5. ✅ Existing system dropdowns are integrated
-6. ✅ Grants are saved to the database
+6. ✅ Proposals/agreements are saved to the database
 7. ✅ Navigation and permissions work correctly
 8. ✅ UI matches the target system's design patterns
-9. ✅ Markdown export generates complete grant documentation
+9. ✅ Markdown export generates complete documentation
 10. ✅ Branded PDF submission documents are professionally formatted
+11. ✅ DocuSeal integration sends documents for digital signature
+12. ✅ Signed documents are automatically filed in correct location
+13. ✅ Signature status is tracked and displayed in UI
 
 ---
 
-## GRANT DOCUMENT GENERATION
+## DOCUMENT GENERATION & DIGITAL SIGNATURES
 
 ### Overview
-The system generates two types of exportable grant documents:
+The system generates exportable documents and manages digital signatures:
 1. **Markdown File** - Portable, version-controllable documentation
 2. **Branded Professional PDF** - Funder-ready submission document
+3. **DocuSeal Integration** - Digital signature workflow with auto-filing
 
 ### Document Generation API
 
-#### Endpoint: `/api/grants/export`
+#### Endpoint: `/api/documents/export`
 
 **Request:**
 ```typescript
-POST /api/grants/export
+POST /api/documents/export
 Content-Type: application/json
 
 {
-  grantId: string;
+  documentId: string;          // Proposal or Agreement ID
+  documentType: 'proposal' | 'agreement';
   format: 'markdown' | 'pdf' | 'both';
   branding?: {
     organizationName: string;
@@ -670,6 +807,7 @@ Content-Type: application/json
   };
   includeAppendices?: boolean;
   includeBudgetDetails?: boolean;
+  prepareForSignature?: boolean;  // Generate signature-ready PDF
 }
 ```
 
@@ -680,7 +818,433 @@ Content-Type: application/json
   markdown?: string;           // Raw markdown content
   markdownUrl?: string;        // Download URL for .md file
   pdfUrl?: string;             // Download URL for branded PDF
+  signatureReadyPdfUrl?: string; // PDF prepared for DocuSeal
   generatedAt: string;
+}
+```
+
+---
+
+---
+
+## DOCUSEAL INTEGRATION
+
+### Overview
+DocuSeal provides digital signature capabilities for proposals and agreements. The integration supports:
+- Sending documents for signature via email
+- Multiple signers with defined order
+- Real-time signature status tracking
+- Webhook notifications for signature events
+- Automatic filing of signed documents
+
+### DocuSeal API Endpoints
+
+#### 1. Create Submission (Send for Signature)
+
+**Endpoint:** `/api/docuseal/send`
+
+**Request:**
+```typescript
+POST /api/docuseal/send
+Content-Type: application/json
+
+{
+  documentId: string;          // Proposal or Agreement ID
+  documentType: 'proposal' | 'agreement';
+  templateId?: string;         // Optional DocuSeal template ID
+  signers: Array<{
+    name: string;
+    email: string;
+    role: string;              // e.g., "Client", "Contractor", "Witness"
+    order?: number;            // Signing order (1, 2, 3...)
+  }>;
+  message?: string;            // Custom email message
+  expiresIn?: number;          // Days until expiration
+  sendEmail?: boolean;         // Default: true
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean;
+  submissionId: string;        // DocuSeal submission ID
+  signingUrls: Array<{         // Direct signing URLs (if sendEmail: false)
+    email: string;
+    url: string;
+  }>;
+  status: 'pending';
+}
+```
+
+#### 2. Check Signature Status
+
+**Endpoint:** `/api/docuseal/status/[submissionId]`
+
+**Response:**
+```typescript
+{
+  success: boolean;
+  submissionId: string;
+  status: 'pending' | 'partially_signed' | 'completed' | 'declined' | 'expired';
+  signers: Array<{
+    name: string;
+    email: string;
+    status: 'pending' | 'signed' | 'declined';
+    signedAt?: string;
+  }>;
+  completedAt?: string;
+  documentUrl?: string;        // Signed document URL (when completed)
+}
+```
+
+#### 3. Webhook Handler
+
+**Endpoint:** `/api/docuseal/webhook`
+
+Handles DocuSeal webhook events:
+- `submission.completed` - All parties have signed
+- `submission.partially_signed` - Some parties have signed
+- `submission.declined` - A party declined to sign
+- `submission.expired` - Submission expired
+
+```typescript
+// Webhook payload
+{
+  event: 'submission.completed' | 'submission.partially_signed' | 'submission.declined' | 'submission.expired';
+  data: {
+    submission_id: string;
+    status: string;
+    completed_at?: string;
+    documents: Array<{
+      name: string;
+      url: string;
+    }>;
+    submitters: Array<{
+      email: string;
+      status: string;
+      completed_at?: string;
+    }>;
+  };
+}
+```
+
+### DocuSeal Service Implementation
+
+```typescript
+// services/DocuSealService.ts
+import axios from 'axios';
+
+const DOCUSEAL_API_URL = process.env.DOCUSEAL_API_URL || 'https://api.docuseal.co';
+const DOCUSEAL_API_KEY = process.env.DOCUSEAL_API_KEY;
+
+export class DocuSealService {
+  private static headers = {
+    'X-Auth-Token': DOCUSEAL_API_KEY,
+    'Content-Type': 'application/json',
+  };
+
+  // Create a submission from a PDF
+  static async createSubmission(params: {
+    pdfUrl: string;
+    signers: Array<{ name: string; email: string; role: string; order?: number }>;
+    message?: string;
+    expiresIn?: number;
+  }) {
+    const response = await axios.post(
+      `${DOCUSEAL_API_URL}/submissions`,
+      {
+        template_id: null,  // Using PDF directly
+        send_email: true,
+        submitters: params.signers.map((signer, index) => ({
+          name: signer.name,
+          email: signer.email,
+          role: signer.role,
+          order: signer.order || index + 1,
+        })),
+        message: params.message,
+        expire_at: params.expiresIn 
+          ? new Date(Date.now() + params.expiresIn * 24 * 60 * 60 * 1000).toISOString()
+          : undefined,
+        documents: [{ url: params.pdfUrl }],
+      },
+      { headers: this.headers }
+    );
+    return response.data;
+  }
+
+  // Get submission status
+  static async getSubmissionStatus(submissionId: string) {
+    const response = await axios.get(
+      `${DOCUSEAL_API_URL}/submissions/${submissionId}`,
+      { headers: this.headers }
+    );
+    return response.data;
+  }
+
+  // Download signed document
+  static async downloadSignedDocument(submissionId: string): Promise<Buffer> {
+    const response = await axios.get(
+      `${DOCUSEAL_API_URL}/submissions/${submissionId}/documents/download`,
+      { headers: this.headers, responseType: 'arraybuffer' }
+    );
+    return Buffer.from(response.data);
+  }
+}
+```
+
+---
+
+## SIGNED DOCUMENT AUTO-FILING
+
+### Overview
+When a document is signed via DocuSeal, the system automatically:
+1. Downloads the signed PDF
+2. Stores it in the document management system
+3. Files it under the appropriate person/project
+4. Updates the proposal/agreement record
+
+### Filing Structure
+
+```
+Documents/
+├── Incoming Signed Agreements/
+│   ├── [Year]/
+│   │   ├── [Month]/
+│   │   │   ├── [PersonName]_[AgreementType]_[Date].pdf
+│   │   │   └── ...
+│   │   └── ...
+│   └── ...
+├── Proposals/
+│   ├── [Year]/
+│   │   ├── Grants/
+│   │   ├── RFP_Responses/
+│   │   └── Contracts/
+│   └── ...
+└── Agreements/
+    ├── Active/
+    ├── Expired/
+    └── Terminated/
+```
+
+### Auto-Filing Service
+
+```typescript
+// services/DocumentFilingService.ts
+
+interface FilingOptions {
+  documentType: 'proposal' | 'agreement';
+  documentId: string;
+  signedPdfBuffer: Buffer;
+  filedUnderPersonId?: string;
+  filedUnderPersonName?: string;
+}
+
+export class DocumentFilingService {
+  // File a signed document
+  static async fileSignedDocument(options: FilingOptions): Promise<string> {
+    const { documentType, documentId, signedPdfBuffer, filedUnderPersonId, filedUnderPersonName } = options;
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const dateStr = now.toISOString().split('T')[0];
+    
+    // Determine file path
+    let filePath: string;
+    let fileName: string;
+    
+    if (documentType === 'agreement') {
+      const agreement = await AgreementService.getById(documentId);
+      const personName = filedUnderPersonName || 'Unknown';
+      const sanitizedName = personName.replace(/[^a-zA-Z0-9]/g, '_');
+      
+      fileName = `${sanitizedName}_${agreement.type}_${dateStr}.pdf`;
+      filePath = `Documents/Incoming Signed Agreements/${year}/${month}/${fileName}`;
+    } else {
+      const proposal = await ProposalService.getById(documentId);
+      const typeFolder = proposal.type === 'grant' ? 'Grants' 
+        : proposal.type === 'rfp_response' ? 'RFP_Responses' 
+        : 'Contracts';
+      
+      fileName = `${proposal.referenceNumber || proposal.id}_signed_${dateStr}.pdf`;
+      filePath = `Documents/Proposals/${year}/${typeFolder}/${fileName}`;
+    }
+    
+    // Upload to storage (Firebase, S3, etc.)
+    const downloadUrl = await StorageService.uploadFile(filePath, signedPdfBuffer, 'application/pdf');
+    
+    // Update the document record
+    if (documentType === 'agreement') {
+      await AgreementService.update(documentId, {
+        signedDocumentUrl: downloadUrl,
+        filedLocation: filePath,
+        filedUnderPersonId,
+        signedAt: now,
+        status: 'active',
+        signatureStatus: 'completed',
+      });
+    } else {
+      await ProposalService.update(documentId, {
+        signedDocumentUrl: downloadUrl,
+        signedAt: now,
+        signatureStatus: 'completed',
+      });
+    }
+    
+    return downloadUrl;
+  }
+}
+```
+
+### Webhook Handler for Auto-Filing
+
+```typescript
+// app/api/docuseal/webhook/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { DocuSealService } from '@/services/DocuSealService';
+import { DocumentFilingService } from '@/services/DocumentFilingService';
+import crypto from 'crypto';
+
+export async function POST(request: NextRequest) {
+  const body = await request.text();
+  const signature = request.headers.get('X-DocuSeal-Signature');
+  
+  // Verify webhook signature
+  const expectedSignature = crypto
+    .createHmac('sha256', process.env.DOCUSEAL_WEBHOOK_SECRET!)
+    .update(body)
+    .digest('hex');
+  
+  if (signature !== expectedSignature) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  }
+  
+  const payload = JSON.parse(body);
+  
+  if (payload.event === 'submission.completed') {
+    const submissionId = payload.data.submission_id;
+    
+    // Find the associated document
+    const document = await findDocumentBySubmissionId(submissionId);
+    
+    if (document) {
+      // Download the signed PDF
+      const signedPdf = await DocuSealService.downloadSignedDocument(submissionId);
+      
+      // Auto-file the document
+      await DocumentFilingService.fileSignedDocument({
+        documentType: document.type,
+        documentId: document.id,
+        signedPdfBuffer: signedPdf,
+        filedUnderPersonId: document.primaryContactId,
+        filedUnderPersonName: document.primaryContactName,
+      });
+      
+      console.log(`✅ Signed document filed: ${document.id}`);
+    }
+  }
+  
+  return NextResponse.json({ received: true });
+}
+```
+
+---
+
+## SIGNATURE UI COMPONENT
+
+```typescript
+// components/SignatureManager.tsx
+import { useState, useEffect } from 'react';
+
+interface SignatureManagerProps {
+  documentId: string;
+  documentType: 'proposal' | 'agreement';
+  onSignatureComplete?: (signedUrl: string) => void;
+}
+
+export function SignatureManager({ documentId, documentType, onSignatureComplete }: SignatureManagerProps) {
+  const [signers, setSigners] = useState<Signer[]>([]);
+  const [status, setStatus] = useState<string>('not_sent');
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  
+  // Add a signer
+  const addSigner = () => {
+    setSigners([...signers, { id: generateId(), name: '', email: '', role: '', order: signers.length + 1 }]);
+  };
+  
+  // Send for signature
+  const sendForSignature = async () => {
+    const response = await fetch('/api/docuseal/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        documentId,
+        documentType,
+        signers,
+      }),
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      setSubmissionId(result.submissionId);
+      setStatus('pending');
+    }
+  };
+  
+  // Poll for status updates
+  useEffect(() => {
+    if (!submissionId || status === 'completed') return;
+    
+    const interval = setInterval(async () => {
+      const response = await fetch(`/api/docuseal/status/${submissionId}`);
+      const result = await response.json();
+      
+      setStatus(result.status);
+      setSigners(result.signers);
+      
+      if (result.status === 'completed' && result.documentUrl) {
+        onSignatureComplete?.(result.documentUrl);
+        clearInterval(interval);
+      }
+    }, 10000); // Poll every 10 seconds
+    
+    return () => clearInterval(interval);
+  }, [submissionId, status]);
+  
+  return (
+    <div className="signature-manager">
+      <h3>Digital Signature</h3>
+      
+      {status === 'not_sent' && (
+        <>
+          <div className="signers-list">
+            {signers.map((signer, index) => (
+              <SignerRow
+                key={signer.id}
+                signer={signer}
+                onChange={(updated) => updateSigner(index, updated)}
+                onRemove={() => removeSigner(index)}
+              />
+            ))}
+          </div>
+          
+          <Button onClick={addSigner}>Add Signer</Button>
+          <Button onClick={sendForSignature} disabled={signers.length === 0}>
+            Send for Signature
+          </Button>
+        </>
+      )}
+      
+      {status !== 'not_sent' && (
+        <SignatureStatusDisplay
+          status={status}
+          signers={signers}
+          submissionId={submissionId}
+        />
+      )}
+    </div>
+  );
 }
 ```
 
@@ -691,7 +1255,7 @@ Content-Type: application/json
 The generated Markdown file follows this structure:
 
 ```markdown
-# [Grant Title]
+# [Document Title]
 
 ## Executive Summary
 [AI-generated summary of grant purpose, goals, and expected outcomes]
@@ -771,8 +1335,14 @@ The generated Markdown file follows this structure:
 - Appendix C: Letters of Support
 - Appendix D: Data Collection Forms
 
+## Signature Block
+
+| Party | Role | Status | Signed Date |
+|-------|------|--------|-------------|
+| [signer.name] | [signer.role] | [signer.status] | [signer.signedAt] |
+
 ---
-*Generated on [date] | Grant Management System*
+*Generated on [date] | Proposal & Agreement Management System*
 ```
 
 ---
@@ -1039,19 +1609,22 @@ async function generateBrandedPDF(grant: Grant, branding: BrandingConfig): Promi
 
 ---
 
-### Wizard Step 8: Export & Submission (NEW)
+### Wizard Step 8: Export & Digital Signature (ENHANCED)
 
-Add a new wizard step for document generation:
+The final wizard step for document generation and signature:
 
 ```typescript
-// Step 8: Export & Submission
+// Step 8: Export & Digital Signature
 // Features:
 // - Preview generated documents
 // - Configure branding options
 // - Select export format (Markdown, PDF, both)
 // - Download generated files
-// - Email submission option
-// - Track submission history
+// - DocuSeal integration for digital signatures
+// - Add signers with roles and order
+// - Send for signature via email
+// - Track signature status in real-time
+// - Auto-file signed documents
 ```
 
 **Step 8 UI:**
@@ -1060,4 +1633,12 @@ Add a new wizard step for document generation:
 - Export format selection
 - Deliverables checklist
 - Download buttons
-- Submission tracking
+- **Signature Section:**
+  - Signer management (add/remove/reorder)
+  - Role assignment for each signer
+  - Custom email message
+  - Expiration date setting
+  - "Send for Signature" button
+  - Real-time signature status tracker
+  - Signed document download
+  - Filing location indicator
