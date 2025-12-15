@@ -1,7 +1,9 @@
 # Grant Management System - AI Deployment Prompt
 
 ## Purpose
-This prompt enables an AI assistant to deploy the CHWOne Grant Analyzer and Grant Creator system into a new web application. The AI will first analyze the target system's existing architecture, then integrate the grant management components in a way that leverages existing dropdowns, data models, and UI patterns.
+This prompt enables an AI assistant to deploy a **Grant Analyzer and Grant Creator system** into a new web application. The AI will first analyze the target system's existing architecture, then integrate the grant management components in a way that leverages existing dropdowns, data models, and UI patterns.
+
+The system also generates **professional grant submission documents** in both Markdown and branded PDF formats based on grant deliverables.
 
 ---
 
@@ -630,3 +632,432 @@ The deployment is successful when:
 6. ✅ Grants are saved to the database
 7. ✅ Navigation and permissions work correctly
 8. ✅ UI matches the target system's design patterns
+9. ✅ Markdown export generates complete grant documentation
+10. ✅ Branded PDF submission documents are professionally formatted
+
+---
+
+## GRANT DOCUMENT GENERATION
+
+### Overview
+The system generates two types of exportable grant documents:
+1. **Markdown File** - Portable, version-controllable documentation
+2. **Branded Professional PDF** - Funder-ready submission document
+
+### Document Generation API
+
+#### Endpoint: `/api/grants/export`
+
+**Request:**
+```typescript
+POST /api/grants/export
+Content-Type: application/json
+
+{
+  grantId: string;
+  format: 'markdown' | 'pdf' | 'both';
+  branding?: {
+    organizationName: string;
+    logoUrl?: string;
+    primaryColor?: string;      // Hex color for headers
+    secondaryColor?: string;    // Hex color for accents
+    contactInfo?: {
+      address: string;
+      phone: string;
+      email: string;
+      website: string;
+    };
+  };
+  includeAppendices?: boolean;
+  includeBudgetDetails?: boolean;
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean;
+  markdown?: string;           // Raw markdown content
+  markdownUrl?: string;        // Download URL for .md file
+  pdfUrl?: string;             // Download URL for branded PDF
+  generatedAt: string;
+}
+```
+
+---
+
+### Markdown Export Structure
+
+The generated Markdown file follows this structure:
+
+```markdown
+# [Grant Title]
+
+## Executive Summary
+[AI-generated summary of grant purpose, goals, and expected outcomes]
+
+## Grant Information
+| Field | Value |
+|-------|-------|
+| Grant Number | [grantNumber] |
+| Funding Source | [fundingSource] |
+| Total Budget | $[totalBudget] |
+| Project Period | [startDate] to [endDate] |
+| Status | [status] |
+
+## Project Description
+[Full grant description]
+
+## Collaborating Organizations
+
+### Lead Organization
+- **Name:** [entity.name]
+- **Contact:** [entity.contactName] ([entity.contactEmail])
+- **Responsibilities:** [entity.responsibilities]
+
+### Partner Organizations
+[Repeat for each partner]
+
+## Project Timeline & Milestones
+
+| Milestone | Due Date | Status | Responsible Parties |
+|-----------|----------|--------|--------------------|
+| [name] | [dueDate] | [status] | [responsibleParties] |
+
+### Milestone Details
+#### [Milestone 1 Name]
+- **Description:** [description]
+- **Dependencies:** [dependencies]
+- **Deliverables:** [extracted deliverables]
+
+## Data Collection Plan
+
+### [Method 1 Name]
+- **Description:** [description]
+- **Frequency:** [frequency]
+- **Responsible Entity:** [responsibleEntity]
+- **Data Points:** [dataPoints]
+- **Tools/Methods:** [tools]
+
+## Reporting Requirements
+
+| Report Type | Frequency | Due Date | Description |
+|-------------|-----------|----------|-------------|
+| [type] | [frequency] | [dueDate] | [description] |
+
+## Budget Summary
+
+| Category | Amount | Percentage |
+|----------|--------|------------|
+| Personnel | $X | X% |
+| Equipment | $X | X% |
+| Supplies | $X | X% |
+| Travel | $X | X% |
+| Other | $X | X% |
+| **Total** | **$[totalBudget]** | **100%** |
+
+## Performance Metrics & KPIs
+
+| Metric | Target | Current | Status |
+|--------|--------|---------|--------|
+| [name] | [target] | [value] | [status] |
+
+## Risk Assessment
+[AI-generated risk analysis based on grant data]
+
+## Appendices
+- Appendix A: Detailed Budget Breakdown
+- Appendix B: Staff Qualifications
+- Appendix C: Letters of Support
+- Appendix D: Data Collection Forms
+
+---
+*Generated on [date] | Grant Management System*
+```
+
+---
+
+### Branded Professional PDF Format
+
+The PDF export creates a funder-ready submission document with:
+
+#### Cover Page
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│              [ORGANIZATION LOGO]            │
+│                                             │
+│  ─────────────────────────────────────────  │
+│                                             │
+│            [GRANT TITLE]                    │
+│                                             │
+│     A Proposal Submitted to:                │
+│        [FUNDING SOURCE]                     │
+│                                             │
+│     Grant Number: [GRANT NUMBER]            │
+│                                             │
+│     Project Period:                         │
+│     [START DATE] - [END DATE]               │
+│                                             │
+│     Total Budget Request: $[BUDGET]         │
+│                                             │
+│  ─────────────────────────────────────────  │
+│                                             │
+│     Submitted by:                           │
+│     [LEAD ORGANIZATION NAME]                │
+│     [ADDRESS]                               │
+│     [PHONE] | [EMAIL]                       │
+│     [WEBSITE]                               │
+│                                             │
+│     Submission Date: [DATE]                 │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+#### Document Sections
+
+1. **Table of Contents** (auto-generated with page numbers)
+
+2. **Executive Summary** (1 page)
+   - Project overview
+   - Key objectives
+   - Expected outcomes
+   - Budget summary
+
+3. **Organizational Capacity** (1-2 pages)
+   - Lead organization background
+   - Partner organizations
+   - Relevant experience
+   - Staff qualifications
+
+4. **Statement of Need** (1-2 pages)
+   - Problem description
+   - Target population
+   - Geographic scope
+   - Supporting data
+
+5. **Project Description** (3-5 pages)
+   - Goals and objectives
+   - Activities and methods
+   - Timeline with milestones
+   - Deliverables matrix
+
+6. **Evaluation Plan** (1-2 pages)
+   - Data collection methods
+   - Performance metrics
+   - Reporting schedule
+   - Quality assurance
+
+7. **Budget Narrative** (2-3 pages)
+   - Line item justification
+   - Cost allocation
+   - In-kind contributions
+   - Sustainability plan
+
+8. **Appendices**
+   - Detailed budget tables
+   - Organizational chart
+   - Letters of commitment
+   - Resumes/CVs
+   - Data collection instruments
+
+#### PDF Styling Options
+
+```typescript
+interface PDFBrandingConfig {
+  // Header/Footer
+  headerLogo: string;           // URL to logo image
+  headerHeight: number;         // pixels
+  footerText: string;           // e.g., "Confidential - [Org Name]"
+  pageNumbers: boolean;
+  
+  // Colors
+  primaryColor: string;         // Section headers
+  secondaryColor: string;       // Subheaders, accents
+  accentColor: string;          // Highlights, callouts
+  
+  // Typography
+  headingFont: string;          // e.g., "Georgia", "Arial"
+  bodyFont: string;             // e.g., "Times New Roman", "Calibri"
+  fontSize: number;             // Base font size (pt)
+  
+  // Layout
+  margins: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+  
+  // Sections to include
+  includeCoverPage: boolean;
+  includeTableOfContents: boolean;
+  includeAppendices: boolean;
+}
+```
+
+---
+
+### Deliverables Matrix Generation
+
+The system auto-generates a deliverables matrix from milestones:
+
+```typescript
+interface Deliverable {
+  id: string;
+  name: string;
+  description: string;
+  milestone: string;            // Linked milestone
+  dueDate: string;
+  responsibleParty: string;
+  verificationMethod: string;   // How completion is verified
+  status: 'pending' | 'in_progress' | 'submitted' | 'approved';
+  submissionDate?: string;
+  approvalDate?: string;
+  notes?: string;
+}
+
+// Auto-generated from milestones
+function generateDeliverablesMatrix(grant: Grant): Deliverable[] {
+  return grant.projectMilestones.map(milestone => ({
+    id: generateId(),
+    name: milestone.name,
+    description: milestone.description,
+    milestone: milestone.name,
+    dueDate: milestone.dueDate,
+    responsibleParty: milestone.responsibleParties.join(', '),
+    verificationMethod: inferVerificationMethod(milestone),
+    status: mapMilestoneStatus(milestone.status),
+  }));
+}
+```
+
+#### Deliverables Table in Export
+
+| # | Deliverable | Description | Due Date | Responsible | Verification | Status |
+|---|-------------|-------------|----------|-------------|--------------|--------|
+| 1 | Program Launch | Complete setup and begin services | 2024-03-31 | Lead Org | Launch report | Pending |
+| 2 | Q1 Report | First quarterly progress report | 2024-04-15 | Lead Org | Submitted report | Pending |
+| 3 | Mid-Year Evaluation | Program assessment at 6 months | 2024-07-31 | Evaluator | Evaluation report | Pending |
+
+---
+
+### Export UI Component
+
+```typescript
+// GrantExportDialog.tsx
+interface GrantExportDialogProps {
+  grant: Grant;
+  onExport: (options: ExportOptions) => Promise<void>;
+}
+
+function GrantExportDialog({ grant, onExport }: GrantExportDialogProps) {
+  const [format, setFormat] = useState<'markdown' | 'pdf' | 'both'>('both');
+  const [includeBranding, setIncludeBranding] = useState(true);
+  const [includeAppendices, setIncludeAppendices] = useState(true);
+  
+  return (
+    <Dialog>
+      <DialogTitle>Export Grant Document</DialogTitle>
+      <DialogContent>
+        {/* Format Selection */}
+        <FormControl>
+          <FormLabel>Export Format</FormLabel>
+          <RadioGroup value={format} onChange={setFormat}>
+            <Radio value="markdown" label="Markdown (.md)" />
+            <Radio value="pdf" label="Branded PDF" />
+            <Radio value="both" label="Both Formats" />
+          </RadioGroup>
+        </FormControl>
+        
+        {/* Branding Options (for PDF) */}
+        {format !== 'markdown' && (
+          <BrandingOptions
+            enabled={includeBranding}
+            onToggle={setIncludeBranding}
+          />
+        )}
+        
+        {/* Content Options */}
+        <FormControlLabel
+          control={<Checkbox checked={includeAppendices} />}
+          label="Include Appendices"
+        />
+        
+        {/* Preview */}
+        <DocumentPreview grant={grant} format={format} />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => onExport({ format, includeBranding, includeAppendices })}>
+          Export
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+```
+
+---
+
+### PDF Generation Libraries
+
+Recommended libraries for PDF generation:
+
+| Library | Use Case | Notes |
+|---------|----------|-------|
+| **@react-pdf/renderer** | React-based PDF generation | Best for complex layouts |
+| **pdfmake** | Declarative PDF creation | Good for tables and forms |
+| **puppeteer** | HTML to PDF conversion | Best for exact styling |
+| **jsPDF** | Client-side generation | Lightweight, basic features |
+
+**Recommended Approach:**
+```typescript
+// Server-side PDF generation with Puppeteer
+import puppeteer from 'puppeteer';
+
+async function generateBrandedPDF(grant: Grant, branding: BrandingConfig): Promise<Buffer> {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  
+  // Generate HTML from grant data
+  const html = renderGrantToHTML(grant, branding);
+  
+  await page.setContent(html, { waitUntil: 'networkidle0' });
+  
+  const pdf = await page.pdf({
+    format: 'Letter',
+    margin: branding.margins,
+    displayHeaderFooter: true,
+    headerTemplate: generateHeader(branding),
+    footerTemplate: generateFooter(branding),
+  });
+  
+  await browser.close();
+  return pdf;
+}
+```
+
+---
+
+### Wizard Step 8: Export & Submission (NEW)
+
+Add a new wizard step for document generation:
+
+```typescript
+// Step 8: Export & Submission
+// Features:
+// - Preview generated documents
+// - Configure branding options
+// - Select export format (Markdown, PDF, both)
+// - Download generated files
+// - Email submission option
+// - Track submission history
+```
+
+**Step 8 UI:**
+- Document preview panel
+- Branding configuration (logo, colors, fonts)
+- Export format selection
+- Deliverables checklist
+- Download buttons
+- Submission tracking
