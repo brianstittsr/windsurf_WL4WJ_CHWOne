@@ -44,12 +44,14 @@ export function CarouselSlide({ slide, isActive, onCTAClick }: CarouselSlideProp
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
           {/* Left Image */}
           {slide.imageUrl && slide.imagePosition === 'left' && (
-            <div className="w-full lg:w-2/5 flex-shrink-0">
-              <img
-                src={slide.imageUrl}
-                alt=""
-                className="w-full max-w-md mx-auto rounded-2xl shadow-2xl"
-              />
+            <div className="w-full lg:w-2/5 flex-shrink-0 flex items-center justify-center">
+              <div className="w-[280px] h-[350px] md:w-[320px] md:h-[400px] relative overflow-hidden rounded-2xl shadow-2xl">
+                <img
+                  src={slide.imageUrl}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
             </div>
           )}
 
@@ -147,12 +149,14 @@ export function CarouselSlide({ slide, isActive, onCTAClick }: CarouselSlideProp
 
           {/* Right Image */}
           {slide.imageUrl && slide.imagePosition === 'right' && (
-            <div className="w-full lg:w-2/5 flex-shrink-0">
-              <img
-                src={slide.imageUrl}
-                alt=""
-                className="w-full max-w-md mx-auto rounded-2xl shadow-2xl"
-              />
+            <div className="w-full lg:w-2/5 flex-shrink-0 flex items-center justify-center">
+              <div className="w-[280px] h-[350px] md:w-[320px] md:h-[400px] relative overflow-hidden rounded-2xl shadow-2xl">
+                <img
+                  src={slide.imageUrl}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
             </div>
           )}
         </div>

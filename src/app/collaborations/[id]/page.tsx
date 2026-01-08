@@ -2533,168 +2533,212 @@ function CollaborationDetailContent() {
         <Dialog 
           open={showProgramDialog} 
           onClose={() => setShowProgramDialog(false)}
-          maxWidth="md"
+          maxWidth="sm"
           fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              overflow: 'hidden'
+            }
+          }}
         >
-          <DialogTitle>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <SchoolIcon color="secondary" />
-              Create Program Form
+          {/* Header */}
+          <Box sx={{ 
+            background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+            color: 'white',
+            px: 3,
+            py: 2
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <SchoolIcon />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Create Program Form
+              </Typography>
             </Box>
-          </DialogTitle>
-          <DialogContent>
-            <Alert severity="info" sx={{ mb: 3, mt: 1 }}>
+          </Box>
+          
+          <DialogContent sx={{ p: 3 }}>
+            <Alert 
+              severity="info" 
+              sx={{ 
+                mb: 3, 
+                borderRadius: 2,
+                '& .MuiAlert-message': { fontSize: '0.875rem' }
+              }}
+            >
               Program forms create multi-level datasets for tracking data at the instructor, student, and nonprofit levels.
-              This enables comprehensive reporting and analytics across all program participants.
             </Alert>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Program Name"
-                  value={newProgramForm.name}
-                  onChange={(e) => setNewProgramForm({ ...newProgramForm, name: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  value={newProgramForm.description}
-                  onChange={(e) => setNewProgramForm({ ...newProgramForm, description: e.target.value })}
-                  multiline
-                  rows={3}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Program Type</InputLabel>
-                  <Select
-                    value={newProgramForm.programType}
-                    label="Program Type"
-                    onChange={(e) => setNewProgramForm({ ...newProgramForm, programType: e.target.value as ProgramType })}
-                  >
-                    <MenuItem value="digital_literacy">Digital Literacy Program</MenuItem>
-                    <MenuItem value="health_education">Health Education Program</MenuItem>
-                    <MenuItem value="workforce_development">Workforce Development Program</MenuItem>
-                    <MenuItem value="community_outreach">Community Outreach Program</MenuItem>
-                    <MenuItem value="youth_program">Youth Program</MenuItem>
-                    <MenuItem value="senior_services">Senior Services Program</MenuItem>
-                    <MenuItem value="custom">Custom Program</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <TextField
+                fullWidth
+                label="Program Name"
+                value={newProgramForm.name}
+                onChange={(e) => setNewProgramForm({ ...newProgramForm, name: e.target.value })}
+                required
+                size="small"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+              />
+              <TextField
+                fullWidth
+                label="Description"
+                value={newProgramForm.description}
+                onChange={(e) => setNewProgramForm({ ...newProgramForm, description: e.target.value })}
+                multiline
+                rows={2}
+                size="small"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+              />
+              <FormControl fullWidth size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}>
+                <InputLabel>Program Type</InputLabel>
+                <Select
+                  value={newProgramForm.programType}
+                  label="Program Type"
+                  onChange={(e) => setNewProgramForm({ ...newProgramForm, programType: e.target.value as ProgramType })}
+                >
+                  <MenuItem value="digital_literacy">Digital Literacy Program</MenuItem>
+                  <MenuItem value="health_education">Health Education Program</MenuItem>
+                  <MenuItem value="workforce_development">Workforce Development Program</MenuItem>
+                  <MenuItem value="community_outreach">Community Outreach Program</MenuItem>
+                  <MenuItem value="youth_program">Youth Program</MenuItem>
+                  <MenuItem value="senior_services">Senior Services Program</MenuItem>
+                  <MenuItem value="custom">Custom Program</MenuItem>
+                </Select>
+              </FormControl>
 
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              {/* Enable Datasets Section */}
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'text.primary' }}>
                   Enable Datasets
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Select which datasets to create for this program. Each dataset will have pre-configured fields for tracking relevant data.
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                  Select which datasets to create for this program.
                 </Typography>
-              </Grid>
+              </Box>
 
               {/* Instructor Dataset Toggle */}
-              <Grid item xs={12}>
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    bgcolor: newProgramForm.enableInstructorDataset ? 'primary.50' : 'grey.100',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onClick={() => setNewProgramForm({ ...newProgramForm, enableInstructorDataset: !newProgramForm.enableInstructorDataset })}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>I</Avatar>
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        Instructor Dataset
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Track instructor information, certifications, classes taught, and students trained
-                      </Typography>
-                    </Box>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 2, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  bgcolor: newProgramForm.enableInstructorDataset ? '#eff6ff' : '#f9fafb',
+                  border: '1px solid',
+                  borderColor: newProgramForm.enableInstructorDataset ? '#3b82f6' : '#e5e7eb',
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: '#3b82f6' }
+                }}
+                onClick={() => setNewProgramForm({ ...newProgramForm, enableInstructorDataset: !newProgramForm.enableInstructorDataset })}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: '#3b82f6', width: 36, height: 36, fontSize: '0.875rem' }}>I</Avatar>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Instructor Dataset
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Track instructor info, certifications, classes taught
+                    </Typography>
                   </Box>
-                  <Chip 
-                    label={newProgramForm.enableInstructorDataset ? 'Enabled' : 'Disabled'} 
-                    color={newProgramForm.enableInstructorDataset ? 'primary' : 'default'}
-                  />
-                </Paper>
-              </Grid>
+                </Box>
+                <Chip 
+                  label={newProgramForm.enableInstructorDataset ? 'Enabled' : 'Disabled'} 
+                  size="small"
+                  sx={{ 
+                    bgcolor: newProgramForm.enableInstructorDataset ? '#3b82f6' : '#e5e7eb',
+                    color: newProgramForm.enableInstructorDataset ? 'white' : '#6b7280',
+                    fontWeight: 500
+                  }}
+                />
+              </Paper>
 
               {/* Student Dataset Toggle */}
-              <Grid item xs={12}>
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    bgcolor: newProgramForm.enableStudentDataset ? 'success.50' : 'grey.100',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onClick={() => setNewProgramForm({ ...newProgramForm, enableStudentDataset: !newProgramForm.enableStudentDataset })}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: 'success.main' }}>S</Avatar>
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        Student Dataset
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Track student enrollment, progress, assessments, completion, and satisfaction
-                      </Typography>
-                    </Box>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 2, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  bgcolor: newProgramForm.enableStudentDataset ? '#f0fdf4' : '#f9fafb',
+                  border: '1px solid',
+                  borderColor: newProgramForm.enableStudentDataset ? '#22c55e' : '#e5e7eb',
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: '#22c55e' }
+                }}
+                onClick={() => setNewProgramForm({ ...newProgramForm, enableStudentDataset: !newProgramForm.enableStudentDataset })}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: '#22c55e', width: 36, height: 36, fontSize: '0.875rem' }}>S</Avatar>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Student Dataset
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Track enrollment, progress, completion, satisfaction
+                    </Typography>
                   </Box>
-                  <Chip 
-                    label={newProgramForm.enableStudentDataset ? 'Enabled' : 'Disabled'} 
-                    color={newProgramForm.enableStudentDataset ? 'success' : 'default'}
-                  />
-                </Paper>
-              </Grid>
+                </Box>
+                <Chip 
+                  label={newProgramForm.enableStudentDataset ? 'Enabled' : 'Disabled'} 
+                  size="small"
+                  sx={{ 
+                    bgcolor: newProgramForm.enableStudentDataset ? '#22c55e' : '#e5e7eb',
+                    color: newProgramForm.enableStudentDataset ? 'white' : '#6b7280',
+                    fontWeight: 500
+                  }}
+                />
+              </Paper>
 
               {/* Nonprofit Dataset Toggle */}
-              <Grid item xs={12}>
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    bgcolor: newProgramForm.enableNonprofitDataset ? 'warning.50' : 'grey.100',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onClick={() => setNewProgramForm({ ...newProgramForm, enableNonprofitDataset: !newProgramForm.enableNonprofitDataset })}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: 'warning.main' }}>N</Avatar>
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        Nonprofit Dataset
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Aggregate reporting at the organization level with totals, metrics, and outcomes
-                      </Typography>
-                    </Box>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 2, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  bgcolor: newProgramForm.enableNonprofitDataset ? '#fefce8' : '#f9fafb',
+                  border: '1px solid',
+                  borderColor: newProgramForm.enableNonprofitDataset ? '#f59e0b' : '#e5e7eb',
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: '#f59e0b' }
+                }}
+                onClick={() => setNewProgramForm({ ...newProgramForm, enableNonprofitDataset: !newProgramForm.enableNonprofitDataset })}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar sx={{ bgcolor: '#f59e0b', width: 36, height: 36, fontSize: '0.875rem' }}>N</Avatar>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Nonprofit Dataset
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Aggregate reporting with totals, metrics, outcomes
+                    </Typography>
                   </Box>
-                  <Chip 
-                    label={newProgramForm.enableNonprofitDataset ? 'Enabled' : 'Disabled'} 
-                    color={newProgramForm.enableNonprofitDataset ? 'warning' : 'default'}
-                  />
-                </Paper>
-              </Grid>
-            </Grid>
+                </Box>
+                <Chip 
+                  label={newProgramForm.enableNonprofitDataset ? 'Enabled' : 'Disabled'} 
+                  size="small"
+                  sx={{ 
+                    bgcolor: newProgramForm.enableNonprofitDataset ? '#f59e0b' : '#e5e7eb',
+                    color: newProgramForm.enableNonprofitDataset ? 'white' : '#6b7280',
+                    fontWeight: 500
+                  }}
+                />
+              </Paper>
+            </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowProgramDialog(false)}>Cancel</Button>
+          <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e5e7eb' }}>
+            <Button onClick={() => setShowProgramDialog(false)} sx={{ color: '#6b7280' }}>Cancel</Button>
             <Button 
               variant="contained" 
               color="secondary"
