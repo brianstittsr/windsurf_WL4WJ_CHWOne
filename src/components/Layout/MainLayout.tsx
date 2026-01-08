@@ -1,350 +1,427 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  AppBar, 
-  Toolbar, 
-  Container, 
-  Button, 
-  Avatar, 
-  Menu, 
-  MenuItem, 
-  IconButton, 
-  Box, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemText,
-  Divider,
-  useMediaQuery,
-  useTheme
-} from '@mui/material';
-import { Menu as MenuIcon, Close as CloseIcon, Settings as SettingsIcon, Logout as LogoutIcon } from '@mui/icons-material';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types/firebase/schema';
-import ClickableLink from './ClickableLink';
+import { UserRole, OrganizationType } from '@/types/firebase/schema';
+import Link from 'next/link';
 import Image from 'next/image';
-import { useLanguage } from '@/contexts/LanguageContext';
-import LanguageSwitcher from '@/components/Layout/LanguageSwitcher';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { 
+  LayoutDashboard, Map, Heart, Settings, Users, FolderKanban, 
+  DollarSign, Handshake, FileText, Database, BarChart3, User,
+  Menu, X, LogOut, ChevronRight, Home, Bell, Briefcase, Building2,
+  UserCog, ClipboardList, Send, Bot, Wrench, Lightbulb, MapPin,
+  ChevronDown, ChevronUp
+} from 'lucide-react';
 import AdminRoleSwitcher from '@/components/Admin/AdminRoleSwitcher';
-// ThemeToggle removed - using light mode only
+import { ProfileCompletionCheck } from '@/components/Profile';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
+// Navigation section type
+interface NavSection {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+  roles?: UserRole[];
+  collapsed?: boolean;
+}
+
+interface NavItem {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  roles?: UserRole[];
+}
+
 export default function MainLayout({ children }: MainLayoutProps) {
   const { currentUser, userProfile, signOut } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { t } = useLanguage();
-
-  // Debug logging for AdminRoleSwitcher
-  React.useEffect(() => {
-    console.log('MainLayout - userProfile:', userProfile);
-    console.log('MainLayout - Rendering AdminRoleSwitcher');
-  }, [userProfile]);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const pathname = usePathname();
 
   const handleLogout = async () => {
     try {
       await signOut();
-      setAnchorEl(null);
     } catch (error) {
       console.error('Error logging out:', error);
     }
   };
 
-  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const toggleSection = (sectionTitle: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }));
   };
 
-  const handleUserMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const userRole = userProfile?.role;
+  const userOrgType = userProfile?.organizationType;
+  const isAdmin = userRole === UserRole.ADMIN;
+  const isCHW = userRole === UserRole.CHW || userOrgType === OrganizationType.CHW;
+  const isNonprofit = userRole === UserRole.NONPROFIT_STAFF || userOrgType === OrganizationType.NONPROFIT;
+  const isAssociation = userOrgType === OrganizationType.CHW_ASSOCIATION;
+  const isState = userOrgType === OrganizationType.STATE;
 
-  const menuItems = [
-    { 
-      href: '/dashboard', 
-      icon: 'computer', 
-      label: t('navigation.dashboard'), 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
+  // Define navigation sections
+  const navSections: NavSection[] = [
+    // Profile Section - Available to all logged in users
+    {
+      title: 'Profile',
+      icon: User,
+      items: [
+        { href: '/profile', icon: User, label: 'My Profile' },
+        { href: '/settings', icon: Settings, label: 'Settings' },
+        { href: '/profile-management', icon: UserCog, label: 'Manage Profiles', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
+      ],
     },
-    { 
-      href: '/dashboard/region-5', 
-      icon: 'location', 
-      label: t('navigation.region5'), 
-      roles: [UserRole.ADMIN] 
+    // Work Section - CHW Tools based on user type
+    {
+      title: 'Work',
+      icon: Briefcase,
+      items: [
+        { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/referrals', icon: Send, label: 'Referrals', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
+        { href: '/projects', icon: FolderKanban, label: 'Projects', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/grants', icon: DollarSign, label: 'Grants', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/forms', icon: FileText, label: 'Forms', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
+        { href: '/datasets', icon: Database, label: 'Datasets', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/reports', icon: BarChart3, label: 'Reports', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/resources', icon: ClipboardList, label: 'Resources', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
+        { href: '/ai-assistant', icon: Bot, label: 'AI Assistant', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/data-tools', icon: Wrench, label: 'Data Tools', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/ideas', icon: Lightbulb, label: 'Platform Ideas', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
+      ],
     },
-    { 
-      href: '/dashboard/wl4wj', 
-      icon: 'favorite', 
-      label: t('navigation.wl4wj'), 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
+    // Collaborations Section
+    {
+      title: 'Collaborations',
+      icon: Handshake,
+      items: [
+        { href: '/collaborations', icon: Handshake, label: 'My Collaborations', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
+        { href: '/dashboard/regions', icon: MapPin, label: 'Regional Pages', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/chw-profiles', icon: Users, label: 'CHW Directory', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/chw-crm', icon: Users, label: 'CHW CRM', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+      ],
     },
-    { 
-      href: '/admin', 
-      icon: 'settings', 
-      label: t('navigation.admin'), 
-      roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/setup-demo-users', 
-      icon: 'settings', 
-      label: 'Setup Demo Users', 
-      roles: [UserRole.ADMIN] 
-    },
-    { 
-      href: '/projects', 
-      icon: 'sparkle', 
-      label: t('navigation.projects'), 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/grants', 
-      icon: 'security', 
-      label: t('navigation.grants'), 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/collaborations', 
-      icon: 'people', 
-      label: 'Collaborations', 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/forms', 
-      icon: 'clipboard', 
-      label: t('navigation.forms'), 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/datasets', 
-      icon: 'database', 
-      label: t('navigation.datasets'), 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/reports', 
-      icon: 'analytics', 
-      label: t('navigation.reports'), 
-      roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] 
-    },
-    { 
-      href: '/profile', 
-      icon: 'person', 
-      label: 'My Profile', 
-      roles: [UserRole.CHW] 
+    // Admin Section - Only for admins
+    {
+      title: 'Admin',
+      icon: Settings,
+      roles: [UserRole.ADMIN],
+      items: [
+        { href: '/admin', icon: Settings, label: 'Platform Settings', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=users', icon: Users, label: 'Users', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=states', icon: Map, label: 'States', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=associations', icon: Building2, label: 'CHW Associations', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=nonprofits', icon: Building2, label: 'Nonprofits', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=analytics', icon: BarChart3, label: 'Analytics', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=ideas', icon: Lightbulb, label: 'Platform Ideas', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=security', icon: Settings, label: 'Security', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=forms', icon: FileText, label: 'Form Management', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=datasets', icon: Database, label: 'Dataset Management', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=referrals', icon: Send, label: 'Referral Management', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=grants', icon: DollarSign, label: 'Grants Management', roles: [UserRole.ADMIN] },
+        { href: '/admin?section=chw-tools', icon: Wrench, label: 'CHW Tools Management', roles: [UserRole.ADMIN] },
+      ],
     },
   ];
 
-  const userRole = userProfile?.role;
+  // Filter sections and items based on user role
+  const filteredSections = navSections
+    .filter(section => {
+      if (!section.roles || section.roles.length === 0) return true;
+      return userRole && section.roles.includes(userRole);
+    })
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        if (!item.roles || item.roles.length === 0) return true;
+        return userRole && item.roles.includes(userRole);
+      })
+    }))
+    .filter(section => section.items.length > 0);
 
-  const filteredMenuItems = menuItems.filter(item => {
-    // If no roles are specified for an item, show it to everyone.
-    if (!item.roles || item.roles.length === 0) {
-      return true;
-    }
-    // If roles are specified, check if the current user's role is included.
-    return userRole && item.roles.includes(userRole);
-  });
+  // If not logged in, show simple layout
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
+        {/* Simple header for non-logged in users */}
+        <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 sticky top-0 z-50">
+          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <Image 
+                src="/images/CHWOneLogoDesign.png" 
+                width={40}
+                height={40}
+                alt="CHWOne Logo"
+                className="rounded-full"
+              />
+              <span className="font-bold text-xl text-slate-800">CHWOne</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" asChild>
+                <Link href="/register">Register</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/login">Login</Link>
+              </Button>
+            </div>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-8">
+          <div className="bg-white/95 backdrop-blur-lg rounded-xl p-6 shadow-lg">
+            {children}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
-      backgroundSize: '400% 400%',
-      animation: 'gradientShift 24s ease infinite',
-      '@keyframes gradientShift': {
-        '0%': { backgroundPosition: '0% 50%' },
-        '50%': { backgroundPosition: '100% 50%' },
-        '100%': { backgroundPosition: '0% 50%' },
-      },
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-      {/* Top Navigation */}
-      <AppBar 
-        position="fixed" 
-        elevation={0}
-        sx={{ 
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-          color: 'text.primary',
-          zIndex: (theme) => theme.zIndex.drawer + 1, // Ensure AppBar is above other content
-        }}
-      >
-        <Toolbar>
-          <ClickableLink href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}>
-            <Image 
-              src="/images/CHWOneLogoDesign.png" 
-              width={40}
-              height={40}
-              alt="CHWOne Logo"
-              style={{ borderRadius: '50%', marginRight: 8 }}
-            />
-            <Box component="span" sx={{ fontWeight: 'bold', fontSize: '1.25rem', color: 'rgba(0, 0, 0, 0.87)' }}>
-              {t('common.appName')}
-            </Box>
-          </ClickableLink>
-
-          {/* Desktop Menu - Only show when logged in */}
-          {!isMobile && currentUser && (
-            <Box sx={{ flexGrow: 1, display: 'flex', ml: 4, gap: 2, position: 'relative', zIndex: 1200 }}>
-              {filteredMenuItems.map((item) => (
-                <Button
-                  key={item.href}
-                  component={ClickableLink}
-                  href={item.href}
-                  sx={{ color: 'rgba(0, 0, 0, 0.87)', zIndex: 1200, position: 'relative' }}
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </Box>
+    <div className="min-h-screen bg-slate-100 flex">
+      {/* Vertical Sidebar */}
+      <aside className={cn(
+        'fixed inset-y-0 left-0 z-50 bg-slate-900 text-white transition-all duration-300',
+        sidebarOpen ? 'w-64' : 'w-16',
+        'hidden md:block'
+      )}>
+        {/* Sidebar Header */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-700">
+          {sidebarOpen && (
+            <Link href="/" className="flex items-center gap-2">
+              <Image 
+                src="/images/CHWOneLogoDesign.png" 
+                width={32}
+                height={32}
+                alt="CHWOne Logo"
+                className="rounded-full"
+              />
+              <span className="font-bold text-lg">CHWOne</span>
+            </Link>
           )}
-          
-          {/* Spacer when not showing menu */}
-          {(!currentUser || isMobile) && <Box sx={{ flexGrow: 1 }} />}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
 
-          {/* Mobile Menu Button - Only show when logged in */}
-          {isMobile && currentUser && (
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              sx={{ ml: 2 }}
-            >
-              {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-            </IconButton>
-          )}
+        {/* Navigation */}
+        <nav className="p-2 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
+          {filteredSections.map((section) => {
+            const SectionIcon = section.icon;
+            const isCollapsed = collapsedSections[section.title];
+            
+            return (
+              <div key={section.title} className="mb-2">
+                {/* Section Header */}
+                <button
+                  onClick={() => sidebarOpen && toggleSection(section.title)}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all',
+                    'text-slate-400 hover:text-white hover:bg-slate-800',
+                    !sidebarOpen && 'justify-center'
+                  )}
+                >
+                  <SectionIcon className="h-4 w-4 flex-shrink-0" />
+                  {sidebarOpen && (
+                    <>
+                      <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wider">
+                        {section.title}
+                      </span>
+                      {isCollapsed ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronUp className="h-4 w-4" />
+                      )}
+                    </>
+                  )}
+                </button>
+                
+                {/* Section Items */}
+                {(!isCollapsed || !sidebarOpen) && (
+                  <div className={cn('space-y-0.5', sidebarOpen && 'ml-2 mt-1')}>
+                    {section.items.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isActive = pathname === item.href || 
+                        (item.href !== '/' && pathname?.startsWith(item.href.split('?')[0]));
+                      
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            'flex items-center gap-3 px-3 py-2 rounded-lg transition-all',
+                            isActive 
+                              ? 'bg-blue-600 text-white' 
+                              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                          )}
+                        >
+                          <ItemIcon className="h-5 w-5 flex-shrink-0" />
+                          {sidebarOpen && (
+                            <>
+                              <span className="flex-1 text-sm">{item.label}</span>
+                              {isActive && <ChevronRight className="h-4 w-4" />}
+                            </>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
 
-          {/* Language Switcher */}
-          <LanguageSwitcher />
+        {/* Sidebar Footer */}
+        <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-slate-700">
+          <Link href="/">
+            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+              <Home className="h-5 w-5 flex-shrink-0" />
+              {sidebarOpen && <span className="text-sm">Home</span>}
+            </button>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-red-600 hover:text-white transition-all"
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {sidebarOpen && <span className="text-sm">Sign Out</span>}
+          </button>
+        </div>
+      </aside>
 
-          {/* Login Button or User Menu */}
-          <Box sx={{ ml: 2 }}>
-            {currentUser ? (
-              // User Menu when logged in
-              <>
-                <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
-                  <Avatar sx={{ bgcolor: 'primary.main' }}>
-                    {(currentUser?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
-                  </Avatar>
-                </IconButton>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleUserMenuClose}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                  <MenuItem component={ClickableLink} href="/profile" onClick={handleUserMenuClose}>
-                    <SettingsIcon sx={{ mr: 1 }} /> {t('navigation.myProfile')}
-                  </MenuItem>
-                  <MenuItem component={ClickableLink} href="/settings" onClick={handleUserMenuClose}>
-                    <SettingsIcon sx={{ mr: 1 }} /> {t('common.settings')}
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem onClick={handleLogout}>
-                    <LogoutIcon sx={{ mr: 1 }} /> {t('common.logout')}
-                  </MenuItem>
-                </Menu>
-              </>
-            ) : (
-              // Login/Register buttons when not logged in
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button 
-                  variant="outlined" 
-                  color="primary"
-                  component={ClickableLink}
-                  href="/register"
-                  sx={{ 
-                    borderRadius: 2,
-                    px: 3,
-                    fontWeight: 500
-                  }}
-                >
-                  {t('common.register')}
-                </Button>
-                <Button 
-                  variant="contained" 
-                  color="primary"
-                  component={ClickableLink}
-                  href="/login"
-                  sx={{ 
-                    borderRadius: 2,
-                    px: 3,
-                    fontWeight: 500
-                  }}
-                >
-                  {t('common.login')}
-                </Button>
-              </Box>
-            )}
-          </Box>
-        </Toolbar>
-      </AppBar>
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white h-16 flex items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2">
+          <Image 
+            src="/images/CHWOneLogoDesign.png" 
+            width={32}
+            height={32}
+            alt="CHWOne Logo"
+            className="rounded-full"
+          />
+          <span className="font-bold">CHWOne</span>
+        </Link>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 rounded-lg hover:bg-slate-800"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
 
-      {/* Mobile Drawer */}
-      <Drawer
-        anchor="right"
-        open={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-      >
-        <Box sx={{ width: 250 }} role="presentation">
-          <List>
-            {filteredMenuItems.map((item) => (
-              <ListItem key={item.href} disablePadding>
-                <ListItemButton 
-                  component={ClickableLink} 
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <ListItemText primary={item.label} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-slate-900/95 pt-16 overflow-y-auto">
+          <nav className="p-4 space-y-4">
+            {filteredSections.map((section) => {
+              const SectionIcon = section.icon;
+              return (
+                <div key={section.title}>
+                  <div className="flex items-center gap-2 px-4 py-2 text-slate-400">
+                    <SectionIcon className="h-4 w-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">{section.title}</span>
+                  </div>
+                  <div className="space-y-1 ml-2">
+                    {section.items.map((item) => {
+                      const ItemIcon = item.icon;
+                      const isActive = pathname === item.href || 
+                        (item.href !== '/' && pathname?.startsWith(item.href.split('?')[0]));
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={cn(
+                            'flex items-center gap-3 px-4 py-3 rounded-lg transition-all',
+                            isActive 
+                              ? 'bg-blue-600 text-white' 
+                              : 'text-slate-300 hover:bg-slate-800'
+                          )}
+                        >
+                          <ItemIcon className="h-5 w-5" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="border-t border-slate-700 pt-4 mt-4">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600 hover:text-white transition-all"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
 
       {/* Main Content */}
-      <Box 
-        component="main" 
-        sx={{ 
-          pt: 10,
-          px: { xs: 2, sm: 3 },
-          pb: 5,
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'visible'
-        }}
-      >
-        <Container 
-          maxWidth="lg"
-          sx={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: 2,
-            p: { xs: 3, sm: 4 },
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'visible',
-            height: 'auto'
-          }}
-        >
-          {children}
-        </Container>
-      </Box>
+      <main className={cn(
+        'flex-1 transition-all duration-300',
+        sidebarOpen ? 'md:ml-64' : 'md:ml-16',
+        'pt-16 md:pt-0'
+      )}>
+        {/* Top Header Bar */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold text-slate-800">
+              {filteredSections.flatMap(s => s.items).find(item => pathname === item.href || pathname?.startsWith(item.href.split('?')[0] + '/'))?.label || 'Dashboard'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-600">
+              <Bell className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-medium text-slate-900">{userProfile?.displayName || 'User'}</p>
+                <p className="text-xs text-slate-500">{currentUser.email}</p>
+              </div>
+              {(userProfile as any)?.profilePicture ? (
+                <img 
+                  src={(userProfile as any).profilePicture} 
+                  alt={userProfile?.displayName || 'Profile'} 
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                  {(userProfile?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
 
-      {/* Admin Role Switcher - Always visible for admin users */}
+        {/* Page Content */}
+        <div className="p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            {children}
+          </div>
+        </div>
+      </main>
+
+      {/* Admin Role Switcher */}
       <AdminRoleSwitcher />
-    </Box>
+      
+      {/* Profile Completion Check - shows wizard modal if profile is incomplete */}
+      <ProfileCompletionCheck>
+        <></>
+      </ProfileCompletionCheck>
+    </div>
   );
 }

@@ -57,7 +57,7 @@ function FormsContent() {
           <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Forms Management</Typography>
           <Typography color="text.secondary" sx={{ mb: 4 }}>Create, manage, and analyze health assessment forms and data collection tools for Community Health Workers</Typography>
           
-          <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
+          <Stack direction="row" spacing={2} sx={{ mb: 4 }} flexWrap="wrap" useFlexGap>
             <Button component={Link} href="/forms/templates" variant="outlined">Form Templates</Button>
             <Button 
               variant="contained" 
@@ -79,6 +79,20 @@ function FormsContent() {
               onClick={handleCreateManually}
             >
               Create Form Manually
+            </Button>
+            <Button 
+              component={Link}
+              href="/forms/digital-literacy"
+              variant="contained"
+              color="secondary"
+              sx={{ 
+                background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%)',
+                }
+              }}
+            >
+              🌐 Digital Literacy Program
             </Button>
           </Stack>
         </Box>

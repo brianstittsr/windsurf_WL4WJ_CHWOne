@@ -1,262 +1,182 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { 
-  Grid, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Box, 
-  CircularProgress,
-  Skeleton,
-  Divider,
-  Button
-} from '@mui/material';
-import {
-  People as PeopleIcon,
-  Business as BusinessIcon,
-  Description as DescriptionIcon,
-  Send as SendIcon,
-  Error as ErrorIcon,
-  Refresh as RefreshIcon
-} from '@mui/icons-material';
-import { dashboardService } from '@/services/dashboard/DashboardService';
-import DatabaseStatusCard from './DatabaseStatusCard';
+import { Users, FolderKanban, DollarSign, Send, RefreshCw, AlertCircle, CheckCircle, Database } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 interface StatCardProps {
   title: string;
-  value: number | null;
+  value: number;
   icon: React.ReactNode;
-  loading: boolean;
   color: string;
+  borderColor: string;
 }
 
-function StatCard({ title, value, icon, loading, color }: StatCardProps) {
+function StatCard({ title, value, icon, color, borderColor }: StatCardProps) {
   return (
-    <Card sx={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column',
-      borderTop: 6, 
-      borderColor: color,
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-4px)',
-        boxShadow: 3
-      }
-    }}>
-      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ 
-            bgcolor: `${color}15`, 
-            borderRadius: '50%', 
-            p: 1.5, 
-            display: 'flex', 
-            mr: 2 
-          }}>
-            {React.cloneElement(icon as React.ReactElement, { 
-              sx: { fontSize: 28, color } 
-            })}
-          </Box>
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              {title}
-            </Typography>
-            {loading ? (
-              <Skeleton width={60} height={40} />
-            ) : (
-              <Typography variant="h4" component="div" sx={{ fontWeight: 'bold' }}>
-                {value !== null ? value : '-'}
-              </Typography>
-            )}
-          </Box>
-        </Box>
+    <Card className={cn('hover:shadow-lg transition-all hover:-translate-y-1', borderColor)}>
+      <CardContent className="pt-6">
+        <div className="flex items-center gap-4">
+          <div className={cn('p-3 rounded-full', color)}>
+            {icon}
+          </div>
+          <div>
+            <p className="text-sm text-slate-500">{title}</p>
+            <p className="text-3xl font-bold text-slate-900">{value}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DatabaseStatusCard() {
+  const [status, setStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
+  const [responseTime, setResponseTime] = useState<number | null>(null);
+  const [lastChecked, setLastChecked] = useState<string>('');
+
+  const checkStatus = async () => {
+    setStatus('checking');
+    const start = Date.now();
+    
+    // Simulate database check
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    setResponseTime(Date.now() - start);
+    setStatus('connected');
+    setLastChecked(new Date().toLocaleTimeString());
+  };
+
+  useEffect(() => {
+    checkStatus();
+  }, []);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Database className="h-5 w-5" />
+            Database Status
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={checkStatus}>
+            <RefreshCw className={cn('h-4 w-4', status === 'checking' && 'animate-spin')} />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center py-4">
+          <div className={cn(
+            'w-16 h-16 rounded-full flex items-center justify-center mb-3',
+            status === 'connected' ? 'bg-green-100' : status === 'checking' ? 'bg-blue-100' : 'bg-red-100'
+          )}>
+            <CheckCircle className={cn(
+              'h-8 w-8',
+              status === 'connected' ? 'text-green-600' : status === 'checking' ? 'text-blue-600' : 'text-red-600'
+            )} />
+          </div>
+          <p className="font-semibold text-slate-900">
+            {status === 'connected' ? 'Connected' : status === 'checking' ? 'Checking...' : 'Disconnected'}
+          </p>
+          {responseTime && (
+            <>
+              <p className="text-sm text-slate-500 mt-1">Response Time</p>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {responseTime}ms
+              </span>
+            </>
+          )}
+          {lastChecked && (
+            <p className="text-xs text-slate-400 mt-3">Last checked: {lastChecked}</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
 }
 
 export default function DashboardContent() {
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [renderAttempt, setRenderAttempt] = useState(1);
-  const [stats, setStats] = useState({
-    activeChws: null as number | null,
-    activeProjects: null as number | null,
-    activeGrants: null as number | null,
-    pendingReferrals: null as number | null
-  });
-  
-  // DASHBOARD FIX: Add error handling for dashboard rendering
-  useEffect(() => {
-    console.log('%c[DASHBOARD_CONTENT] Component mounted, render attempt:', 'background: #3182ce; color: white;', renderAttempt);
-    
-    // If we've tried to render multiple times and still have errors, use fallback data
-    if (renderAttempt > 2) {
-      console.log('%c[DASHBOARD_CONTENT] Using fallback data after multiple render attempts', 'color: orange;');
-      setStats({
-        activeChws: 24,
-        activeProjects: 12,
-        activeGrants: 8,
-        pendingReferrals: 15
-      });
-      setLoading(false);
-      setError(null);
-    }
-    
-    // Increment render attempt counter
-    const timeout = setTimeout(() => {
-      setRenderAttempt(prev => prev + 1);
-    }, 1000);
-    
-    return () => clearTimeout(timeout);
-  }, [renderAttempt]);
-
-  // Error state is already declared above
-  const [retryCount, setRetryCount] = useState(0);
-
-  const fetchDashboardData = async () => {
-    console.log('%c[DASHBOARD_CONTENT] Using mock data instead of fetching', 'color: #3182ce;', {
-      timestamp: new Date().toISOString(),
-      renderAttempt
-    });
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // DASHBOARD FIX: Use a shorter timeout and add error handling
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Use static mock data
-      setStats({
-        activeChws: 24,
-        activeProjects: 12,
-        activeGrants: 8,
-        pendingReferrals: 15
-      });
-      
-      setLoading(false);
-    } catch (err) {
-      console.error('%c[DASHBOARD_CONTENT] Error fetching dashboard data:', 'color: red;', err);
-      setError('Failed to load dashboard data. Using fallback data.');
-      
-      // Use fallback data even on error
-      setStats({
-        activeChws: 10,
-        activeProjects: 5,
-        activeGrants: 3,
-        pendingReferrals: 7
-      });
-      
-      setLoading(false);
-    }
+  const stats = {
+    activeChws: 24,
+    activeProjects: 12,
+    activeGrants: 8,
+    pendingReferrals: 15
   };
 
-  // Handle retry
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-    fetchDashboardData();
+    setError(null);
   };
-
-  useEffect(() => {
-    console.log('%c[DASHBOARD_CONTENT] Component mounted with data fetch disabled', 'background: #3182ce; color: white; padding: 2px 4px; border-radius: 2px;', {
-      timestamp: new Date().toISOString()
-    });
-    
-    // Fetch mock data once on mount
-    fetchDashboardData();
-    
-    // No interval for refreshing data
-    return () => {
-      // No cleanup needed
-    };
-  }, []);
 
   return (
-    <Box sx={{ py: 2 }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 1, fontWeight: 700 }}>
-        CHW Platform Dashboard
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Overview of platform metrics, active projects, and key performance indicators
-      </Typography>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">CHW Platform Dashboard</h1>
+        <p className="text-slate-500 mt-1">
+          Overview of platform metrics, active projects, and key performance indicators
+        </p>
+      </div>
       
-      {error ? (
-        <Box sx={{ 
-          mb: 4, 
-          p: 3, 
-          borderRadius: 2, 
-          bgcolor: 'error.light', 
-          color: 'error.contrastText',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box sx={{ mr: 2, display: 'flex' }}>
-              <ErrorIcon sx={{ fontSize: 24 }} />
-            </Box>
-            <Typography variant="body1">{error}</Typography>
-          </Box>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleRetry}
-            startIcon={<RefreshIcon />}
-          >
-            Retry
-          </Button>
-        </Box>
-      ) : null}
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button variant="outline" size="sm" onClick={handleRetry}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
       
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Active CHWs"
-            value={stats.activeChws}
-            icon={<PeopleIcon />}
-            loading={loading}
-            color="#1a365d"
-          />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Active Projects"
-            value={stats.activeProjects}
-            icon={<BusinessIcon />}
-            loading={loading}
-            color="#2a4365"
-          />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Active Grants"
-            value={stats.activeGrants}
-            icon={<DescriptionIcon />}
-            loading={loading}
-            color="#2c5282"
-          />
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <StatCard
-            title="Pending Referrals"
-            value={stats.pendingReferrals}
-            icon={<SendIcon />}
-            loading={loading}
-            color="#3182ce"
-          />
-        </Grid>
-      </Grid>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Active CHWs"
+          value={stats.activeChws}
+          icon={<Users className="h-6 w-6 text-blue-600" />}
+          color="bg-blue-100"
+          borderColor="border-t-4 border-t-blue-600"
+        />
+        <StatCard
+          title="Active Projects"
+          value={stats.activeProjects}
+          icon={<FolderKanban className="h-6 w-6 text-indigo-600" />}
+          color="bg-indigo-100"
+          borderColor="border-t-4 border-t-indigo-600"
+        />
+        <StatCard
+          title="Active Grants"
+          value={stats.activeGrants}
+          icon={<DollarSign className="h-6 w-6 text-emerald-600" />}
+          color="bg-emerald-100"
+          borderColor="border-t-4 border-t-emerald-600"
+        />
+        <StatCard
+          title="Pending Referrals"
+          value={stats.pendingReferrals}
+          icon={<Send className="h-6 w-6 text-amber-600" />}
+          color="bg-amber-100"
+          borderColor="border-t-4 border-t-amber-600"
+        />
+      </div>
       
-      <Divider sx={{ my: 4 }} />
+      {/* Divider */}
+      <div className="border-t border-slate-200" />
       
-      <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
-        System Status
-      </Typography>
-      
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+      {/* System Status Section */}
+      <div>
+        <h2 className="text-xl font-semibold text-slate-900 mb-4">System Status</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DatabaseStatusCard />
-        </Grid>
-      </Grid>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -346,13 +346,24 @@ const CHWCard = ({ chw }: { chw: MockCHWProfile }) => {
       }
     }}>
       <CertificationBadge level={chw.certificationLevel} />
-      <CardMedia
-        component="img"
-        height="200"
-        image={chw.imageUrl}
-        alt={`${chw.firstName} ${chw.lastName}`}
-        sx={{ objectFit: 'cover' }}
-      />
+      <Box sx={{ 
+        width: '100%', 
+        height: 250, 
+        overflow: 'hidden',
+        position: 'relative'
+      }}>
+        <CardMedia
+          component="img"
+          image={chw.imageUrl}
+          alt={`${chw.firstName} ${chw.lastName}`}
+          sx={{ 
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center top'
+          }}
+        />
+      </Box>
       <CardContent sx={{ flexGrow: 1 }}>
         <Typography gutterBottom variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
           {chw.firstName} {chw.lastName}

@@ -100,19 +100,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [setError, setLoading, setCurrentUser]);
 
-  // Sign out - simplified version
+  // Sign out - redirects to home page
   const signOut = useCallback(async () => {
     if (!auth) {
       console.warn('Firebase not configured, clearing local state only');
       setCurrentUser(null);
-      window.location.href = '/login';
+      window.location.href = '/';
       return;
     }
     
     try {
       await firebaseSignOut(auth);
       setCurrentUser(null);
-      window.location.href = '/login';
+      window.location.href = '/';
     } catch (error) {
       console.error('Sign out error:', error);
       setError('Failed to sign out');

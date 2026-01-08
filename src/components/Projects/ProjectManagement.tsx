@@ -71,61 +71,56 @@ export default function ProjectManagement() {
 
   const fetchData = async () => {
     try {
-      // Mock data for demonstration
-      setProjects([
-        {
-          id: '1',
-          name: 'Community Health Outreach Program',
-          description: 'Expanding healthcare access to underserved rural communities',
-          grantId: 'grant-1',
-          status: ProjectStatus.ACTIVE,
-          startDate: new Date('2024-01-15'),
-          endDate: new Date('2024-12-31'),
-          targetPopulation: 'Rural communities',
-          goals: ['Increase healthcare access', 'Reduce emergency visits'],
-          budget: 250000,
-          spentAmount: 87500,
-          assignedCHWs: ['chw-1', 'chw-2'],
-          outcomes: [],
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date('2024-03-15')
-        },
-        {
-          id: '2',
-          name: 'Diabetes Prevention Initiative',
-          description: 'Community-based diabetes prevention program',
-          status: ProjectStatus.ACTIVE,
-          startDate: new Date('2024-04-01'),
-          endDate: new Date('2025-03-31'),
-          targetPopulation: 'Adults at risk',
-          goals: ['Prevent diabetes onset', 'Promote healthy lifestyle'],
-          budget: 180000,
-          spentAmount: 45000,
-          assignedCHWs: ['chw-3', 'chw-4'],
-          outcomes: [],
-          createdAt: new Date('2024-02-01'),
-          updatedAt: new Date('2024-03-10')
-        }
-      ]);
+      // Fetch projects from Firebase
+      const projectsRef = collection(db, 'projects');
+      const projectsQuery = query(projectsRef, orderBy('createdAt', 'desc'));
+      const projectsSnapshot = await getDocs(projectsQuery);
+      const projectsData = projectsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || '',
+          description: data.description || '',
+          grantId: data.grantId || undefined,
+          status: data.status || ProjectStatus.PLANNING,
+          startDate: data.startDate?.toDate ? data.startDate.toDate() : new Date(data.startDate),
+          endDate: data.endDate?.toDate ? data.endDate.toDate() : (data.endDate ? new Date(data.endDate) : undefined),
+          targetPopulation: data.targetPopulation || '',
+          goals: data.goals || [],
+          budget: data.budget || 0,
+          spentAmount: data.spentAmount || 0,
+          assignedCHWs: data.assignedCHWs || [],
+          outcomes: data.outcomes || [],
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
+        } as Project;
+      });
+      setProjects(projectsData);
 
-      setGrants([
-        {
-          id: 'grant-1',
-          title: 'Rural Health Access Grant',
-          amount: 250000,
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-12-31'),
-          description: 'Funding for rural health initiatives',
-          fundingSource: 'State Health Department',
-          status: GrantStatus.ACTIVE,
-          projectIds: [],
-          requirements: [],
-          reportingSchedule: [],
-          contactPerson: 'John Doe',
-          createdAt: new Date('2023-12-01'),
-          updatedAt: new Date('2024-01-01')
-        }
-      ]);
+      // Fetch grants from Firebase
+      const grantsRef = collection(db, 'grants');
+      const grantsQuery = query(grantsRef, orderBy('createdAt', 'desc'));
+      const grantsSnapshot = await getDocs(grantsQuery);
+      const grantsData = grantsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title || '',
+          amount: data.amount || 0,
+          startDate: data.startDate?.toDate ? data.startDate.toDate() : new Date(data.startDate),
+          endDate: data.endDate?.toDate ? data.endDate.toDate() : new Date(data.endDate),
+          description: data.description || '',
+          fundingSource: data.fundingSource || '',
+          status: data.status || GrantStatus.ACTIVE,
+          projectIds: data.projectIds || [],
+          requirements: data.requirements || [],
+          reportingSchedule: data.reportingSchedule || [],
+          contactPerson: data.contactPerson || '',
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date()
+        } as Grant;
+      });
+      setGrants(grantsData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -139,25 +134,49 @@ export default function ProjectManagement() {
       const projectData = {
         name: formData.name,
         description: formData.description,
-        grantId: formData.grantId || undefined,
+        grantId: formData.grantId || null,
         status: formData.status,
         startDate: new Date(formData.startDate),
-        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : null,
         targetPopulation: formData.targetPopulation,
-        goals: formData.goals.split(',').map(g => g.trim()),
+        goals: formData.goals.split(',').map(g => g.trim()).filter(g => g),
         budget: formData.budget,
-        spentAmount: 0,
+        spentAmount: selectedProject?.spentAmount || 0,
         assignedCHWs: formData.assignedCHWs,
-        outcomes: [] as ProjectOutcome[],
+        outcomes: selectedProject?.outcomes || [],
         updatedAt: new Date()
       };
 
       if (selectedProject) {
-        // Update existing project
-        console.log('Updating project:', selectedProject.id, projectData);
+        // Update existing project in Firebase
+        const projectRef = doc(db, 'projects', selectedProject.id);
+        await updateDoc(projectRef, projectData);
+        
+        // Update local state
+        setProjects(prev => prev.map(p => 
+          p.id === selectedProject.id 
+            ? { ...p, ...projectData, id: selectedProject.id } as Project
+            : p
+        ));
       } else {
-        // Create new project
-        console.log('Creating new project:', projectData);
+        // Create new project in Firebase
+        const projectsRef = collection(db, 'projects');
+        const newProjectData = {
+          ...projectData,
+          createdAt: new Date()
+        };
+        const docRef = await addDoc(projectsRef, newProjectData);
+        
+        // Add to local state
+        const newProject: Project = {
+          ...newProjectData,
+          id: docRef.id,
+          startDate: new Date(formData.startDate),
+          endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+          createdAt: new Date(),
+          outcomes: []
+        };
+        setProjects(prev => [newProject, ...prev]);
       }
 
       setShowModal(false);

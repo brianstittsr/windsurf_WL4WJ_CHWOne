@@ -34,6 +34,71 @@ export enum PartnershipStatus {
 }
 
 /**
+ * IRS Filing Information from Form 990
+ */
+export interface IRSFiling {
+  taxPeriod: number;
+  taxYear: number;
+  formType: number; // 990, 990-EZ, 990-PF, etc.
+  pdfUrl?: string;
+  totalRevenue: number;
+  totalExpenses: number;
+  totalAssets: number;
+  totalLiabilities?: number;
+  compensationPercent?: number;
+}
+
+/**
+ * IRS Data from ProPublica Nonprofit Explorer
+ */
+export interface IRSData {
+  // Basic IRS Information
+  ein: string;
+  organizationName: string;
+  careOfName?: string;
+  
+  // Address from IRS
+  irsAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  
+  // Classification
+  nteeCode?: string; // National Taxonomy of Exempt Entities code
+  subsectionCode?: number; // 501(c)(3), 501(c)(4), etc.
+  affiliationCode?: number;
+  classificationCodes?: string;
+  foundationCode?: number;
+  activityCodes?: string;
+  organizationCode?: number;
+  exemptStatusCode?: number;
+  
+  // Dates
+  rulingDate?: string; // Date of IRS ruling
+  taxPeriod?: number;
+  accountingPeriod?: number;
+  
+  // Financial Summary (from latest filing)
+  assetAmount?: number;
+  incomeAmount?: number;
+  revenueAmount?: number;
+  
+  // Deductibility
+  deductibilityCode?: number; // 1 = contributions are deductible
+  
+  // Filing History
+  latestFiling?: IRSFiling;
+  filingHistory?: IRSFiling[];
+  
+  // Data Source Metadata
+  dataSource: 'propublica' | 'irs' | 'manual';
+  lastUpdated?: Timestamp;
+  lastVerified?: Timestamp;
+}
+
+/**
  * Nonprofit Organization
  */
 export interface NonprofitOrganization {
@@ -72,6 +137,11 @@ export interface NonprofitOrganization {
   // Platform Access & Licensing
   licenseId?: string; // Reference to OrganizationLicense
   hasActiveLicense: boolean;
+  
+  // IRS Data (enriched from ProPublica/IRS)
+  irsData?: IRSData;
+  irsVerified?: boolean; // Whether the org has been verified against IRS records
+  irsClaimedAt?: Timestamp; // When the org was claimed from IRS search
   
   // Metadata
   createdAt: Timestamp;

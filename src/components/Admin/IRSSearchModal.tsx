@@ -3,104 +3,54 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  MenuItem,
-  Grid,
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  IconButton,
-  CircularProgress,
-  Alert,
-  Pagination,
-  Tooltip,
-  LinearProgress,
-  Divider,
-  Card,
-  CardContent,
-  Link,
-  Collapse
-} from '@mui/material';
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  Search as SearchIcon,
-  Add as AddIcon,
-  Refresh as RefreshIcon,
-  Info as InfoIcon,
-  Download as DownloadIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-  OpenInNew as OpenInNewIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import {
+  Search, Plus, RefreshCw, Info, Download, ChevronDown, ChevronUp,
+  ExternalLink, CheckCircle, AlertTriangle, Loader2, X
+} from 'lucide-react';
 
 // US States for dropdown
 const US_STATES = [
-  { code: 'AL', name: 'Alabama' },
-  { code: 'AK', name: 'Alaska' },
-  { code: 'AZ', name: 'Arizona' },
-  { code: 'AR', name: 'Arkansas' },
-  { code: 'CA', name: 'California' },
-  { code: 'CO', name: 'Colorado' },
-  { code: 'CT', name: 'Connecticut' },
-  { code: 'DE', name: 'Delaware' },
-  { code: 'FL', name: 'Florida' },
-  { code: 'GA', name: 'Georgia' },
-  { code: 'HI', name: 'Hawaii' },
-  { code: 'ID', name: 'Idaho' },
-  { code: 'IL', name: 'Illinois' },
-  { code: 'IN', name: 'Indiana' },
-  { code: 'IA', name: 'Iowa' },
-  { code: 'KS', name: 'Kansas' },
-  { code: 'KY', name: 'Kentucky' },
-  { code: 'LA', name: 'Louisiana' },
-  { code: 'ME', name: 'Maine' },
-  { code: 'MD', name: 'Maryland' },
-  { code: 'MA', name: 'Massachusetts' },
-  { code: 'MI', name: 'Michigan' },
-  { code: 'MN', name: 'Minnesota' },
-  { code: 'MS', name: 'Mississippi' },
-  { code: 'MO', name: 'Missouri' },
-  { code: 'MT', name: 'Montana' },
-  { code: 'NE', name: 'Nebraska' },
-  { code: 'NV', name: 'Nevada' },
-  { code: 'NH', name: 'New Hampshire' },
-  { code: 'NJ', name: 'New Jersey' },
-  { code: 'NM', name: 'New Mexico' },
-  { code: 'NY', name: 'New York' },
-  { code: 'NC', name: 'North Carolina' },
-  { code: 'ND', name: 'North Dakota' },
-  { code: 'OH', name: 'Ohio' },
-  { code: 'OK', name: 'Oklahoma' },
-  { code: 'OR', name: 'Oregon' },
-  { code: 'PA', name: 'Pennsylvania' },
-  { code: 'RI', name: 'Rhode Island' },
-  { code: 'SC', name: 'South Carolina' },
-  { code: 'SD', name: 'South Dakota' },
-  { code: 'TN', name: 'Tennessee' },
-  { code: 'TX', name: 'Texas' },
-  { code: 'UT', name: 'Utah' },
-  { code: 'VT', name: 'Vermont' },
-  { code: 'VA', name: 'Virginia' },
-  { code: 'WA', name: 'Washington' },
-  { code: 'WV', name: 'West Virginia' },
-  { code: 'WI', name: 'Wisconsin' },
-  { code: 'WY', name: 'Wyoming' },
-  { code: 'DC', name: 'District of Columbia' }
+  { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
+  { code: 'AR', name: 'Arkansas' }, { code: 'CA', name: 'California' }, { code: 'CO', name: 'Colorado' },
+  { code: 'CT', name: 'Connecticut' }, { code: 'DE', name: 'Delaware' }, { code: 'FL', name: 'Florida' },
+  { code: 'GA', name: 'Georgia' }, { code: 'HI', name: 'Hawaii' }, { code: 'ID', name: 'Idaho' },
+  { code: 'IL', name: 'Illinois' }, { code: 'IN', name: 'Indiana' }, { code: 'IA', name: 'Iowa' },
+  { code: 'KS', name: 'Kansas' }, { code: 'KY', name: 'Kentucky' }, { code: 'LA', name: 'Louisiana' },
+  { code: 'ME', name: 'Maine' }, { code: 'MD', name: 'Maryland' }, { code: 'MA', name: 'Massachusetts' },
+  { code: 'MI', name: 'Michigan' }, { code: 'MN', name: 'Minnesota' }, { code: 'MS', name: 'Mississippi' },
+  { code: 'MO', name: 'Missouri' }, { code: 'MT', name: 'Montana' }, { code: 'NE', name: 'Nebraska' },
+  { code: 'NV', name: 'Nevada' }, { code: 'NH', name: 'New Hampshire' }, { code: 'NJ', name: 'New Jersey' },
+  { code: 'NM', name: 'New Mexico' }, { code: 'NY', name: 'New York' }, { code: 'NC', name: 'North Carolina' },
+  { code: 'ND', name: 'North Dakota' }, { code: 'OH', name: 'Ohio' }, { code: 'OK', name: 'Oklahoma' },
+  { code: 'OR', name: 'Oregon' }, { code: 'PA', name: 'Pennsylvania' }, { code: 'RI', name: 'Rhode Island' },
+  { code: 'SC', name: 'South Carolina' }, { code: 'SD', name: 'South Dakota' }, { code: 'TN', name: 'Tennessee' },
+  { code: 'TX', name: 'Texas' }, { code: 'UT', name: 'Utah' }, { code: 'VT', name: 'Vermont' },
+  { code: 'VA', name: 'Virginia' }, { code: 'WA', name: 'Washington' }, { code: 'WV', name: 'West Virginia' },
+  { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }, { code: 'DC', name: 'District of Columbia' }
 ];
 
-// NTEE Codes (National Taxonomy of Exempt Entities)
+// NTEE Categories
 const NTEE_CATEGORIES = [
   { code: '', name: 'All Categories' },
   { code: '1', name: 'Arts, Culture & Humanities' },
@@ -123,55 +73,33 @@ interface SearchResult {
   nteeCode: string;
   subsectionCode: number;
   rulingDate: string;
-  deductibilityCode: number;
-  foundationCode: number;
   assetAmount: number;
   incomeAmount: number;
   revenueAmount: number;
-  taxPeriod: string;
-  classificationCodes: string;
-  activityCodes: string;
 }
 
 interface OrganizationDetail {
   ein: string;
   organizationName: string;
-  careOfName: string | null;
   address: string;
   city: string;
   state: string;
   zipCode: string;
   nteeCode: string;
   subsectionCode: number;
-  affiliationCode: number;
-  classificationCodes: string;
   rulingDate: string;
-  deductibilityCode: number;
-  foundationCode: number;
-  activityCodes: string;
-  organizationCode: number;
-  exemptStatusCode: number;
   taxPeriod: number;
   assetAmount: number;
   incomeAmount: number;
   revenueAmount: number;
-  accountingPeriod: number;
-  sortName: string | null;
   latestFiling: {
-    taxPeriod: number;
     taxYear: number;
-    formType: number;
     pdfUrl: string;
     totalRevenue: number;
     totalExpenses: number;
-    totalAssets: number;
-    totalLiabilities: number;
-    compensationPercent: number;
   } | null;
   filingHistory: {
-    taxPeriod: number;
     taxYear: number;
-    formType: number;
     pdfUrl: string;
     totalRevenue: number;
     totalExpenses: number;
@@ -187,13 +115,11 @@ interface IRSSearchModalProps {
 }
 
 export default function IRSSearchModal({ open, onClose, onImport, existingEINs }: IRSSearchModalProps) {
-  // Search form state
   const [searchTerm, setSearchTerm] = useState('');
   const [state, setState] = useState('NC');
   const [city, setCity] = useState('');
   const [nteeCode, setNteeCode] = useState('');
   
-  // Results state
   const [results, setResults] = useState<SearchResult[]>([]);
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
@@ -201,28 +127,23 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Detail view state
   const [selectedOrg, setSelectedOrg] = useState<OrganizationDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   
-  // Import state
   const [importing, setImporting] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState<string[]>([]);
   
-  // Batch import state
   const [batchImporting, setBatchImporting] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   
-  // Auto-import state
   const [autoImporting, setAutoImporting] = useState(false);
-  const autoImportingRef = useRef(false); // Ref to track import state in async loops
+  const autoImportingRef = useRef(false);
   const [autoImportStartPage, setAutoImportStartPage] = useState(0);
   const [autoImportStats, setAutoImportStats] = useState({
     totalImported: 0,
     totalSkipped: 0,
     totalFailed: 0,
-    currentPage: 0,
     pagesProcessed: 0
   });
   const [autoImportLog, setAutoImportLog] = useState<string[]>([]);
@@ -235,20 +156,11 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
       const response = await fetch('/api/nonprofit-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          searchTerm,
-          state,
-          city,
-          nteeCode: nteeCode || undefined,
-          page
-        })
+        body: JSON.stringify({ searchTerm, state, city, nteeCode: nteeCode || undefined, page })
       });
 
       const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || 'Search failed');
-      }
+      if (!data.success) throw new Error(data.error || 'Search failed');
 
       setResults(data.organizations);
       setTotalResults(data.totalResults);
@@ -261,10 +173,6 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
       setLoading(false);
     }
   }, [searchTerm, state, city, nteeCode]);
-
-  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
-    handleSearch(page - 1);
-  };
 
   const handleViewDetails = async (ein: string) => {
     if (expandedRow === ein) {
@@ -279,11 +187,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     try {
       const response = await fetch(`/api/nonprofit-search?ein=${ein}`);
       const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch details');
-      }
-
+      if (!data.success) throw new Error(data.error || 'Failed to fetch details');
       setSelectedOrg(data.organization);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch details');
@@ -296,7 +200,6 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     setImporting(ein);
     
     try {
-      // Fetch full details if not already loaded
       let orgDetail = selectedOrg;
       if (!orgDetail || orgDetail.ein !== ein) {
         const response = await fetch(`/api/nonprofit-search?ein=${ein}`);
@@ -316,81 +219,11 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     }
   };
 
-  // State for auto-import confirmation dialog
-  const [showAutoImportConfirm, setShowAutoImportConfirm] = useState(false);
-  const [firstPageImportComplete, setFirstPageImportComplete] = useState(false);
-
-  const handleBatchImport = async () => {
-    setBatchImporting(true);
-    setBatchProgress(0);
-    setFirstPageImportComplete(false);
-    
-    const toImport = results.filter(r => !existingEINs.includes(r.ein) && !importSuccess.includes(r.ein));
-    console.log('Batch import starting. Organizations to import:', toImport.length);
-    
-    for (let i = 0; i < toImport.length; i++) {
-      try {
-        console.log(`Fetching details for ${toImport[i].organizationName} (${toImport[i].ein})...`);
-        const response = await fetch(`/api/nonprofit-search?ein=${toImport[i].ein}`);
-        const data = await response.json();
-        
-        if (data.success && data.organization) {
-          console.log(`Importing ${data.organization.organizationName}...`);
-          await onImport(data.organization);
-          console.log(`✓ Successfully imported ${data.organization.organizationName}`);
-          setImportSuccess(prev => [...prev, toImport[i].ein]);
-        } else {
-          console.error(`Failed to get details for ${toImport[i].ein}:`, data.error || 'Unknown error');
-        }
-      } catch (err) {
-        console.error(`Failed to import ${toImport[i].ein}:`, err);
-      }
-      
-      setBatchProgress(((i + 1) / toImport.length) * 100);
-      
-      // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    
-    console.log('Batch import complete. Total imported:', importSuccess.length);
-    
-    setBatchImporting(false);
-    setFirstPageImportComplete(true);
-    
-    // Show confirmation dialog to ask about auto-importing all remaining records
-    if (totalPages > 1 && currentPage < totalPages - 1) {
-      setShowAutoImportConfirm(true);
-    }
-  };
-
-  // Handle user confirming they want to auto-import all remaining records
-  const handleConfirmAutoImportAll = () => {
-    setShowAutoImportConfirm(false);
-    // Set start page to next page (current + 1)
-    setAutoImportStartPage(currentPage + 1);
-    // Start auto-import
-    setTimeout(() => {
-      handleAutoImport();
-    }, 100);
-  };
-
-  const handleDeclineAutoImport = () => {
-    setShowAutoImportConfirm(false);
-  };
-
-  // Auto-import: Fetches and imports 25 records at a time, page by page
-  // Optimized for memory efficiency - reduces state updates and uses Set for O(1) lookups
   const handleAutoImport = async () => {
     setAutoImporting(true);
     autoImportingRef.current = true;
     setAutoImportLog([]);
-    setAutoImportStats({
-      totalImported: 0,
-      totalSkipped: 0,
-      totalFailed: 0,
-      currentPage: autoImportStartPage,
-      pagesProcessed: 0
-    });
+    setAutoImportStats({ totalImported: 0, totalSkipped: 0, totalFailed: 0, pagesProcessed: 0 });
 
     let page = autoImportStartPage;
     let hasMore = true;
@@ -399,50 +232,34 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
     let totalFailed = 0;
     let pagesProcessed = 0;
     
-    // Use Set for O(1) lookup instead of array includes
     const importedEINsSet = new Set([...existingEINs, ...importSuccess]);
-    // Keep only last 20 log entries to reduce memory
     const logBuffer: string[] = [];
     
     const addLog = (message: string) => {
       logBuffer.push(message);
-      // Only keep last 20 entries in buffer
-      if (logBuffer.length > 20) {
-        logBuffer.shift();
-      }
-      // Batch update logs less frequently
+      if (logBuffer.length > 20) logBuffer.shift();
       setAutoImportLog([...logBuffer]);
     };
 
-    addLog(`Starting auto-import for ${state ? US_STATES.find(s => s.code === state)?.name : 'all states'}${autoImportStartPage > 0 ? ` from page ${autoImportStartPage + 1}` : ''}...`);
+    addLog(`Starting auto-import for ${state ? US_STATES.find(s => s.code === state)?.name : 'all states'}...`);
 
     while (hasMore && autoImportingRef.current) {
       try {
         addLog(`📄 Page ${page + 1}...`);
         
-        // Fetch a page of results
         const response = await fetch('/api/nonprofit-search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            searchTerm,
-            state,
-            city,
-            nteeCode: nteeCode || undefined,
-            page
-          })
+          body: JSON.stringify({ searchTerm, state, city, nteeCode: nteeCode || undefined, page })
         });
 
         const data = await response.json();
-
         if (!data.success) {
           addLog(`❌ Error fetching page ${page + 1}: ${data.error}`);
           break;
         }
 
         const orgs = data.organizations || [];
-        
-        // Update pagination info only (not results to save memory)
         setTotalResults(data.totalResults);
         setCurrentPage(data.currentPage);
         setTotalPages(data.totalPages);
@@ -450,13 +267,10 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
         let pageImported = 0;
         let pageSkipped = 0;
         
-        // Import each organization on this page
         for (let i = 0; i < orgs.length; i++) {
-          if (!autoImportingRef.current) break; // Check for stop signal
+          if (!autoImportingRef.current) break;
           
           const org = orgs[i];
-          
-          // Check if already imported using Set (O(1) lookup)
           if (importedEINsSet.has(org.ein)) {
             totalSkipped++;
             pageSkipped++;
@@ -464,23 +278,21 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
           }
 
           try {
-            // Fetch full details
             const detailResponse = await fetch(`/api/nonprofit-search?ein=${org.ein}`);
             const detailData = await detailResponse.json();
 
             if (detailData.success && detailData.organization) {
               await onImport(detailData.organization);
-              importedEINsSet.add(org.ein); // Add to Set instead of state array
+              importedEINsSet.add(org.ein);
               totalImported++;
               pageImported++;
             } else {
               totalFailed++;
             }
-          } catch (err) {
+          } catch {
             totalFailed++;
           }
 
-          // Small delay to avoid rate limiting (300ms between each org)
           await new Promise(resolve => setTimeout(resolve, 300));
         }
 
@@ -488,34 +300,16 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
         page++;
         hasMore = data.hasMore && page < data.totalPages;
 
-        // Update stats once per page (not per org) to reduce re-renders
-        setAutoImportStats({
-          totalImported,
-          totalSkipped,
-          totalFailed,
-          currentPage: page,
-          pagesProcessed
-        });
-        
+        setAutoImportStats({ totalImported, totalSkipped, totalFailed, pagesProcessed });
         addLog(`✅ Page ${page}: +${pageImported} imported, ${pageSkipped} skipped`);
 
-        // Update importSuccess state periodically (every 5 pages) to sync with parent
-        if (pagesProcessed % 5 === 0) {
-          setImportSuccess(Array.from(importedEINsSet).filter(ein => !existingEINs.includes(ein)));
-        }
-
-        if (hasMore) {
-          // Delay between pages (1 second)
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
+        if (hasMore) await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (err) {
         addLog(`❌ Error on page ${page + 1}: ${err instanceof Error ? err.message : 'Unknown error'}`);
         break;
       }
     }
 
-    // Final sync of imported EINs
     setImportSuccess(Array.from(importedEINsSet).filter(ein => !existingEINs.includes(ein)));
     addLog(`🎉 Complete! Imported: ${totalImported}, Skipped: ${totalSkipped}, Failed: ${totalFailed}`);
     autoImportingRef.current = false;
@@ -523,7 +317,7 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
   };
 
   const stopAutoImport = () => {
-    autoImportingRef.current = false; // Stop the async loop
+    autoImportingRef.current = false;
     setAutoImporting(false);
     setAutoImportLog(prev => [...prev, 'Auto-import stopped by user']);
   };
@@ -544,581 +338,373 @@ export default function IRSSearchModal({ open, onClose, onImport, existingEINs }
       4: '501(c)(4) - Social Welfare',
       5: '501(c)(5) - Labor/Agricultural',
       6: '501(c)(6) - Business League',
-      7: '501(c)(7) - Social Club',
-      8: '501(c)(8) - Fraternal Beneficiary',
-      9: '501(c)(9) - Voluntary Employees',
-      10: '501(c)(10) - Domestic Fraternal',
-      13: '501(c)(13) - Cemetery Company',
-      14: '501(c)(14) - Credit Union',
-      19: '501(c)(19) - Veterans Organization'
     };
     return descriptions[code] || `501(c)(${code})`;
   };
 
-  const isAlreadyImported = (ein: string) => {
-    return existingEINs.includes(ein) || importSuccess.includes(ein);
-  };
+  const isAlreadyImported = (ein: string) => existingEINs.includes(ein) || importSuccess.includes(ein);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
-      <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <SearchIcon color="primary" />
-          <Typography variant="h6">IRS Tax Exempt Organization Search</Typography>
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          Search for North Carolina nonprofits using ProPublica Nonprofit Explorer data (sourced from IRS Form 990)
-        </Typography>
-      </DialogTitle>
-      
-      <DialogContent dividers>
-        {/* Search Form */}
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Grid container spacing={2} alignItems="flex-end">
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                label="Organization Name or EIN"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Enter name or EIN..."
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                select
-                label="State"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                size="small"
-              >
-                {US_STATES.map(s => (
-                  <MenuItem key={s.code} value={s.code}>{s.name}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                label="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Optional"
-                size="small"
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                select
-                label="Category (NTEE)"
-                value={nteeCode}
-                onChange={(e) => setNteeCode(e.target.value)}
-                size="small"
-              >
-                {NTEE_CATEGORIES.map(cat => (
-                  <MenuItem key={cat.code} value={cat.code}>{cat.name}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}
-                onClick={() => handleSearch(0)}
-                disabled={loading}
-              >
-                Search
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5 text-blue-600" />
+            IRS Tax Exempt Organization Search
+          </DialogTitle>
+          <DialogDescription>
+            Search for North Carolina nonprofits using ProPublica Nonprofit Explorer data (sourced from IRS Form 990)
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Error Alert */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
+        <div className="flex-1 overflow-y-auto space-y-4 py-4">
+          {/* Search Form */}
+          <Card>
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="search">Organization Name or EIN</Label>
+                  <Input
+                    id="search"
+                    placeholder="Enter name or EIN..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>State</Label>
+                  <Select value={state} onValueChange={setState}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {US_STATES.map(s => (
+                        <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Category (NTEE)</Label>
+                  <Select value={nteeCode} onValueChange={setNteeCode}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {NTEE_CATEGORIES.map(cat => (
+                        <SelectItem key={cat.code || 'all'} value={cat.code}>{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={() => handleSearch(0)} disabled={loading} className="w-full">
+                    {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
+                    Search
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Results Summary */}
-        {totalResults > 0 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Found <strong>{totalResults.toLocaleString()}</strong> organizations
-              {state && ` in ${US_STATES.find(s => s.code === state)?.name}`}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="flex items-center justify-between">
+                {error}
+                <Button variant="ghost" size="sm" onClick={() => setError(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Results Summary & Actions */}
+          {totalResults > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="text-sm text-slate-600">
+                Found <strong>{totalResults.toLocaleString()}</strong> organizations
+                {state && ` in ${US_STATES.find(s => s.code === state)?.name}`}
+              </p>
+              <div className="flex items-center gap-2">
+                {!autoImporting ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">Start Page</Label>
+                      <Input
+                        type="number"
+                        value={autoImportStartPage + 1}
+                        onChange={(e) => setAutoImportStartPage(Math.max(0, parseInt(e.target.value) - 1) || 0)}
+                        className="w-20 h-8"
+                        min={1}
+                      />
+                    </div>
+                    <Button size="sm" variant="default" onClick={handleAutoImport} disabled={batchImporting || loading}>
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Auto-Import NC Nonprofits (25/page)
+                    </Button>
+                  </>
+                ) : (
+                  <Button size="sm" variant="destructive" onClick={stopAutoImport}>
+                    Stop Auto-Import
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Auto-Import Status Panel */}
+          {(autoImporting || autoImportLog.length > 0) && (
+            <Card className={autoImporting ? 'border-blue-200 bg-blue-50' : 'bg-slate-50'}>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-medium text-blue-700">
+                    {autoImporting ? '🔄 Auto-Import in Progress...' : '✅ Auto-Import Complete'}
+                  </p>
+                  <div className="flex gap-2">
+                    <Badge variant="default" className="bg-green-600">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Imported: {autoImportStats.totalImported}
+                    </Badge>
+                    <Badge variant="secondary">Skipped: {autoImportStats.totalSkipped}</Badge>
+                    <Badge variant="destructive">Failed: {autoImportStats.totalFailed}</Badge>
+                    <Badge variant="outline">Pages: {autoImportStats.pagesProcessed}</Badge>
+                  </div>
+                </div>
+                
+                {autoImporting && <Progress value={50} className="mb-3" />}
+                
+                <div className="bg-slate-900 text-slate-100 p-3 rounded-lg font-mono text-xs max-h-32 overflow-y-auto">
+                  {autoImportLog.map((log, idx) => (
+                    <div key={idx} className={cn(
+                      log.startsWith('✓') || log.startsWith('✅') ? 'text-green-400' : 
+                      log.startsWith('✗') || log.startsWith('❌') ? 'text-red-400' : 
+                      log.includes('Skipped') ? 'text-slate-500' : 'text-slate-100'
+                    )}>
+                      {log}
+                    </div>
+                  ))}
+                  {autoImportLog.length === 0 && <span className="text-slate-500">Waiting to start...</span>}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Batch Import Progress */}
+          {batchImporting && (
+            <div className="space-y-2">
+              <p className="text-sm text-slate-600">Importing organizations from current page...</p>
+              <Progress value={batchProgress} />
+            </div>
+          )}
+
+          {/* Results Table */}
+          {results.length > 0 && (
+            <div className="border rounded-lg overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100 sticky top-0">
+                    <tr>
+                      <th className="p-3 text-left w-10"></th>
+                      <th className="p-3 text-left font-semibold">EIN</th>
+                      <th className="p-3 text-left font-semibold">Organization Name</th>
+                      <th className="p-3 text-left font-semibold">City</th>
+                      <th className="p-3 text-left font-semibold">Type</th>
+                      <th className="p-3 text-right font-semibold">Assets</th>
+                      <th className="p-3 text-right font-semibold">Revenue</th>
+                      <th className="p-3 text-left font-semibold">Status</th>
+                      <th className="p-3 text-left font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.map((org) => (
+                      <React.Fragment key={org.ein}>
+                        <tr className={cn(
+                          'border-t hover:bg-slate-50 transition-colors',
+                          isAlreadyImported(org.ein) && 'bg-green-50'
+                        )}>
+                          <td className="p-3">
+                            <Button variant="ghost" size="sm" onClick={() => handleViewDetails(org.ein)}>
+                              {expandedRow === org.ein ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </Button>
+                          </td>
+                          <td className="p-3 font-mono text-xs">{org.ein}</td>
+                          <td className="p-3 font-medium">{org.organizationName}</td>
+                          <td className="p-3">{org.city}</td>
+                          <td className="p-3">
+                            <Badge variant="outline" title={getSubsectionDescription(org.subsectionCode)}>
+                              501(c)({org.subsectionCode})
+                            </Badge>
+                          </td>
+                          <td className="p-3 text-right">{formatCurrency(org.assetAmount)}</td>
+                          <td className="p-3 text-right">{formatCurrency(org.revenueAmount)}</td>
+                          <td className="p-3">
+                            {isAlreadyImported(org.ein) ? (
+                              <Badge className="bg-green-600">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Imported
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">New</Badge>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <Button
+                              size="sm"
+                              variant={isAlreadyImported(org.ein) ? "outline" : "default"}
+                              onClick={() => handleImportSingle(org.ein)}
+                              disabled={importing === org.ein || isAlreadyImported(org.ein)}
+                            >
+                              {importing === org.ein ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Plus className="h-4 w-4 mr-1" />
+                                  {isAlreadyImported(org.ein) ? 'Added' : 'Import'}
+                                </>
+                              )}
+                            </Button>
+                          </td>
+                        </tr>
+                        
+                        {/* Expanded Detail Row */}
+                        {expandedRow === org.ein && (
+                          <tr>
+                            <td colSpan={9} className="p-0">
+                              <div className="bg-slate-50 p-4 border-t">
+                                {loadingDetail ? (
+                                  <div className="flex justify-center py-6">
+                                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                  </div>
+                                ) : selectedOrg && selectedOrg.ein === org.ein ? (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                      <h4 className="font-semibold text-blue-600 mb-2">Organization Details</h4>
+                                      <div className="space-y-1 text-sm">
+                                        <p><strong>Address:</strong> {selectedOrg.address}</p>
+                                        <p><strong>City, State ZIP:</strong> {selectedOrg.city}, {selectedOrg.state} {selectedOrg.zipCode}</p>
+                                        <p><strong>NTEE Code:</strong> {selectedOrg.nteeCode || 'N/A'}</p>
+                                        <p><strong>Ruling Date:</strong> {selectedOrg.rulingDate || 'N/A'}</p>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <h4 className="font-semibold text-blue-600 mb-2">Financial Information</h4>
+                                      <div className="space-y-1 text-sm">
+                                        <p><strong>Total Assets:</strong> {formatCurrency(selectedOrg.assetAmount)}</p>
+                                        <p><strong>Total Income:</strong> {formatCurrency(selectedOrg.incomeAmount)}</p>
+                                        <p><strong>Total Revenue:</strong> {formatCurrency(selectedOrg.revenueAmount)}</p>
+                                        {selectedOrg.latestFiling && (
+                                          <>
+                                            <div className="border-t pt-2 mt-2">
+                                              <p><strong>Latest Filing ({selectedOrg.latestFiling.taxYear}):</strong></p>
+                                              <p>Revenue: {formatCurrency(selectedOrg.latestFiling.totalRevenue)} | Expenses: {formatCurrency(selectedOrg.latestFiling.totalExpenses)}</p>
+                                              <a 
+                                                href={selectedOrg.latestFiling.pdfUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline inline-flex items-center gap-1 mt-1"
+                                              >
+                                                View Form 990 PDF <ExternalLink className="h-3 w-3" />
+                                              </a>
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-slate-500">Click to load organization details</p>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2">
               <Button
-                size="small"
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={handleBatchImport}
-                disabled={batchImporting || autoImporting || results.every(r => isAlreadyImported(r.ein))}
+                variant="outline"
+                size="sm"
+                onClick={() => handleSearch(currentPage - 1)}
+                disabled={currentPage === 0 || loading}
               >
-                Import Page ({results.filter(r => !isAlreadyImported(r.ein)).length})
+                Previous
               </Button>
-              {!autoImporting ? (
-                <>
-                  <TextField
-                    size="small"
+              <span className="flex items-center px-3 text-sm text-slate-600">
+                Page {currentPage + 1} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSearch(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1 || loading}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+
+          {/* Initial State */}
+          {!loading && results.length === 0 && !autoImporting && autoImportLog.length === 0 && (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                <Info className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">Search for Tax Exempt Organizations</h3>
+              <p className="text-slate-500 mb-6">Enter a search term or select filters above to find nonprofits</p>
+              
+              <div className="flex justify-center items-center gap-3 mb-6">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Start from Page</Label>
+                  <Input
                     type="number"
-                    label="Start Page"
                     value={autoImportStartPage + 1}
                     onChange={(e) => setAutoImportStartPage(Math.max(0, parseInt(e.target.value) - 1) || 0)}
-                    sx={{ width: 100 }}
-                    inputProps={{ min: 1 }}
+                    className="w-24"
+                    min={1}
                   />
-                  <Button
-                    size="small"
-                    variant="contained"
-                    color="success"
-                    startIcon={<RefreshIcon />}
-                    onClick={handleAutoImport}
-                    disabled={batchImporting || loading}
-                  >
-                    Auto-Import (25/page)
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="small"
-                  variant="contained"
-                  color="error"
-                  onClick={stopAutoImport}
-                >
-                  Stop Auto-Import
+                </div>
+                <Button onClick={handleAutoImport} disabled={loading} size="lg">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Auto-Import NC Nonprofits (25/page)
                 </Button>
-              )}
-            </Box>
-          </Box>
-        )}
+              </div>
+              
+              <Alert className="max-w-xl mx-auto bg-blue-50 border-blue-200">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-700">
+                  <strong>Data Source:</strong> ProPublica Nonprofit Explorer, which aggregates IRS Form 990 data.
+                  This includes detailed financial information and filing history for most 501(c)(3) organizations.
+                </AlertDescription>
+              </Alert>
+              
+              <Alert className="max-w-xl mx-auto mt-3 bg-amber-50 border-amber-200">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-700">
+                  <strong>Note:</strong> North Carolina has ~84,000+ registered nonprofits. Auto-import processes 25 organizations per page.
+                  You can stop the import at any time and resume later - already imported organizations will be skipped.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+        </div>
 
-        {/* Auto-Import Status Panel */}
-        {(autoImporting || autoImportLog.length > 0) && (
-          <Paper sx={{ p: 2, mb: 2, bgcolor: autoImporting ? 'primary.50' : 'grey.50' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="subtitle2" color="primary">
-                {autoImporting ? '🔄 Auto-Import in Progress...' : '✅ Auto-Import Complete'}
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Chip 
-                  icon={<CheckCircleIcon />} 
-                  label={`Imported: ${autoImportStats.totalImported}`} 
-                  color="success" 
-                  size="small" 
-                />
-                <Chip 
-                  label={`Skipped: ${autoImportStats.totalSkipped}`} 
-                  color="default" 
-                  size="small" 
-                />
-                <Chip 
-                  icon={<WarningIcon />} 
-                  label={`Failed: ${autoImportStats.totalFailed}`} 
-                  color="error" 
-                  size="small" 
-                  variant="outlined"
-                />
-                <Chip 
-                  label={`Pages: ${autoImportStats.pagesProcessed}`} 
-                  color="info" 
-                  size="small" 
-                  variant="outlined"
-                />
-              </Box>
-            </Box>
-            
-            {autoImporting && (
-              <LinearProgress sx={{ mb: 2 }} />
-            )}
-            
-            {/* Log Output */}
-            <Box 
-              sx={{ 
-                maxHeight: 150, 
-                overflow: 'auto', 
-                bgcolor: 'grey.900', 
-                color: 'grey.100',
-                p: 1.5, 
-                borderRadius: 1,
-                fontFamily: 'monospace',
-                fontSize: '0.75rem',
-                lineHeight: 1.6
-              }}
-            >
-              {autoImportLog.map((log, idx) => (
-                <Box key={idx} sx={{ 
-                  color: log.startsWith('✓') ? 'success.light' : 
-                         log.startsWith('✗') ? 'error.light' : 
-                         log.includes('Skipped') ? 'grey.500' : 'grey.100'
-                }}>
-                  {log}
-                </Box>
-              ))}
-              {autoImportLog.length === 0 && (
-                <Typography variant="caption" color="grey.500">
-                  Waiting to start...
-                </Typography>
-              )}
-            </Box>
-          </Paper>
-        )}
-
-        {/* Batch Import Progress */}
-        {batchImporting && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Importing organizations from current page...
-            </Typography>
-            <LinearProgress variant="determinate" value={batchProgress} />
-          </Box>
-        )}
-
-        {/* Results Table */}
-        {results.length > 0 && (
-          <TableContainer component={Paper} sx={{ maxHeight: 500 }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell width={40}></TableCell>
-                  <TableCell><strong>EIN</strong></TableCell>
-                  <TableCell><strong>Organization Name</strong></TableCell>
-                  <TableCell><strong>City</strong></TableCell>
-                  <TableCell><strong>Type</strong></TableCell>
-                  <TableCell align="right"><strong>Assets</strong></TableCell>
-                  <TableCell align="right"><strong>Revenue</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
-                  <TableCell><strong>Actions</strong></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {results.map((org) => (
-                  <React.Fragment key={org.ein}>
-                    <TableRow 
-                      hover 
-                      sx={{ 
-                        cursor: 'pointer',
-                        bgcolor: isAlreadyImported(org.ein) ? 'action.selected' : 'inherit'
-                      }}
-                    >
-                      <TableCell>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleViewDetails(org.ein)}
-                        >
-                          {expandedRow === org.ein ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </IconButton>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" fontFamily="monospace">
-                          {org.ein}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight="medium">
-                          {org.organizationName}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{org.city}</TableCell>
-                      <TableCell>
-                        <Tooltip title={getSubsectionDescription(org.subsectionCode)}>
-                          <Chip 
-                            label={`501(c)(${org.subsectionCode})`} 
-                            size="small" 
-                            variant="outlined"
-                          />
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2">
-                          {formatCurrency(org.assetAmount)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2">
-                          {formatCurrency(org.revenueAmount)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {isAlreadyImported(org.ein) ? (
-                          <Chip 
-                            icon={<CheckCircleIcon />}
-                            label="Imported" 
-                            size="small" 
-                            color="success"
-                          />
-                        ) : (
-                          <Chip label="New" size="small" color="info" variant="outlined" />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="small"
-                          variant={isAlreadyImported(org.ein) ? "outlined" : "contained"}
-                          startIcon={importing === org.ein ? <CircularProgress size={16} /> : <AddIcon />}
-                          onClick={() => handleImportSingle(org.ein)}
-                          disabled={importing === org.ein || isAlreadyImported(org.ein)}
-                        >
-                          {isAlreadyImported(org.ein) ? 'Added' : 'Import'}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    
-                    {/* Expanded Detail Row */}
-                    <TableRow>
-                      <TableCell colSpan={9} sx={{ py: 0 }}>
-                        <Collapse in={expandedRow === org.ein} timeout="auto" unmountOnExit>
-                          <Box sx={{ py: 2, px: 3, bgcolor: 'grey.50' }}>
-                            {loadingDetail && expandedRow === org.ein ? (
-                              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-                                <CircularProgress />
-                              </Box>
-                            ) : selectedOrg && selectedOrg.ein === org.ein ? (
-                              <Grid container spacing={3}>
-                                <Grid item xs={12} md={6}>
-                                  <Typography variant="subtitle2" color="primary" gutterBottom>
-                                    Organization Details
-                                  </Typography>
-                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Typography variant="body2">
-                                      <strong>Address:</strong> {selectedOrg.address}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                      <strong>City, State ZIP:</strong> {selectedOrg.city}, {selectedOrg.state} {selectedOrg.zipCode}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                      <strong>NTEE Code:</strong> {selectedOrg.nteeCode || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                      <strong>Ruling Date:</strong> {selectedOrg.rulingDate || 'N/A'}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                      <strong>Tax Period:</strong> {selectedOrg.taxPeriod || 'N/A'}
-                                    </Typography>
-                                  </Box>
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                  <Typography variant="subtitle2" color="primary" gutterBottom>
-                                    Financial Information
-                                  </Typography>
-                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Typography variant="body2">
-                                      <strong>Total Assets:</strong> {formatCurrency(selectedOrg.assetAmount)}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                      <strong>Total Income:</strong> {formatCurrency(selectedOrg.incomeAmount)}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                      <strong>Total Revenue:</strong> {formatCurrency(selectedOrg.revenueAmount)}
-                                    </Typography>
-                                    {selectedOrg.latestFiling && (
-                                      <>
-                                        <Divider sx={{ my: 1 }} />
-                                        <Typography variant="body2">
-                                          <strong>Latest Filing ({selectedOrg.latestFiling.taxYear}):</strong>
-                                        </Typography>
-                                        <Typography variant="body2">
-                                          Revenue: {formatCurrency(selectedOrg.latestFiling.totalRevenue)} | 
-                                          Expenses: {formatCurrency(selectedOrg.latestFiling.totalExpenses)}
-                                        </Typography>
-                                        <Link 
-                                          href={selectedOrg.latestFiling.pdfUrl} 
-                                          target="_blank"
-                                          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-                                        >
-                                          View Form 990 PDF <OpenInNewIcon fontSize="small" />
-                                        </Link>
-                                      </>
-                                    )}
-                                  </Box>
-                                </Grid>
-                                {selectedOrg.filingHistory && selectedOrg.filingHistory.length > 1 && (
-                                  <Grid item xs={12}>
-                                    <Typography variant="subtitle2" color="primary" gutterBottom>
-                                      Filing History (Year-over-Year)
-                                    </Typography>
-                                    <Table size="small">
-                                      <TableHead>
-                                        <TableRow>
-                                          <TableCell>Tax Year</TableCell>
-                                          <TableCell align="right">Revenue</TableCell>
-                                          <TableCell align="right">Expenses</TableCell>
-                                          <TableCell align="right">Assets</TableCell>
-                                          <TableCell>Form 990</TableCell>
-                                        </TableRow>
-                                      </TableHead>
-                                      <TableBody>
-                                        {selectedOrg.filingHistory.slice(0, 5).map((filing, idx) => (
-                                          <TableRow key={filing.taxPeriod}>
-                                            <TableCell>{filing.taxYear}</TableCell>
-                                            <TableCell align="right">{formatCurrency(filing.totalRevenue)}</TableCell>
-                                            <TableCell align="right">{formatCurrency(filing.totalExpenses)}</TableCell>
-                                            <TableCell align="right">{formatCurrency(filing.totalAssets)}</TableCell>
-                                            <TableCell>
-                                              <Link href={filing.pdfUrl} target="_blank" sx={{ fontSize: '0.875rem' }}>
-                                                View PDF
-                                              </Link>
-                                            </TableCell>
-                                          </TableRow>
-                                        ))}
-                                      </TableBody>
-                                    </Table>
-                                  </Grid>
-                                )}
-                              </Grid>
-                            ) : (
-                              <Typography color="text.secondary">
-                                Click to load organization details
-                              </Typography>
-                            )}
-                          </Box>
-                        </Collapse>
-                      </TableCell>
-                    </TableRow>
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Pagination
-              count={totalPages}
-              page={currentPage + 1}
-              onChange={handlePageChange}
-              color="primary"
-              disabled={loading}
-            />
-          </Box>
-        )}
-
-        {/* No Results */}
-        {!loading && results.length === 0 && totalResults === 0 && searchTerm && (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <WarningIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary">
-              No organizations found
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Try adjusting your search criteria
-            </Typography>
-          </Box>
-        )}
-
-        {/* Initial State */}
-        {!loading && results.length === 0 && !searchTerm && !autoImporting && autoImportLog.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <InfoIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary">
-              Search for Tax Exempt Organizations
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Enter a search term or select filters above to find nonprofits
-            </Typography>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mb: 3 }}>
-              <TextField
-                size="small"
-                type="number"
-                label="Start from Page"
-                value={autoImportStartPage + 1}
-                onChange={(e) => setAutoImportStartPage(Math.max(0, parseInt(e.target.value) - 1) || 0)}
-                sx={{ width: 130 }}
-                inputProps={{ min: 1 }}
-                helperText="Resume from page"
-              />
-              <Button
-                variant="contained"
-                color="success"
-                size="large"
-                startIcon={<RefreshIcon />}
-                onClick={handleAutoImport}
-                disabled={loading}
-              >
-                Auto-Import NC Nonprofits (25/page)
-              </Button>
-            </Box>
-            
-            <Alert severity="info" sx={{ maxWidth: 600, mx: 'auto' }}>
-              <Typography variant="body2">
-                <strong>Data Source:</strong> ProPublica Nonprofit Explorer, which aggregates IRS Form 990 data.
-                This includes detailed financial information and filing history for most 501(c)(3) organizations.
-              </Typography>
-            </Alert>
-            
-            <Alert severity="warning" sx={{ maxWidth: 600, mx: 'auto', mt: 2 }}>
-              <Typography variant="body2">
-                <strong>Note:</strong> North Carolina has ~84,000+ registered nonprofits. Auto-import processes 25 organizations per page.
-                You can stop the import at any time and resume later - already imported organizations will be skipped.
-              </Typography>
-            </Alert>
-          </Box>
-        )}
+        <DialogFooter className="border-t pt-4">
+          <p className="text-xs text-slate-500 flex-1">
+            Data from ProPublica Nonprofit Explorer • IRS Form 990 filings
+          </p>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </DialogFooter>
       </DialogContent>
-
-      <DialogActions>
-        <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1, pl: 2 }}>
-          Data from ProPublica Nonprofit Explorer • IRS Form 990 filings
-        </Typography>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
-
-      {/* Auto-Import Confirmation Dialog */}
-      <Dialog 
-        open={showAutoImportConfirm} 
-        onClose={handleDeclineAutoImport}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CheckCircleIcon color="success" />
-          First Page Import Complete!
-        </DialogTitle>
-        <DialogContent>
-          <Alert severity="success" sx={{ mb: 2 }}>
-            Successfully imported {results.filter(r => importSuccess.includes(r.ein)).length} organizations from page {currentPage + 1}.
-          </Alert>
-          
-          <Typography variant="body1" gutterBottom>
-            Would you like to automatically import all remaining records?
-          </Typography>
-          
-          <Box sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1, mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Remaining:</strong> {totalResults - ((currentPage + 1) * 25)} organizations across {totalPages - currentPage - 1} pages
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              <strong>Estimated time:</strong> ~{Math.ceil((totalPages - currentPage - 1) * 25 * 0.5 / 60)} minutes
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              You can stop the import at any time. Already imported organizations will be skipped.
-            </Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button 
-            onClick={handleDeclineAutoImport}
-            variant="outlined"
-          >
-            No, I&apos;ll Import Manually
-          </Button>
-          <Button 
-            onClick={handleConfirmAutoImportAll}
-            variant="contained"
-            color="success"
-            startIcon={<RefreshIcon />}
-          >
-            Yes, Auto-Import All Remaining
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Dialog>
   );
 }

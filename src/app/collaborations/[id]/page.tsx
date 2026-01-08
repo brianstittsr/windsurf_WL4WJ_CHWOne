@@ -82,6 +82,21 @@ import {
 import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Grant } from '@/lib/schema/unified-schema';
+import { 
+  ProgramForm, 
+  ProgramType, 
+  createDefaultProgramDatasets, 
+  getProgramTypeLabel,
+  DEFAULT_INSTRUCTOR_FIELDS,
+  DEFAULT_STUDENT_FIELDS,
+  DEFAULT_NONPROFIT_FIELDS,
+  generateMockInstructorData,
+  generateMockStudentData,
+  generateMockNonprofitData
+} from '@/types/program-form.types';
+import { Switch, FormControlLabel } from '@mui/material';
+import SchoolIcon from '@mui/icons-material/School';
+import ProgramMetricsDashboard from '@/components/Programs/ProgramMetricsDashboard';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -149,6 +164,24 @@ function CollaborationDetailContent() {
   });
   const [invoices, setInvoices] = useState<any[]>([]);
   const [milestoneChanges, setMilestoneChanges] = useState<any[]>([]);
+  
+  // Program Form state
+  const [showProgramDialog, setShowProgramDialog] = useState(false);
+  const [programForms, setProgramForms] = useState<ProgramForm[]>([]);
+  const [newProgramForm, setNewProgramForm] = useState({
+    name: 'Digital Literacy Program',
+    description: 'A comprehensive digital literacy training program for community members',
+    programType: 'digital_literacy' as ProgramType,
+    enableInstructorDataset: true,
+    enableStudentDataset: true,
+    enableNonprofitDataset: true,
+  });
+  const [selectedProgram, setSelectedProgram] = useState<ProgramForm | null>(null);
+  const [showProgramViewDialog, setShowProgramViewDialog] = useState(false);
+  const [showMockData, setShowMockData] = useState(false);
+  const [mockInstructorData, setMockInstructorData] = useState<Record<string, any>[]>([]);
+  const [mockStudentData, setMockStudentData] = useState<Record<string, any>[]>([]);
+  const [mockNonprofitData, setMockNonprofitData] = useState<Record<string, any>[]>([]);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -638,6 +671,105 @@ function CollaborationDetailContent() {
     return { totalInvoiced, totalPaid, remaining: budget - totalInvoiced };
   };
 
+  // ============ PROGRAM FORM HANDLERS ============
+  const handleCreateProgramForm = async () => {
+    if (!grant || !newProgramForm.name) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentPrograms = (grant as any).programForms || [];
+      
+      // Create the program form with datasets
+      const datasets = createDefaultProgramDatasets(newProgramForm.name);
+      
+      // Disable datasets based on user selection
+      if (!newProgramForm.enableInstructorDataset) {
+        datasets.instructor.enabled = false;
+      }
+      if (!newProgramForm.enableStudentDataset) {
+        datasets.student.enabled = false;
+      }
+      if (!newProgramForm.enableNonprofitDataset) {
+        datasets.nonprofit.enabled = false;
+      }
+      
+      const programForm: ProgramForm = {
+        id: `program_${Date.now()}`,
+        collaborationId: grant.id,
+        name: newProgramForm.name,
+        description: newProgramForm.description,
+        programType: newProgramForm.programType,
+        status: 'active',
+        datasets,
+        createdBy: currentUser?.email || '',
+        createdAt: new Date().toISOString() as any,
+        updatedAt: new Date().toISOString() as any,
+      };
+      
+      const updatedPrograms = [...currentPrograms, programForm];
+      
+      await updateGrant(grant.id, { programForms: updatedPrograms } as any);
+      setGrant({ ...grant, programForms: updatedPrograms } as any);
+      setProgramForms(updatedPrograms);
+      setShowProgramDialog(false);
+      
+      // Reset form
+      setNewProgramForm({
+        name: 'Digital Literacy Program',
+        description: 'A comprehensive digital literacy training program for community members',
+        programType: 'digital_literacy',
+        enableInstructorDataset: true,
+        enableStudentDataset: true,
+        enableNonprofitDataset: true,
+      });
+    } catch (error) {
+      console.error('Error creating program form:', error);
+    }
+  };
+
+  const handleViewProgram = (program: ProgramForm) => {
+    setSelectedProgram(program);
+    setShowProgramViewDialog(true);
+  };
+
+  const handleDeleteProgram = async (programId: string) => {
+    if (!grant || !confirm('Are you sure you want to delete this program and all its datasets?')) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentPrograms = (grant as any).programForms || [];
+      const updatedPrograms = currentPrograms.filter((p: ProgramForm) => p.id !== programId);
+      
+      await updateGrant(grant.id, { programForms: updatedPrograms } as any);
+      setGrant({ ...grant, programForms: updatedPrograms } as any);
+      setProgramForms(updatedPrograms);
+    } catch (error) {
+      console.error('Error deleting program:', error);
+    }
+  };
+
+  const handleNavigateToDataset = (program: ProgramForm, datasetType: 'instructor' | 'student' | 'nonprofit') => {
+    const dataset = program.datasets[datasetType];
+    if (dataset && dataset.enabled) {
+      router.push(`/datasets/program/${program.id}/${datasetType}`);
+    }
+  };
+
+  const handleToggleMockData = (enabled: boolean) => {
+    setShowMockData(enabled);
+    if (enabled) {
+      // Generate mock data when toggle is turned on
+      setMockInstructorData(generateMockInstructorData(5));
+      setMockStudentData(generateMockStudentData(10));
+      setMockNonprofitData(generateMockNonprofitData(3));
+    } else {
+      // Clear mock data when toggle is turned off
+      setMockInstructorData([]);
+      setMockStudentData([]);
+      setMockNonprofitData([]);
+    }
+  };
+
   if (authLoading || loading) {
     return <AnimatedLoading message="Loading Collaboration..." />;
   }
@@ -687,6 +819,15 @@ function CollaborationDetailContent() {
             color={grant.status === 'active' ? 'success' : 'default'}
             size="medium"
           />
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<SchoolIcon />}
+            onClick={() => setShowProgramDialog(true)}
+            sx={{ ml: 1 }}
+          >
+            Digital Literacy Program
+          </Button>
         </Box>
 
         {/* Grant Metrics Tracker */}
@@ -908,6 +1049,7 @@ function CollaborationDetailContent() {
           <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} variant="scrollable" scrollButtons="auto">
             <Tab label="Documents" icon={<DocumentIcon />} iconPosition="start" />
             <Tab label="Forms & Data" icon={<FormIcon />} iconPosition="start" />
+            <Tab label="Programs" icon={<SchoolIcon />} iconPosition="start" />
             <Tab label="Datasets" icon={<DatasetIcon />} iconPosition="start" />
             <Tab label="AI Reports" icon={<AIIcon />} iconPosition="start" />
             <Tab label="Partners" icon={<GroupsIcon />} iconPosition="start" />
@@ -1084,8 +1226,205 @@ function CollaborationDetailContent() {
           )}
         </TabPanel>
 
-        {/* Datasets Tab */}
+        {/* Programs Tab */}
         <TabPanel value={tabValue} index={2}>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Program Forms</Typography>
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<SchoolIcon />}
+              onClick={() => setShowProgramDialog(true)}
+            >
+              Create Program Form
+            </Button>
+          </Box>
+
+          <Alert severity="info" sx={{ mb: 3 }}>
+            Program forms allow you to track data at multiple levels: Instructor, Student, and Nonprofit. 
+            Each program creates separate datasets for comprehensive reporting.
+          </Alert>
+
+          {((grant as any).programForms || []).length > 0 ? (
+            <Grid container spacing={3}>
+              {((grant as any).programForms || []).map((program: ProgramForm) => (
+                <Grid item xs={12} md={6} key={program.id}>
+                  <Card sx={{ height: '100%' }}>
+                    <CardHeader
+                      title={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <SchoolIcon color="secondary" />
+                          <Typography variant="h6">{program.name}</Typography>
+                        </Box>
+                      }
+                      subheader={program.description}
+                      action={
+                        <Chip 
+                          label={program.status} 
+                          color={program.status === 'active' ? 'success' : 'default'}
+                          size="small"
+                        />
+                      }
+                    />
+                    <CardContent>
+                      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+                        Multi-Level Datasets
+                      </Typography>
+                      
+                      <Grid container spacing={1}>
+                        {/* Instructor Dataset */}
+                        <Grid item xs={12}>
+                          <Paper 
+                            sx={{ 
+                              p: 1.5, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between',
+                              bgcolor: program.datasets.instructor.enabled ? 'primary.50' : 'grey.100',
+                              opacity: program.datasets.instructor.enabled ? 1 : 0.6
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>I</Avatar>
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  Instructor Dataset
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {program.datasets.instructor.fields.length} fields
+                                </Typography>
+                              </Box>
+                            </Box>
+                            {program.datasets.instructor.enabled && (
+                              <Button 
+                                size="small" 
+                                variant="outlined"
+                                onClick={() => handleNavigateToDataset(program, 'instructor')}
+                              >
+                                View Data
+                              </Button>
+                            )}
+                          </Paper>
+                        </Grid>
+
+                        {/* Student Dataset */}
+                        <Grid item xs={12}>
+                          <Paper 
+                            sx={{ 
+                              p: 1.5, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between',
+                              bgcolor: program.datasets.student.enabled ? 'success.50' : 'grey.100',
+                              opacity: program.datasets.student.enabled ? 1 : 0.6
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Avatar sx={{ width: 32, height: 32, bgcolor: 'success.main' }}>S</Avatar>
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  Student Dataset
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {program.datasets.student.fields.length} fields
+                                </Typography>
+                              </Box>
+                            </Box>
+                            {program.datasets.student.enabled && (
+                              <Button 
+                                size="small" 
+                                variant="outlined"
+                                onClick={() => handleNavigateToDataset(program, 'student')}
+                              >
+                                View Data
+                              </Button>
+                            )}
+                          </Paper>
+                        </Grid>
+
+                        {/* Nonprofit Dataset */}
+                        <Grid item xs={12}>
+                          <Paper 
+                            sx={{ 
+                              p: 1.5, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between',
+                              bgcolor: program.datasets.nonprofit.enabled ? 'warning.50' : 'grey.100',
+                              opacity: program.datasets.nonprofit.enabled ? 1 : 0.6
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.main' }}>N</Avatar>
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  Nonprofit Dataset
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {program.datasets.nonprofit.fields.length} fields
+                                </Typography>
+                              </Box>
+                            </Box>
+                            {program.datasets.nonprofit.enabled && (
+                              <Button 
+                                size="small" 
+                                variant="outlined"
+                                onClick={() => handleNavigateToDataset(program, 'nonprofit')}
+                              >
+                                View Data
+                              </Button>
+                            )}
+                          </Paper>
+                        </Grid>
+                      </Grid>
+
+                      <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <Button 
+                          size="small" 
+                          variant="outlined" 
+                          startIcon={<ViewIcon />}
+                          onClick={() => handleViewProgram(program)}
+                        >
+                          View Details
+                        </Button>
+                        <Button 
+                          size="small" 
+                          variant="outlined" 
+                          color="error"
+                          startIcon={<DeleteIcon />}
+                          onClick={() => handleDeleteProgram(program.id)}
+                        >
+                          Delete
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Card sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50' }}>
+              <SchoolIcon sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                No Program Forms Created
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Create a program form to track data at instructor, student, and nonprofit levels.
+              </Typography>
+              <Button
+                variant="contained"
+                color="secondary"
+                startIcon={<SchoolIcon />}
+                onClick={() => setShowProgramDialog(true)}
+              >
+                Create Digital Literacy Program
+              </Button>
+            </Card>
+          )}
+        </TabPanel>
+
+        {/* Datasets Tab */}
+        <TabPanel value={tabValue} index={3}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Linked Datasets</Typography>
             <Button
@@ -1127,7 +1466,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* AI Reports Tab */}
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={4}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">AI Generated Reports</Typography>
             <Button
@@ -1232,7 +1571,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* Partners Tab */}
-        <TabPanel value={tabValue} index={4}>
+        <TabPanel value={tabValue} index={5}>
           <Typography variant="h6" sx={{ mb: 3 }}>Collaborating Organizations</Typography>
           
           <Grid container spacing={3}>
@@ -1305,7 +1644,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* Billing / Invoices Tab */}
-        <TabPanel value={tabValue} index={5}>
+        <TabPanel value={tabValue} index={6}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Billing & Invoices</Typography>
             <Button
@@ -1516,7 +1855,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* Milestones / Tasks Tab */}
-        <TabPanel value={tabValue} index={6}>
+        <TabPanel value={tabValue} index={7}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Milestones & Tasks</Typography>
             <Button
@@ -2187,6 +2526,469 @@ function CollaborationDetailContent() {
             >
               {editingInvoice ? 'Save Changes' : 'Create Invoice'}
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Create Program Form Dialog */}
+        <Dialog 
+          open={showProgramDialog} 
+          onClose={() => setShowProgramDialog(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <SchoolIcon color="secondary" />
+              Create Program Form
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Alert severity="info" sx={{ mb: 3, mt: 1 }}>
+              Program forms create multi-level datasets for tracking data at the instructor, student, and nonprofit levels.
+              This enables comprehensive reporting and analytics across all program participants.
+            </Alert>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Program Name"
+                  value={newProgramForm.name}
+                  onChange={(e) => setNewProgramForm({ ...newProgramForm, name: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  value={newProgramForm.description}
+                  onChange={(e) => setNewProgramForm({ ...newProgramForm, description: e.target.value })}
+                  multiline
+                  rows={3}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Program Type</InputLabel>
+                  <Select
+                    value={newProgramForm.programType}
+                    label="Program Type"
+                    onChange={(e) => setNewProgramForm({ ...newProgramForm, programType: e.target.value as ProgramType })}
+                  >
+                    <MenuItem value="digital_literacy">Digital Literacy Program</MenuItem>
+                    <MenuItem value="health_education">Health Education Program</MenuItem>
+                    <MenuItem value="workforce_development">Workforce Development Program</MenuItem>
+                    <MenuItem value="community_outreach">Community Outreach Program</MenuItem>
+                    <MenuItem value="youth_program">Youth Program</MenuItem>
+                    <MenuItem value="senior_services">Senior Services Program</MenuItem>
+                    <MenuItem value="custom">Custom Program</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                  Enable Datasets
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Select which datasets to create for this program. Each dataset will have pre-configured fields for tracking relevant data.
+                </Typography>
+              </Grid>
+
+              {/* Instructor Dataset Toggle */}
+              <Grid item xs={12}>
+                <Paper 
+                  sx={{ 
+                    p: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    bgcolor: newProgramForm.enableInstructorDataset ? 'primary.50' : 'grey.100',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={() => setNewProgramForm({ ...newProgramForm, enableInstructorDataset: !newProgramForm.enableInstructorDataset })}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: 'primary.main' }}>I</Avatar>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Instructor Dataset
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Track instructor information, certifications, classes taught, and students trained
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Chip 
+                    label={newProgramForm.enableInstructorDataset ? 'Enabled' : 'Disabled'} 
+                    color={newProgramForm.enableInstructorDataset ? 'primary' : 'default'}
+                  />
+                </Paper>
+              </Grid>
+
+              {/* Student Dataset Toggle */}
+              <Grid item xs={12}>
+                <Paper 
+                  sx={{ 
+                    p: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    bgcolor: newProgramForm.enableStudentDataset ? 'success.50' : 'grey.100',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={() => setNewProgramForm({ ...newProgramForm, enableStudentDataset: !newProgramForm.enableStudentDataset })}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: 'success.main' }}>S</Avatar>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Student Dataset
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Track student enrollment, progress, assessments, completion, and satisfaction
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Chip 
+                    label={newProgramForm.enableStudentDataset ? 'Enabled' : 'Disabled'} 
+                    color={newProgramForm.enableStudentDataset ? 'success' : 'default'}
+                  />
+                </Paper>
+              </Grid>
+
+              {/* Nonprofit Dataset Toggle */}
+              <Grid item xs={12}>
+                <Paper 
+                  sx={{ 
+                    p: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    bgcolor: newProgramForm.enableNonprofitDataset ? 'warning.50' : 'grey.100',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={() => setNewProgramForm({ ...newProgramForm, enableNonprofitDataset: !newProgramForm.enableNonprofitDataset })}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: 'warning.main' }}>N</Avatar>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Nonprofit Dataset
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Aggregate reporting at the organization level with totals, metrics, and outcomes
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Chip 
+                    label={newProgramForm.enableNonprofitDataset ? 'Enabled' : 'Disabled'} 
+                    color={newProgramForm.enableNonprofitDataset ? 'warning' : 'default'}
+                  />
+                </Paper>
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowProgramDialog(false)}>Cancel</Button>
+            <Button 
+              variant="contained" 
+              color="secondary"
+              onClick={handleCreateProgramForm}
+              disabled={!newProgramForm.name || (!newProgramForm.enableInstructorDataset && !newProgramForm.enableStudentDataset && !newProgramForm.enableNonprofitDataset)}
+            >
+              Create Program
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* View Program Details Dialog */}
+        <Dialog 
+          open={showProgramViewDialog} 
+          onClose={() => setShowProgramViewDialog(false)}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SchoolIcon color="secondary" />
+                {selectedProgram?.name}
+              </Box>
+              <IconButton onClick={() => setShowProgramViewDialog(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            {selectedProgram && (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    {selectedProgram.description}
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={showMockData}
+                        onChange={(e) => handleToggleMockData(e.target.checked)}
+                        color="secondary"
+                      />
+                    }
+                    label="Show Mock Data"
+                  />
+                </Box>
+
+                <Grid container spacing={3}>
+                  {/* Instructor Dataset Details */}
+                  {selectedProgram.datasets.instructor.enabled && (
+                    <Grid item xs={12}>
+                      <Card>
+                        <CardHeader
+                          avatar={<Avatar sx={{ bgcolor: 'primary.main' }}>I</Avatar>}
+                          title="Instructor Dataset"
+                          subheader={selectedProgram.datasets.instructor.description}
+                          action={
+                            <Button 
+                              variant="contained" 
+                              size="small"
+                              onClick={() => handleNavigateToDataset(selectedProgram, 'instructor')}
+                            >
+                              View Data
+                            </Button>
+                          }
+                        />
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>Fields ({selectedProgram.datasets.instructor.fields.length})</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                            {selectedProgram.datasets.instructor.fields.map((field) => (
+                              <Chip 
+                                key={field.id} 
+                                label={field.label} 
+                                size="small" 
+                                variant="outlined"
+                                color={field.required ? 'primary' : 'default'}
+                              />
+                            ))}
+                          </Box>
+                          
+                          {/* Mock Data Table */}
+                          {showMockData && mockInstructorData.length > 0 && (
+                            <>
+                              <Divider sx={{ my: 2 }} />
+                              <Typography variant="subtitle2" sx={{ mb: 1, color: 'secondary.main' }}>
+                                Sample Data ({mockInstructorData.length} records)
+                              </Typography>
+                              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 300 }}>
+                                <Table size="small" stickyHeader>
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell><strong>ID</strong></TableCell>
+                                      <TableCell><strong>Name</strong></TableCell>
+                                      <TableCell><strong>Organization</strong></TableCell>
+                                      <TableCell><strong>Status</strong></TableCell>
+                                      <TableCell><strong>Classes</strong></TableCell>
+                                      <TableCell><strong>Students</strong></TableCell>
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody>
+                                    {mockInstructorData.map((row, idx) => (
+                                      <TableRow key={idx}>
+                                        <TableCell>{row.instructor_id}</TableCell>
+                                        <TableCell>{row.instructor_name}</TableCell>
+                                        <TableCell>{row.organization}</TableCell>
+                                        <TableCell>
+                                          <Chip 
+                                            label={row.certification_status} 
+                                            size="small" 
+                                            color={row.certification_status === 'Certified' ? 'success' : 'default'}
+                                          />
+                                        </TableCell>
+                                        <TableCell>{row.classes_taught}</TableCell>
+                                        <TableCell>{row.students_trained}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </TableContainer>
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  )}
+
+                  {/* Student Dataset Details */}
+                  {selectedProgram.datasets.student.enabled && (
+                    <Grid item xs={12}>
+                      <Card>
+                        <CardHeader
+                          avatar={<Avatar sx={{ bgcolor: 'success.main' }}>S</Avatar>}
+                          title="Student Dataset"
+                          subheader={selectedProgram.datasets.student.description}
+                          action={
+                            <Button 
+                              variant="contained" 
+                              size="small"
+                              color="success"
+                              onClick={() => handleNavigateToDataset(selectedProgram, 'student')}
+                            >
+                              View Data
+                            </Button>
+                          }
+                        />
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>Fields ({selectedProgram.datasets.student.fields.length})</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                            {selectedProgram.datasets.student.fields.map((field) => (
+                              <Chip 
+                                key={field.id} 
+                                label={field.label} 
+                                size="small" 
+                                variant="outlined"
+                                color={field.required ? 'success' : 'default'}
+                              />
+                            ))}
+                          </Box>
+                          
+                          {/* Mock Data Table */}
+                          {showMockData && mockStudentData.length > 0 && (
+                            <>
+                              <Divider sx={{ my: 2 }} />
+                              <Typography variant="subtitle2" sx={{ mb: 1, color: 'secondary.main' }}>
+                                Sample Data ({mockStudentData.length} records)
+                              </Typography>
+                              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 300 }}>
+                                <Table size="small" stickyHeader>
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell><strong>ID</strong></TableCell>
+                                      <TableCell><strong>Name</strong></TableCell>
+                                      <TableCell><strong>Status</strong></TableCell>
+                                      <TableCell><strong>Pre-Score</strong></TableCell>
+                                      <TableCell><strong>Post-Score</strong></TableCell>
+                                      <TableCell><strong>Modules</strong></TableCell>
+                                      <TableCell><strong>Hours</strong></TableCell>
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody>
+                                    {mockStudentData.map((row, idx) => (
+                                      <TableRow key={idx}>
+                                        <TableCell>{row.student_id}</TableCell>
+                                        <TableCell>{row.student_name}</TableCell>
+                                        <TableCell>
+                                          <Chip 
+                                            label={row.status} 
+                                            size="small" 
+                                            color={
+                                              row.status === 'Completed' ? 'success' : 
+                                              row.status === 'In Progress' ? 'info' : 
+                                              row.status === 'Dropped' ? 'error' : 'default'
+                                            }
+                                          />
+                                        </TableCell>
+                                        <TableCell>{row.pre_assessment_score}</TableCell>
+                                        <TableCell>{row.post_assessment_score || '-'}</TableCell>
+                                        <TableCell>{row.modules_completed}/8</TableCell>
+                                        <TableCell>{row.hours_completed}h</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </TableContainer>
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  )}
+
+                  {/* Nonprofit Dataset Details */}
+                  {selectedProgram.datasets.nonprofit.enabled && (
+                    <Grid item xs={12}>
+                      <Card>
+                        <CardHeader
+                          avatar={<Avatar sx={{ bgcolor: 'warning.main' }}>N</Avatar>}
+                          title="Nonprofit Dataset"
+                          subheader={selectedProgram.datasets.nonprofit.description}
+                          action={
+                            <Button 
+                              variant="contained" 
+                              size="small"
+                              color="warning"
+                              onClick={() => handleNavigateToDataset(selectedProgram, 'nonprofit')}
+                            >
+                              View Data
+                            </Button>
+                          }
+                        />
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ mb: 1 }}>Fields ({selectedProgram.datasets.nonprofit.fields.length})</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                            {selectedProgram.datasets.nonprofit.fields.map((field) => (
+                              <Chip 
+                                key={field.id} 
+                                label={field.label} 
+                                size="small" 
+                                variant="outlined"
+                                color={field.required ? 'warning' : 'default'}
+                              />
+                            ))}
+                          </Box>
+                          
+                          {/* Mock Data Table */}
+                          {showMockData && mockNonprofitData.length > 0 && (
+                            <>
+                              <Divider sx={{ my: 2 }} />
+                              <Typography variant="subtitle2" sx={{ mb: 1, color: 'secondary.main' }}>
+                                Sample Data ({mockNonprofitData.length} records)
+                              </Typography>
+                              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 300 }}>
+                                <Table size="small" stickyHeader>
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell><strong>Organization</strong></TableCell>
+                                      <TableCell><strong>Period</strong></TableCell>
+                                      <TableCell><strong>Instructors</strong></TableCell>
+                                      <TableCell><strong>Enrolled</strong></TableCell>
+                                      <TableCell><strong>Completed</strong></TableCell>
+                                      <TableCell><strong>Classes</strong></TableCell>
+                                      <TableCell><strong>Satisfaction</strong></TableCell>
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody>
+                                    {mockNonprofitData.map((row, idx) => (
+                                      <TableRow key={idx}>
+                                        <TableCell>{row.nonprofit_name}</TableCell>
+                                        <TableCell>
+                                          <Chip label={row.reporting_period} size="small" variant="outlined" />
+                                        </TableCell>
+                                        <TableCell>{row.total_instructors}</TableCell>
+                                        <TableCell>{row.total_students_enrolled}</TableCell>
+                                        <TableCell>{row.total_students_completed}</TableCell>
+                                        <TableCell>{row.total_classes_held}</TableCell>
+                                        <TableCell>{row.avg_satisfaction_score}/5</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </TableContainer>
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  )}
+                </Grid>
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowProgramViewDialog(false)}>Close</Button>
           </DialogActions>
         </Dialog>
       </Box>
