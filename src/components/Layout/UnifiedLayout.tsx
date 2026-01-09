@@ -378,7 +378,7 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
 
       {/* Main Content */}
       <main className={cn(
-        'flex-1 transition-all duration-300',
+        'flex-1 transition-[margin] duration-300',
         sidebarOpen ? 'md:ml-64' : 'md:ml-16',
         'pt-16 md:pt-0'
       )}>
@@ -414,8 +414,8 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
         </header>
 
         {/* Page Content */}
-        <div className="p-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="p-6" style={{ isolation: 'auto' }}>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6" style={{ position: 'relative', zIndex: 1 }}>
             {children}
           </div>
         </div>

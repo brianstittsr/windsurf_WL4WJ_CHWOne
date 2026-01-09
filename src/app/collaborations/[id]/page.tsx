@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
 import {
@@ -77,7 +78,11 @@ import {
   ThumbDown as RejectIcon,
   Visibility as ViewIcon,
   Close as CloseIcon,
-  Payment as PaymentIcon
+  Payment as PaymentIcon,
+  QrCode as QrCodeIcon,
+  Feedback as FeedbackIcon,
+  ExitToApp as ExitToAppIcon,
+  Computer as ComputerIcon
 } from '@mui/icons-material';
 import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
@@ -1045,7 +1050,7 @@ function CollaborationDetailContent() {
         </Card>
 
         {/* Tabs */}
-        <Paper sx={{ mb: 3 }}>
+        <Paper sx={{ mb: 3, position: 'relative', zIndex: 'auto' }}>
           <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} variant="scrollable" scrollButtons="auto">
             <Tab label="Documents" icon={<DocumentIcon />} iconPosition="start" />
             <Tab label="Forms & Data" icon={<FormIcon />} iconPosition="start" />
@@ -2535,10 +2540,18 @@ function CollaborationDetailContent() {
           onClose={() => setShowProgramDialog(false)}
           maxWidth="sm"
           fullWidth
+          container={() => document.body}
+          sx={{
+            '& .MuiDialog-container': {
+              alignItems: 'flex-start',
+              paddingTop: '5vh'
+            }
+          }}
           PaperProps={{
             sx: {
               borderRadius: 3,
-              overflow: 'hidden'
+              overflow: 'hidden',
+              marginTop: 0
             }
           }}
         >
@@ -2750,13 +2763,14 @@ function CollaborationDetailContent() {
           </DialogActions>
         </Dialog>
 
-        {/* View Program Details Dialog */}
-        <Dialog 
-          open={showProgramViewDialog} 
-          onClose={() => setShowProgramViewDialog(false)}
-          maxWidth="lg"
-          fullWidth
-        >
+        {/* View Program Details Dialog - Rendered via Portal */}
+        {typeof document !== 'undefined' && createPortal(
+          <Dialog 
+            open={showProgramViewDialog} 
+            onClose={() => setShowProgramViewDialog(false)}
+            maxWidth="lg"
+            fullWidth
+          >
           <DialogTitle>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -2786,6 +2800,103 @@ function CollaborationDetailContent() {
                     label="Show Mock Data"
                   />
                 </Box>
+
+                {/* Tools & Forms Section */}
+                <Card sx={{ mb: 3, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                  <CardHeader 
+                    title={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SchoolIcon color="primary" />
+                        <Typography variant="h6">Program Tools & Forms</Typography>
+                      </Box>
+                    }
+                    subheader="Quick access to student and instructor tools"
+                  />
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      {/* Student Tools */}
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'success.main' }}>
+                          📱 For Students
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            startIcon={<QrCodeIcon />}
+                            onClick={() => window.open('/checkin/class1?location=moore', '_blank')}
+                            sx={{ justifyContent: 'flex-start' }}
+                          >
+                            QR Code Attendance Check-in
+                          </Button>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            startIcon={<CheckCircleIcon />}
+                            onClick={() => window.open('/progress/demo-student', '_blank')}
+                            sx={{ justifyContent: 'flex-start' }}
+                          >
+                            Progress Tracking (10 Units)
+                          </Button>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            startIcon={<FeedbackIcon />}
+                            onClick={() => window.open('/forms/feedback', '_blank')}
+                            sx={{ justifyContent: 'flex-start' }}
+                          >
+                            Participant Feedback Form
+                          </Button>
+                        </Box>
+                      </Grid>
+
+                      {/* Instructor Tools */}
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'primary.main' }}>
+                          👨‍🏫 For Instructors
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            startIcon={<GroupsIcon />}
+                            onClick={() => window.open('/forms/digital-literacy', '_blank')}
+                            sx={{ justifyContent: 'flex-start' }}
+                          >
+                            Student Registration (Bilingual)
+                          </Button>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            startIcon={<QrCodeIcon />}
+                            onClick={() => {/* TODO: Open QR Generator modal */}}
+                            sx={{ justifyContent: 'flex-start' }}
+                          >
+                            Generate Class QR Codes
+                          </Button>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            startIcon={<ExitToAppIcon />}
+                            onClick={() => window.open('/forms/withdrawal', '_blank')}
+                            sx={{ justifyContent: 'flex-start' }}
+                          >
+                            Withdrawal Tracking
+                          </Button>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            startIcon={<ComputerIcon />}
+                            onClick={() => window.open('/forms/asset-tracking', '_blank')}
+                            sx={{ justifyContent: 'flex-start' }}
+                          >
+                            Computer Asset Tracking
+                          </Button>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
 
                 <Grid container spacing={3}>
                   {/* Instructor Dataset Details */}
@@ -3034,7 +3145,9 @@ function CollaborationDetailContent() {
           <DialogActions>
             <Button onClick={() => setShowProgramViewDialog(false)}>Close</Button>
           </DialogActions>
-        </Dialog>
+        </Dialog>,
+          document.body
+        )}
       </Box>
     </UnifiedLayout>
   );

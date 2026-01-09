@@ -42,14 +42,28 @@ export function CarouselSlide({ slide, isActive, onCTAClick }: CarouselSlideProp
 
       <div className="container mx-auto px-4 md:px-8 relative z-10">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-          {/* Left Image */}
+          {/* Left Image - Full height with fade */}
           {slide.imageUrl && slide.imagePosition === 'left' && (
-            <div className="w-full lg:w-2/5 flex-shrink-0 flex items-center justify-center">
-              <div className="w-[280px] h-[350px] md:w-[320px] md:h-[400px] relative overflow-hidden rounded-2xl shadow-2xl">
+            <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-1/2 xl:w-2/5 overflow-hidden">
+              <div className="relative w-full h-full">
                 <img
                   src={slide.imageUrl}
                   alt=""
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                />
+                {/* Right fade gradient - blends with slide background */}
+                <div 
+                  className="absolute inset-y-0 right-0 w-40 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to left, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)'
+                  }}
+                />
+                {/* Bottom fade gradient */}
+                <div 
+                  className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)'
+                  }}
                 />
               </div>
             </div>
@@ -57,8 +71,9 @@ export function CarouselSlide({ slide, isActive, onCTAClick }: CarouselSlideProp
 
           {/* Content */}
           <div className={cn(
-            'flex-1 text-white',
-            slide.imagePosition === 'right' ? 'order-first' : ''
+            'flex-1 text-white relative z-20',
+            slide.imagePosition === 'right' ? 'lg:w-1/2 xl:w-3/5 lg:pr-8' : '',
+            slide.imagePosition === 'left' ? 'lg:w-1/2 xl:w-3/5 lg:pl-8 lg:ml-auto' : ''
           )}>
             <h1 className={cn(
               'text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 leading-tight',
@@ -147,14 +162,28 @@ export function CarouselSlide({ slide, isActive, onCTAClick }: CarouselSlideProp
             )}
           </div>
 
-          {/* Right Image */}
+          {/* Right Image - Full height with fade */}
           {slide.imageUrl && slide.imagePosition === 'right' && (
-            <div className="w-full lg:w-2/5 flex-shrink-0 flex items-center justify-center">
-              <div className="w-[280px] h-[350px] md:w-[320px] md:h-[400px] relative overflow-hidden rounded-2xl shadow-2xl">
+            <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-1/2 xl:w-2/5 overflow-hidden">
+              <div className="relative w-full h-full">
                 <img
                   src={slide.imageUrl}
                   alt=""
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                />
+                {/* Left fade gradient - blends with slide background */}
+                <div 
+                  className="absolute inset-y-0 left-0 w-40 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)'
+                  }}
+                />
+                {/* Bottom fade gradient */}
+                <div 
+                  className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)'
+                  }}
                 />
               </div>
             </div>

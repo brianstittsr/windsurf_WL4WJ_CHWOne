@@ -13,20 +13,33 @@ import {
   Card,
   CardContent,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Autocomplete,
+  Chip,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
   School as SchoolIcon,
   Error as ErrorIcon,
+  Person as PersonIcon,
+  CalendarToday as CalendarIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
 // Class information for the Digital Literacy program
-const CLASS_INFO: Record<string, { title: string; titleSpanish: string; units: string[] }> = {
+const CLASS_INFO: Record<string, { title: string; titleSpanish: string; unitsEn: string[]; unitsEs: string[] }> = {
   'class1': {
     title: 'Class 1',
     titleSpanish: 'Clase 1',
-    units: [
+    unitsEn: [
+      'Unit 1: Introduction to Navigating the Digital World',
+      'Unit 2: Getting to know computers and mobile devices',
+    ],
+    unitsEs: [
       'Unidad 1: Introducción a Navegando el Mundo Digital',
       'Unidad 2: Conociendo las computadoras y Dispositivos móviles',
     ],
@@ -34,7 +47,11 @@ const CLASS_INFO: Record<string, { title: string; titleSpanish: string; units: s
   'class2': {
     title: 'Class 2',
     titleSpanish: 'Clase 2',
-    units: [
+    unitsEn: [
+      'Unit 3: Basic Internet Skills',
+      'Unit 4: Email and Communication',
+    ],
+    unitsEs: [
       'Unidad 3: Habilidades Básicas de Internet',
       'Unidad 4: Correo Electrónico y comunicación',
     ],
@@ -42,7 +59,11 @@ const CLASS_INFO: Record<string, { title: string; titleSpanish: string; units: s
   'class3': {
     title: 'Class 3',
     titleSpanish: 'Clase 3',
-    units: [
+    unitsEn: [
+      'Unit 5: Basic Social Media Concepts',
+      'Unit 6: Using Online Services',
+    ],
+    unitsEs: [
       'Unidad 5: Conceptos Básicos de Redes Sociales',
       'Unidad 6: Utilización de Servicios en Línea',
     ],
@@ -50,7 +71,11 @@ const CLASS_INFO: Record<string, { title: string; titleSpanish: string; units: s
   'class4': {
     title: 'Class 4',
     titleSpanish: 'Clase 4',
-    units: [
+    unitsEn: [
+      'Unit 7: Creating Digital Content with Google Suite',
+      'Unit 8: Digital Tools for Daily Life',
+    ],
+    unitsEs: [
       'Unidad 7: Creación de Contenido Digital con Google Suite',
       'Unidad 8: Herramientas Digitales para la Vida Diaria',
     ],
@@ -58,7 +83,11 @@ const CLASS_INFO: Record<string, { title: string; titleSpanish: string; units: s
   'class5': {
     title: 'Class 5',
     titleSpanish: 'Clase 5',
-    units: [
+    unitsEn: [
+      'Unit 9: Online Security and Privacy',
+      'Unit 10: Course Review and Practical Applications',
+    ],
+    unitsEs: [
       'Unidad 9: Seguridad y Privacidad en Línea',
       'Unidad 10: Revisión del Curso y Aplicaciones Prácticas',
     ],
@@ -66,22 +95,42 @@ const CLASS_INFO: Record<string, { title: string; titleSpanish: string; units: s
   'class6': {
     title: 'Class 6',
     titleSpanish: 'Clase 6',
-    units: ['Entrega de Dispositivo digital (Digital Device Delivery)'],
+    unitsEn: ['Digital Device Delivery'],
+    unitsEs: ['Entrega de Dispositivo digital'],
   },
 };
 
 type CheckInStatus = 'idle' | 'loading' | 'success' | 'error' | 'not_found';
 
+// Location options
+const LOCATIONS = [
+  { id: 'moore', en: 'Moore County', es: 'Condado de Moore' },
+  { id: 'montgomery', en: 'Montgomery County', es: 'Condado de Montgomery' },
+];
+
+interface RegisteredStudent {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+}
+
 export default function ClassCheckInPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const classId = params.classId as string;
+  const locationParam = searchParams.get('location');
   
-  const [identifier, setIdentifier] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState<RegisteredStudent | null>(null);
+  const [registeredStudents, setRegisteredStudents] = useState<RegisteredStudent[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
   const [status, setStatus] = useState<CheckInStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [studentName, setStudentName] = useState('');
   const [checkInTime, setCheckInTime] = useState<Date | null>(null);
   const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const [currentDate] = useState(new Date());
+  const [location, setLocation] = useState(locationParam || '');
 
   // Detect browser language
   useEffect(() => {
@@ -93,13 +142,31 @@ export default function ClassCheckInPage() {
     }
   }, []);
 
+  // Fetch registered students
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch(`/api/checkin/students?classId=${classId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRegisteredStudents(data.students || []);
+        }
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      } finally {
+        setLoadingStudents(false);
+      }
+    };
+    fetchStudents();
+  }, [classId]);
+
   const classInfo = CLASS_INFO[classId];
 
   const handleCheckIn = async () => {
-    if (!identifier.trim()) {
+    if (!selectedStudent) {
       setErrorMessage(language === 'es' 
-        ? 'Por favor ingrese su correo electrónico o número de teléfono'
-        : 'Please enter your email or phone number');
+        ? 'Por favor seleccione su nombre de la lista'
+        : 'Please select your name from the list');
       setStatus('error');
       return;
     }
@@ -108,13 +175,14 @@ export default function ClassCheckInPage() {
     setErrorMessage('');
 
     try {
-      // Call API to check in student
       const response = await fetch('/api/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           classId,
-          identifier: identifier.trim(),
+          studentId: selectedStudent.id,
+          studentName: selectedStudent.name,
+          location: location || locationParam,
           timestamp: new Date().toISOString(),
         }),
       });
@@ -123,16 +191,11 @@ export default function ClassCheckInPage() {
 
       if (data.success) {
         setStatus('success');
-        setStudentName(data.studentName);
+        setStudentName(selectedStudent.name);
         setCheckInTime(new Date());
-      } else if (data.error === 'not_found') {
-        setStatus('not_found');
-        setErrorMessage(language === 'es'
-          ? 'No se encontró un estudiante con este correo/teléfono. ¿Ya se registró?'
-          : 'No student found with this email/phone. Have you registered?');
       } else if (data.error === 'already_checked_in') {
         setStatus('success');
-        setStudentName(data.studentName);
+        setStudentName(selectedStudent.name);
         setCheckInTime(new Date(data.checkInTime));
         setErrorMessage(language === 'es'
           ? 'Ya está registrado para esta clase'
@@ -177,7 +240,7 @@ export default function ClassCheckInPage() {
       <Paper elevation={3} sx={{ p: 3, mb: 3, textAlign: 'center', bgcolor: '#1976d2', color: 'white' }}>
         <SchoolIcon sx={{ fontSize: 48, mb: 1 }} />
         <Typography variant="h5" fontWeight="bold">
-          Navegando el Mundo Digital
+          {language === 'es' ? 'Navegando el Mundo Digital' : 'Navigating the Digital World'}
         </Typography>
         <Typography variant="subtitle1">
           Fiesta Family Services
@@ -191,11 +254,38 @@ export default function ClassCheckInPage() {
             {language === 'es' ? classInfo.titleSpanish : classInfo.title}
           </Typography>
           <Divider sx={{ my: 1 }} />
-          {classInfo.units.map((unit, index) => (
+          {(language === 'es' ? classInfo.unitsEs : classInfo.unitsEn).map((unit, index) => (
             <Typography key={index} variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
               • {unit}
             </Typography>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Date and Location Info */}
+      <Card sx={{ mb: 3, bgcolor: '#f5f5f5' }}>
+        <CardContent sx={{ py: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CalendarIcon color="primary" fontSize="small" />
+              <Typography variant="body2">
+                {currentDate.toLocaleDateString(language === 'es' ? 'es-US' : 'en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </Typography>
+            </Box>
+            {location && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LocationIcon color="primary" fontSize="small" />
+                <Typography variant="body2">
+                  {LOCATIONS.find(l => l.id === location)?.[language] || location}
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </CardContent>
       </Card>
 
@@ -233,37 +323,69 @@ export default function ClassCheckInPage() {
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
             {language === 'es'
-              ? 'Ingrese su correo electrónico o número de teléfono registrado'
-              : 'Enter your registered email or phone number'}
+              ? 'Seleccione su nombre de la lista para registrar su asistencia'
+              : 'Select your name from the list to record your attendance'}
           </Typography>
 
-          <TextField
-            fullWidth
-            label={language === 'es' ? 'Correo Electrónico o Teléfono' : 'Email or Phone Number'}
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            placeholder={language === 'es' ? 'ejemplo@email.com o (555) 555-5555' : 'example@email.com or (555) 555-5555'}
-            disabled={status === 'loading'}
-            sx={{ mb: 2 }}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleCheckIn();
-              }
-            }}
-          />
+          {/* Student Dropdown */}
+          {loadingStudents ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : registeredStudents.length > 0 ? (
+            <Autocomplete
+              options={registeredStudents}
+              getOptionLabel={(option) => option.email}
+              value={selectedStudent}
+              onChange={(_, newValue) => setSelectedStudent(newValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={language === 'es' ? 'Seleccione su correo electrónico' : 'Select your email'}
+                  placeholder={language === 'es' ? 'Buscar...' : 'Search...'}
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <>
+                        <PersonIcon color="action" sx={{ ml: 1, mr: 0.5 }} />
+                        {params.InputProps.startAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+              renderOption={(props, option) => (
+                <li {...props} key={option.id}>
+                  <Box>
+                    <Typography variant="body1">{option.email}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {option.name}
+                    </Typography>
+                  </Box>
+                </li>
+              )}
+              sx={{ mb: 2 }}
+              disabled={status === 'loading'}
+              noOptionsText={language === 'es' ? 'No se encontraron estudiantes' : 'No students found'}
+            />
+          ) : (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {language === 'es' 
+                ? 'No hay estudiantes registrados para esta clase. Por favor regístrese primero.'
+                : 'No students registered for this class. Please register first.'}
+              <Button 
+                size="small" 
+                sx={{ ml: 1 }}
+                href="/forms/digital-literacy"
+              >
+                {language === 'es' ? 'Registrarse' : 'Register'}
+              </Button>
+            </Alert>
+          )}
 
           {status === 'error' && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {errorMessage}
-            </Alert>
-          )}
-
-          {status === 'not_found' && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              {errorMessage}
-              <Button size="small" sx={{ ml: 1 }}>
-                {language === 'es' ? 'Registrarse' : 'Register'}
-              </Button>
             </Alert>
           )}
 
@@ -272,7 +394,7 @@ export default function ClassCheckInPage() {
             variant="contained"
             size="large"
             onClick={handleCheckIn}
-            disabled={status === 'loading'}
+            disabled={status === 'loading' || !selectedStudent}
             sx={{ py: 1.5 }}
           >
             {status === 'loading' ? (
