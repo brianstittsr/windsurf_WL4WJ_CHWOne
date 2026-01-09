@@ -112,22 +112,6 @@ const config: Config = {
   				'100%': {
   					width: '100%'
   				}
-  			},
-  			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
-  			},
-  			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
   			}
   		},
   		animation: {
@@ -136,9 +120,7 @@ const config: Config = {
   			'slide-in-right': 'slide-in-right 0.5s ease-out',
   			'slide-out-left': 'slide-out-left 0.5s ease-out',
   			'fade-in': 'fade-in 0.5s ease-out forwards',
-  			'progress-bar': 'progress-bar 8s linear',
-  			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'progress-bar': 'progress-bar 8s linear'
   		}
   	}
   },
