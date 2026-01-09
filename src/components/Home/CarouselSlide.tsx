@@ -42,27 +42,20 @@ export function CarouselSlide({ slide, isActive, onCTAClick }: CarouselSlideProp
 
       <div className="container mx-auto px-4 md:px-8 relative z-10">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-          {/* Left Image - Full height with fade */}
+          {/* Left Image - Full height with fade and rounded corners */}
           {slide.imageUrl && slide.imagePosition === 'left' && (
-            <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-1/2 xl:w-2/5 overflow-hidden">
-              <div className="relative w-full h-full">
+            <div className="hidden lg:block absolute left-4 top-4 bottom-4 w-1/2 xl:w-2/5 overflow-hidden rounded-3xl shadow-2xl">
+              <div className="relative w-full h-full rounded-3xl overflow-hidden">
                 <img
                   src={slide.imageUrl}
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover object-center"
                 />
-                {/* Right fade gradient - blends with slide background */}
+                {/* Bottom fade gradient - transparent to dark */}
                 <div 
-                  className="absolute inset-y-0 right-0 w-40 pointer-events-none"
+                  className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none rounded-b-3xl"
                   style={{
-                    background: 'linear-gradient(to left, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)'
-                  }}
-                />
-                {/* Bottom fade gradient */}
-                <div 
-                  className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)'
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 100%)'
                   }}
                 />
               </div>
@@ -162,27 +155,20 @@ export function CarouselSlide({ slide, isActive, onCTAClick }: CarouselSlideProp
             )}
           </div>
 
-          {/* Right Image - Full height with fade */}
+          {/* Right Image - Full height with fade and rounded corners */}
           {slide.imageUrl && slide.imagePosition === 'right' && (
-            <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-1/2 xl:w-2/5 overflow-hidden">
-              <div className="relative w-full h-full">
+            <div className="hidden lg:block absolute right-4 top-4 bottom-4 w-1/2 xl:w-2/5 overflow-hidden rounded-3xl shadow-2xl">
+              <div className="relative w-full h-full rounded-3xl overflow-hidden">
                 <img
                   src={slide.imageUrl}
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover object-center"
                 />
-                {/* Left fade gradient - blends with slide background */}
+                {/* Bottom fade gradient - transparent to dark */}
                 <div 
-                  className="absolute inset-y-0 left-0 w-40 pointer-events-none"
+                  className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none rounded-b-3xl"
                   style={{
-                    background: 'linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)'
-                  }}
-                />
-                {/* Bottom fade gradient */}
-                <div 
-                  className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)'
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, transparent 100%)'
                   }}
                 />
               </div>

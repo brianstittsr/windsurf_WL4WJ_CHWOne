@@ -134,10 +134,10 @@ export default function ProjectManagement() {
       const projectData = {
         name: formData.name,
         description: formData.description,
-        grantId: formData.grantId || null,
+        grantId: formData.grantId || undefined,
         status: formData.status,
         startDate: new Date(formData.startDate),
-        endDate: formData.endDate ? new Date(formData.endDate) : null,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
         targetPopulation: formData.targetPopulation,
         goals: formData.goals.split(',').map(g => g.trim()).filter(g => g),
         budget: formData.budget,

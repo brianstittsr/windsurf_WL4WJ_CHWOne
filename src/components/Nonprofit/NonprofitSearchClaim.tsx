@@ -44,7 +44,7 @@ const US_STATES = [
 
 // NTEE Categories
 const NTEE_CATEGORIES = [
-  { code: '', name: 'All Categories' },
+  { code: 'all', name: 'All Categories' },
   { code: '4', name: 'Health' },
   { code: '5', name: 'Human Services' },
   { code: '2', name: 'Education' },
@@ -95,7 +95,7 @@ interface NonprofitSearchClaimProps {
 export function NonprofitSearchClaim({ onClaim, onSkip }: NonprofitSearchClaimProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [state, setState] = useState('NC');
-  const [nteeCode, setNteeCode] = useState('');
+  const [nteeCode, setNteeCode] = useState('all');
   
   const [results, setResults] = useState<SearchResult[]>([]);
   const [totalResults, setTotalResults] = useState(0);
@@ -122,7 +122,7 @@ export function NonprofitSearchClaim({ onClaim, onSkip }: NonprofitSearchClaimPr
       const response = await fetch('/api/nonprofit-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ searchTerm, state, nteeCode: nteeCode || undefined, page })
+        body: JSON.stringify({ searchTerm, state, nteeCode: nteeCode === 'all' ? undefined : nteeCode, page })
       });
 
       const data = await response.json();
