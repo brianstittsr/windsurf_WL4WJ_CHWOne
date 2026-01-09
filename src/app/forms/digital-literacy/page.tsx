@@ -10,17 +10,22 @@ import {
   Paper,
   Button,
   Divider,
+  Grid,
 } from '@mui/material';
 import {
   PersonAdd as RegisterIcon,
   Dashboard as DashboardIcon,
   QrCode as QrCodeIcon,
+  School as InstructorIcon,
+  Assessment as ReportsIcon,
 } from '@mui/icons-material';
 import { AuthProvider } from '@/contexts/AuthContext';
 import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import { 
   BilingualRegistrationForm, 
   InstructorDashboard,
+  InstructorRegistrationWizard,
+  AIReportWizard,
   LanguageToggle,
   Student,
   CompletionData,
@@ -224,11 +229,17 @@ function DigitalLiteracyContent() {
           <Tabs 
             value={activeTab} 
             onChange={(e, v) => setActiveTab(v)}
-            variant="fullWidth"
+            variant="scrollable"
+            scrollButtons="auto"
           >
             <Tab 
               icon={<RegisterIcon />} 
               label="Student Registration | Registro de Estudiantes" 
+              iconPosition="start"
+            />
+            <Tab 
+              icon={<InstructorIcon />} 
+              label="Instructor Registration | Registro de Instructor" 
               iconPosition="start"
             />
             <Tab 
@@ -238,7 +249,12 @@ function DigitalLiteracyContent() {
             />
             <Tab 
               icon={<QrCodeIcon />} 
-              label="QR Code | Código QR" 
+              label="QR Codes | Códigos QR" 
+              iconPosition="start"
+            />
+            <Tab 
+              icon={<ReportsIcon />} 
+              label="AI Reports | Informes IA" 
               iconPosition="start"
             />
           </Tabs>
@@ -256,6 +272,17 @@ function DigitalLiteracyContent() {
 
         {activeTab === 1 && (
           <Box>
+            <InstructorRegistrationWizard 
+              onComplete={(data) => {
+                console.log('Instructor registered:', data);
+                setActiveTab(2); // Go to dashboard after registration
+              }}
+            />
+          </Box>
+        )}
+
+        {activeTab === 2 && (
+          <Box>
             <InstructorDashboard
               students={students}
               onUpdateStudent={handleUpdateStudent}
@@ -268,57 +295,213 @@ function DigitalLiteracyContent() {
           </Box>
         )}
 
-        {activeTab === 2 && (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Paper sx={{ p: 4, maxWidth: 400, mx: 'auto' }}>
-              <Box 
-                sx={{ 
-                  width: 200, 
-                  height: 200, 
-                  mx: 'auto', 
-                  mb: 3,
-                  bgcolor: '#f5f5f5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '2px solid #1976d2',
-                  borderRadius: 2,
-                }}
-              >
-                <QrCodeIcon sx={{ fontSize: 120, color: '#1976d2' }} />
+        {activeTab === 3 && (
+          <Box sx={{ py: 2 }}>
+            <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
+              QR Code Management | Gestión de Códigos QR
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mb: 4 }}>
+              Generate and print QR codes for easy access to forms | Genere e imprima códigos QR para acceso fácil a formularios
+            </Typography>
+            
+            <Grid container spacing={3}>
+              {/* Student Registration QR */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #1976d2' }}>
+                  <Box sx={{ 
+                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#e3f2fd',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 2, border: '2px dashed #1976d2'
+                  }}>
+                    <QrCodeIcon sx={{ fontSize: 80, color: '#1976d2' }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" color="primary">
+                    Student Registration
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" color="primary.dark">
+                    Registro de Estudiantes
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                    New students scan to register for classes | Nuevos estudiantes escanean para registrarse
+                  </Typography>
+                  <Button variant="contained" size="small" onClick={() => setActiveTab(0)} sx={{ mr: 1 }}>
+                    View Form | Ver
+                  </Button>
+                  <Button variant="outlined" size="small">
+                    Print | Imprimir
+                  </Button>
+                </Paper>
+              </Grid>
+
+              {/* Daily Check-in QR */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #4caf50' }}>
+                  <Box sx={{ 
+                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#e8f5e9',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 2, border: '2px dashed #4caf50'
+                  }}>
+                    <QrCodeIcon sx={{ fontSize: 80, color: '#4caf50' }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" color="success.main">
+                    Daily Check-in
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" color="success.dark">
+                    Registro Diario
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                    Students scan daily for attendance | Estudiantes escanean diariamente para asistencia
+                  </Typography>
+                  <Button variant="contained" color="success" size="small" sx={{ mr: 1 }}>
+                    View Form | Ver
+                  </Button>
+                  <Button variant="outlined" color="success" size="small">
+                    Print | Imprimir
+                  </Button>
+                </Paper>
+              </Grid>
+
+              {/* Feedback Form QR */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #ff9800' }}>
+                  <Box sx={{ 
+                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#fff3e0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 2, border: '2px dashed #ff9800'
+                  }}>
+                    <QrCodeIcon sx={{ fontSize: 80, color: '#ff9800' }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" color="warning.main">
+                    Feedback Form
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" color="warning.dark">
+                    Formulario de Retroalimentación
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                    Students provide course feedback | Estudiantes dan retroalimentación del curso
+                  </Typography>
+                  <Button variant="contained" color="warning" size="small" sx={{ mr: 1 }}>
+                    View Form | Ver
+                  </Button>
+                  <Button variant="outlined" color="warning" size="small">
+                    Print | Imprimir
+                  </Button>
+                </Paper>
+              </Grid>
+
+              {/* Progress Assessment QR */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #9c27b0' }}>
+                  <Box sx={{ 
+                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#f3e5f5',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 2, border: '2px dashed #9c27b0'
+                  }}>
+                    <QrCodeIcon sx={{ fontSize: 80, color: '#9c27b0' }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#9c27b0' }}>
+                    Progress Assessment
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#7b1fa2' }}>
+                    Evaluación de Progreso
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                    Weekly skill assessments | Evaluaciones semanales de habilidades
+                  </Typography>
+                  <Button variant="contained" size="small" sx={{ mr: 1, bgcolor: '#9c27b0', '&:hover': { bgcolor: '#7b1fa2' } }}>
+                    View Form | Ver
+                  </Button>
+                  <Button variant="outlined" size="small" sx={{ color: '#9c27b0', borderColor: '#9c27b0' }}>
+                    Print | Imprimir
+                  </Button>
+                </Paper>
+              </Grid>
+
+              {/* Instructor Check-in QR */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #00bcd4' }}>
+                  <Box sx={{ 
+                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#e0f7fa',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 2, border: '2px dashed #00bcd4'
+                  }}>
+                    <QrCodeIcon sx={{ fontSize: 80, color: '#00bcd4' }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#00bcd4' }}>
+                    Instructor Check-in
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#0097a7' }}>
+                    Registro de Instructor
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                    Instructors log class sessions | Instructores registran sesiones de clase
+                  </Typography>
+                  <Button variant="contained" size="small" sx={{ mr: 1, bgcolor: '#00bcd4', '&:hover': { bgcolor: '#0097a7' } }}>
+                    View Form | Ver
+                  </Button>
+                  <Button variant="outlined" size="small" sx={{ color: '#00bcd4', borderColor: '#00bcd4' }}>
+                    Print | Imprimir
+                  </Button>
+                </Paper>
+              </Grid>
+
+              {/* Completion Certificate QR */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #f44336' }}>
+                  <Box sx={{ 
+                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#ffebee',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 2, border: '2px dashed #f44336'
+                  }}>
+                    <QrCodeIcon sx={{ fontSize: 80, color: '#f44336' }} />
+                  </Box>
+                  <Typography variant="h6" fontWeight="bold" color="error">
+                    Completion Form
+                  </Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" color="error.dark">
+                    Formulario de Finalización
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                    Final completion and tablet assignment | Finalización y asignación de tableta
+                  </Typography>
+                  <Button variant="contained" color="error" size="small" sx={{ mr: 1 }}>
+                    View Form | Ver
+                  </Button>
+                  <Button variant="outlined" color="error" size="small">
+                    Print | Imprimir
+                  </Button>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {/* Print All Section */}
+            <Paper sx={{ p: 3, mt: 4, textAlign: 'center', bgcolor: '#f5f5f5' }}>
+              <Typography variant="h6" gutterBottom>
+                Bulk Print Options | Opciones de Impresión Masiva
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Button variant="contained" startIcon={<QrCodeIcon />}>
+                  Print All QR Codes | Imprimir Todos
+                </Button>
+                <Button variant="outlined">
+                  Print Student Forms Only | Solo Formularios de Estudiantes
+                </Button>
+                <Button variant="outlined">
+                  Print Instructor Forms Only | Solo Formularios de Instructor
+                </Button>
               </Box>
-              
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
-                SCAN TO REGISTER
-              </Typography>
-              <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
-                ESCANEAR PARA REGISTRARSE
-              </Typography>
-              
-              <Divider sx={{ my: 2 }} />
-              
-              <Typography variant="body1">
-                Digital Literacy Program
-              </Typography>
-              <Typography variant="body1" color="primary">
-                Programa de Alfabetización Digital
-              </Typography>
-              
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Point your phone camera at this QR code to open the registration form.
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Apunte la cámara de su teléfono a este código QR para abrir el formulario de registro.
-              </Typography>
-              
-              <Button 
-                variant="contained" 
-                sx={{ mt: 3 }}
-                onClick={() => setActiveTab(0)}
-              >
-                Go to Registration | Ir al Registro
-              </Button>
             </Paper>
+          </Box>
+        )}
+
+        {activeTab === 4 && (
+          <Box>
+            <AIReportWizard 
+              onComplete={(config) => {
+                console.log('Report generated:', config);
+              }}
+              onClose={() => setActiveTab(2)}
+            />
           </Box>
         )}
 

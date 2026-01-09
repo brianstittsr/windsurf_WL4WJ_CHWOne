@@ -403,6 +403,82 @@ export const TRANSLATIONS = {
     questions: { en: 'Any questions you have about technology', es: 'Cualquier pregunta que tenga sobre tecnología' },
   },
   
+  // Instructor Registration
+  instructorRegistration: {
+    title: { 
+      en: 'INSTRUCTOR REGISTRATION', 
+      es: 'REGISTRO DE INSTRUCTOR' 
+    },
+    subtitle: {
+      en: 'Digital Literacy Program Instructor Application',
+      es: 'Solicitud de Instructor del Programa de Alfabetización Digital'
+    },
+    instructions: {
+      en: 'Please complete all fields below to apply as an instructor for the Digital Literacy Program.',
+      es: 'Por favor complete todos los campos a continuación para aplicar como instructor del Programa de Alfabetización Digital.'
+    },
+    
+    // Personal Information
+    personalInfo: { en: 'Personal Information', es: 'Información Personal' },
+    firstName: { en: 'First Name', es: 'Nombre' },
+    lastName: { en: 'Last Name', es: 'Apellido' },
+    email: { en: 'Email Address', es: 'Correo Electrónico' },
+    phone: { en: 'Phone Number', es: 'Número de Teléfono' },
+    address: { en: 'Address', es: 'Dirección' },
+    city: { en: 'City', es: 'Ciudad' },
+    state: { en: 'State', es: 'Estado' },
+    zipCode: { en: 'ZIP Code', es: 'Código Postal' },
+    
+    // Professional Information
+    professionalInfo: { en: 'Professional Information', es: 'Información Profesional' },
+    certifications: { en: 'Certifications', es: 'Certificaciones' },
+    selectCertifications: { en: 'Select all that apply', es: 'Seleccione todas las que apliquen' },
+    yearsExperience: { en: 'Years of Teaching Experience', es: 'Años de Experiencia Docente' },
+    languages: { en: 'Languages Spoken', es: 'Idiomas que Habla' },
+    specializations: { en: 'Areas of Specialization', es: 'Áreas de Especialización' },
+    
+    // Certifications options
+    certCHW: { en: 'Community Health Worker (CHW)', es: 'Trabajador de Salud Comunitaria (CHW)' },
+    certDigitalLiteracy: { en: 'Digital Literacy Instructor', es: 'Instructor de Alfabetización Digital' },
+    certAdultEducation: { en: 'Adult Education Certification', es: 'Certificación en Educación de Adultos' },
+    certESL: { en: 'ESL/ESOL Certification', es: 'Certificación ESL/ESOL' },
+    certTechTrainer: { en: 'Technology Trainer', es: 'Capacitador en Tecnología' },
+    certHealthEducator: { en: 'Health Educator', es: 'Educador de Salud' },
+    certOther: { en: 'Other', es: 'Otro' },
+    
+    // Availability
+    availability: { en: 'Availability', es: 'Disponibilidad' },
+    availableDays: { en: 'Available Days', es: 'Días Disponibles' },
+    preferredTimes: { en: 'Preferred Times', es: 'Horarios Preferidos' },
+    morning: { en: 'Morning (9 AM - 12 PM)', es: 'Mañana (9 AM - 12 PM)' },
+    afternoon: { en: 'Afternoon (1 PM - 5 PM)', es: 'Tarde (1 PM - 5 PM)' },
+    evening: { en: 'Evening (6 PM - 9 PM)', es: 'Noche (6 PM - 9 PM)' },
+    
+    // Background
+    background: { en: 'Background & Experience', es: 'Antecedentes y Experiencia' },
+    teachingExperience: { en: 'Describe your teaching experience', es: 'Describa su experiencia docente' },
+    whyInterested: { en: 'Why are you interested in teaching digital literacy?', es: '¿Por qué le interesa enseñar alfabetización digital?' },
+    
+    // Review & Submit
+    review: { en: 'Review & Submit', es: 'Revisar y Enviar' },
+    reviewInstructions: { 
+      en: 'Please review your information before submitting.', 
+      es: 'Por favor revise su información antes de enviar.' 
+    },
+    submit: { en: 'Submit Application', es: 'Enviar Solicitud' },
+    submitting: { en: 'Submitting...', es: 'Enviando...' },
+    
+    // Success
+    applicationSubmitted: { 
+      en: 'APPLICATION SUBMITTED', 
+      es: 'SOLICITUD ENVIADA' 
+    },
+    thankYouApplying: {
+      en: 'Thank you for applying to be an instructor! We will review your application and contact you within 5-7 business days.',
+      es: '¡Gracias por aplicar para ser instructor! Revisaremos su solicitud y lo contactaremos dentro de 5-7 días hábiles.'
+    },
+  },
+  
   // Email
   email: {
     subject: { 

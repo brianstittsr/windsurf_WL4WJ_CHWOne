@@ -119,7 +119,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 function CollaborationDetailContent() {
-  const { currentUser, loading: authLoading } = useAuth();
+  const { currentUser, userProfile, loading: authLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const collaborationId = params?.id as string;
@@ -802,6 +802,11 @@ function CollaborationDetailContent() {
   const milestones = (grant as any).projectMilestones || [];
   const dataCollectionMethods = (grant as any).dataCollectionMethods || [];
   const formTemplates = (grant as any).formTemplates || [];
+  
+  // Check if user is a nonprofit - hide billing/invoices tab for nonprofits
+  const isNonprofit = userProfile?.organizationType === 'Nonprofit' || 
+                      userProfile?.role === 'NONPROFIT_STAFF' ||
+                      userProfile?.roles?.includes('NONPROFIT_STAFF' as any);
 
   return (
     <UnifiedLayout>
@@ -1049,7 +1054,7 @@ function CollaborationDetailContent() {
           </CardContent>
         </Card>
 
-        {/* Tabs */}
+        {/* Tabs - Billing/Invoices tab hidden for nonprofit users */}
         <Paper sx={{ mb: 3, position: 'relative', zIndex: 'auto' }}>
           <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} variant="scrollable" scrollButtons="auto">
             <Tab label="Documents" icon={<DocumentIcon />} iconPosition="start" />
@@ -1058,7 +1063,7 @@ function CollaborationDetailContent() {
             <Tab label="Datasets" icon={<DatasetIcon />} iconPosition="start" />
             <Tab label="AI Reports" icon={<AIIcon />} iconPosition="start" />
             <Tab label="Partners" icon={<GroupsIcon />} iconPosition="start" />
-            <Tab label="Billing / Invoices" icon={<ReceiptIcon />} iconPosition="start" />
+            {!isNonprofit && <Tab label="Billing / Invoices" icon={<ReceiptIcon />} iconPosition="start" />}
             <Tab label="Milestones / Tasks" icon={<TaskIcon />} iconPosition="start" />
           </Tabs>
         </Paper>
@@ -1648,8 +1653,8 @@ function CollaborationDetailContent() {
           )}
         </TabPanel>
 
-        {/* Billing / Invoices Tab */}
-        <TabPanel value={tabValue} index={6}>
+        {/* Billing / Invoices Tab - Hidden for nonprofit users */}
+        {!isNonprofit && <TabPanel value={tabValue} index={6}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Billing & Invoices</Typography>
             <Button
@@ -1857,10 +1862,10 @@ function CollaborationDetailContent() {
               No milestones defined. Create milestones to link invoices to specific project deliverables.
             </Alert>
           )}
-        </TabPanel>
+        </TabPanel>}
 
-        {/* Milestones / Tasks Tab */}
-        <TabPanel value={tabValue} index={7}>
+        {/* Milestones / Tasks Tab - index adjusts based on whether Invoices tab is shown */}
+        <TabPanel value={tabValue} index={isNonprofit ? 6 : 7}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Milestones & Tasks</Typography>
             <Button
