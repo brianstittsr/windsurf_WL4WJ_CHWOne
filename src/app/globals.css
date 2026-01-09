@@ -225,6 +225,21 @@ a[href]:hover,
   isolation: unset !important;
   z-index: unset !important;
 }
+
+/* Fix for MUI backdrop getting stuck - ensure it doesn't block interaction when closed */
+.MuiBackdrop-root:not(.MuiBackdrop-invisible):not([style*="opacity: 1"]) {
+  pointer-events: none !important;
+}
+
+/* Ensure MUI modal backdrops have proper z-index and don't get stuck */
+.MuiModal-root {
+  z-index: 1300 !important;
+}
+
+/* Fix for any orphaned backdrop elements */
+body > .MuiBackdrop-root {
+  display: none !important;
+}
 /* Super Aggressive Button Clickability Fix */
 .MuiButton-root, 
 button, 
@@ -334,4 +349,19 @@ a[href]:hover,
   will-change: unset !important;
   isolation: unset !important;
   z-index: unset !important;
+}
+
+/* Fix for MUI backdrop getting stuck - ensure it doesn't block interaction when closed */
+.MuiBackdrop-root:not(.MuiBackdrop-invisible):not([style*="opacity: 1"]) {
+  pointer-events: none !important;
+}
+
+/* Ensure MUI modal backdrops have proper z-index and don't get stuck */
+.MuiModal-root {
+  z-index: 1300 !important;
+}
+
+/* Fix for any orphaned backdrop elements */
+body > .MuiBackdrop-root {
+  display: none !important;
 }
