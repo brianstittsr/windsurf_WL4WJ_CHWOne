@@ -64,22 +64,15 @@ const newsletter: Newsletter = {
 };
 
 const social: Social = [
-  // Links are automatically displayed.
-  // Import new icons in /once-ui/icons.ts
   {
     name: "GitHub",
     icon: "github",
-    link: "https://github.com/once-ui-system",
+    link: "https://github.com/brianstittsr/windsurf_WL4WJ_CHWOne",
   },
   {
     name: "LinkedIn",
     icon: "linkedin",
-    link: "https://www.linkedin.com/company/once-ui/",
-  },
-  {
-    name: "Threads",
-    icon: "threads",
-    link: "https://www.threads.com/@once_ui",
+    link: "https://www.linkedin.com/company/chwone/",
   },
   {
     name: "Email",
@@ -99,19 +92,17 @@ const home: Home = {
     display: true,
     title: (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
-        <strong style={{ marginLeft: '0.25rem' }}>Once UI</strong>
+        <strong style={{ marginLeft: '0.25rem' }}>CHWOne</strong>
         <span style={{ width: '1px', height: '20px', background: 'rgba(0,0,0,0.2)' }} />
-        <span style={{ marginRight: '4px', color: '#6c757d' }}>Featured work</span>
+        <span style={{ marginRight: '4px', color: '#6c757d' }}>Community Health Worker Platform</span>
       </span>
     ),
-    href: "/work/building-once-ui-a-customizable-design-system",
+    href: "/dashboard",
   },
   subline: (
     <>
-      I&apos;m Selene, a design engineer at{" "}
-      <img src="/trademarks/wordmark-dark.svg" alt="Once UI" style={{ display: 'inline-flex', position: 'relative', top: '0.25em', marginLeft: '-0.25em', height: '1em' }} />
-      , where I craft intuitive
-      <br /> user experiences. After hours, I build my own projects.
+      CHWOne is a comprehensive platform for Community Health Workers,
+      <br /> providing tools for workforce development and community health management.
     </>
   ),
 };

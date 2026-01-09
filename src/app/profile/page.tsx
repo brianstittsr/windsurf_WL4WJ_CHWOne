@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Container, Box, Typography } from '@mui/material';
 import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
 import EnhancedProfileComponent from '@/components/CHW/EnhancedProfileComponent';
@@ -9,16 +8,16 @@ import EnhancedProfileComponent from '@/components/CHW/EnhancedProfileComponent'
 function ProfilePageContent() {
   return (
     <UnifiedLayout>
-      <Container maxWidth="lg">
-        <Box sx={{ py: 4 }}>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" component="h1">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-slate-900">
               My Profile
-            </Typography>
-          </Box>
+            </h1>
+          </div>
           <EnhancedProfileComponent editable={true} />
-        </Box>
-      </Container>
+        </div>
+      </div>
     </UnifiedLayout>
   );
 }

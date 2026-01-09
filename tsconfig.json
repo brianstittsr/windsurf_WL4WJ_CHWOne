@@ -29,9 +29,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@once-ui-system/components": [
-        "./src/once-ui-system/components.tsx"
       ]
     },
     "target": "ES2017"
