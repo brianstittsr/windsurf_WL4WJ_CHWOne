@@ -414,8 +414,8 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
         </header>
 
         {/* Page Content */}
-        <div className="p-6" style={{ isolation: 'auto' }}>
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             {children}
           </div>
         </div>

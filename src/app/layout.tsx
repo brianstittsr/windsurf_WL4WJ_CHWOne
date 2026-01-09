@@ -157,6 +157,36 @@ export default function RootLayout({
             document.body.appendChild(errorDiv);
           });
         `}} />
+        {/* Fix for stuck overlay elements */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          // Remove any stuck overlay elements on page load
+          document.addEventListener('DOMContentLoaded', function() {
+            setInterval(function() {
+              // Find and remove stuck MUI backdrops
+              var backdrops = document.querySelectorAll('.MuiBackdrop-root');
+              backdrops.forEach(function(backdrop) {
+                var modal = backdrop.closest('.MuiModal-root');
+                if (!modal) {
+                  backdrop.style.display = 'none';
+                  backdrop.style.pointerEvents = 'none';
+                }
+              });
+              
+              // Find any fixed position overlays blocking interaction
+              var fixedElements = document.querySelectorAll('[style*="position: fixed"]');
+              fixedElements.forEach(function(el) {
+                var style = window.getComputedStyle(el);
+                if (style.backgroundColor && style.backgroundColor.includes('rgba') && 
+                    style.inset === '0px' || (style.top === '0px' && style.left === '0px' && style.right === '0px' && style.bottom === '0px')) {
+                  // Check if it's a legitimate modal
+                  if (!el.closest('.MuiModal-root') && !el.closest('[role="dialog"]')) {
+                    el.style.pointerEvents = 'none';
+                  }
+                }
+              });
+            }, 1000);
+          });
+        `}} />
       </head>
       <body>
         <ThemeRegistry>
