@@ -155,7 +155,7 @@ export default function NCLegislaturePage() {
                   <SelectTrigger>
                     <SelectValue placeholder="All Parties" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50">
                     <SelectItem value="all">All Parties</SelectItem>
                     <SelectItem value="R">Republican</SelectItem>
                     <SelectItem value="D">Democrat</SelectItem>
@@ -169,7 +169,7 @@ export default function NCLegislaturePage() {
                   <SelectTrigger>
                     <SelectValue placeholder="All Counties" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50">
                     <SelectItem value="all">All Counties</SelectItem>
                     {counties.map(county => (
                       <SelectItem key={county} value={county}>{county}</SelectItem>
@@ -258,7 +258,7 @@ export default function NCLegislaturePage() {
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedRep} onOpenChange={() => setSelectedRep(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh]">
+        <DialogContent className="max-w-3xl max-h-[90vh] z-[200]">
           {selectedRep && (
             <>
               <DialogHeader>
