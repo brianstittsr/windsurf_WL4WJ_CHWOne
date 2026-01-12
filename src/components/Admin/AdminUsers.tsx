@@ -372,7 +372,18 @@ export default function AdminUsers() {
       alert('User created successfully!');
     } catch (err: any) {
       console.error('Error creating user:', err);
-      setError(err.message || 'Failed to create user. Please try again.');
+      // Provide user-friendly error messages for common Firebase errors
+      let errorMessage = 'Failed to create user. Please try again.';
+      if (err.code === 'auth/email-already-in-use' || err.message?.includes('email-already-in-use')) {
+        errorMessage = 'This email address is already registered. Please use a different email or edit the existing user.';
+      } else if (err.code === 'auth/invalid-email' || err.message?.includes('invalid-email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (err.code === 'auth/weak-password' || err.message?.includes('weak-password')) {
+        errorMessage = 'Password is too weak. Please use at least 6 characters.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     }
   };
   
