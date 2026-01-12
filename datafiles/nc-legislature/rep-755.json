@@ -1,0 +1,658 @@
+{
+  "id": "755",
+  "chamber": "H",
+  "session": "2025-2026",
+  "createdAt": "2026-01-12T21:32:29.208Z",
+  "lastUpdated": "2026-01-12T21:32:29.208Z",
+  "name": "Carson Smith",
+  "firstName": "Carson",
+  "lastName": "Smith",
+  "party": "R",
+  "district": 16,
+  "counties": [
+    "Onslow",
+    "Pender"
+  ],
+  "contact": {
+    "legislativeOffice": {
+      "address": "16 West Jones Street, Rm. 410",
+      "room": "410",
+      "city": "Raleigh",
+      "state": "NC",
+      "zip": ""
+    },
+    "mainPhone": "919-715-9664"
+  },
+  "termsInHouse": 4,
+  "termsInSenate": 0,
+  "biography": {
+    "occupation": "Retired Sheriff - Pender County"
+  },
+  "status": "active",
+  "photoUrl": "https://www.ncleg.gov/Members/MemberImage/H/755/Low",
+  "introducedBills": [
+    {
+      "billId": "HB28",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "28",
+      "introducedDate": "Gun Violence Prevention Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H28",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB35",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "35",
+      "introducedDate": "Establish Military Appreciation Month.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H35",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB42",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "42",
+      "introducedDate": "Back the Blue Pay Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H42",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB47",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "47",
+      "introducedDate": "Disaster Recovery Act of 2025 - Part I.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H47",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB49",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "49",
+      "introducedDate": "Filial Debt Fairness Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H49",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB50",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "50",
+      "introducedDate": "LEO Special Separation Allowance Options.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H50",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "SB320",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "50",
+      "introducedDate": "LEO Special Separation Allowance Options.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/S320",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB61",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "61",
+      "introducedDate": "Assaults on First Responders.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H61",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB79",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "79",
+      "introducedDate": "North Carolina Work and Save.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H79",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB133",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "133",
+      "introducedDate": "NC Farmland and Military Protection Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H133",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "SB504",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "133",
+      "introducedDate": "NC Farmland and Military Protection Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/S504",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB137",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "137",
+      "introducedDate": "Gabe Torres Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H137",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB146",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "146",
+      "introducedDate": "Remote License Renewal/Active Duty Military.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H146",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB164",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "164",
+      "introducedDate": "Parental Consent to Release Child Autopsies.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H164",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB171",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "171",
+      "introducedDate": "Equality in State Agencies/Prohibition on DEI.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H171",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB199",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "199",
+      "introducedDate": "Nonconsensual Booting and Towing Reform.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H199",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB200",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "200",
+      "introducedDate": "SchCalFlex/Pender/CC.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H200",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB206",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "206",
+      "introducedDate": "Mod. Gun Retrieval - DVOs/Juvenile 911 Calls.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H206",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB218",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "218",
+      "introducedDate": "Emergency Info on DMV Applications.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H218",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB234",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "234",
+      "introducedDate": "Little Federal Model NC Edition.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H234",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB268",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "268",
+      "introducedDate": "Additional Capital Appropriations.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H268",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB299",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "299",
+      "introducedDate": "Increase Disabled Veteran Prop Tax Benefit.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H299",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB300",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "300",
+      "introducedDate": "Vet Care for Retired First Responder Dogs.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H300",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB315",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "315",
+      "introducedDate": "Gift Card Theft & Unlawful Business Entry.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H315",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB318",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "318",
+      "introducedDate": "The Criminal Illegal Alien Enforcement Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H318",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB437",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "437",
+      "introducedDate": "Establish Drug-Free Homeless Service Zones.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H437",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB476",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "476",
+      "introducedDate": "DST Technical Corrections/Admin. Changes 2025.-AB",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H476",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "s2025",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "476",
+      "introducedDate": "DST Technical Corrections/Admin. Changes 2025.-AB",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H476",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB477",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "477",
+      "introducedDate": "Retirement Death Benefits Rewrite.-AB",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H477",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "SB359",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "477",
+      "introducedDate": "Retirement Death Benefits Rewrite.-AB",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/S359",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB479",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "479",
+      "introducedDate": "Town of Burgaw Property Transfer.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H479",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB483",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "483",
+      "introducedDate": "Juvenile Justice Legislative Proposals.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H483",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB487",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "487",
+      "introducedDate": "Shorter Separation for Retired ADAs and APDs.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H487",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "SB364",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "487",
+      "introducedDate": "Shorter Separation for Retired ADAs and APDs.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/S364",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB505",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "505",
+      "introducedDate": "Kayla's Act: Protecting Dom. Violence Victims.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H505",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "SB634",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "505",
+      "introducedDate": "Kayla's Act: Protecting Dom. Violence Victims.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/S634",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB514",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "514",
+      "introducedDate": "APRN Definitions.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H514",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "SB537",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "514",
+      "introducedDate": "APRN Definitions.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/S537",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB575",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "575",
+      "introducedDate": "The Hunter Robinson Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H575",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB597",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "597",
+      "introducedDate": "Adopt Osprey as State Raptor.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H597",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB600",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "600",
+      "introducedDate": "Recognition of the Tuscarora.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H600",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB612",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "612",
+      "introducedDate": "Fostering Care in NC Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H612",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB649",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "649",
+      "introducedDate": "County Tier Designation Study Bill.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H649",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB674",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "674",
+      "introducedDate": "The Firearms Liberty Act.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H674",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB695",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "695",
+      "introducedDate": "Support VIPER/Assist 911 Operations/Dispatch.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H695",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB716",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "716",
+      "introducedDate": "Bail Bond Omnibus.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H716",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "SB702",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "716",
+      "introducedDate": "Bail Bond Omnibus.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/S702",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB746",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "746",
+      "introducedDate": "Limited Immunity/Nurses.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H746",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB753",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "753",
+      "introducedDate": "LEOs Return to Work.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H753",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB774",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "774",
+      "introducedDate": "School Breakfast for All.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H774",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB789",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "789",
+      "introducedDate": "Mitigating Factor/Pretrial Use of IID.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H789",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB841",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "841",
+      "introducedDate": "Shellfish Leasing Study.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H841",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB897",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "897",
+      "introducedDate": "DPS Agency Changes.-AB",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H897",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB901",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "901",
+      "introducedDate": "Recognize Safety Hold Agreements.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H901",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB953",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "953",
+      "introducedDate": "Study Committee on ADA/APD/PAC Pay.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H953",
+      "isPrimarySponsor": true
+    },
+    {
+      "billId": "HB968",
+      "session": "2025-2026",
+      "title": "H",
+      "status": "968",
+      "introducedDate": "Youth CERT Preparedness K-12 Training.",
+      "url": "https://www.ncleg.gov/BillLookUp/2025/H968",
+      "isPrimarySponsor": true
+    }
+  ],
+  "votes": [],
+  "committees": [
+    {
+      "committeeId": "6",
+      "committeeName": "Appropriations\n                    \n                    Vice Chairman",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseStanding/6"
+    },
+    {
+      "committeeId": "11",
+      "committeeName": "Appropriations, Justice and Public Safety\n                    \n                    Chairman",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseStanding/11"
+    },
+    {
+      "committeeId": "21",
+      "committeeName": "Election Law\n                    \n                    Member",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseStanding/21"
+    },
+    {
+      "committeeId": "206",
+      "committeeName": "Federal Relations and American Indian Affairs\n                    \n                    Member",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseStanding/206"
+    },
+    {
+      "committeeId": "232",
+      "committeeName": "House Select Committee on Involuntary Commitment and Public Safety\n                    \n                    Member",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseSelect/232"
+    },
+    {
+      "committeeId": "234",
+      "committeeName": "House Select Committee on Redistricting\n                    \n                    Member",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseSelect/234"
+    },
+    {
+      "committeeId": "202",
+      "committeeName": "Judiciary 2\n                    \n                    Vice Chairman",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseStanding/202"
+    },
+    {
+      "committeeId": "169",
+      "committeeName": "Pensions and Retirement\n                    \n                    Chairman",
+      "chamber": "H",
+      "role": "Vice Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/HouseStanding/169"
+    },
+    {
+      "committeeId": "Joint-Legislative-Oversight-Committee-on-Justice-and-Public-Safety-Co-Chair",
+      "committeeName": "Joint Legislative Oversight Committee on Justice and Public Safety\n                    \n                    Co-Chair",
+      "chamber": "Joint",
+      "role": "Chair",
+      "session": "2025-2026",
+      "url": "https://www.ncleg.gov/Committees/CommitteeInfo/NonStanding/427/"
+    }
+  ],
+  "searchKeywords": [
+    "carson",
+    "smith",
+    "carson smith",
+    "r",
+    "republican",
+    "district 16",
+    "onslow",
+    "pender",
+    "retired",
+    "sheriff",
+    "county",
+    "appropriations",
+    "vice",
+    "chairman",
+    "appropriations,",
+    "justice",
+    "and",
+    "public",
+    "safety",
+    "election",
+    "law",
+    "member",
+    "federal",
+    "relations",
+    "american",
+    "indian",
+    "affairs",
+    "house",
+    "select",
+    "committee",
+    "involuntary",
+    "commitment",
+    "redistricting",
+    "judiciary",
+    "pensions",
+    "retirement",
+    "joint",
+    "legislative",
+    "oversight",
+    "co-chair"
+  ],
+  "photoBase64": "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",
+  "photoMimeType": "image/jpeg"
+}
