@@ -208,11 +208,11 @@ export default function NCLegislaturePage() {
                       <img
                         src={`data:${rep.photoMimeType || 'image/jpeg'};base64,${rep.photoBase64}`}
                         alt={rep.name}
-                        className="w-40 h-52 object-cover rounded-lg shadow-md"
+                        className="w-56 h-72 object-cover rounded-lg shadow-md"
                       />
                     ) : (
-                      <div className="w-40 h-52 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <Users className="h-12 w-12 text-gray-400" />
+                      <div className="w-56 h-72 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <Users className="h-16 w-16 text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -258,20 +258,20 @@ export default function NCLegislaturePage() {
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedRep} onOpenChange={() => setSelectedRep(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] z-[200]">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border shadow-2xl">
           {selectedRep && (
             <>
               <DialogHeader>
-                <div className="flex gap-4">
+                <div className="flex gap-6">
                   {selectedRep.photoBase64 ? (
                     <img
                       src={`data:${selectedRep.photoMimeType || 'image/jpeg'};base64,${selectedRep.photoBase64}`}
                       alt={selectedRep.name}
-                      className="w-24 h-32 object-cover rounded-lg"
+                      className="w-32 h-44 object-cover rounded-lg shadow-md"
                     />
                   ) : (
-                    <div className="w-24 h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <Users className="h-10 w-10 text-gray-400" />
+                    <div className="w-32 h-44 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <Users className="h-12 w-12 text-gray-400" />
                     </div>
                   )}
                   <div>
