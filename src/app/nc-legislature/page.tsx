@@ -208,11 +208,11 @@ export default function NCLegislaturePage() {
                       <img
                         src={`data:${rep.photoMimeType || 'image/jpeg'};base64,${rep.photoBase64}`}
                         alt={rep.name}
-                        className="w-28 h-36 object-cover rounded-lg shadow-md"
+                        className="w-40 h-52 object-cover rounded-lg shadow-md"
                       />
                     ) : (
-                      <div className="w-28 h-36 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <Users className="h-10 w-10 text-gray-400" />
+                      <div className="w-40 h-52 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <Users className="h-12 w-12 text-gray-400" />
                       </div>
                     )}
                   </div>
