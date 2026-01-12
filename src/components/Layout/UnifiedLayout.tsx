@@ -102,6 +102,7 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
         { href: '/collaborations', icon: Handshake, label: 'My Collaborations', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
         { href: '/dashboard/regions', icon: MapPin, label: 'Regional Pages', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
         { href: '/chws/mock-profiles', icon: Users, label: 'CHW Directory', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF] },
+        { href: '/nc-legislature', icon: Building2, label: 'NC Legislature', roles: [UserRole.ADMIN, UserRole.NONPROFIT_STAFF, UserRole.CHW] },
       ],
     },
     // Admin Section - Only for admins
