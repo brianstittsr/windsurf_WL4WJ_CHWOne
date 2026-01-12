@@ -1,28 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  MenuItem,
-  Typography,
-  Alert,
-  CircularProgress,
-  Divider,
-  InputAdornment,
-} from '@mui/material';
-import {
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  Person as PersonIcon,
-  CalendarMonth as CalendarIcon,
-  LocationOn as LocationIcon,
-  Schedule as ScheduleIcon,
-  CheckCircle as CheckCircleIcon,
-} from '@mui/icons-material';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Mail, Phone, User, Calendar, MapPin, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { 
   CLASS_SCHEDULES, 
   COUNTIES, 
@@ -164,285 +149,240 @@ export default function BilingualRegistrationForm({
   };
 
   return (
-    <Card elevation={3} sx={{ maxWidth: 700, mx: 'auto' }}>
-      <CardContent sx={{ p: 4 }}>
+    <Card className="max-w-2xl mx-auto shadow-lg">
+      <CardContent className="p-8">
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>
+        <div className="text-center mb-8">
+          <h2 className="text-xl font-bold text-blue-600 mb-1">
             DIGITAL LITERACY PROGRAM REGISTRATION
-          </Typography>
-          <Typography variant="h6" fontWeight="bold" color="primary.dark">
+          </h2>
+          <h3 className="text-lg font-bold text-blue-700">
             REGISTRO DEL PROGRAMA DE ALFABETIZACIÓN DIGITAL
-          </Typography>
+          </h3>
           
-          <Divider sx={{ my: 2 }} />
+          <hr className="my-4" />
           
-          <Typography variant="body2" color="text.secondary" paragraph>
+          <p className="text-sm text-muted-foreground mb-2">
             Please complete all fields below to register for the Digital Literacy Program.
             You will receive confirmation via email.
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
+          </p>
+          <p className="text-sm text-muted-foreground">
             Por favor complete todos los campos a continuación para registrarse en el
             Programa de Alfabetización Digital. Recibirá una confirmación por correo electrónico.
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {/* Success Message */}
         {submitStatus === 'success' && (
-          <Alert 
-            severity="success" 
-            icon={<CheckCircleIcon />}
-            sx={{ mb: 3 }}
-          >
-            <Typography variant="subtitle1" fontWeight="bold">
-              ✓ REGISTRATION COMPLETE | REGISTRO COMPLETO
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              Thank you for registering! You will receive a confirmation email shortly with your class details.
-            </Typography>
-            <Typography variant="body2">
-              ¡Gracias por registrarse! Recibirá un correo electrónico de confirmación en breve con los detalles de su clase.
-            </Typography>
-            <Typography variant="body2" fontWeight="medium" sx={{ mt: 1 }}>
-              See you in class! | ¡Nos vemos en clase!
-            </Typography>
+          <Alert className="mb-6 border-green-500 bg-green-50">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-800">✓ REGISTRATION COMPLETE | REGISTRO COMPLETO</AlertTitle>
+            <AlertDescription className="text-green-700">
+              <p className="mt-1">Thank you for registering! You will receive a confirmation email shortly with your class details.</p>
+              <p>¡Gracias por registrarse! Recibirá un correo electrónico de confirmación en breve con los detalles de su clase.</p>
+              <p className="font-medium mt-2">See you in class! | ¡Nos vemos en clase!</p>
+            </AlertDescription>
           </Alert>
         )}
 
         {/* Class Full Error */}
         {submitStatus === 'classFull' && (
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              ⚠ CLASS FULL | CLASE COMPLETA
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              This class has reached maximum capacity (18 students). Please select a different time.
-            </Typography>
-            <Typography variant="body2">
-              Esta clase ha alcanzado su capacidad máxima (18 estudiantes). Por favor seleccione un horario diferente.
-            </Typography>
+          <Alert className="mb-6 border-amber-500 bg-amber-50">
+            <AlertTitle className="text-amber-800">⚠ CLASS FULL | CLASE COMPLETA</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              <p className="mt-1">This class has reached maximum capacity (18 students). Please select a different time.</p>
+              <p>Esta clase ha alcanzado su capacidad máxima (18 estudiantes). Por favor seleccione un horario diferente.</p>
+            </AlertDescription>
           </Alert>
         )}
 
         {/* Email Exists Error */}
         {submitStatus === 'emailExists' && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              ⚠ EMAIL ALREADY REGISTERED | CORREO YA REGISTRADO
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              This email is already registered for a class. If you need to change your registration, please contact us.
-            </Typography>
-            <Typography variant="body2">
-              Este correo electrónico ya está registrado para una clase. Si necesita cambiar su registro, por favor contáctenos.
-            </Typography>
+          <Alert variant="destructive" className="mb-6">
+            <AlertTitle>⚠ EMAIL ALREADY REGISTERED | CORREO YA REGISTRADO</AlertTitle>
+            <AlertDescription>
+              <p className="mt-1">This email is already registered for a class. If you need to change your registration, please contact us.</p>
+              <p>Este correo electrónico ya está registrado para una clase. Si necesita cambiar su registro, por favor contáctenos.</p>
+            </AlertDescription>
           </Alert>
         )}
 
         {/* General Error */}
         {submitStatus === 'error' && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            <Typography variant="body2">
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>
               An error occurred. Please try again. | Ocurrió un error. Por favor intente de nuevo.
-            </Typography>
+            </AlertDescription>
           </Alert>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Registration Date */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          <div className="space-y-2">
+            <Label className="font-semibold">
               Registration Date | Fecha de Registro
-            </Typography>
-            <TextField
-              fullWidth
-              type="date"
-              value={formData.registrationDate}
-              onChange={handleChange('registrationDate')}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              helperText="Select the date you are registering | Seleccione la fecha en que se registra"
-            />
-          </Box>
+            </Label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                value={formData.registrationDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, registrationDate: e.target.value }))}
+                className="pl-10"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Select the date you are registering | Seleccione la fecha en que se registra</p>
+          </div>
 
           {/* Class Time */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          <div className="space-y-2">
+            <Label className="font-semibold">
               Select Your Class Time | Seleccione su Horario de Clase *
-            </Typography>
-            <TextField
-              fullWidth
-              select
-              value={formData.classTime}
-              onChange={handleChange('classTime')}
-              error={!!errors.classTime}
-              helperText={
-                errors.classTime 
-                  ? getErrorMessage('classTime')
-                  : 'Each class is limited to 18 students | Cada clase está limitada a 18 estudiantes'
-              }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <ScheduleIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            >
-              <MenuItem value="" disabled>
-                -- Select | Seleccionar --
-              </MenuItem>
-              {CLASS_SCHEDULES.map((schedule) => (
-                <MenuItem 
-                  key={schedule.id} 
-                  value={schedule.id}
-                  disabled={isClassFull(schedule.id)}
-                >
-                  {schedule.en} | {schedule.es}
-                  {isClassFull(schedule.id) && ' (FULL | COMPLETO)'}
-                  {!isClassFull(schedule.id) && classEnrollments[schedule.id] && 
-                    ` (${classEnrollments[schedule.id]}/18)`
-                  }
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
+            </Label>
+            <div className="relative">
+              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+              <Select value={formData.classTime} onValueChange={(value) => {
+                setFormData(prev => ({ ...prev, classTime: value }));
+                if (errors.classTime) setErrors(prev => ({ ...prev, classTime: undefined }));
+              }}>
+                <SelectTrigger className={`pl-10 ${errors.classTime ? 'border-red-500' : ''}`}>
+                  <SelectValue placeholder="-- Select | Seleccionar --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLASS_SCHEDULES.map((schedule) => (
+                    <SelectItem 
+                      key={schedule.id} 
+                      value={schedule.id}
+                      disabled={isClassFull(schedule.id)}
+                    >
+                      {schedule.en} | {schedule.es}
+                      {isClassFull(schedule.id) && ' (FULL | COMPLETO)'}
+                      {!isClassFull(schedule.id) && classEnrollments[schedule.id] && 
+                        ` (${classEnrollments[schedule.id]}/18)`
+                      }
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {errors.classTime ? (
+              <p className="text-xs text-red-500">{getErrorMessage('classTime')}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Each class is limited to 18 students | Cada clase está limitada a 18 estudiantes</p>
+            )}
+          </div>
 
           {/* Student Name */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          <div className="space-y-2">
+            <Label className="font-semibold">
               Student Name | Nombre del Estudiante *
-            </Typography>
-            <TextField
-              fullWidth
-              value={formData.studentName}
-              onChange={handleChange('studentName')}
-              placeholder="First Name Last Name | Nombre Apellido"
-              error={!!errors.studentName}
-              helperText={
-                errors.studentName 
-                  ? getErrorMessage('studentName')
-                  : 'Enter your full name | Ingrese su nombre completo'
-              }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
+            </Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={formData.studentName}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, studentName: e.target.value }));
+                  if (errors.studentName) setErrors(prev => ({ ...prev, studentName: undefined }));
+                }}
+                placeholder="First Name Last Name | Nombre Apellido"
+                className={`pl-10 ${errors.studentName ? 'border-red-500' : ''}`}
+              />
+            </div>
+            {errors.studentName ? (
+              <p className="text-xs text-red-500">{getErrorMessage('studentName')}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Enter your full name | Ingrese su nombre completo</p>
+            )}
+          </div>
 
           {/* Email Address */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          <div className="space-y-2">
+            <Label className="font-semibold">
               Email Address | Correo Electrónico *
-            </Typography>
-            <TextField
-              fullWidth
-              type="email"
-              value={formData.email}
-              onChange={handleChange('email')}
-              placeholder="your.email@example.com"
-              error={!!errors.email}
-              helperText={
-                errors.email 
-                  ? getErrorMessage('email')
-                  : 'We will send confirmation to this email | Enviaremos confirmación a este correo'
-              }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, email: e.target.value }));
+                  if (errors.email) setErrors(prev => ({ ...prev, email: undefined }));
+                }}
+                placeholder="your.email@example.com"
+                className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+              />
+            </div>
+            {errors.email ? (
+              <p className="text-xs text-red-500">{getErrorMessage('email')}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">We will send confirmation to this email | Enviaremos confirmación a este correo</p>
+            )}
+          </div>
 
           {/* Phone Number */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          <div className="space-y-2">
+            <Label className="font-semibold">
               Phone Number | Número de Teléfono *
-            </Typography>
-            <TextField
-              fullWidth
-              value={formData.phone}
-              onChange={handleChange('phone')}
-              placeholder="XXX-XXX-XXXX"
-              error={!!errors.phone}
-              helperText={
-                errors.phone 
-                  ? getErrorMessage('phone')
-                  : 'Include area code | Incluya código de área'
-              }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PhoneIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
+            </Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={formData.phone}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, phone: e.target.value }));
+                  if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
+                }}
+                placeholder="XXX-XXX-XXXX"
+                className={`pl-10 ${errors.phone ? 'border-red-500' : ''}`}
+              />
+            </div>
+            {errors.phone ? (
+              <p className="text-xs text-red-500">{getErrorMessage('phone')}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Include area code | Incluya código de área</p>
+            )}
+          </div>
 
           {/* County */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          <div className="space-y-2">
+            <Label className="font-semibold">
               County of Residence | Condado de Residencia *
-            </Typography>
-            <TextField
-              fullWidth
-              select
-              value={formData.county}
-              onChange={handleChange('county')}
-              error={!!errors.county}
-              helperText={errors.county ? getErrorMessage('county') : ''}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LocationIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            >
-              <MenuItem value="" disabled>
-                -- Select Your County | Seleccione su Condado --
-              </MenuItem>
-              {COUNTIES.map((county) => (
-                <MenuItem key={county.id} value={county.id}>
-                  {county.en} | {county.es}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
+            </Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+              <Select value={formData.county} onValueChange={(value) => {
+                setFormData(prev => ({ ...prev, county: value }));
+                if (errors.county) setErrors(prev => ({ ...prev, county: undefined }));
+              }}>
+                <SelectTrigger className={`pl-10 ${errors.county ? 'border-red-500' : ''}`}>
+                  <SelectValue placeholder="-- Select Your County | Seleccione su Condado --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTIES.map((county) => (
+                    <SelectItem key={county.id} value={county.id}>
+                      {county.en} | {county.es}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {errors.county && (
+              <p className="text-xs text-red-500">{getErrorMessage('county')}</p>
+            )}
+          </div>
 
           {/* Submit Button */}
           <Button
             type="submit"
-            fullWidth
-            variant="contained"
-            size="large"
+            className="w-full py-6 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
             disabled={submitting}
-            sx={{ 
-              py: 1.5,
-              fontSize: '1.1rem',
-              background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
-              }
-            }}
           >
             {submitting ? (
               <>
-                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Registering... | Registrando...
               </>
             ) : (

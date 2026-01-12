@@ -1,24 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  Button,
-  Divider,
-  Grid,
-} from '@mui/material';
-import {
-  PersonAdd as RegisterIcon,
-  Dashboard as DashboardIcon,
-  QrCode as QrCodeIcon,
-  School as InstructorIcon,
-  Assessment as ReportsIcon,
-} from '@mui/icons-material';
 import { AuthProvider } from '@/contexts/AuthContext';
 import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import { 
@@ -31,6 +13,11 @@ import {
   CompletionData,
 } from '@/components/DigitalLiteracy';
 import { Language, CLASS_SCHEDULES } from '@/lib/translations/digitalLiteracy';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UserPlus, LayoutDashboard, QrCode, GraduationCap, FileBarChart, Printer } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Mock students data for demonstration
 const generateMockStudents = (): Student[] => {
@@ -95,7 +82,7 @@ const generateRandomAssessments = () => {
 };
 
 function DigitalLiteracyContent() {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('registration');
   const [students, setStudents] = useState<Student[]>([]);
   const [classEnrollments, setClassEnrollments] = useState<{ [classId: string]: number }>({});
 
@@ -207,82 +194,73 @@ function DigitalLiteracyContent() {
 
   return (
     <UnifiedLayout>
-      <Container maxWidth="xl" sx={{ py: 3 }}>
+      <div className="max-w-7xl mx-auto py-6 px-4">
         {/* Header */}
-        <Paper sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)', color: 'white' }}>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            🌐 Digital Literacy Program
-          </Typography>
-          <Typography variant="h5">
-            Programa de Alfabetización Digital
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 1, opacity: 0.9 }}>
-            Bilingual Student Tracking System | Sistema Bilingüe de Seguimiento de Estudiantes
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-            108 students across 6 classes (18 students per class) | 108 estudiantes en 6 clases (18 estudiantes por clase)
-          </Typography>
-        </Paper>
+        <Card className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
+          <CardContent className="p-6">
+            <h1 className="text-3xl font-bold mb-1">
+              🌐 Digital Literacy Program
+            </h1>
+            <h2 className="text-xl font-semibold opacity-90">
+              Programa de Alfabetización Digital
+            </h2>
+            <p className="mt-2 opacity-80">
+              Bilingual Student Tracking System | Sistema Bilingüe de Seguimiento de Estudiantes
+            </p>
+            <p className="mt-1 text-sm opacity-70">
+              108 students across 6 classes (18 students per class) | 108 estudiantes en 6 clases (18 estudiantes por clase)
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Navigation Tabs */}
-        <Paper sx={{ mb: 3 }}>
-          <Tabs 
-            value={activeTab} 
-            onChange={(e, v) => setActiveTab(v)}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            <Tab 
-              icon={<RegisterIcon />} 
-              label="Student Registration | Registro de Estudiantes" 
-              iconPosition="start"
-            />
-            <Tab 
-              icon={<InstructorIcon />} 
-              label="Instructor Registration | Registro de Instructor" 
-              iconPosition="start"
-            />
-            <Tab 
-              icon={<DashboardIcon />} 
-              label="Instructor Dashboard | Panel del Instructor" 
-              iconPosition="start"
-            />
-            <Tab 
-              icon={<QrCodeIcon />} 
-              label="QR Codes | Códigos QR" 
-              iconPosition="start"
-            />
-            <Tab 
-              icon={<ReportsIcon />} 
-              label="AI Reports | Informes IA" 
-              iconPosition="start"
-            />
-          </Tabs>
-        </Paper>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
+            <TabsTrigger value="registration" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+              <UserPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">Student Registration</span>
+              <span className="sm:hidden">Register</span>
+            </TabsTrigger>
+            <TabsTrigger value="instructor" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+              <GraduationCap className="h-4 w-4" />
+              <span className="hidden sm:inline">Instructor Registration</span>
+              <span className="sm:hidden">Instructor</span>
+            </TabsTrigger>
+            <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Instructor Dashboard</span>
+              <span className="sm:hidden">Dashboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="qrcodes" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+              <QrCode className="h-4 w-4" />
+              <span className="hidden sm:inline">QR Codes</span>
+              <span className="sm:hidden">QR</span>
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
+              <FileBarChart className="h-4 w-4" />
+              <span className="hidden sm:inline">AI Reports</span>
+              <span className="sm:hidden">Reports</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Tab Content */}
-        {activeTab === 0 && (
-          <Box>
+          {/* Tab Content */}
+          <TabsContent value="registration" className="mt-6">
             <BilingualRegistrationForm 
               onSubmit={handleRegistration}
               classEnrollments={classEnrollments}
             />
-          </Box>
-        )}
+          </TabsContent>
 
-        {activeTab === 1 && (
-          <Box>
+          <TabsContent value="instructor" className="mt-6">
             <InstructorRegistrationWizard 
               onComplete={(data) => {
                 console.log('Instructor registered:', data);
-                setActiveTab(2); // Go to dashboard after registration
+                setActiveTab('dashboard');
               }}
             />
-          </Box>
-        )}
+          </TabsContent>
 
-        {activeTab === 2 && (
-          <Box>
+          <TabsContent value="dashboard" className="mt-6">
             <InstructorDashboard
               students={students}
               onUpdateStudent={handleUpdateStudent}
@@ -292,257 +270,208 @@ function DigitalLiteracyContent() {
               instructorName="María García"
               programDirector="Dr. James Wilson"
             />
-          </Box>
-        )}
+          </TabsContent>
 
-        {activeTab === 3 && (
-          <Box sx={{ py: 2 }}>
-            <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
-              QR Code Management | Gestión de Códigos QR
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mb: 4 }}>
-              Generate and print QR codes for easy access to forms | Genere e imprima códigos QR para acceso fácil a formularios
-            </Typography>
-            
-            <Grid container spacing={3}>
-              {/* Student Registration QR */}
-              <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #1976d2' }}>
-                  <Box sx={{ 
-                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#e3f2fd',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 2, border: '2px dashed #1976d2'
-                  }}>
-                    <QrCodeIcon sx={{ fontSize: 80, color: '#1976d2' }} />
-                  </Box>
-                  <Typography variant="h6" fontWeight="bold" color="primary">
-                    Student Registration
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" color="primary.dark">
-                    Registro de Estudiantes
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
-                    New students scan to register for classes | Nuevos estudiantes escanean para registrarse
-                  </Typography>
-                  <Button variant="contained" size="small" onClick={() => setActiveTab(0)} sx={{ mr: 1 }}>
-                    View Form | Ver
-                  </Button>
-                  <Button variant="outlined" size="small">
-                    Print | Imprimir
-                  </Button>
-                </Paper>
-              </Grid>
+          <TabsContent value="qrcodes" className="mt-6">
+            <div className="py-4">
+              <h3 className="text-2xl font-bold text-center mb-2">
+                QR Code Management | Gestión de Códigos QR
+              </h3>
+              <p className="text-center text-muted-foreground mb-8">
+                Generate and print QR codes for easy access to forms | Genere e imprima códigos QR para acceso fácil a formularios
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Student Registration QR */}
+                <Card className="border-2 border-blue-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-36 h-36 mx-auto mb-4 bg-blue-50 flex items-center justify-center rounded-lg border-2 border-dashed border-blue-500">
+                      <QrCode className="h-20 w-20 text-blue-600" />
+                    </div>
+                    <h4 className="text-lg font-bold text-blue-600">Student Registration</h4>
+                    <p className="font-semibold text-blue-700">Registro de Estudiantes</p>
+                    <p className="text-sm text-muted-foreground mt-2 mb-4">
+                      New students scan to register for classes | Nuevos estudiantes escanean para registrarse
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button size="sm" onClick={() => setActiveTab('registration')}>
+                        View Form | Ver
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Printer className="h-4 w-4 mr-1" /> Print
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Daily Check-in QR */}
-              <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #4caf50' }}>
-                  <Box sx={{ 
-                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#e8f5e9',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 2, border: '2px dashed #4caf50'
-                  }}>
-                    <QrCodeIcon sx={{ fontSize: 80, color: '#4caf50' }} />
-                  </Box>
-                  <Typography variant="h6" fontWeight="bold" color="success.main">
-                    Daily Check-in
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" color="success.dark">
-                    Registro Diario
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
-                    Students scan daily for attendance | Estudiantes escanean diariamente para asistencia
-                  </Typography>
-                  <Button variant="contained" color="success" size="small" sx={{ mr: 1 }}>
-                    View Form | Ver
-                  </Button>
-                  <Button variant="outlined" color="success" size="small">
-                    Print | Imprimir
-                  </Button>
-                </Paper>
-              </Grid>
+                {/* Daily Check-in QR */}
+                <Card className="border-2 border-green-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-36 h-36 mx-auto mb-4 bg-green-50 flex items-center justify-center rounded-lg border-2 border-dashed border-green-500">
+                      <QrCode className="h-20 w-20 text-green-600" />
+                    </div>
+                    <h4 className="text-lg font-bold text-green-600">Daily Check-in</h4>
+                    <p className="font-semibold text-green-700">Registro Diario</p>
+                    <p className="text-sm text-muted-foreground mt-2 mb-4">
+                      Students scan daily for attendance | Estudiantes escanean diariamente para asistencia
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                        View Form | Ver
+                      </Button>
+                      <Button variant="outline" size="sm" className="border-green-500 text-green-600 hover:bg-green-50">
+                        <Printer className="h-4 w-4 mr-1" /> Print
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Feedback Form QR */}
-              <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #ff9800' }}>
-                  <Box sx={{ 
-                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#fff3e0',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 2, border: '2px dashed #ff9800'
-                  }}>
-                    <QrCodeIcon sx={{ fontSize: 80, color: '#ff9800' }} />
-                  </Box>
-                  <Typography variant="h6" fontWeight="bold" color="warning.main">
-                    Feedback Form
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" color="warning.dark">
-                    Formulario de Retroalimentación
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
-                    Students provide course feedback | Estudiantes dan retroalimentación del curso
-                  </Typography>
-                  <Button variant="contained" color="warning" size="small" sx={{ mr: 1 }}>
-                    View Form | Ver
-                  </Button>
-                  <Button variant="outlined" color="warning" size="small">
-                    Print | Imprimir
-                  </Button>
-                </Paper>
-              </Grid>
+                {/* Feedback Form QR */}
+                <Card className="border-2 border-orange-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-36 h-36 mx-auto mb-4 bg-orange-50 flex items-center justify-center rounded-lg border-2 border-dashed border-orange-500">
+                      <QrCode className="h-20 w-20 text-orange-600" />
+                    </div>
+                    <h4 className="text-lg font-bold text-orange-600">Feedback Form</h4>
+                    <p className="font-semibold text-orange-700">Formulario de Retroalimentación</p>
+                    <p className="text-sm text-muted-foreground mt-2 mb-4">
+                      Students provide course feedback | Estudiantes dan retroalimentación del curso
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                        View Form | Ver
+                      </Button>
+                      <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                        <Printer className="h-4 w-4 mr-1" /> Print
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Progress Assessment QR */}
-              <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #9c27b0' }}>
-                  <Box sx={{ 
-                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#f3e5f5',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 2, border: '2px dashed #9c27b0'
-                  }}>
-                    <QrCodeIcon sx={{ fontSize: 80, color: '#9c27b0' }} />
-                  </Box>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#9c27b0' }}>
-                    Progress Assessment
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#7b1fa2' }}>
-                    Evaluación de Progreso
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
-                    Weekly skill assessments | Evaluaciones semanales de habilidades
-                  </Typography>
-                  <Button variant="contained" size="small" sx={{ mr: 1, bgcolor: '#9c27b0', '&:hover': { bgcolor: '#7b1fa2' } }}>
-                    View Form | Ver
-                  </Button>
-                  <Button variant="outlined" size="small" sx={{ color: '#9c27b0', borderColor: '#9c27b0' }}>
-                    Print | Imprimir
-                  </Button>
-                </Paper>
-              </Grid>
+                {/* Progress Assessment QR */}
+                <Card className="border-2 border-purple-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-36 h-36 mx-auto mb-4 bg-purple-50 flex items-center justify-center rounded-lg border-2 border-dashed border-purple-500">
+                      <QrCode className="h-20 w-20 text-purple-600" />
+                    </div>
+                    <h4 className="text-lg font-bold text-purple-600">Progress Assessment</h4>
+                    <p className="font-semibold text-purple-700">Evaluación de Progreso</p>
+                    <p className="text-sm text-muted-foreground mt-2 mb-4">
+                      Weekly skill assessments | Evaluaciones semanales de habilidades
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                        View Form | Ver
+                      </Button>
+                      <Button variant="outline" size="sm" className="border-purple-500 text-purple-600 hover:bg-purple-50">
+                        <Printer className="h-4 w-4 mr-1" /> Print
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Instructor Check-in QR */}
-              <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #00bcd4' }}>
-                  <Box sx={{ 
-                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#e0f7fa',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 2, border: '2px dashed #00bcd4'
-                  }}>
-                    <QrCodeIcon sx={{ fontSize: 80, color: '#00bcd4' }} />
-                  </Box>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#00bcd4' }}>
-                    Instructor Check-in
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#0097a7' }}>
-                    Registro de Instructor
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
-                    Instructors log class sessions | Instructores registran sesiones de clase
-                  </Typography>
-                  <Button variant="contained" size="small" sx={{ mr: 1, bgcolor: '#00bcd4', '&:hover': { bgcolor: '#0097a7' } }}>
-                    View Form | Ver
-                  </Button>
-                  <Button variant="outlined" size="small" sx={{ color: '#00bcd4', borderColor: '#00bcd4' }}>
-                    Print | Imprimir
-                  </Button>
-                </Paper>
-              </Grid>
+                {/* Instructor Check-in QR */}
+                <Card className="border-2 border-cyan-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-36 h-36 mx-auto mb-4 bg-cyan-50 flex items-center justify-center rounded-lg border-2 border-dashed border-cyan-500">
+                      <QrCode className="h-20 w-20 text-cyan-600" />
+                    </div>
+                    <h4 className="text-lg font-bold text-cyan-600">Instructor Check-in</h4>
+                    <p className="font-semibold text-cyan-700">Registro de Instructor</p>
+                    <p className="text-sm text-muted-foreground mt-2 mb-4">
+                      Instructors log class sessions | Instructores registran sesiones de clase
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700">
+                        View Form | Ver
+                      </Button>
+                      <Button variant="outline" size="sm" className="border-cyan-500 text-cyan-600 hover:bg-cyan-50">
+                        <Printer className="h-4 w-4 mr-1" /> Print
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Completion Certificate QR */}
-              <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 3, textAlign: 'center', height: '100%', border: '2px solid #f44336' }}>
-                  <Box sx={{ 
-                    width: 150, height: 150, mx: 'auto', mb: 2, bgcolor: '#ffebee',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 2, border: '2px dashed #f44336'
-                  }}>
-                    <QrCodeIcon sx={{ fontSize: 80, color: '#f44336' }} />
-                  </Box>
-                  <Typography variant="h6" fontWeight="bold" color="error">
-                    Completion Form
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" color="error.dark">
-                    Formulario de Finalización
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
-                    Final completion and tablet assignment | Finalización y asignación de tableta
-                  </Typography>
-                  <Button variant="contained" color="error" size="small" sx={{ mr: 1 }}>
-                    View Form | Ver
-                  </Button>
-                  <Button variant="outlined" color="error" size="small">
-                    Print | Imprimir
-                  </Button>
-                </Paper>
-              </Grid>
-            </Grid>
+                {/* Completion Certificate QR */}
+                <Card className="border-2 border-red-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-36 h-36 mx-auto mb-4 bg-red-50 flex items-center justify-center rounded-lg border-2 border-dashed border-red-500">
+                      <QrCode className="h-20 w-20 text-red-600" />
+                    </div>
+                    <h4 className="text-lg font-bold text-red-600">Completion Form</h4>
+                    <p className="font-semibold text-red-700">Formulario de Finalización</p>
+                    <p className="text-sm text-muted-foreground mt-2 mb-4">
+                      Final completion and tablet assignment | Finalización y asignación de tableta
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button size="sm" variant="destructive">
+                        View Form | Ver
+                      </Button>
+                      <Button variant="outline" size="sm" className="border-red-500 text-red-600 hover:bg-red-50">
+                        <Printer className="h-4 w-4 mr-1" /> Print
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Print All Section */}
-            <Paper sx={{ p: 3, mt: 4, textAlign: 'center', bgcolor: '#f5f5f5' }}>
-              <Typography variant="h6" gutterBottom>
-                Bulk Print Options | Opciones de Impresión Masiva
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
-                <Button variant="contained" startIcon={<QrCodeIcon />}>
-                  Print All QR Codes | Imprimir Todos
-                </Button>
-                <Button variant="outlined">
-                  Print Student Forms Only | Solo Formularios de Estudiantes
-                </Button>
-                <Button variant="outlined">
-                  Print Instructor Forms Only | Solo Formularios de Instructor
-                </Button>
-              </Box>
-            </Paper>
-          </Box>
-        )}
+              {/* Print All Section */}
+              <Card className="mt-8 bg-slate-50">
+                <CardContent className="p-6 text-center">
+                  <h4 className="text-lg font-semibold mb-4">
+                    Bulk Print Options | Opciones de Impresión Masiva
+                  </h4>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Button>
+                      <QrCode className="h-4 w-4 mr-2" />
+                      Print All QR Codes | Imprimir Todos
+                    </Button>
+                    <Button variant="outline">
+                      Print Student Forms Only | Solo Formularios de Estudiantes
+                    </Button>
+                    <Button variant="outline">
+                      Print Instructor Forms Only | Solo Formularios de Instructor
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-        {activeTab === 4 && (
-          <Box>
+          <TabsContent value="reports" className="mt-6">
             <AIReportWizard 
               onComplete={(config) => {
                 console.log('Report generated:', config);
               }}
-              onClose={() => setActiveTab(2)}
+              onClose={() => setActiveTab('dashboard')}
             />
-          </Box>
-        )}
+          </TabsContent>
+        </Tabs>
 
         {/* Footer Stats */}
-        <Paper sx={{ p: 2, mt: 3, bgcolor: '#f8fafc' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" fontWeight="bold" color="primary">
-                {students.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Students | Total Estudiantes
-              </Typography>
-            </Box>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" fontWeight="bold" color="success.main">
-                {students.filter(s => s.completed).length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Completed | Completados
-              </Typography>
-            </Box>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" fontWeight="bold" color="info.main">
-                6
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Classes | Clases
-              </Typography>
-            </Box>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" fontWeight="bold" color="warning.main">
-                {Object.values(classEnrollments).filter(c => c >= 18).length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Full Classes | Clases Completas
-              </Typography>
-            </Box>
-          </Box>
-        </Paper>
-      </Container>
+        <Card className="mt-6 bg-slate-50">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap justify-around gap-4">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-blue-600">{students.length}</p>
+                <p className="text-sm text-muted-foreground">Total Students | Total Estudiantes</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-green-600">{students.filter(s => s.completed).length}</p>
+                <p className="text-sm text-muted-foreground">Completed | Completados</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-sky-600">6</p>
+                <p className="text-sm text-muted-foreground">Classes | Clases</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-amber-600">{Object.values(classEnrollments).filter(c => c >= 18).length}</p>
+                <p className="text-sm text-muted-foreground">Full Classes | Clases Completas</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </UnifiedLayout>
   );
 }
