@@ -63,6 +63,12 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
   };
 
   const userRole = userProfile?.role;
+  
+  // Debug: Log user role info
+  console.log('[UnifiedLayout] userProfile:', userProfile);
+  console.log('[UnifiedLayout] userRole:', userRole);
+  console.log('[UnifiedLayout] UserRole.ADMIN:', UserRole.ADMIN);
+  console.log('[UnifiedLayout] Is Admin?:', userRole === UserRole.ADMIN);
 
   // Define navigation sections
   const navSections: NavSection[] = [
@@ -121,19 +127,22 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
   ];
 
   // Filter sections and items based on user role
+  // Use string comparison to handle potential enum/string mismatches
   const filteredSections = navSections
     .filter(section => {
       if (!section.roles || section.roles.length === 0) return true;
-      return userRole && section.roles.includes(userRole);
+      return userRole && section.roles.some(r => r === userRole || r === String(userRole));
     })
     .map(section => ({
       ...section,
       items: section.items.filter(item => {
         if (!item.roles || item.roles.length === 0) return true;
-        return userRole && item.roles.includes(userRole);
+        return userRole && item.roles.some(r => r === userRole || r === String(userRole));
       })
     }))
     .filter(section => section.items.length > 0);
+  
+  console.log('[UnifiedLayout] filteredSections:', filteredSections.map(s => s.title));
 
   // For homepage or non-logged in users, show simple layout
   if (isHomePage || !currentUser) {
