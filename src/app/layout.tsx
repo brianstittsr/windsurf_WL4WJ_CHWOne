@@ -17,16 +17,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Add script to clear auto-login settings
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem('BYPASS_AUTH');
-      console.log('Auto-login settings cleared');
-    } catch (e) {
-      console.error('Error clearing auto-login settings:', e);
-    }
-  }
-  
   return (
     <html>
       <head>

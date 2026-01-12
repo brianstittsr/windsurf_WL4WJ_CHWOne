@@ -111,7 +111,7 @@ function HomeContentInner() {
 
       {/* Footer */}
       <footer className="bg-black/30 backdrop-blur-sm py-2 text-center text-white/70 text-xs flex-shrink-0">
-        © {new Date().getFullYear()} CHWOne Platform. All rights reserved.
+        © 2025 CHWOne Platform. All rights reserved.
       </footer>
 
       {/* CHW Registration Dialog */}
