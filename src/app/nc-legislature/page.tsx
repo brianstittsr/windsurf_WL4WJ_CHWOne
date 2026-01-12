@@ -6,26 +6,18 @@ import { db } from '@/lib/firebase';
 import { NCRepresentative } from '@/types/ncleg/representative';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Search, 
   Users, 
   Building2, 
   MapPin, 
-  Phone, 
-  Mail, 
-  FileText, 
-  Vote, 
-  Users2,
-  ExternalLink,
-  Filter,
-  X
+  X,
+  ChevronRight
 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function NCLegislaturePage() {
   const [representatives, setRepresentatives] = useState<NCRepresentative[]>([]);
@@ -33,8 +25,6 @@ export default function NCLegislaturePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [partyFilter, setPartyFilter] = useState<string>('all');
   const [countyFilter, setCountyFilter] = useState<string>('all');
-  const [selectedRep, setSelectedRep] = useState<NCRepresentative | null>(null);
-  const [detailTab, setDetailTab] = useState('bio');
 
   useEffect(() => {
     async function fetchRepresentatives() {
@@ -195,55 +185,60 @@ export default function NCLegislaturePage() {
         {/* Representatives Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReps.map((rep) => (
-            <Card 
+            <Link 
               key={`${rep.chamber}-${rep.id}`} 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setSelectedRep(rep)}
+              href={`/nc-legislature/${rep.id}`}
             >
-              <CardContent className="p-6">
-                <div className="flex gap-5">
-                  {/* Photo */}
-                  <div className="flex-shrink-0">
-                    {rep.photoBase64 ? (
-                      <img
-                        src={`data:${rep.photoMimeType || 'image/jpeg'};base64,${rep.photoBase64}`}
-                        alt={rep.name}
-                        className="w-56 h-72 object-cover rounded-lg shadow-md"
-                      />
-                    ) : (
-                      <div className="w-56 h-72 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <Users className="h-16 w-16 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-gray-900">{rep.name}</h3>
-                    <Badge 
-                      variant={rep.party === 'R' ? 'destructive' : 'default'}
-                      className={`mt-2 ${rep.party === 'R' ? 'bg-red-600' : 'bg-blue-600'}`}
-                    >
-                      {rep.party === 'R' ? 'Republican' : 'Democrat'}
-                    </Badge>
-                    <div className="mt-3 space-y-1">
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">District {rep.district}</span>
-                      </div>
-                      <div className="text-gray-600">
-                        {rep.counties?.join(', ')}
-                      </div>
-                      {rep.biography?.occupation && (
-                        <div className="text-sm text-gray-500 mt-2 pt-2 border-t">
-                          {rep.biography.occupation}
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full">
+                <CardContent className="p-6">
+                  <div className="flex gap-5">
+                    {/* Photo */}
+                    <div className="flex-shrink-0">
+                      {rep.photoBase64 ? (
+                        <img
+                          src={`data:${rep.photoMimeType || 'image/jpeg'};base64,${rep.photoBase64}`}
+                          alt={rep.name}
+                          className="w-56 h-72 object-cover rounded-lg shadow-md"
+                        />
+                      ) : (
+                        <div className="w-56 h-72 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <Users className="h-16 w-16 text-gray-400" />
                         </div>
                       )}
                     </div>
+                    
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg text-gray-900">{rep.name}</h3>
+                      <Badge 
+                        variant={rep.party === 'R' ? 'destructive' : 'default'}
+                        className={`mt-2 ${rep.party === 'R' ? 'bg-red-600' : 'bg-blue-600'}`}
+                      >
+                        {rep.party === 'R' ? 'Republican' : 'Democrat'}
+                      </Badge>
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">District {rep.district}</span>
+                        </div>
+                        <div className="text-gray-600">
+                          {rep.counties?.join(', ')}
+                        </div>
+                        {rep.biography?.occupation && (
+                          <div className="text-sm text-gray-500 mt-2 pt-2 border-t">
+                            {rep.biography.occupation}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                        View Details
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
 
@@ -255,206 +250,6 @@ export default function NCLegislaturePage() {
           </div>
         )}
       </div>
-
-      {/* Detail Dialog */}
-      <Dialog open={!!selectedRep} onOpenChange={() => setSelectedRep(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border shadow-2xl">
-          {selectedRep && (
-            <>
-              <DialogHeader>
-                <div className="flex gap-6">
-                  {selectedRep.photoBase64 ? (
-                    <img
-                      src={`data:${selectedRep.photoMimeType || 'image/jpeg'};base64,${selectedRep.photoBase64}`}
-                      alt={selectedRep.name}
-                      className="w-32 h-44 object-cover rounded-lg shadow-md"
-                    />
-                  ) : (
-                    <div className="w-32 h-44 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <Users className="h-12 w-12 text-gray-400" />
-                    </div>
-                  )}
-                  <div>
-                    <DialogTitle className="text-2xl">{selectedRep.name}</DialogTitle>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge 
-                        variant={selectedRep.party === 'R' ? 'destructive' : 'default'}
-                        className={selectedRep.party === 'R' ? 'bg-red-600' : 'bg-blue-600'}
-                      >
-                        {selectedRep.party === 'R' ? 'Republican' : 'Democrat'}
-                      </Badge>
-                      <span className="text-gray-600">District {selectedRep.district}</span>
-                    </div>
-                    <p className="text-gray-500 mt-1">{selectedRep.counties?.join(', ')}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {selectedRep.termsInHouse} terms in House
-                      {selectedRep.termsInSenate > 0 && `, ${selectedRep.termsInSenate} in Senate`}
-                    </p>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="bio" className="gap-1">
-                    <Users className="h-4 w-4" />
-                    Bio
-                  </TabsTrigger>
-                  <TabsTrigger value="bills" className="gap-1">
-                    <FileText className="h-4 w-4" />
-                    Bills ({selectedRep.introducedBills?.length || 0})
-                  </TabsTrigger>
-                  <TabsTrigger value="committees" className="gap-1">
-                    <Users2 className="h-4 w-4" />
-                    Committees
-                  </TabsTrigger>
-                  <TabsTrigger value="contact" className="gap-1">
-                    <Phone className="h-4 w-4" />
-                    Contact
-                  </TabsTrigger>
-                </TabsList>
-
-                <ScrollArea className="h-[400px] mt-4">
-                  <TabsContent value="bio" className="mt-0">
-                    <div className="space-y-4">
-                      {selectedRep.biography?.occupation && (
-                        <div>
-                          <h4 className="font-semibold text-gray-700">Occupation</h4>
-                          <p className="text-gray-600">{selectedRep.biography.occupation}</p>
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="font-semibold text-gray-700">Status</h4>
-                        <p className="text-gray-600 capitalize">
-                          {selectedRep.status}
-                          {selectedRep.statusDate && ` (${selectedRep.statusDate})`}
-                        </p>
-                      </div>
-                      <div>
-                        <a 
-                          href={`https://www.ncleg.gov/Members/Biography/H/${selectedRep.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline flex items-center gap-1"
-                        >
-                          View on NC Legislature Website
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="bills" className="mt-0">
-                    <div className="space-y-2">
-                      {selectedRep.introducedBills?.length > 0 ? (
-                        selectedRep.introducedBills.map((bill, idx) => (
-                          <a
-                            key={idx}
-                            href={bill.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <span className="font-semibold text-blue-600">{bill.billId}</span>
-                                <p className="text-sm text-gray-600 mt-1">{bill.introducedDate}</p>
-                              </div>
-                              <ExternalLink className="h-4 w-4 text-gray-400" />
-                            </div>
-                          </a>
-                        ))
-                      ) : (
-                        <p className="text-gray-500 text-center py-4">No bills found</p>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="committees" className="mt-0">
-                    <div className="space-y-2">
-                      {selectedRep.committees?.length > 0 ? (
-                        selectedRep.committees.map((committee, idx) => (
-                          <a
-                            key={idx}
-                            href={committee.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <span className="font-semibold text-gray-900">
-                                  {committee.committeeName.split('\n')[0]}
-                                </span>
-                                <p className="text-sm text-gray-500 mt-1">
-                                  {committee.role} • {committee.chamber === 'Joint' ? 'Joint' : 'House'}
-                                </p>
-                              </div>
-                              <ExternalLink className="h-4 w-4 text-gray-400" />
-                            </div>
-                          </a>
-                        ))
-                      ) : (
-                        <p className="text-gray-500 text-center py-4">No committees found</p>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="contact" className="mt-0">
-                    <div className="space-y-4">
-                      {selectedRep.contact?.legislativeOffice && (
-                        <div>
-                          <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
-                            Legislative Office
-                          </h4>
-                          <p className="text-gray-600 mt-1">
-                            {selectedRep.contact.legislativeOffice.address}
-                          </p>
-                          <p className="text-gray-600">
-                            {selectedRep.contact.legislativeOffice.city}, {selectedRep.contact.legislativeOffice.state}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {selectedRep.contact?.mainPhone && (
-                        <div>
-                          <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                            <Phone className="h-4 w-4" />
-                            Phone
-                          </h4>
-                          <a 
-                            href={`tel:${selectedRep.contact.mainPhone}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            {selectedRep.contact.mainPhone}
-                          </a>
-                        </div>
-                      )}
-                      
-                      <div>
-                        <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          Email
-                        </h4>
-                        <a 
-                          href={`https://www.ncleg.gov/Members/ContactMember/H/${selectedRep.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline flex items-center gap-1"
-                        >
-                          Contact via NC Legislature
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </ScrollArea>
-              </Tabs>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
