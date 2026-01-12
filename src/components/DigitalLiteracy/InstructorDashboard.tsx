@@ -1,34 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  MenuItem,
-  TextField,
-  Grid,
-  Chip,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Tabs,
-  Tab,
-  Paper,
-  Divider,
-} from '@mui/material';
-import {
-  Warning as WarningIcon,
-  People as PeopleIcon,
-  CheckCircle as CheckIcon,
-  Cancel as CancelIcon,
-  Refresh as RefreshIcon,
-  Assessment as ReportIcon,
-} from '@mui/icons-material';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { AlertTriangle, Users, CheckCircle, XCircle, ArrowLeft, X } from 'lucide-react';
 import LanguageToggle from './LanguageToggle';
 import StudentCard, { Student } from './StudentCard';
 import StudentDetailView from './StudentDetailView';
@@ -68,7 +48,7 @@ export default function InstructorDashboard({
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'detail' | 'completion' | 'certificate'>('list');
   const [showAlert, setShowAlert] = useState(true);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('attendance');
 
   // Load language preference from localStorage
   useEffect(() => {
@@ -144,14 +124,14 @@ export default function InstructorDashboard({
   // Render detail view
   if (viewMode === 'detail' && selectedStudent) {
     return (
-      <Box>
+      <div>
         {/* Header with language toggle */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" fontWeight="bold" color="primary">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-blue-600">
             🌐 {getText('programTitle.en')}
-          </Typography>
+          </h2>
           <LanguageToggle currentLanguage={language} onLanguageChange={handleLanguageChange} />
-        </Box>
+        </div>
         
         <StudentDetailView
           student={selectedStudent}
@@ -161,24 +141,25 @@ export default function InstructorDashboard({
           onUpdateProficiency={onUpdateProficiency}
           classSchedule={getClassSchedule(selectedStudent.classId, language)}
         />
-      </Box>
+      </div>
     );
   }
 
   // Render completion tracking
   if (viewMode === 'completion' && selectedStudent) {
     return (
-      <Box>
+      <div>
         {/* Header with language toggle */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" fontWeight="bold" color="primary">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-blue-600">
             🌐 {getText('programTitle.en')}
-          </Typography>
+          </h2>
           <LanguageToggle currentLanguage={language} onLanguageChange={handleLanguageChange} />
-        </Box>
+        </div>
         
-        <Button onClick={handleBackToList} sx={{ mb: 2 }}>
-          ← {getText('detail.backToClassView')}
+        <Button onClick={handleBackToList} variant="outline" className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {getText('detail.backToClassView')}
         </Button>
         
         <CompletionTracking
@@ -188,21 +169,21 @@ export default function InstructorDashboard({
           onSave={handleSaveCompletion}
           onCancel={handleBackToList}
         />
-      </Box>
+      </div>
     );
   }
 
   // Render certificate
   if (viewMode === 'certificate' && selectedStudent) {
     return (
-      <Box>
+      <div>
         {/* Header with language toggle */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" fontWeight="bold" color="primary">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-blue-600">
             🌐 {getText('programTitle.en')}
-          </Typography>
+          </h2>
           <LanguageToggle currentLanguage={language} onLanguageChange={handleLanguageChange} />
-        </Box>
+        </div>
         
         <Certificate
           student={selectedStudent}
@@ -212,197 +193,178 @@ export default function InstructorDashboard({
           endDate="February 14, 2025"
           onClose={handleBackToList}
         />
-      </Box>
+      </div>
     );
   }
 
   // Main dashboard view
   return (
-    <Box>
+    <div>
       {/* Header */}
-      <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)' }}>
-        <CardContent sx={{ color: 'white' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
-            <Box>
-              <Typography variant="h5" fontWeight="bold">
+      <Card className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-start flex-wrap gap-4">
+            <div>
+              <h2 className="text-xl font-bold">
                 🌐 DIGITAL LITERACY PROGRAM
-              </Typography>
-              <Typography variant="h6">
+              </h2>
+              <h3 className="text-lg">
                 PROGRAMA DE ALFABETIZACIÓN DIGITAL
-              </Typography>
-            </Box>
-            <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', p: 1, borderRadius: 1 }}>
+              </h3>
+            </div>
+            <div className="bg-white/10 p-2 rounded">
               <LanguageToggle 
                 currentLanguage={language} 
                 onLanguageChange={handleLanguageChange}
               />
-            </Box>
-          </Box>
+            </div>
+          </div>
           
-          <Box sx={{ mt: 2, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-            <Typography variant="body2">
+          <div className="mt-4 flex gap-6 flex-wrap text-sm">
+            <span>
               {getText('dashboard.today')}: {new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
               })}
-            </Typography>
-            <Typography variant="body2">
+            </span>
+            <span>
               {getText('dashboard.instructor')}: {instructorName}
-            </Typography>
-          </Box>
+            </span>
+          </div>
         </CardContent>
       </Card>
 
       {/* Class Selection */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-bold mb-4">
             {getText('dashboard.selectClass')}
-          </Typography>
+          </h3>
           
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-            <TextField
-              select
-              label={getText('dashboard.currentClass')}
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              sx={{ minWidth: 300 }}
-            >
-              {CLASS_SCHEDULES.map(schedule => (
-                <MenuItem key={schedule.id} value={schedule.id}>
-                  {schedule[language]}
-                </MenuItem>
-              ))}
-            </TextField>
+          <div className="flex gap-4 flex-wrap mb-6">
+            <div className="min-w-[300px]">
+              <Label className="mb-2 block">{getText('dashboard.currentClass')}</Label>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLASS_SCHEDULES.map(schedule => (
+                    <SelectItem key={schedule.id} value={schedule.id}>
+                      {schedule[language]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
-            <TextField
-              select
-              label={`${getText('dashboard.week')} (1-6)`}
-              value={currentWeek}
-              onChange={(e) => setCurrentWeek(Number(e.target.value))}
-              sx={{ minWidth: 150 }}
-            >
-              {[1, 2, 3, 4, 5, 6].map(week => (
-                <MenuItem key={week} value={week}>
-                  {getText('dashboard.week')} {week} {getText('dashboard.of')} 6
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
+            <div className="min-w-[150px]">
+              <Label className="mb-2 block">{getText('dashboard.week')} (1-6)</Label>
+              <Select value={String(currentWeek)} onValueChange={(v) => setCurrentWeek(Number(v))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6].map(week => (
+                    <SelectItem key={week} value={String(week)}>
+                      {getText('dashboard.week')} {week} {getText('dashboard.of')} 6
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           {/* Class Stats */}
-          <Grid container spacing={2}>
-            <Grid item xs={6} sm={3}>
-              <Paper sx={{ p: 2, textAlign: 'center', bgcolor: '#e3f2fd' }}>
-                <PeopleIcon color="primary" />
-                <Typography variant="h4" fontWeight="bold" color="primary">
-                  {enrolledCount}/18
-                </Typography>
-                <Typography variant="body2">
-                  {getText('dashboard.enrolled')} {enrolledCount >= 18 && `(${getText('dashboard.full')})`}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Paper sx={{ p: 2, textAlign: 'center', bgcolor: '#e8f5e9' }}>
-                <CheckIcon color="success" />
-                <Typography variant="h4" fontWeight="bold" color="success.main">
-                  {presentCount}
-                </Typography>
-                <Typography variant="body2">
-                  {getText('dashboard.presentToday')}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Paper sx={{ p: 2, textAlign: 'center', bgcolor: '#ffebee' }}>
-                <CancelIcon color="error" />
-                <Typography variant="h4" fontWeight="bold" color="error.main">
-                  {absentCount}
-                </Typography>
-                <Typography variant="body2">
-                  {getText('dashboard.absent')}
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Paper sx={{ p: 2, textAlign: 'center', bgcolor: unassessedStudents.length > 0 ? '#fff3e0' : '#e8f5e9' }}>
-                <WarningIcon color={unassessedStudents.length > 0 ? 'warning' : 'success'} />
-                <Typography variant="h4" fontWeight="bold" color={unassessedStudents.length > 0 ? 'warning.main' : 'success.main'}>
-                  {unassessedStudents.length}
-                </Typography>
-                <Typography variant="body2">
-                  ⚠️ {getText('dashboard.unassessed')}
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-4 text-center bg-blue-50 rounded-lg">
+              <Users className="h-6 w-6 mx-auto text-blue-600" />
+              <p className="text-2xl font-bold text-blue-600">{enrolledCount}</p>
+              <p className="text-sm text-muted-foreground">{getText('dashboard.enrolled')}</p>
+            </div>
+            <div className="p-4 text-center bg-green-50 rounded-lg">
+              <CheckCircle className="h-6 w-6 mx-auto text-green-600" />
+              <p className="text-2xl font-bold text-green-600">{presentCount}</p>
+              <p className="text-sm text-muted-foreground">{getText('dashboard.present')}</p>
+            </div>
+            <div className="p-4 text-center bg-red-50 rounded-lg">
+              <XCircle className="h-6 w-6 mx-auto text-red-600" />
+              <p className="text-2xl font-bold text-red-600">{absentCount}</p>
+              <p className="text-sm text-muted-foreground">{getText('dashboard.absent')}</p>
+            </div>
+            <div className={`p-4 text-center rounded-lg ${unassessedStudents.length > 0 ? 'bg-orange-50' : 'bg-green-50'}`}>
+              <AlertTriangle className={`h-6 w-6 mx-auto ${unassessedStudents.length > 0 ? 'text-orange-600' : 'text-green-600'}`} />
+              <p className={`text-2xl font-bold ${unassessedStudents.length > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                {unassessedStudents.length}
+              </p>
+              <p className="text-sm text-muted-foreground">⚠️ {getText('dashboard.unassessed')}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Proficiency Alert */}
       {showAlert && unassessedStudents.length > 0 && (
-        <Alert 
-          severity="warning" 
-          sx={{ mb: 3 }}
-          onClose={() => setShowAlert(false)}
-          action={
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button size="small" color="inherit" onClick={() => setShowAlert(false)}>
-                {getText('alerts.dismissAlerts')}
-              </Button>
-            </Box>
-          }
-        >
-          <Typography variant="subtitle1" fontWeight="bold">
+        <Alert className="mb-6 border-orange-500 bg-orange-50">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          <AlertTitle className="text-orange-800 font-bold">
             ⚠️ {getText('alerts.proficiencyAlert')}
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            {getText('alerts.studentsNeedAssessment')}
-          </Typography>
-          <Box sx={{ mt: 1 }}>
-            {unassessedStudents.slice(0, 5).map(student => {
-              const unassessedCount = currentWeekTopics.length - getAssessedCountThisWeek(student);
-              return (
-                <Box key={student.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0.5 }}>
-                  <Typography variant="body2">
-                    • {student.name} - {unassessedCount} {getText('alerts.topicsUnassessed')}
-                  </Typography>
-                  <Button 
-                    size="small" 
-                    variant="outlined"
-                    onClick={() => handleViewDetails(student.id)}
-                  >
-                    {getText('alerts.assessNow')}
-                  </Button>
-                </Box>
-              );
-            })}
-            {unassessedStudents.length > 5 && (
-              <Typography variant="body2" color="text.secondary">
-                ...and {unassessedStudents.length - 5} more
-              </Typography>
-            )}
-          </Box>
+          </AlertTitle>
+          <AlertDescription className="text-orange-700">
+            <p className="mt-2">{getText('alerts.studentsNeedAssessment')}</p>
+            <div className="mt-2 space-y-1">
+              {unassessedStudents.slice(0, 5).map(student => {
+                const unassessedCount = currentWeekTopics.length - getAssessedCountThisWeek(student);
+                return (
+                  <div key={student.id} className="flex items-center gap-2">
+                    <span className="text-sm">• {student.name} - {unassessedCount} {getText('alerts.topicsUnassessed')}</span>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleViewDetails(student.id)}
+                    >
+                      {getText('alerts.assessNow')}
+                    </Button>
+                  </div>
+                );
+              })}
+              {unassessedStudents.length > 5 && (
+                <p className="text-sm text-muted-foreground">
+                  ...and {unassessedStudents.length - 5} more
+                </p>
+              )}
+            </div>
+          </AlertDescription>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="absolute top-2 right-2"
+            onClick={() => setShowAlert(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </Alert>
       )}
 
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
-          <Tab label={language === 'en' ? 'Attendance' : 'Asistencia'} />
-          <Tab label={language === 'en' ? 'Completion' : 'Finalización'} />
-        </Tabs>
-      </Box>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="attendance">
+            {language === 'en' ? 'Attendance' : 'Asistencia'}
+          </TabsTrigger>
+          <TabsTrigger value="completion">
+            {language === 'en' ? 'Completion' : 'Finalización'}
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Attendance Tab */}
-      {activeTab === 0 && (
-        <Grid container spacing={2}>
-          {classStudents.map(student => (
-            <Grid item xs={12} sm={6} md={4} key={student.id}>
+        {/* Attendance Tab */}
+        <TabsContent value="attendance">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classStudents.map(student => (
               <StudentCard
+                key={student.id}
                 student={student}
                 language={language}
                 currentWeek={currentWeek}
@@ -411,72 +373,63 @@ export default function InstructorDashboard({
                 totalTopicsThisWeek={currentWeekTopics.length}
                 assessedTopicsThisWeek={getAssessedCountThisWeek(student)}
               />
-            </Grid>
-          ))}
-          
-          {classStudents.length === 0 && (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography color="text.secondary">
-                  {language === 'en' 
-                    ? 'No students enrolled in this class yet.' 
-                    : 'Aún no hay estudiantes inscritos en esta clase.'}
-                </Typography>
-              </Paper>
-            </Grid>
-          )}
-        </Grid>
-      )}
+            ))}
+            
+            {classStudents.length === 0 && (
+              <div className="col-span-full">
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">
+                    {language === 'en' 
+                      ? 'No students enrolled in this class yet.' 
+                      : 'Aún no hay estudiantes inscritos en esta clase.'}
+                  </p>
+                </Card>
+              </div>
+            )}
+          </div>
+        </TabsContent>
 
-      {/* Completion Tab */}
-      {activeTab === 1 && (
-        <Grid container spacing={2}>
-          {classStudents.map(student => (
-            <Grid item xs={12} sm={6} md={4} key={student.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {student.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {student.email}
-                  </Typography>
+        {/* Completion Tab */}
+        <TabsContent value="completion">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classStudents.map(student => (
+              <Card key={student.id}>
+                <CardContent className="p-4">
+                  <h4 className="font-bold">{student.name}</h4>
+                  <p className="text-sm text-muted-foreground mb-4">{student.email}</p>
                   
-                  <Box sx={{ my: 2 }}>
-                    <Chip
-                      label={student.completed 
+                  <div className="mb-4">
+                    <Badge variant={student.completed ? 'default' : 'secondary'} className={student.completed ? 'bg-green-600' : ''}>
+                      {student.completed 
                         ? (language === 'en' ? 'Completed' : 'Completado')
                         : (language === 'en' ? 'In Progress' : 'En Progreso')
                       }
-                      color={student.completed ? 'success' : 'default'}
-                      size="small"
-                    />
-                  </Box>
+                    </Badge>
+                  </div>
                   
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <div className="flex gap-2">
                     <Button
-                      size="small"
-                      variant="outlined"
+                      size="sm"
+                      variant="outline"
                       onClick={() => handleViewCompletion(student)}
                     >
                       {language === 'en' ? 'Track Completion' : 'Seguimiento'}
                     </Button>
                     {student.completed && (
                       <Button
-                        size="small"
-                        variant="contained"
+                        size="sm"
                         onClick={() => handleViewCertificate(student)}
                       >
                         {language === 'en' ? 'Certificate' : 'Certificado'}
                       </Button>
                     )}
-                  </Box>
+                  </div>
                 </CardContent>
               </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
-    </Box>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

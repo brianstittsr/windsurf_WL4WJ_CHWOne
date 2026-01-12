@@ -1,20 +1,10 @@
 'use client';
 
 import React, { useRef } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Divider,
-} from '@mui/material';
-import {
-  Print as PrintIcon,
-  Download as DownloadIcon,
-} from '@mui/icons-material';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 import { Student } from './StudentCard';
-import { PROFICIENCY_LEVELS, COURSE_TOPICS } from '@/lib/translations/digitalLiteracy';
 
 interface CertificateProps {
   student: Student;
@@ -193,136 +183,105 @@ export default function Certificate({
   };
 
   return (
-    <Box>
+    <div>
       {/* Action Buttons */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3, justifyContent: 'flex-end' }}>
-        <Button variant="outlined" onClick={onClose}>
+      <div className="flex gap-2 mb-6 justify-end">
+        <Button variant="outline" onClick={onClose}>
           Close | Cerrar
         </Button>
-        <Button 
-          variant="contained" 
-          startIcon={<PrintIcon />}
-          onClick={handlePrint}
-        >
+        <Button onClick={handlePrint}>
+          <Printer className="h-4 w-4 mr-2" />
           Print | Imprimir
         </Button>
-      </Box>
+      </div>
 
       {/* Certificate Preview */}
       <Card 
         ref={certificateRef}
-        sx={{ 
-          border: '8px double #1976d2',
-          maxWidth: 800,
-          mx: 'auto',
-        }}
+        className="border-8 border-double border-blue-600 max-w-[800px] mx-auto"
       >
-        <CardContent sx={{ p: 5, textAlign: 'center' }}>
+        <CardContent className="p-10 text-center">
           {/* Title */}
-          <Typography 
-            variant="h4" 
-            fontWeight="bold" 
-            color="primary"
-            sx={{ fontFamily: 'Georgia, serif' }}
-          >
+          <h1 className="text-3xl font-bold text-blue-600" style={{ fontFamily: 'Georgia, serif' }}>
             CERTIFICATE OF COMPLETION
-          </Typography>
-          <Typography 
-            variant="h5" 
-            color="primary.dark"
-            sx={{ fontFamily: 'Georgia, serif', mb: 4 }}
-          >
+          </h1>
+          <h2 className="text-2xl text-blue-700 mb-8" style={{ fontFamily: 'Georgia, serif' }}>
             CERTIFICADO DE FINALIZACIÓN
-          </Typography>
+          </h2>
 
           {/* Certifies */}
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+          <p className="text-muted-foreground mb-2">
             This certifies that | Esto certifica que
-          </Typography>
+          </p>
 
           {/* Student Name */}
-          <Typography 
-            variant="h3" 
-            fontWeight="bold"
-            sx={{ 
-              my: 3, 
-              pb: 2, 
-              borderBottom: '2px solid #1976d2',
-              fontFamily: 'Georgia, serif',
-            }}
+          <h2 
+            className="text-4xl font-bold my-6 pb-4 border-b-2 border-blue-600"
+            style={{ fontFamily: 'Georgia, serif' }}
           >
             {student.name}
-          </Typography>
+          </h2>
 
           {/* Has Completed */}
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+          <p className="text-muted-foreground mb-2">
             has successfully completed | ha completado exitosamente el
-          </Typography>
+          </p>
 
           {/* Program Name */}
-          <Typography 
-            variant="h5" 
-            color="primary"
-            sx={{ my: 3, fontFamily: 'Georgia, serif' }}
+          <h3 
+            className="text-xl text-blue-600 my-6"
+            style={{ fontFamily: 'Georgia, serif' }}
           >
             Digital Literacy Program<br />
             Programa de Alfabetización Digital
-          </Typography>
+          </h3>
 
           {/* Course Details */}
-          <Typography variant="body1" color="text.secondary">
+          <p className="text-muted-foreground">
             Six-Week Course | Curso de Seis Semanas
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          </p>
+          <p className="text-sm text-muted-foreground mb-6">
             {startDate} - {endDate}
-          </Typography>
+          </p>
 
-          <Divider sx={{ my: 3 }} />
+          <hr className="my-6" />
 
           {/* Achievement Details */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="body1">
+          <div className="mb-8">
+            <p>
               <strong>Attendance | Asistencia:</strong> {attendancePercent}%
-            </Typography>
-            <Typography variant="body1">
+            </p>
+            <p>
               <strong>Proficiency Achievement | Logro de Competencia:</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+            </p>
+            <p className="text-sm text-muted-foreground">
               {proficientTopics} topics at Proficient or Mastery level
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+            </p>
+            <p className="text-sm text-muted-foreground">
               {proficientTopics} temas a nivel Competente o Dominio
-            </Typography>
-          </Box>
+            </p>
+          </div>
 
           {/* Signatures */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 5 }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Box sx={{ borderTop: '1px solid #333', width: 200, mx: 'auto', mb: 1 }} />
-              <Typography variant="body1" fontWeight="medium">
-                {instructorName}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Instructor | Instructor
-              </Typography>
-            </Box>
-            <Box sx={{ textAlign: 'center' }}>
-              <Box sx={{ borderTop: '1px solid #333', width: 200, mx: 'auto', mb: 1 }} />
-              <Typography variant="body1" fontWeight="medium">
-                {programDirector}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Program Director | Director del Programa
-              </Typography>
-            </Box>
-          </Box>
+          <div className="flex justify-around mt-10">
+            <div className="text-center">
+              <div className="border-t border-gray-800 w-[200px] mx-auto mb-2" />
+              <p className="font-medium">{instructorName}</p>
+              <p className="text-xs text-muted-foreground">Instructor | Instructor</p>
+            </div>
+            <div className="text-center">
+              <div className="border-t border-gray-800 w-[200px] mx-auto mb-2" />
+              <p className="font-medium">{programDirector}</p>
+              <p className="text-xs text-muted-foreground">Program Director | Director del Programa</p>
+            </div>
+          </div>
 
           {/* Certificate Number */}
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 4, display: 'block' }}>
+          <p className="text-xs text-muted-foreground mt-8">
             Certificate No. | Certificado No.: {certNumber}
-          </Typography>
+          </p>
         </CardContent>
       </Card>
-    </Box>
+    </div>
   );
 }

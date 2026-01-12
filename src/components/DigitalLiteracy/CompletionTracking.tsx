@@ -1,24 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
-  Checkbox,
-  Divider,
-  Alert,
-} from '@mui/material';
-import {
-  CheckCircle as CheckIcon,
-  Cancel as CancelIcon,
-} from '@mui/icons-material';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CheckCircle, XCircle, X } from 'lucide-react';
 import { Language, t, TRANSLATIONS } from '@/lib/translations/digitalLiteracy';
 import { Student } from './StudentCard';
 
@@ -99,170 +90,177 @@ export default function CompletionTracking({
 
   return (
     <Card>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
+      <CardContent className="p-6">
+        <h3 className="text-lg font-bold mb-2">
           {getText('completion.title')} - {student.name} ({student.id})
-        </Typography>
+        </h3>
         
-        <Divider sx={{ my: 2 }} />
+        <hr className="my-4" />
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-            {error}
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription className="flex justify-between items-center">
+              {error}
+              <Button variant="ghost" size="sm" onClick={() => setError('')}>
+                <X className="h-4 w-4" />
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 
         {/* Completion Status */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="medium" gutterBottom>
+        <div className="mb-6">
+          <Label className="font-medium mb-2 block">
             {getText('completion.didComplete')}
-          </Typography>
+          </Label>
           <RadioGroup
             value={completed === null ? '' : completed ? 'yes' : 'no'}
-            onChange={(e) => setCompleted(e.target.value === 'yes')}
+            onValueChange={(value) => setCompleted(value === 'yes')}
+            className="space-y-2"
           >
-            <FormControlLabel 
-              value="yes" 
-              control={<Radio color="success" />} 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckIcon color="success" />
-                  {getText('completion.yesCompleted')}
-                </Box>
-              }
-            />
-            <FormControlLabel 
-              value="no" 
-              control={<Radio color="error" />} 
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CancelIcon color="error" />
-                  {getText('completion.noNotComplete')}
-                </Box>
-              }
-            />
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="yes" id="yes" className="text-green-600" />
+              <Label htmlFor="yes" className="flex items-center gap-2 cursor-pointer">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                {getText('completion.yesCompleted')}
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="no" id="no" className="text-red-600" />
+              <Label htmlFor="no" className="flex items-center gap-2 cursor-pointer">
+                <XCircle className="h-5 w-5 text-red-600" />
+                {getText('completion.noNotComplete')}
+              </Label>
+            </div>
           </RadioGroup>
-        </Box>
+        </div>
 
         {/* If Completed */}
         {completed === true && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: '#f0fdf4', borderRadius: 1, border: '1px solid #86efac' }}>
-            <Typography variant="subtitle2" fontWeight="bold" color="success.dark" gutterBottom>
+          <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-300">
+            <h4 className="font-bold text-green-800 mb-4">
               {getText('completion.ifCompleted')}
-            </Typography>
+            </h4>
             
-            <TextField
-              fullWidth
-              label={getText('completion.dateCompleted')}
-              type="date"
-              value={completionDate}
-              onChange={(e) => setCompletionDate(e.target.value)}
-              sx={{ mb: 2 }}
-              InputLabelProps={{ shrink: true }}
-            />
-            
-            <TextField
-              fullWidth
-              label={getText('completion.tabletSerial')}
-              placeholder="SN: ABC123456789"
-              value={tabletSerial}
-              onChange={(e) => setTabletSerial(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            
-            <FormControlLabel
-              control={
-                <Checkbox 
-                  checked={tabletIssued} 
-                  onChange={(e) => setTabletIssued(e.target.checked)}
-                  color="success"
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="completionDate">{getText('completion.dateCompleted')}</Label>
+                <Input
+                  id="completionDate"
+                  type="date"
+                  value={completionDate}
+                  onChange={(e) => setCompletionDate(e.target.value)}
+                  className="mt-1"
                 />
-              }
-              label={getText('completion.tabletIssued')}
-            />
-          </Box>
+              </div>
+              
+              <div>
+                <Label htmlFor="tabletSerial">{getText('completion.tabletSerial')}</Label>
+                <Input
+                  id="tabletSerial"
+                  placeholder="SN: ABC123456789"
+                  value={tabletSerial}
+                  onChange={(e) => setTabletSerial(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="tabletIssued"
+                  checked={tabletIssued} 
+                  onCheckedChange={(checked) => setTabletIssued(checked as boolean)}
+                />
+                <Label htmlFor="tabletIssued" className="cursor-pointer">
+                  {getText('completion.tabletIssued')}
+                </Label>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* If Not Completed */}
         {completed === false && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: '#fef2f2', borderRadius: 1, border: '1px solid #fca5a5' }}>
-            <Typography variant="subtitle2" fontWeight="bold" color="error.dark" gutterBottom>
+          <div className="mb-6 p-4 bg-red-50 rounded-lg border border-red-300">
+            <h4 className="font-bold text-red-800 mb-2">
               {getText('completion.ifNotCompleted')}
-            </Typography>
+            </h4>
             
-            <Typography variant="body2" gutterBottom>
+            <p className="text-sm mb-2">
               {getText('completion.reasonRequired')}
-            </Typography>
+            </p>
             
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
+            <Textarea
               value={nonCompletionReason}
               onChange={(e) => setNonCompletionReason(e.target.value)}
               placeholder={language === 'en' ? 'Enter reason...' : 'Ingrese razón...'}
-              sx={{ mb: 2 }}
+              rows={3}
+              className="mb-4"
             />
             
-            <Typography variant="body2" color="text.secondary" gutterBottom>
+            <p className="text-sm text-muted-foreground mb-2">
               {getText('completion.commonReasons')}
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            </p>
+            <div className="flex flex-wrap gap-2">
               {commonReasons.map((reason, index) => (
                 <Button
                   key={index}
-                  size="small"
-                  variant="outlined"
+                  size="sm"
+                  variant="outline"
                   onClick={() => setNonCompletionReason(reason)}
-                  sx={{ fontSize: '0.75rem' }}
+                  className="text-xs"
                 >
                   • {reason}
                 </Button>
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
         )}
 
         {/* Instructor Signature */}
         {completed !== null && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: '#f8fafc', borderRadius: 1, border: '1px solid #e2e8f0' }}>
-            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h4 className="font-bold mb-4">
               {getText('completion.instructorSignature')}
-            </Typography>
+            </h4>
             
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <TextField
-                label={getText('completion.instructorName')}
-                value={instructorName}
-                disabled
-                sx={{ flex: 1, minWidth: 200 }}
-              />
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex-1 min-w-[200px]">
+                <Label htmlFor="instructorName">{getText('completion.instructorName')}</Label>
+                <Input
+                  id="instructorName"
+                  value={instructorName}
+                  disabled
+                  className="mt-1 bg-slate-100"
+                />
+              </div>
               
-              <TextField
-                label={getText('completion.date')}
-                type="date"
-                value={signatureDate}
-                onChange={(e) => setSignatureDate(e.target.value)}
-                sx={{ minWidth: 150 }}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Box>
-          </Box>
+              <div className="min-w-[150px]">
+                <Label htmlFor="signatureDate">{getText('completion.date')}</Label>
+                <Input
+                  id="signatureDate"
+                  type="date"
+                  value={signatureDate}
+                  onChange={(e) => setSignatureDate(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          <Button variant="outlined" onClick={onCancel}>
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" onClick={onCancel}>
             {getText('actions.cancel')}
           </Button>
           <Button 
-            variant="contained" 
             onClick={handleSave}
             disabled={completed === null}
           >
             {getText('actions.save')}
           </Button>
-        </Box>
+        </div>
       </CardContent>
     </Card>
   );

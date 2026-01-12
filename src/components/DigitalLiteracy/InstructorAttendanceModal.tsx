@@ -1,44 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Box,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Typography,
-  Alert,
-  CircularProgress,
-  Chip,
-  Autocomplete,
-  Checkbox,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Divider,
-} from '@mui/material';
-import {
-  Close as CloseIcon,
-  Save as SaveIcon,
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Person as PersonIcon,
-  School as SchoolIcon,
-  CalendarToday as CalendarIcon,
-  LocationOn as LocationIcon,
-} from '@mui/icons-material';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { X, Save, User, Calendar, MapPin, GraduationCap, Loader2 } from 'lucide-react';
 
 // Class/Unit options
 const UNITS = [
@@ -155,6 +128,14 @@ export default function InstructorAttendanceModal({
     setStudents(prev => prev.map(s => ({ ...s, present: !allPresent })));
   };
 
+  const handleToggleUnit = (unitId: string) => {
+    setUnitsCompleted(prev => 
+      prev.includes(unitId) 
+        ? prev.filter(id => id !== unitId)
+        : [...prev, unitId]
+    );
+  };
+
   const handleSave = async () => {
     if (!instructorName || !date || !location || !topic) {
       setError('Please fill in all required fields');
@@ -225,203 +206,194 @@ export default function InstructorAttendanceModal({
   const presentCount = students.filter(s => s.present).length;
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
-      fullWidth
-      container={() => document.body}
-    >
-      <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <SchoolIcon color="primary" />
-            <Typography variant="h6">Record Class Attendance</Typography>
-          </Box>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5 text-blue-600" />
+            Record Class Attendance
+          </DialogTitle>
+        </DialogHeader>
 
-      <DialogContent dividers>
-        {success ? (
-          <Alert severity="success" sx={{ my: 2 }}>
-            Attendance recorded successfully for {presentCount} students!
-          </Alert>
-        ) : (
-          <>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            {/* Class Details */}
-            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
-              Class Details
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2, mb: 3 }}>
-              <TextField
-                label="Instructor Name"
-                value={instructorName}
-                onChange={(e) => setInstructorName(e.target.value)}
-                required
-                fullWidth
-                size="small"
-                InputProps={{
-                  startAdornment: <PersonIcon color="action" sx={{ mr: 1 }} />,
-                }}
-              />
-              <TextField
-                label="Date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                fullWidth
-                size="small"
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: <CalendarIcon color="action" sx={{ mr: 1 }} />,
-                }}
-              />
-              <FormControl fullWidth size="small" required>
-                <InputLabel>Location</InputLabel>
-                <Select
-                  value={location}
-                  label="Location"
-                  onChange={(e) => setLocation(e.target.value)}
-                  startAdornment={<LocationIcon color="action" sx={{ mr: 1 }} />}
-                >
-                  {LOCATIONS.map((loc) => (
-                    <MenuItem key={loc.id} value={loc.id}>
-                      {loc.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl fullWidth size="small" required>
-                <InputLabel>Topic</InputLabel>
-                <Select
-                  value={topic}
-                  label="Topic"
-                  onChange={(e) => setTopic(e.target.value)}
-                >
-                  {TOPICS.map((t) => (
-                    <MenuItem key={t} value={t}>
-                      {t}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            {/* Units Completed */}
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              Units Completed
-            </Typography>
-            <Autocomplete
-              multiple
-              options={UNITS}
-              getOptionLabel={(option) => option.label}
-              value={UNITS.filter(u => unitsCompleted.includes(u.id))}
-              onChange={(_, newValue) => setUnitsCompleted(newValue.map(v => v.id))}
-              renderInput={(params) => (
-                <TextField {...params} placeholder="Select units covered in this class" size="small" />
+        <div className="flex-1 overflow-y-auto px-1">
+          {success ? (
+            <Alert className="my-4 border-green-500 bg-green-50">
+              <AlertDescription className="text-green-700">
+                Attendance recorded successfully for {presentCount} students!
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option.id}
-                    label={option.id.replace('unit', 'Unit ')}
-                    size="small"
-                    color="primary"
-                  />
-                ))
-              }
-              sx={{ mb: 3 }}
-            />
 
-            <Divider sx={{ my: 2 }} />
+              {/* Class Details */}
+              <h4 className="font-semibold mb-3">Class Details</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <Label htmlFor="instructorName">Instructor Name *</Label>
+                  <div className="relative mt-1">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="instructorName"
+                      value={instructorName}
+                      onChange={(e) => setInstructorName(e.target.value)}
+                      className="pl-10"
+                      placeholder="Enter instructor name"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="date">Date *</Label>
+                  <div className="relative mt-1">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="date"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Location *</Label>
+                  <Select value={location} onValueChange={setLocation}>
+                    <SelectTrigger className="mt-1">
+                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LOCATIONS.map((loc) => (
+                        <SelectItem key={loc.id} value={loc.id}>
+                          {loc.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Topic *</Label>
+                  <Select value={topic} onValueChange={setTopic}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select topic" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TOPICS.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-            {/* Student Attendance */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                Student Attendance ({presentCount} / {students.length})
-              </Typography>
-              <Button size="small" onClick={handleSelectAll}>
-                {students.every(s => s.present) ? 'Deselect All' : 'Select All'}
-              </Button>
-            </Box>
+              {/* Units Completed */}
+              <h4 className="font-semibold mb-3">Units Completed</h4>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {UNITS.map((unit) => (
+                  <Badge
+                    key={unit.id}
+                    variant={unitsCompleted.includes(unit.id) ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => handleToggleUnit(unit.id)}
+                  >
+                    {unit.id.replace('unit', 'Unit ')}
+                  </Badge>
+                ))}
+              </div>
 
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : students.length > 0 ? (
-              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 400 }}>
-                <Table size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={students.length > 0 && students.every(s => s.present)}
-                          indeterminate={students.some(s => s.present) && !students.every(s => s.present)}
-                          onChange={handleSelectAll}
-                        />
-                      </TableCell>
-                      <TableCell><strong>Name</strong></TableCell>
-                      <TableCell><strong>Email</strong></TableCell>
-                      <TableCell align="center"><strong>Present</strong></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {students.map((student) => (
-                      <TableRow 
-                        key={student.id}
-                        hover
-                        onClick={() => handleTogglePresent(student.id)}
-                        sx={{ cursor: 'pointer' }}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={student.present} />
-                        </TableCell>
-                        <TableCell>{student.name}</TableCell>
-                        <TableCell>{student.email}</TableCell>
-                        <TableCell align="center">
-                          {student.present && (
-                            <Chip label="Present" size="small" color="success" />
-                          )}
-                        </TableCell>
+              <hr className="my-4" />
+
+              {/* Student Attendance */}
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold">
+                  Student Attendance ({presentCount} / {students.length})
+                </h4>
+                <Button size="sm" variant="outline" onClick={handleSelectAll}>
+                  {students.every(s => s.present) ? 'Deselect All' : 'Select All'}
+                </Button>
+              </div>
+
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                </div>
+              ) : students.length > 0 ? (
+                <ScrollArea className="h-[300px] border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[50px]">
+                          <Checkbox
+                            checked={students.length > 0 && students.every(s => s.present)}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead className="text-center">Present</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Alert severity="info">
-                No students registered. Please register students first.
-              </Alert>
-            )}
-          </>
-        )}
-      </DialogContent>
+                    </TableHeader>
+                    <TableBody>
+                      {students.map((student) => (
+                        <TableRow 
+                          key={student.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleTogglePresent(student.id)}
+                        >
+                          <TableCell>
+                            <Checkbox checked={student.present} />
+                          </TableCell>
+                          <TableCell>{student.name}</TableCell>
+                          <TableCell>{student.email}</TableCell>
+                          <TableCell className="text-center">
+                            {student.present && (
+                              <Badge className="bg-green-600">Present</Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              ) : (
+                <Alert>
+                  <AlertDescription>
+                    No students registered. Please register students first.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
+          )}
+        </div>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} disabled={saving}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={saving || success}
-          startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
-        >
-          {saving ? 'Saving...' : `Save Attendance (${presentCount})`}
-        </Button>
-      </DialogActions>
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving || success}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Attendance ({presentCount})
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

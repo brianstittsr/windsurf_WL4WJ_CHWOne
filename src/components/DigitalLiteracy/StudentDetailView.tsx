@@ -1,27 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  MenuItem,
-  TextField,
-  Divider,
-  Chip,
-  Grid,
-  Paper,
-  LinearProgress,
-} from '@mui/material';
-import {
-  ArrowBack as BackIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-} from '@mui/icons-material';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, AlertTriangle, CheckCircle, Mail, Phone } from 'lucide-react';
 import { 
   Language, 
   t, 
@@ -29,7 +14,6 @@ import {
   COURSE_TOPICS, 
   PROFICIENCY_LEVELS,
   getCountyName,
-  getTopicName,
   getProficiencyInfo,
 } from '@/lib/translations/digitalLiteracy';
 import { Student } from './StudentCard';
@@ -79,46 +63,42 @@ export default function StudentDetailView({
     }
   });
 
-  const getProficiencyLabel = (levelId: string): string => {
-    const info = getProficiencyInfo(levelId, language);
-    return info ? info.name : levelId;
-  };
-
   const getProficiencyColor = (levelId: string): string => {
     const info = getProficiencyInfo(levelId, language);
     return info ? info.color : '#gray';
   };
 
   return (
-    <Box>
+    <div>
       {/* Back Button */}
       <Button
-        startIcon={<BackIcon />}
+        variant="outline"
         onClick={onBack}
-        sx={{ mb: 2 }}
+        className="mb-4"
       >
-        ← {getText('detail.backToClassView')}
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        {getText('detail.backToClassView')}
       </Button>
 
       {/* Student Header */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <h2 className="text-xl font-bold mb-2">
             {student.name} - {classSchedule}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <EmailIcon sx={{ fontSize: 16 }} />
+          </h2>
+          <div className="flex gap-6 flex-wrap text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Mail className="h-4 w-4" />
               {student.email}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <PhoneIcon sx={{ fontSize: 16 }} />
+            </span>
+            <span className="flex items-center gap-1">
+              <Phone className="h-4 w-4" />
               {student.phone}
-            </Typography>
-            <Typography variant="body2">
+            </span>
+            <span>
               {getCountyName(student.county, language)}
-            </Typography>
-          </Box>
+            </span>
+          </div>
         </CardContent>
       </Card>
 
@@ -130,25 +110,20 @@ export default function StudentDetailView({
         return (
           <Card 
             key={week} 
-            sx={{ 
-              mb: 2,
-              border: isCurrentWeek ? '2px solid #f59e0b' : '1px solid #e5e7eb',
-            }}
+            className={`mb-4 ${isCurrentWeek ? 'border-2 border-orange-400' : 'border'}`}
           >
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Typography variant="h6" fontWeight="bold">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-lg font-bold">
                   {language === 'en' ? `CLASS ${week}` : `CLASE ${week}`} ({getText('dashboard.week')} {week})
-                </Typography>
+                </h3>
                 {isCurrentWeek && (
-                  <Chip 
-                    icon={<WarningIcon sx={{ fontSize: 16 }} />}
-                    label={getText('detail.currentWeek')}
-                    color="warning"
-                    size="small"
-                  />
+                  <Badge variant="outline" className="border-orange-400 text-orange-600 bg-orange-50">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    {getText('detail.currentWeek')}
+                  </Badge>
                 )}
-              </Box>
+              </div>
 
               {topics.map((topic, index) => {
                 const assessment = student.proficiencyAssessments[topic.code];
@@ -156,74 +131,60 @@ export default function StudentDetailView({
                 const topicLabel = String.fromCharCode(65 + index); // A, B, C...
                 
                 return (
-                  <Box 
+                  <div 
                     key={topic.code}
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'space-between',
-                      py: 1.5,
-                      borderBottom: index < topics.length - 1 ? '1px solid #e5e7eb' : 'none',
-                    }}
+                    className={`flex items-center justify-between py-3 ${index < topics.length - 1 ? 'border-b' : ''}`}
                   >
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body1" fontWeight="medium">
+                    <div className="flex-1">
+                      <p className="font-medium">
                         {topicLabel}. {topic[language]}
-                      </Typography>
-                    </Box>
+                      </p>
+                    </div>
                     
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 350 }}>
-                      <Typography variant="body2" color="text.secondary">
+                    <div className="flex items-center gap-4 min-w-[350px]">
+                      <span className="text-sm text-muted-foreground">
                         {getText('detail.proficiency')}:
-                      </Typography>
+                      </span>
                       
-                      <TextField
-                        select
-                        size="small"
+                      <Select
                         value={assessment?.level || ''}
-                        onChange={(e) => onUpdateProficiency(student.id, topic.code, e.target.value)}
-                        sx={{ 
-                          minWidth: 180,
-                          '& .MuiSelect-select': {
-                            bgcolor: assessment ? getProficiencyColor(assessment.level) + '20' : '#fef3c7',
-                          }
-                        }}
+                        onValueChange={(value) => onUpdateProficiency(student.id, topic.code, value)}
                       >
-                        <MenuItem value="" disabled>
-                          {getText('detail.selectLevel')}
-                        </MenuItem>
-                        {PROFICIENCY_LEVELS.map(level => (
-                          <MenuItem 
-                            key={level.id} 
-                            value={level.id}
-                            sx={{ 
-                              borderLeft: `4px solid ${level.color}`,
-                              ml: 0.5,
-                            }}
-                          >
-                            {level[language]}
-                          </MenuItem>
-                        ))}
-                      </TextField>
+                        <SelectTrigger 
+                          className="w-[180px]"
+                          style={{ 
+                            backgroundColor: assessment ? getProficiencyColor(assessment.level) + '20' : '#fef3c7'
+                          }}
+                        >
+                          <SelectValue placeholder={getText('detail.selectLevel')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PROFICIENCY_LEVELS.map(level => (
+                            <SelectItem 
+                              key={level.id} 
+                              value={level.id}
+                              className="border-l-4"
+                              style={{ borderLeftColor: level.color }}
+                            >
+                              {level[language]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       
                       {isAssessed ? (
-                        <Chip
-                          icon={<CheckIcon sx={{ fontSize: 14 }} />}
-                          label={`✓ ${getText('detail.assessedOn')} ${new Date(assessment.date).toLocaleDateString()}`}
-                          size="small"
-                          color="success"
-                          variant="outlined"
-                        />
+                        <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          ✓ {getText('detail.assessedOn')} {new Date(assessment.date).toLocaleDateString()}
+                        </Badge>
                       ) : (
-                        <Chip
-                          icon={<WarningIcon sx={{ fontSize: 14 }} />}
-                          label={`⚠️ ${getText('detail.notAssessed')}`}
-                          size="small"
-                          color="warning"
-                        />
+                        <Badge variant="outline" className="border-orange-400 text-orange-600 bg-orange-50">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          ⚠️ {getText('detail.notAssessed')}
+                        </Badge>
                       )}
-                    </Box>
-                  </Box>
+                    </div>
+                  </div>
                 );
               })}
             </CardContent>
@@ -233,56 +194,50 @@ export default function StudentDetailView({
 
       {/* Proficiency Summary */}
       <Card>
-        <CardContent>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+        <CardContent className="p-6">
+          <h3 className="text-lg font-bold mb-4">
             {getText('detail.proficiencySummary')}
-          </Typography>
+          </h3>
           
-          <Divider sx={{ my: 2 }} />
+          <hr className="my-4" />
           
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
+          <div className="mb-6">
+            <p className="text-sm text-muted-foreground mb-2">
               {getText('detail.assessedTopics')}: {assessedTopics}/{totalTopics} ({Math.round((assessedTopics/totalTopics)*100)}%)
-            </Typography>
-            <LinearProgress 
-              variant="determinate" 
-              value={(assessedTopics/totalTopics)*100}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
-          </Box>
+            </p>
+            <Progress value={(assessedTopics/totalTopics)*100} className="h-2" />
+          </div>
 
-          <Grid container spacing={2}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {PROFICIENCY_LEVELS.map(level => (
-              <Grid item xs={6} sm={3} key={level.id}>
-                <Paper 
-                  sx={{ 
-                    p: 2, 
-                    textAlign: 'center',
-                    borderLeft: `4px solid ${level.color}`,
-                    bgcolor: level.color + '10',
-                  }}
-                >
-                  <Typography variant="h4" fontWeight="bold" sx={{ color: level.color }}>
-                    {proficiencyCounts[level.id as keyof typeof proficiencyCounts]}
-                  </Typography>
-                  <Typography variant="body2">
-                    {level[language]}
-                  </Typography>
-                </Paper>
-              </Grid>
+              <div 
+                key={level.id}
+                className="p-4 text-center rounded-lg border-l-4"
+                style={{ 
+                  borderLeftColor: level.color,
+                  backgroundColor: level.color + '10',
+                }}
+              >
+                <p className="text-3xl font-bold" style={{ color: level.color }}>
+                  {proficiencyCounts[level.id as keyof typeof proficiencyCounts]}
+                </p>
+                <p className="text-sm">
+                  {level[language]}
+                </p>
+              </div>
             ))}
-          </Grid>
+          </div>
 
-          <Box sx={{ mt: 3 }}>
-            <Paper sx={{ p: 2, bgcolor: '#fef3c7' }}>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <WarningIcon color="warning" sx={{ fontSize: 18 }} />
+          <div className="mt-6">
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <p className="text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
                 <strong>{getText('detail.notYetAssessed')}:</strong> {totalTopics - assessedTopics} {getText('detail.topics')}
-              </Typography>
-            </Paper>
-          </Box>
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
-    </Box>
+    </div>
   );
 }

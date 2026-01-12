@@ -1,24 +1,10 @@
 'use client';
 
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  Box,
-  Typography,
-  Button,
-  Chip,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
-import {
-  CheckCircle as PresentIcon,
-  Cancel as AbsentIcon,
-  Warning as WarningIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  Info as InfoIcon,
-} from '@mui/icons-material';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, XCircle, AlertTriangle, Mail, Phone, Info } from 'lucide-react';
 import { Language, t, TRANSLATIONS, getCountyName } from '@/lib/translations/digitalLiteracy';
 
 export interface Student {
@@ -75,100 +61,75 @@ export default function StudentCard({
   const getText = (key: string) => t(key, language, TRANSLATIONS);
 
   return (
-    <Card 
-      elevation={2}
-      sx={{ 
-        position: 'relative',
-        border: needsAssessment ? '2px solid #f59e0b' : '1px solid #e5e7eb',
-        '&:hover': {
-          boxShadow: 4,
-        }
-      }}
-    >
-      <CardContent sx={{ p: 2 }}>
+    <Card className={`relative hover:shadow-lg transition-shadow ${needsAssessment ? 'border-2 border-orange-400' : 'border'}`}>
+      <CardContent className="p-4">
         {/* Header with name and attendance toggle */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton
-              size="small"
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex items-center gap-2">
+            <button
               onClick={() => onToggleAttendance(student.id, !student.isPresent)}
-              sx={{
-                bgcolor: student.isPresent ? 'success.light' : 'error.light',
-                '&:hover': {
-                  bgcolor: student.isPresent ? 'success.main' : 'error.main',
-                }
-              }}
+              className={`p-1.5 rounded-full ${student.isPresent ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
             >
               {student.isPresent ? (
-                <PresentIcon sx={{ color: 'white', fontSize: 18 }} />
+                <CheckCircle className="h-4 w-4 text-white" />
               ) : (
-                <AbsentIcon sx={{ color: 'white', fontSize: 18 }} />
+                <XCircle className="h-4 w-4 text-white" />
               )}
-            </IconButton>
-            <Typography variant="subtitle1" fontWeight="bold">
-              {student.name}
-            </Typography>
-          </Box>
+            </button>
+            <span className="font-bold">{student.name}</span>
+          </div>
           
           {needsAssessment && (
-            <Chip
-              icon={<WarningIcon sx={{ fontSize: 16 }} />}
-              label={getText('studentCard.needsAssessment')}
-              size="small"
-              color="warning"
-              sx={{ fontSize: '0.7rem' }}
-            />
+            <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-50">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              {getText('studentCard.needsAssessment')}
+            </Badge>
           )}
-        </Box>
+        </div>
 
         {/* Contact info */}
-        <Box sx={{ mb: 1.5 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <EmailIcon sx={{ fontSize: 14 }} />
+        <div className="mb-3 space-y-0.5">
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
+            <Mail className="h-3 w-3" />
             {student.email}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <PhoneIcon sx={{ fontSize: 14 }} />
+          </p>
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
+            <Phone className="h-3 w-3" />
             {student.phone}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
+          </p>
+          <p className="text-sm text-muted-foreground">
             {getCountyName(student.county, language)}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {/* Stats */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
+        <div className="flex justify-between mb-3">
+          <div>
+            <p className="text-xs text-muted-foreground">
               {getText('studentCard.attendance')}:
-            </Typography>
-            <Typography variant="body2" fontWeight="medium">
+            </p>
+            <p className="text-sm font-medium">
               {student.attendance.present}/{student.attendance.total} ({attendancePercent}%)
-            </Typography>
-          </Box>
-          <Box sx={{ textAlign: 'right' }}>
-            <Typography variant="caption" color="text.secondary">
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">
               {getText('studentCard.weekTopics')} {currentWeek}:
-            </Typography>
-            <Typography 
-              variant="body2" 
-              fontWeight="medium"
-              color={needsAssessment ? 'warning.main' : 'success.main'}
-            >
+            </p>
+            <p className={`text-sm font-medium ${needsAssessment ? 'text-orange-600' : 'text-green-600'}`}>
               {needsAssessment && '⚠️ '}
               {assessedTopicsThisWeek}/{totalTopicsThisWeek} {getText('studentCard.assessed')}
-            </Typography>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
 
         {/* Action buttons */}
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <div className="flex gap-2">
           <Button
-            size="small"
-            variant={student.isPresent ? 'contained' : 'outlined'}
-            color={student.isPresent ? 'success' : 'error'}
+            size="sm"
+            variant={student.isPresent ? 'default' : 'outline'}
+            className={`flex-1 text-xs ${student.isPresent ? 'bg-green-600 hover:bg-green-700' : 'border-red-400 text-red-600 hover:bg-red-50'}`}
             onClick={() => onToggleAttendance(student.id, !student.isPresent)}
-            sx={{ flex: 1, fontSize: '0.75rem' }}
           >
             {student.isPresent ? (
               <>✓ {getText('studentCard.present')}</>
@@ -177,15 +138,15 @@ export default function StudentCard({
             )}
           </Button>
           <Button
-            size="small"
-            variant="outlined"
+            size="sm"
+            variant="outline"
+            className="flex-1 text-xs"
             onClick={() => onViewDetails(student.id)}
-            startIcon={<InfoIcon sx={{ fontSize: 16 }} />}
-            sx={{ flex: 1, fontSize: '0.75rem' }}
           >
+            <Info className="h-3 w-3 mr-1" />
             📝 {getText('studentCard.details')}
           </Button>
-        </Box>
+        </div>
       </CardContent>
     </Card>
   );

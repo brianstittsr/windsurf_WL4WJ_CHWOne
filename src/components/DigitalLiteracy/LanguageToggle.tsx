@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Button, ButtonGroup, Typography } from '@mui/material';
+import { Button } from '@/components/ui/button';
 import { Language } from '@/lib/translations/digitalLiteracy';
 
 interface LanguageToggleProps {
@@ -16,34 +16,30 @@ export default function LanguageToggle({
   showLabel = true 
 }: LanguageToggleProps) {
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <div className="flex items-center gap-2">
       {showLabel && (
-        <Typography variant="body2" color="text.secondary">
+        <span className="text-sm text-muted-foreground">
           Language | Idioma:
-        </Typography>
+        </span>
       )}
-      <ButtonGroup size="small" variant="outlined">
+      <div className="flex rounded-md border">
         <Button
           onClick={() => onLanguageChange('en')}
-          variant={currentLanguage === 'en' ? 'contained' : 'outlined'}
-          sx={{ 
-            minWidth: 90,
-            fontWeight: currentLanguage === 'en' ? 'bold' : 'normal'
-          }}
+          variant={currentLanguage === 'en' ? 'default' : 'ghost'}
+          size="sm"
+          className={`min-w-[90px] rounded-r-none ${currentLanguage === 'en' ? 'font-bold' : 'font-normal'}`}
         >
           🇺🇸 English
         </Button>
         <Button
           onClick={() => onLanguageChange('es')}
-          variant={currentLanguage === 'es' ? 'contained' : 'outlined'}
-          sx={{ 
-            minWidth: 90,
-            fontWeight: currentLanguage === 'es' ? 'bold' : 'normal'
-          }}
+          variant={currentLanguage === 'es' ? 'default' : 'ghost'}
+          size="sm"
+          className={`min-w-[90px] rounded-l-none border-l ${currentLanguage === 'es' ? 'font-bold' : 'font-normal'}`}
         >
           🇪🇸 Español
         </Button>
-      </ButtonGroup>
-    </Box>
+      </div>
+    </div>
   );
 }
