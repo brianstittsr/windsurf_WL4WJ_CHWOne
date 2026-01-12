@@ -193,47 +193,52 @@ export default function NCLegislaturePage() {
         </Card>
 
         {/* Representatives Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReps.map((rep) => (
             <Card 
               key={`${rep.chamber}-${rep.id}`} 
               className="cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => setSelectedRep(rep)}
             >
-              <CardContent className="p-4">
-                <div className="flex gap-4">
+              <CardContent className="p-6">
+                <div className="flex gap-5">
                   {/* Photo */}
                   <div className="flex-shrink-0">
                     {rep.photoBase64 ? (
                       <img
                         src={`data:${rep.photoMimeType || 'image/jpeg'};base64,${rep.photoBase64}`}
                         alt={rep.name}
-                        className="w-20 h-24 object-cover rounded-lg"
+                        className="w-28 h-36 object-cover rounded-lg shadow-md"
                       />
                     ) : (
-                      <div className="w-20 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <Users className="h-8 w-8 text-gray-400" />
+                      <div className="w-28 h-36 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <Users className="h-10 w-10 text-gray-400" />
                       </div>
                     )}
                   </div>
                   
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{rep.name}</h3>
+                    <h3 className="font-bold text-lg text-gray-900">{rep.name}</h3>
                     <Badge 
                       variant={rep.party === 'R' ? 'destructive' : 'default'}
-                      className={rep.party === 'R' ? 'bg-red-600' : 'bg-blue-600'}
+                      className={`mt-2 ${rep.party === 'R' ? 'bg-red-600' : 'bg-blue-600'}`}
                     >
                       {rep.party === 'R' ? 'Republican' : 'Democrat'}
                     </Badge>
-                    <div className="mt-2 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        District {rep.district}
+                    <div className="mt-3 space-y-1">
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium">District {rep.district}</span>
                       </div>
-                      <div className="truncate text-gray-500">
+                      <div className="text-gray-600">
                         {rep.counties?.join(', ')}
                       </div>
+                      {rep.biography?.occupation && (
+                        <div className="text-sm text-gray-500 mt-2 pt-2 border-t">
+                          {rep.biography.occupation}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
