@@ -18,7 +18,22 @@ export default function OnboardingFlow({ children }: OnboardingFlowProps) {
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
 
   useEffect(() => {
-    if (!currentUser || !userProfile || hasCheckedOnboarding) return;
+    // Debug logging
+    console.log('[OnboardingFlow] Checking onboarding status:', {
+      hasCurrentUser: !!currentUser,
+      hasUserProfile: !!userProfile,
+      hasCheckedOnboarding,
+      userProfileData: userProfile ? {
+        hasSeenWelcome: userProfile.hasSeenWelcome,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+      } : null
+    });
+
+    if (!currentUser || !userProfile || hasCheckedOnboarding) {
+      console.log('[OnboardingFlow] Skipping check - conditions not met');
+      return;
+    }
 
     // Check if user has completed onboarding
     const hasSeenWelcome = userProfile.hasSeenWelcome === true;
@@ -27,12 +42,21 @@ export default function OnboardingFlow({ children }: OnboardingFlowProps) {
       userProfile.lastName
     );
 
+    console.log('[OnboardingFlow] Onboarding status:', {
+      hasSeenWelcome,
+      hasCompletedProfile,
+    });
+
     // Show welcome modal for first-time users
     if (!hasSeenWelcome) {
+      console.log('[OnboardingFlow] Showing welcome modal');
       setShowWelcomeModal(true);
     } else if (!hasCompletedProfile) {
       // If they've seen welcome but haven't completed profile, show profile modal
+      console.log('[OnboardingFlow] Showing profile completion modal');
       setShowProfileModal(true);
+    } else {
+      console.log('[OnboardingFlow] User has completed onboarding');
     }
 
     setHasCheckedOnboarding(true);
