@@ -11,6 +11,8 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName?: string;
+  firstName?: string;
+  lastName?: string;
   phoneNumber?: string;
   photoURL?: string;
   role: UserRole; // Kept for backward compatibility
@@ -32,6 +34,14 @@ export interface UserProfile {
   associationProfileId?: string;
   // CHW-specific fields (deprecated, use chwProfileId)
   chwProfile?: CHWProfile;
+  // Additional profile fields
+  title?: string;
+  region?: string;
+  bio?: string;
+  // Onboarding tracking
+  hasSeenWelcome?: boolean;
+  welcomeSeenAt?: Timestamp;
+  profileCompletedAt?: Timestamp;
 }
 
 export interface CHWProfile {
