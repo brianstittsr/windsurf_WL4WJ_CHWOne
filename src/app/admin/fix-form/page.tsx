@@ -16,8 +16,10 @@ import {
 } from '@mui/material';
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { AuthProvider } from '@/contexts/AuthContext';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 
-export default function FixFormPage() {
+function FixFormContent() {
   const [formId, setFormId] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
@@ -197,5 +199,15 @@ export default function FixFormPage() {
         )}
       </Box>
     </Container>
+  );
+}
+
+export default function FixFormPage() {
+  return (
+    <AuthProvider>
+      <UnifiedLayout>
+        <FixFormContent />
+      </UnifiedLayout>
+    </AuthProvider>
   );
 }

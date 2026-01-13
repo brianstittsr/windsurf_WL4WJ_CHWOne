@@ -14,8 +14,10 @@ import {
 } from '@mui/material';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { getFirestore, doc, setDoc, Timestamp } from 'firebase/firestore';
+import { AuthProvider } from '@/contexts/AuthContext';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 
-export default function AddAdminPage() {
+function AddAdminContent() {
   const [email, setEmail] = useState('brians@wl4wl.org');
   const [password, setPassword] = useState('Yfhk9r76q@@123456');
   const [displayName, setDisplayName] = useState('Brian Stitts');
@@ -124,5 +126,15 @@ export default function AddAdminPage() {
         </CardContent>
       </Card>
     </Container>
+  );
+}
+
+export default function AddAdminPage() {
+  return (
+    <AuthProvider>
+      <UnifiedLayout>
+        <AddAdminContent />
+      </UnifiedLayout>
+    </AuthProvider>
   );
 }

@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
+import UnifiedLayout from '@/components/Layout/UnifiedLayout';
 import { CarouselService } from '@/lib/carousel-service';
 import { 
   CarouselSlide, 
@@ -54,7 +55,7 @@ const IMAGE_POSITIONS: { value: ImagePosition; label: string }[] = [
   { value: 'background', label: 'Background Overlay' },
 ];
 
-export default function CarouselSlideEditorPage() {
+function CarouselSlideEditorContent() {
   const params = useParams();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -637,5 +638,15 @@ export default function CarouselSlideEditorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CarouselSlideEditorPage() {
+  return (
+    <AuthProvider>
+      <UnifiedLayout>
+        <CarouselSlideEditorContent />
+      </UnifiedLayout>
+    </AuthProvider>
   );
 }
