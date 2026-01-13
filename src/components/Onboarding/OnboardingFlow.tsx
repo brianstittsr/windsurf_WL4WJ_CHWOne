@@ -14,6 +14,16 @@ interface OnboardingFlowProps {
   showLaunchButton?: boolean;
 }
 
+// Helper to check if profile is complete
+const isProfileComplete = (profile: any): boolean => {
+  return Boolean(
+    profile?.firstName && 
+    profile?.lastName &&
+    profile?.phoneNumber &&
+    profile?.title
+  );
+};
+
 export default function OnboardingFlow({ children, showLaunchButton = false }: OnboardingFlowProps) {
   const { currentUser, userProfile } = useAuth();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -34,8 +44,11 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
       hasCheckedOnboarding,
       userProfileData: userProfile ? {
         hasSeenWelcome: userProfile.hasSeenWelcome,
+        dontShowWelcomeAgain: userProfile.dontShowWelcomeAgain,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
+        phoneNumber: userProfile.phoneNumber,
+        title: userProfile.title,
       } : null
     });
 
@@ -44,55 +57,56 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
       return;
     }
 
-    // Check if user has completed onboarding
-    const hasSeenWelcome = userProfile.hasSeenWelcome === true;
-    const hasCompletedProfile = Boolean(
-      userProfile.firstName && 
-      userProfile.lastName
-    );
+    // Check profile completion status
+    const profileComplete = isProfileComplete(userProfile);
+    const dontShowAgain = userProfile.dontShowWelcomeAgain === true;
 
     console.log('[OnboardingFlow] Onboarding status:', {
-      hasSeenWelcome,
-      hasCompletedProfile,
+      profileComplete,
+      dontShowAgain,
     });
 
-    // Show welcome modal for first-time users
-    if (!hasSeenWelcome) {
-      console.log('[OnboardingFlow] Showing welcome modal');
+    // Show welcome modal if:
+    // 1. Profile is incomplete AND user hasn't selected "don't show again"
+    // OR
+    // 2. User has never seen the welcome (first time)
+    if (!profileComplete && !dontShowAgain) {
+      console.log('[OnboardingFlow] Showing welcome modal - profile incomplete');
       setShowWelcomeModal(true);
-    } else if (!hasCompletedProfile) {
-      // If they've seen welcome but haven't completed profile, show profile modal
-      console.log('[OnboardingFlow] Showing profile completion modal');
-      setShowProfileModal(true);
+    } else if (profileComplete) {
+      console.log('[OnboardingFlow] User has completed profile');
     } else {
-      console.log('[OnboardingFlow] User has completed onboarding');
+      console.log('[OnboardingFlow] User selected dont show again');
     }
 
     setHasCheckedOnboarding(true);
   }, [currentUser, userProfile, hasCheckedOnboarding]);
 
-  const handleWelcomeClose = async () => {
+  const handleWelcomeClose = async (dontShowAgain: boolean) => {
     setShowWelcomeModal(false);
     
-    // Mark welcome as seen in Firestore
+    // Update Firestore with welcome status
     if (currentUser?.uid) {
       try {
-        await updateDoc(doc(db, 'users', currentUser.uid), {
+        const updateData: any = {
           hasSeenWelcome: true,
           welcomeSeenAt: new Date(),
-        });
+        };
+        
+        // Only set dontShowWelcomeAgain if user checked the box
+        if (dontShowAgain) {
+          updateData.dontShowWelcomeAgain = true;
+        }
+        
+        await updateDoc(doc(db, 'users', currentUser.uid), updateData);
+        console.log('[OnboardingFlow] Updated welcome status, dontShowAgain:', dontShowAgain);
       } catch (error) {
         console.error('Error updating welcome status:', error);
       }
     }
 
-    // Check if profile needs completion
-    const hasCompletedProfile = Boolean(
-      userProfile?.firstName && 
-      userProfile?.lastName
-    );
-
-    if (!hasCompletedProfile) {
+    // Check if profile needs completion - show profile modal
+    if (!isProfileComplete(userProfile)) {
       setShowProfileModal(true);
     }
   };

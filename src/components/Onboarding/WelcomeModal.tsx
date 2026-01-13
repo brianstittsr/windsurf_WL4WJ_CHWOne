@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { 
   Users, 
   FileText, 
@@ -26,7 +28,7 @@ import {
 
 interface WelcomeModalProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (dontShowAgain: boolean) => void;
 }
 
 const features = [
@@ -63,8 +65,15 @@ const features = [
 ];
 
 export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  const handleClose = () => {
+    onClose(dontShowAgain);
+    setDontShowAgain(false); // Reset for next time
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
@@ -160,8 +169,21 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
           </div>
         </div>
 
-        <DialogFooter className="mt-6">
-          <Button onClick={onClose} className="w-full sm:w-auto" size="lg">
+        <DialogFooter className="mt-6 flex-col sm:flex-row gap-4">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <Checkbox 
+              id="dontShowAgain" 
+              checked={dontShowAgain}
+              onCheckedChange={(checked) => setDontShowAgain(checked === true)}
+            />
+            <Label 
+              htmlFor="dontShowAgain" 
+              className="text-sm text-slate-600 cursor-pointer"
+            >
+              Don&apos;t show this again
+            </Label>
+          </div>
+          <Button onClick={handleClose} className="w-full sm:w-auto" size="lg">
             Get Started
           </Button>
         </DialogFooter>

@@ -42,6 +42,7 @@ export interface UserProfile {
   hasSeenWelcome?: boolean;
   welcomeSeenAt?: Timestamp;
   profileCompletedAt?: Timestamp;
+  dontShowWelcomeAgain?: boolean;
   // CHW-Nonprofit linking
   linkedNonprofitId?: string;
 }

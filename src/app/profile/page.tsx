@@ -19,8 +19,10 @@ function ProfilePageContent() {
     setShowWelcomeModal(true);
   };
 
-  const handleWelcomeClose = () => {
+  const handleWelcomeClose = (dontShowAgain: boolean) => {
     setShowWelcomeModal(false);
+    // Note: When manually launched from profile page, we don't save the dontShowAgain preference
+    // The OnboardingFlow handles that for automatic popups
   };
 
   const handleLogout = async () => {
