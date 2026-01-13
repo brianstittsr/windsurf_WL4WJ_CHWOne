@@ -157,6 +157,13 @@ function UnifiedLayoutContent({ children, fullWidth = false }: UnifiedLayoutProp
               </div>
             </Link>
             <div className="flex items-center gap-3">
+              {/* Public navigation links - visible to all users */}
+              <Button variant="ghost" asChild>
+                <Link href="/nc-legislature" className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  NC Legislature
+                </Link>
+              </Button>
               {currentUser ? (
                 <Button asChild>
                   <Link href="/dashboard">Dashboard</Link>
