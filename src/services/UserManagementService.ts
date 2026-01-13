@@ -103,22 +103,23 @@ export class UserManagementService {
       const defaultPermissions = this.getDefaultPermissions(userData.role);
       
       // Prepare user profile data for Firestore
+      // Note: Firestore doesn't accept undefined values, so we use empty strings or omit optional fields
       const userProfile: UserProfile = {
         uid: user.uid,
         email: userData.email.toLowerCase(),
-        displayName: displayName,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
+        displayName: displayName || '',
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
         role: userData.role,
-        organization: userData.organization,
-        title: userData.title,
+        organization: userData.organization || '',
+        title: userData.title || '',
         isActive: userData.isActive !== undefined ? userData.isActive : false,
         pendingApproval: userData.pendingApproval !== undefined ? userData.pendingApproval : true,
         permissions: { ...defaultPermissions, ...(userData.permissions || {}) },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        photoURL: user.photoURL || undefined,
-        phoneNumber: user.phoneNumber || undefined,
+        ...(user.photoURL ? { photoURL: user.photoURL } : {}),
+        ...(user.phoneNumber ? { phoneNumber: user.phoneNumber } : {}),
       };
       
       console.log('Saving user profile to Firestore with ID:', user.uid);
