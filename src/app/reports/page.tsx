@@ -21,7 +21,7 @@ import {
   Tooltip,
   Divider
 } from '@mui/material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { 
   Add as AddIcon, 
@@ -410,18 +410,18 @@ function ReportsContent() {
   
   if (!currentUser) {
     return (
-      <UnifiedLayout>
+      <AdminLayout>
         <Box sx={{ py: 4, px: 2 }}>
           <Alert severity="warning">
             Please log in to access reports
           </Alert>
         </Box>
-      </UnifiedLayout>
+      </AdminLayout>
     );
   }
   
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4" component="h1">
@@ -663,7 +663,7 @@ function ReportsContent() {
         </Snackbar>
       )}
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

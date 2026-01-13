@@ -15,7 +15,7 @@ import {
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { getFirestore, doc, setDoc, Timestamp } from 'firebase/firestore';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 
 function AddAdminContent() {
   const [email, setEmail] = useState('brians@wl4wl.org');
@@ -132,9 +132,9 @@ function AddAdminContent() {
 export default function AddAdminPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <AddAdminContent />
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

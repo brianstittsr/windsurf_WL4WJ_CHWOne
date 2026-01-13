@@ -20,7 +20,7 @@ import {
 import Link from 'next/link';
 import FormsManagement from '@/components/Forms/FormsManagement';
 import BmadFormWizard from '@/components/Forms/BmadFormWizard';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
 // Inner component that uses the auth context
@@ -51,7 +51,7 @@ function FormsContent() {
   };
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         <Box sx={{ mb: 4 }}>
           <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Forms Management</Typography>
@@ -126,7 +126,7 @@ function FormsContent() {
           />
         </DialogContent>
       </Dialog>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

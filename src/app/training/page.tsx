@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Course } from '@/types/training.types';
 import Link from 'next/link';
@@ -160,7 +160,7 @@ function TrainingContent() {
   }
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         {/* Header */}
         <Box sx={{ mb: 6, textAlign: 'center' }}>
@@ -300,7 +300,7 @@ function TrainingContent() {
           </Box>
         )}
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Container, Typography, Box, Button, Paper, Grid } from '@mui/material';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import ClickableLink from '@/components/Layout/ClickableLink';
 import DebugButton from '@/components/Common/DebugButton';
 
@@ -16,7 +16,7 @@ import DebugButton from '@/components/Common/DebugButton';
 export default function ButtonTestPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <Container maxWidth="md" sx={{ py: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom>
             Button Clickability Test
@@ -156,7 +156,7 @@ export default function ButtonTestPage() {
             </ol>
           </Box>
         </Container>
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

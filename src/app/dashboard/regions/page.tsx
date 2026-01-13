@@ -5,7 +5,7 @@ import { Container, Typography, Grid, Card, CardContent, CardActionArea } from '
 import { useRouter } from 'next/navigation';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 
 const regions = [
   { id: 1, name: 'Region 1' },
@@ -29,7 +29,7 @@ function RegionsPageContent() {
     : regions.filter(region => userProfile?.organization === `region${region.id}`);
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Container>
         <Typography variant="h4" gutterBottom>
           Regions
@@ -50,7 +50,7 @@ function RegionsPageContent() {
           ))}
         </Grid>
       </Container>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

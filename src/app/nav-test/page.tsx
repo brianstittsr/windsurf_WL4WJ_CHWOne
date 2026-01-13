@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Container, Typography, Box, Button, List, ListItem, Paper, Alert } from '@mui/material';
 import { Check as CheckIcon, Error as ErrorIcon } from '@mui/icons-material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 function NavTestContent() {
@@ -101,9 +101,9 @@ function NavTestContent() {
 export default function NavTestPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <NavTestContent />
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

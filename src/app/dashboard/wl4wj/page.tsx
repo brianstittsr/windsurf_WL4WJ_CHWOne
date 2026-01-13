@@ -16,7 +16,7 @@ import {
   Event as EventIcon, Close as CloseIcon, AttachFile as AttachIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { WL4WJLogo } from '@/components/Logos';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { WL4WJService } from '@/services/WL4WJService';
@@ -150,7 +150,7 @@ function WL4WJDashboardContent() {
   ];
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 3 }}>
         <Box sx={{ mb: 4, textAlign: 'center' }}><WL4WJLogo size="large" /></Box>
 
@@ -364,7 +364,7 @@ function WL4WJDashboardContent() {
         </DialogContent>
         <DialogActions><Button onClick={() => setEventModalOpen(false)}>Cancel</Button><Button variant="contained" onClick={handleCreateEvent} disabled={saving}>{saving ? 'Creating...' : 'Add Event'}</Button></DialogActions>
       </Dialog>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

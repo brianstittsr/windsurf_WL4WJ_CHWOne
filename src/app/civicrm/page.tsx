@@ -13,7 +13,7 @@ import {
   Alert,
   Snackbar
 } from '@mui/material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Add as AddIcon } from '@mui/icons-material';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
@@ -99,18 +99,18 @@ function CiviCrmContent() {
   
   if (!currentUser) {
     return (
-      <UnifiedLayout>
+      <AdminLayout>
         <Box sx={{ py: 4, px: 2 }}>
           <Alert severity="warning">
             Please log in to access CiviCRM
           </Alert>
         </Box>
-      </UnifiedLayout>
+      </AdminLayout>
     );
   }
   
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4" component="h1">
@@ -205,7 +205,7 @@ function CiviCrmContent() {
         ) : <></>}
       </Snackbar>
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

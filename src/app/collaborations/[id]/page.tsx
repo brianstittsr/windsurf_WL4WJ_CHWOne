@@ -84,7 +84,7 @@ import {
   ExitToApp as ExitToAppIcon,
   Computer as ComputerIcon
 } from '@mui/icons-material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Grant } from '@/lib/schema/unified-schema';
 import { 
@@ -785,14 +785,14 @@ function CollaborationDetailContent() {
 
   if (!grant) {
     return (
-      <UnifiedLayout>
+      <AdminLayout>
         <Box sx={{ py: 4, px: 2 }}>
           <Alert severity="error">Collaboration not found</Alert>
           <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/collaborations')} sx={{ mt: 2 }}>
             Back to Collaborations
           </Button>
         </Box>
-      </UnifiedLayout>
+      </AdminLayout>
     );
   }
 
@@ -809,7 +809,7 @@ function CollaborationDetailContent() {
                       userProfile?.roles?.includes('NONPROFIT_STAFF' as any);
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -3154,7 +3154,7 @@ function CollaborationDetailContent() {
           document.body
         )}
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

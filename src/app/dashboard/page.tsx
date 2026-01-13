@@ -4,7 +4,7 @@ import React from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import DashboardContent from '@/components/Dashboard/DashboardContent';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
 // ULTRA-SIMPLIFIED Dashboard - NO blocking operations
@@ -22,9 +22,9 @@ function Dashboard() {
   }
   
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <DashboardContent />
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

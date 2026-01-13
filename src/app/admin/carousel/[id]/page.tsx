@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { CarouselService } from '@/lib/carousel-service';
 import { 
   CarouselSlide, 
@@ -644,9 +644,9 @@ function CarouselSlideEditorContent() {
 export default function CarouselSlideEditorPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <CarouselSlideEditorContent />
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

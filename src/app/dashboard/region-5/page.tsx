@@ -2,14 +2,14 @@
 
 import React from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import RegionDashboard from '@/components/Dashboard/RegionDashboard';
 
 function Region5PageContent() {
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <RegionDashboard regionId="region-5" />
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

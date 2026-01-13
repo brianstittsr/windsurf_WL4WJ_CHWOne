@@ -3,7 +3,7 @@
 import React from 'react';
 import { useParams } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import RegionDashboard from '@/components/Dashboard/RegionDashboard';
 
 function RegionPageContent() {
@@ -11,9 +11,9 @@ function RegionPageContent() {
   const regionId = params.regionId as string;
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <RegionDashboard regionId={regionId} />
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

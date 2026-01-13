@@ -4,7 +4,7 @@ import React from 'react';
 import { Container } from '@mui/material';
 import { useParams } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { SandhillsResourceForm } from '@/components/SandhillsResources';
 
 function EditResourcePageContent() {
@@ -12,11 +12,11 @@ function EditResourcePageContent() {
   const resourceId = params?.id as string;
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Container maxWidth="lg" sx={{ py: 3 }}>
         <SandhillsResourceForm resourceId={resourceId} />
       </Container>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

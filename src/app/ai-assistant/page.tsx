@@ -20,7 +20,7 @@ import {
   VerifiedUser as VerifiedUserIcon,
   Help as HelpIcon
 } from '@mui/icons-material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import ChatInterface from '@/components/AI/ChatInterface';
@@ -34,7 +34,7 @@ function AiAssistantContent() {
   }
   
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2, height: 'calc(100vh - 200px)' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" component="h1">
@@ -101,7 +101,7 @@ function AiAssistantContent() {
         <ChatInterface />
       </Paper>
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

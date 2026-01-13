@@ -39,7 +39,7 @@ import {
 import { useCarouselAdmin } from '@/hooks/useCarouselSlides';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { CarouselSlide } from '@/types/carousel.types';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 
 // Inner component that uses auth context
 function CarouselAdminContent() {
@@ -271,13 +271,13 @@ function CarouselAdminContent() {
   );
 }
 
-// Export wrapped component with AuthProvider and UnifiedLayout
+// Export wrapped component with AuthProvider and AdminLayout
 export default function CarouselAdminPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <CarouselAdminContent />
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

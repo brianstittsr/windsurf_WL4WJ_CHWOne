@@ -4,7 +4,7 @@ import React from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Box } from '@mui/material';
-import { SchemaManager, UnifiedLayout, AnimatedLoading } from '@/components';
+import { SchemaManager, AdminLayout, AnimatedLoading } from '@/components';
 import { UserRole } from '@/types/firebase/schema';
 
 // Inner component that uses the auth context
@@ -28,11 +28,11 @@ function SchemaManagerPage() {
   }
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         <SchemaManager />
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

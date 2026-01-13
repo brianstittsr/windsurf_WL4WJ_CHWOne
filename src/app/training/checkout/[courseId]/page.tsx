@@ -15,7 +15,7 @@ import {
   Alert
 } from '@mui/material';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import PaymentForm from '@/components/Training/PaymentForm';
 import { Course } from '@/types/training.types';
@@ -113,7 +113,7 @@ function CheckoutContent() {
 
   if (!course) {
     return (
-      <UnifiedLayout>
+      <AdminLayout>
         <Box sx={{ py: 4, px: 2 }}>
           <Alert severity="error">Course not found</Alert>
           <Button
@@ -124,12 +124,12 @@ function CheckoutContent() {
             Back to Courses
           </Button>
         </Box>
-      </UnifiedLayout>
+      </AdminLayout>
     );
   }
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         <Typography variant="h4" component="h1" sx={{ mb: 4, fontWeight: 700 }}>
           Checkout
@@ -297,7 +297,7 @@ function CheckoutContent() {
           </Grid>
         </Grid>
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

@@ -26,7 +26,7 @@ import {
   TrendingUp as TrendingUpIcon,
   Business as BusinessIcon
 } from '@mui/icons-material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Grant } from '@/lib/schema/unified-schema';
 
@@ -175,7 +175,7 @@ function CollaborationsContent() {
   }
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
@@ -386,7 +386,7 @@ function CollaborationsContent() {
           </Grid>
         )}
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

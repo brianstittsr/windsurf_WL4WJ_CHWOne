@@ -3,7 +3,7 @@
 import React from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 /**
@@ -17,7 +17,7 @@ export default function DashboardNotFound() {
   
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
           <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 700, color: '#1a365d' }}>
             Dashboard Not Found
@@ -67,7 +67,7 @@ export default function DashboardNotFound() {
             </Button>
           </Box>
         </Container>
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

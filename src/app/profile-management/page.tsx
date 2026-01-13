@@ -31,7 +31,7 @@ import {
   Edit as EditIcon,
   Visibility as ViewIcon
 } from '@mui/icons-material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/firebase/schema';
 import { useRouter } from 'next/navigation';
@@ -332,9 +332,9 @@ function ProfileManagementContent() {
 export default function ProfileManagementPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <ProfileManagementContent />
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

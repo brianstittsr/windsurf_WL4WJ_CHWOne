@@ -5,7 +5,7 @@ import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Region5Directory from '@/components/Resources/Region5Directory';
 import { Box, Typography } from '@mui/material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
 // Inner component that uses the auth context
@@ -23,13 +23,13 @@ function ResourcesContent() {
   }
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Resource Directory</Typography>
         <Typography color="text.secondary" sx={{ mb: 4 }}>Access healthcare resources, community services, and support networks.</Typography>
         <Region5Directory />
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

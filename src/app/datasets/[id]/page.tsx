@@ -38,7 +38,7 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -419,9 +419,9 @@ function DatasetViewContent() {
 export default function DatasetViewPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <DatasetViewContent />
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

@@ -17,7 +17,7 @@ import {
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 
 function FixFormContent() {
   const [formId, setFormId] = useState('');
@@ -205,9 +205,9 @@ function FixFormContent() {
 export default function FixFormPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <FixFormContent />
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

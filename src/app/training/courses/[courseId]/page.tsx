@@ -37,7 +37,7 @@ import {
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Course, Module, ContentBlock } from '@/types/training.types';
 import Link from 'next/link';
@@ -359,7 +359,7 @@ function CourseDetailContent() {
 
   if (!course) {
     return (
-      <UnifiedLayout>
+      <AdminLayout>
         <Box sx={{ py: 4, px: 2 }}>
           <Alert severity="error">Course not found</Alert>
           <Button
@@ -371,12 +371,12 @@ function CourseDetailContent() {
             Back to Courses
           </Button>
         </Box>
-      </UnifiedLayout>
+      </AdminLayout>
     );
   }
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         {/* Back Button */}
         <Button
@@ -612,7 +612,7 @@ function CourseDetailContent() {
           </DialogActions>
         </Dialog>
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

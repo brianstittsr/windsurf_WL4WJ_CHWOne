@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Button, CircularProgress, Alert, Card, CardContent, Avatar, Chip, Grid } from '@mui/material';
 import { LocationOn, Language, Work, Email } from '@mui/icons-material';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -47,19 +47,19 @@ function CHWProfileContent({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <UnifiedLayout>
+      <AdminLayout>
         <Container maxWidth="lg">
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
             <CircularProgress />
           </Box>
         </Container>
-      </UnifiedLayout>
+      </AdminLayout>
     );
   }
 
   if (error || !profileData) {
     return (
-      <UnifiedLayout>
+      <AdminLayout>
         <Container maxWidth="lg">
           <Box sx={{ py: 4 }}>
             <Button href="/chws" variant="outlined" sx={{ mb: 4 }}>
@@ -68,14 +68,14 @@ function CHWProfileContent({ id }: { id: string }) {
             <Alert severity="error">{error || 'Profile not found'}</Alert>
           </Box>
         </Container>
-      </UnifiedLayout>
+      </AdminLayout>
     );
   }
 
   const isOwner = currentUser?.uid === profileData.userId;
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Container maxWidth="lg">
         <Box sx={{ py: 4 }}>
           <Button href="/chws" variant="outlined" sx={{ mb: 4 }}>
@@ -193,7 +193,7 @@ function CHWProfileContent({ id }: { id: string }) {
           </Card>
         </Box>
       </Container>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

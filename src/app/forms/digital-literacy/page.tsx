@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import { 
   BilingualRegistrationForm, 
   InstructorDashboard,
@@ -193,7 +193,7 @@ function DigitalLiteracyContent() {
   };
 
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <div className="max-w-7xl mx-auto py-6 px-4">
         {/* Header */}
         <Card className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
@@ -472,7 +472,7 @@ function DigitalLiteracyContent() {
           </CardContent>
         </Card>
       </div>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 

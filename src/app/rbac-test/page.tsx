@@ -3,13 +3,13 @@
 import React from 'react';
 import { Container, Typography, Box } from '@mui/material';
 import { AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import RbacTestComponent from '@/components/RbacTestComponent';
 
 export default function RbacTestPage() {
   return (
     <AuthProvider>
-      <UnifiedLayout>
+      <AdminLayout>
         <Container maxWidth="md" sx={{ py: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom>
             RBAC Disabled Test Page
@@ -51,7 +51,7 @@ export default function RbacTestPage() {
             </ol>
           </Box>
         </Container>
-      </UnifiedLayout>
+      </AdminLayout>
     </AuthProvider>
   );
 }

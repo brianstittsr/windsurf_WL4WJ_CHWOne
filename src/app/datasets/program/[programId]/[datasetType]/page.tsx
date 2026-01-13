@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
-import UnifiedLayout from '@/components/Layout/UnifiedLayout';
+import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import {
   Box,
@@ -320,7 +320,7 @@ function ProgramDatasetContent() {
   }
   
   return (
-    <UnifiedLayout>
+    <AdminLayout>
       <Box sx={{ py: 4, px: 2 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -496,7 +496,7 @@ function ProgramDatasetContent() {
           </DialogActions>
         </Dialog>
       </Box>
-    </UnifiedLayout>
+    </AdminLayout>
   );
 }
 
