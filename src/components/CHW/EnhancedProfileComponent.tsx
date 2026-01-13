@@ -66,6 +66,8 @@ import {
   LANGUAGE_OPTIONS,
   NC_COUNTIES
 } from '@/types/chw-profile.types';
+import NonprofitLinker from './NonprofitLinker';
+import { Business } from '@mui/icons-material';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -101,7 +103,7 @@ export default function EnhancedProfileComponent({
   editable = true,
   onSave
 }: EnhancedProfileComponentProps) {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -639,6 +641,7 @@ export default function EnhancedProfileComponent({
             <Tab label="Professional" icon={<Work />} iconPosition="start" />
             <Tab label="Certification" icon={<CardMembership />} iconPosition="start" />
             <Tab label="Service Area" icon={<LocationOn />} iconPosition="start" />
+            <Tab label="Organization" icon={<Business />} iconPosition="start" />
             <Tab label="CHW Tools" icon={<Build />} iconPosition="start" />
             <Tab label="Privacy" icon={<Security />} iconPosition="start" />
             <Tab label="Social" icon={<Public />} iconPosition="start" />
@@ -1230,8 +1233,33 @@ export default function EnhancedProfileComponent({
           </Grid>
         </TabPanel>
 
-        {/* Tab 5: CHW Tools */}
+        {/* Tab 5: Organization */}
         <TabPanel value={activeTab} index={4}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                Linked Organization
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Link your CHW profile to the nonprofit organization you work with. This enables collaboration, referral tracking, and access to organizational resources.
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <NonprofitLinker
+                currentNonprofitId={userProfile?.linkedNonprofitId}
+                onNonprofitLinked={(id) => {
+                  console.log('Linked to nonprofit:', id);
+                }}
+                onNonprofitUnlinked={() => {
+                  console.log('Unlinked from nonprofit');
+                }}
+              />
+            </Grid>
+          </Grid>
+        </TabPanel>
+
+        {/* Tab 6: CHW Tools */}
+        <TabPanel value={activeTab} index={5}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
@@ -1489,8 +1517,8 @@ export default function EnhancedProfileComponent({
           </Grid>
         </TabPanel>
 
-        {/* Tab 6: Privacy */}
-        <TabPanel value={activeTab} index={5}>
+        {/* Tab 7: Privacy */}
+        <TabPanel value={activeTab} index={6}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
@@ -1569,8 +1597,8 @@ export default function EnhancedProfileComponent({
           </Grid>
         </TabPanel>
 
-        {/* Tab 7: Social Links */}
-        <TabPanel value={activeTab} index={6}>
+        {/* Tab 8: Social Links */}
+        <TabPanel value={activeTab} index={7}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
