@@ -9,6 +9,7 @@ import { COLLECTIONS } from '@/lib/schema/unified-schema';
 import {
   Card,
   CardContent,
+  CardActions,
   Typography,
   Grid,
   TextField,
@@ -57,7 +58,16 @@ import {
   ArrowForward,
   Warning,
   CheckCircle,
-  Error as ErrorIcon
+  Error as ErrorIcon,
+  Description,
+  Storage as StorageIcon,
+  Assessment,
+  SmartToy,
+  AttachMoney,
+  Send,
+  FolderSpecial,
+  LibraryBooks,
+  Groups
 } from '@mui/icons-material';
 import {
   CHWProfile,
@@ -1263,256 +1273,439 @@ export default function EnhancedProfileComponent({
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
-                Platform Tool Access
+                Platform Tools
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Control which CHWOne platform tools you have access to. These settings determine what features appear in your dashboard and navigation.
+                Access powerful tools designed to support your community health work. Click on any tool to get started.
               </Typography>
             </Grid>
 
+            {/* Tool Cards Grid */}
             <Grid item xs={12}>
-              <Paper variant="outlined" sx={{ p: 2 }}>
-                <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={profile.toolAccess?.forms ?? true}
-                          onChange={(e) => {
-                            const newAccess = { ...profile.toolAccess, forms: e.target.checked };
-                            handleInputChange('toolAccess', newAccess);
-                          }}
-                          disabled={!isEditing}
-                        />
+              <Grid container spacing={3}>
+                {/* Forms Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
                       }
-                      label={
-                        <Box>
-                          <Typography variant="body1">Forms</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Create and manage data collection forms
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      component={Link}
-                      href="/forms"
-                      size="small"
-                      sx={{ color: 'primary.main' }}
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                     >
-                      <ArrowForward />
-                    </IconButton>
-                  </Box>
-                  <Divider />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={profile.toolAccess?.datasets ?? true}
-                          onChange={(e) => {
-                            const newAccess = { ...profile.toolAccess, datasets: e.target.checked };
-                            handleInputChange('toolAccess', newAccess);
-                          }}
-                          disabled={!isEditing}
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1">Datasets</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Access and manage community health datasets
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      component={Link}
-                      href="/datasets"
-                      size="small"
-                      sx={{ color: 'primary.main' }}
-                    >
-                      <ArrowForward />
-                    </IconButton>
-                  </Box>
-                  <Divider />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={profile.toolAccess?.reports ?? true}
-                          onChange={(e) => {
-                            const newAccess = { ...profile.toolAccess, reports: e.target.checked };
-                            handleInputChange('toolAccess', newAccess);
-                          }}
-                          disabled={!isEditing}
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1">Reports</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Generate and view reports on community health
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      component={Link}
-                      href="/reports"
-                      size="small"
-                      sx={{ color: 'primary.main' }}
-                    >
-                      <ArrowForward />
-                    </IconButton>
-                  </Box>
-                  <Divider />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={profile.toolAccess?.aiAssistant ?? true}
-                          onChange={(e) => {
-                            const newAccess = { ...profile.toolAccess, aiAssistant: e.target.checked };
-                            handleInputChange('toolAccess', newAccess);
-                          }}
-                          disabled={!isEditing}
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1">AI Assistant</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Get AI-powered assistance for your work
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      component={Link}
-                      href="/ai-assistant"
-                      size="small"
-                      sx={{ color: 'primary.main' }}
-                    >
-                      <ArrowForward />
-                    </IconButton>
-                  </Box>
-                  <Divider />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={profile.toolAccess?.grants ?? true}
-                          onChange={(e) => {
-                            const newAccess = { ...profile.toolAccess, grants: e.target.checked };
-                            handleInputChange('toolAccess', newAccess);
-                          }}
-                          disabled={!isEditing}
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1">Grants</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Access grant opportunities and applications
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      component={Link}
-                      href="/grants"
-                      size="small"
-                      sx={{ color: 'primary.main' }}
-                    >
-                      <ArrowForward />
-                    </IconButton>
-                  </Box>
-                  <Divider />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={profile.toolAccess?.referrals ?? true}
-                          onChange={(e) => {
-                            const newAccess = { ...profile.toolAccess, referrals: e.target.checked };
-                            handleInputChange('toolAccess', newAccess);
-                          }}
-                          disabled={!isEditing}
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1">Referrals</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Manage client referrals to services and programs
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      component={Link}
-                      href="/referrals"
-                      size="small"
-                      sx={{ color: 'primary.main' }}
-                    >
-                      <ArrowForward />
-                    </IconButton>
-                  </Box>
-                  <Divider />
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={profile.toolAccess?.projects ?? true}
-                          onChange={(e) => {
-                            const newAccess = { ...profile.toolAccess, projects: e.target.checked };
-                            handleInputChange('toolAccess', newAccess);
-                          }}
-                          disabled={!isEditing}
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1">Projects</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            View and manage community health projects
-                          </Typography>
-                        </Box>
-                      }
-                      sx={{ flex: 1 }}
-                    />
-                    <IconButton
-                      component={Link}
-                      href="/projects"
-                      size="small"
-                      sx={{ color: 'primary.main' }}
-                    >
-                      <ArrowForward />
-                    </IconButton>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
+                      <Description sx={{ fontSize: 60, color: 'white', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Forms
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Create custom data collection forms and surveys. Collect community health data efficiently with mobile-friendly forms that work offline.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/forms" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Forms
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
 
-            <Grid item xs={12}>
-              <Alert severity="info">
-                <Typography variant="body2">
-                  <strong>Note:</strong> Tool access can be managed by your organization administrator. 
-                  Changes here reflect your personal preferences and may be subject to organizational policies.
-                </Typography>
-              </Alert>
+                {/* Datasets Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <StorageIcon sx={{ fontSize: 60, color: 'white', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Datasets
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Access and analyze community health datasets. View collected data, export reports, and track trends over time with powerful data tools.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/datasets" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Datasets
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                {/* Reports Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Assessment sx={{ fontSize: 60, color: 'white', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Reports
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Generate comprehensive reports on community health outcomes. Create visualizations, track KPIs, and share insights with stakeholders.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/reports" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Reports
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                {/* AI Assistant Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <SmartToy sx={{ fontSize: 60, color: 'white', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        AI Assistant
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Get AI-powered assistance for your community health work. Ask questions, get recommendations, and automate routine tasks with intelligent support.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/ai-assistant" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open AI Assistant
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                {/* Grants Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <AttachMoney sx={{ fontSize: 60, color: 'white', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Grants
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Discover and apply for grant opportunities. Track applications, manage deliverables, and report on funded projects all in one place.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/grants" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Grants
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                {/* Referrals Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Send sx={{ fontSize: 60, color: '#666', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Referrals
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Manage client referrals to services and programs. Connect community members with resources, track referral outcomes, and coordinate care.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/referrals" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Referrals
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                {/* Projects Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <FolderSpecial sx={{ fontSize: 60, color: 'white', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Projects
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        View and manage community health projects. Collaborate with team members, track milestones, and measure project impact.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/projects" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Projects
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                {/* Resources Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <LibraryBooks sx={{ fontSize: 60, color: '#666', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Resources
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Access a library of community health resources. Find educational materials, best practices, and tools to support your work.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/resources" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Resources
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+
+                {/* Collaborations Tool Card */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 4,
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: 140,
+                        background: 'linear-gradient(135deg, #c3cfe2 0%, #c3cfe2 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Groups sx={{ fontSize: 60, color: '#555', opacity: 0.9 }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Collaborations
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Connect and collaborate with other CHWs and organizations. Share knowledge, coordinate efforts, and build community partnerships.
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
+                      <Button 
+                        component={Link} 
+                        href="/collaborations" 
+                        size="small" 
+                        endIcon={<ArrowForward />}
+                        sx={{ ml: 1, mb: 1 }}
+                      >
+                        Open Collaborations
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
         </TabPanel>
