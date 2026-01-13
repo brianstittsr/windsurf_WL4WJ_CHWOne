@@ -123,18 +123,38 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
     setShowProfileModal(false);
   };
 
+  // Debug: Log if button should be shown
+  console.log('[OnboardingFlow] showLaunchButton:', showLaunchButton);
+
   return (
     <>
       {children}
       
-      {/* Launch Onboarding Button */}
+      {/* Launch Onboarding Button - Always visible on profile page */}
       {showLaunchButton && (
-        <div className="fixed bottom-6 right-6 z-40">
+        <div 
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 9999,
+          }}
+        >
           <Button
             onClick={launchOnboarding}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+            style={{
+              background: 'linear-gradient(to right, #2563eb, #7c3aed)',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontWeight: 600,
+            }}
           >
-            <PlayCircle className="h-4 w-4 mr-2" />
+            <PlayCircle style={{ width: '20px', height: '20px' }} />
             View Platform Tour
           </Button>
         </div>
