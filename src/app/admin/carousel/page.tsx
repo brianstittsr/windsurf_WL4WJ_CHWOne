@@ -37,10 +37,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useCarouselAdmin } from '@/hooks/useCarouselSlides';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { CarouselSlide } from '@/types/carousel.types';
 
-export default function CarouselAdminPage() {
+// Inner component that uses auth context
+function CarouselAdminContent() {
   const router = useRouter();
   const { currentUser } = useAuth();
   const { slides, loading, toggleActive, deleteSlide, duplicateSlide } = useCarouselAdmin();
@@ -266,5 +267,14 @@ export default function CarouselAdminPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+// Export wrapped component with AuthProvider
+export default function CarouselAdminPage() {
+  return (
+    <AuthProvider>
+      <CarouselAdminContent />
+    </AuthProvider>
   );
 }
