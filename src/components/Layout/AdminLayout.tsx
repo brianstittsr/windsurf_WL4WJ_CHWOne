@@ -521,11 +521,9 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
             </div>
           </header>
 
-          {/* Page Content */}
-          <div className="p-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              {children}
-            </div>
+          {/* Page Content - Full Width */}
+          <div className="p-4">
+            {children}
           </div>
         </main>
       </div>
