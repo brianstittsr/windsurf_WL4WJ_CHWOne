@@ -8,7 +8,7 @@ import { OnboardingFlow } from '@/components/Onboarding';
 
 function ProfilePageContent() {
   return (
-    <OnboardingFlow>
+    <OnboardingFlow showLaunchButton={true}>
       <UnifiedLayout>
         <div className="max-w-6xl mx-auto px-4">
           <div className="py-8">

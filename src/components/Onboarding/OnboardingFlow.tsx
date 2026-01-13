@@ -6,16 +6,25 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import WelcomeModal from './WelcomeModal';
 import ProfileCompletionModal, { ProfileFormData } from './ProfileCompletionModal';
+import { Button } from '@/components/ui/button';
+import { PlayCircle } from 'lucide-react';
 
 interface OnboardingFlowProps {
   children: React.ReactNode;
+  showLaunchButton?: boolean;
 }
 
-export default function OnboardingFlow({ children }: OnboardingFlowProps) {
+export default function OnboardingFlow({ children, showLaunchButton = false }: OnboardingFlowProps) {
   const { currentUser, userProfile } = useAuth();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
+
+  // Function to manually launch the onboarding flow
+  const launchOnboarding = () => {
+    console.log('[OnboardingFlow] Manually launching onboarding');
+    setShowWelcomeModal(true);
+  };
 
   useEffect(() => {
     // Debug logging
@@ -117,6 +126,19 @@ export default function OnboardingFlow({ children }: OnboardingFlowProps) {
   return (
     <>
       {children}
+      
+      {/* Launch Onboarding Button */}
+      {showLaunchButton && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <Button
+            onClick={launchOnboarding}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+          >
+            <PlayCircle className="h-4 w-4 mr-2" />
+            View Platform Tour
+          </Button>
+        </div>
+      )}
       
       <WelcomeModal 
         open={showWelcomeModal} 
