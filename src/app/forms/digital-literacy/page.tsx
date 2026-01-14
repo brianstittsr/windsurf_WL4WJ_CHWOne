@@ -511,27 +511,55 @@ function DigitalLiteracyContent() {
           </TabsContent>
 
           <TabsContent value="metrics" className="mt-6">
-            <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-[#0071E3]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <FileBarChart className="w-10 h-10 text-[#0071E3]" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Dashboard Link */}
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[#0071E3]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <LayoutDashboard className="w-8 h-8 text-[#0071E3]" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#1D1D1F] mb-2">
+                    Interactive Dashboard
+                  </h3>
+                  <p className="text-[#86868B] mb-4 text-sm">
+                    View real-time analytics with filtering and drill-down capabilities.
+                  </p>
+                  <p className="text-[#86868B] mb-4 text-sm">
+                    Vea análisis en tiempo real con capacidades de filtrado.
+                  </p>
+                  <a 
+                    href="/forms/digital-literacy/metrics"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#0071E3] text-white rounded-full font-medium hover:bg-[#0077ED] transition-colors shadow-lg text-sm"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    Open Dashboard | Abrir Panel
+                  </a>
                 </div>
-                <h3 className="text-2xl font-semibold text-[#1D1D1F] mb-3">
-                  Program Metrics Dashboard
-                </h3>
-                <p className="text-[#86868B] mb-6 max-w-md mx-auto">
-                  View comprehensive analytics, student progress, attendance rates, and instructor performance metrics.
-                </p>
-                <p className="text-[#86868B] mb-6 max-w-md mx-auto">
-                  Vea análisis completos, progreso de estudiantes, tasas de asistencia y métricas de rendimiento de instructores.
-                </p>
-                <a 
-                  href="/forms/digital-literacy/metrics"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-[#0071E3] text-white rounded-full font-medium hover:bg-[#0077ED] transition-colors shadow-lg"
-                >
-                  <LayoutDashboard className="w-5 h-5" />
-                  Open Full Dashboard | Abrir Panel Completo
-                </a>
+              </div>
+
+              {/* PDF Report Link */}
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[#34C759]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <FileBarChart className="w-8 h-8 text-[#34C759]" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#1D1D1F] mb-2">
+                    Program Status Report
+                  </h3>
+                  <p className="text-[#86868B] mb-4 text-sm">
+                    Generate a comprehensive PDF report with milestones, metrics, and student highlights.
+                  </p>
+                  <p className="text-[#86868B] mb-4 text-sm">
+                    Genere un informe PDF completo con hitos, métricas y destacados de estudiantes.
+                  </p>
+                  <a 
+                    href="/forms/digital-literacy/report"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#34C759] text-white rounded-full font-medium hover:bg-[#2DB84D] transition-colors shadow-lg text-sm"
+                  >
+                    <FileBarChart className="w-4 h-4" />
+                    Generate Report | Generar Informe
+                  </a>
+                </div>
               </div>
             </div>
           </TabsContent>
