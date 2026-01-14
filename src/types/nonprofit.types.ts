@@ -89,7 +89,7 @@ export interface IRSData {
   deductibilityCode?: number; // 1 = contributions are deductible
   
   // Filing History
-  latestFiling?: IRSFiling;
+  latestFiling?: IRSFiling | null;
   filingHistory?: IRSFiling[];
   
   // Data Source Metadata

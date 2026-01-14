@@ -201,7 +201,7 @@ class NonprofitSearchService {
           totalExpenses: details.filings[0].totalExpenses,
           totalAssets: details.filings[0].totalAssets,
           totalLiabilities: details.filings[0].totalLiabilities,
-        } : undefined,
+        } : null,
         filingHistory: details.filings?.map(f => ({
           taxPeriod: f.taxPeriod,
           taxYear: f.taxYear,
