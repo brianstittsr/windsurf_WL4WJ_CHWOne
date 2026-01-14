@@ -433,11 +433,56 @@ a[href]:hover,
 body > .MuiBackdrop-root {
   display: none !important;
 }
+
+/* ============================================
+   RADIX DIALOG/MODAL Z-INDEX FIX
+   Ensure dialogs appear above all other elements
+   ============================================ */
+
+/* Radix Dialog Overlay - highest priority */
+[data-radix-portal] {
+  z-index: 999999 !important;
+  position: relative !important;
+}
+
+[data-radix-portal] [role="dialog"],
+[data-radix-portal] [data-state="open"] {
+  z-index: 999999 !important;
+}
+
+/* Dialog overlay background */
+[data-radix-portal] > [data-state] {
+  z-index: 999998 !important;
+}
+
+/* Reset z-index for elements INSIDE the dialog - they should use normal stacking */
+[data-radix-portal] a[href],
+[data-radix-portal] button,
+[data-radix-portal] [role="button"],
+[data-radix-portal] .MuiButtonBase-root {
+  z-index: auto !important;
+  isolation: auto !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+/* Ensure dialog content is above overlay */
+[role="dialog"] {
+  z-index: 999999 !important;
+}
+
+/* Fix for elements bleeding through modal - exclude them when dialog is open */
+body:has([data-radix-portal]) a[href]:not([data-radix-portal] a[href]),
+body:has([data-radix-portal]) button:not([data-radix-portal] button),
+body:has([data-radix-portal]) [role="button"]:not([data-radix-portal] [role="button"]) {
+  z-index: 1 !important;
+}
+
 /* Super Aggressive Button Clickability Fix */
 .MuiButton-root, 
-button, 
-a[href], 
-[role="button"], 
+button:not([data-radix-portal] button), 
+a[href]:not([data-radix-portal] a[href]), 
+[role="button"]:not([data-radix-portal] [role="button"]), 
 .MuiButtonBase-root {
   isolation: isolate !important; /* Create a new stacking context */
   position: relative !important;
