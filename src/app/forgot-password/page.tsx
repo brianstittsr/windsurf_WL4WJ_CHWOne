@@ -4,23 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase/firebaseConfig';
-import { 
-  Container, 
-  TextField, 
-  Button, 
-  Alert, 
-  Box, 
-  Typography,
-  InputAdornment,
-  Card,
-  CardContent,
-  Link as MuiLink
-} from '@mui/material';
-import { 
-  Email as EmailIcon,
-  ArrowBack as ArrowBackIcon
-} from '@mui/icons-material';
 import Link from 'next/link';
+import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -39,7 +24,6 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('Please enter a valid email address');
@@ -55,7 +39,6 @@ export default function ForgotPasswordPage() {
     } catch (error: any) {
       console.error('Password reset error:', error);
       
-      // Handle specific Firebase errors
       switch (error.code) {
         case 'auth/user-not-found':
           setError('No account found with this email address');
@@ -75,131 +58,111 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: 4
-      }}
-    >
-      <Container maxWidth="sm">
-        <Card elevation={6}>
-          <CardContent sx={{ p: 4 }}>
-            {/* Header */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
-                Reset Password
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Enter your email address and we'll send you a link to reset your password
-              </Typography>
-            </Box>
+    <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-[#0071E3] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Mail className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">
+            Reset Password
+          </h1>
+          <p className="text-[#6E6E73] mt-2">
+            Enter your email address and we&apos;ll send you a link to reset your password
+          </p>
+        </div>
 
-            {/* Success Message */}
-            {success && (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                <Typography variant="body2" fontWeight="medium">
-                  Password reset email sent!
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Check your inbox for instructions to reset your password. 
-                  The link will expire in 1 hour.
-                </Typography>
-              </Alert>
-            )}
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          {/* Success Message */}
+          {success && (
+            <div className="mb-6 p-4 bg-[#34C759]/10 border border-[#34C759]/20 rounded-xl">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-[#34C759] mt-0.5" />
+                <div>
+                  <p className="font-medium text-[#34C759]">Password reset email sent!</p>
+                  <p className="text-sm text-[#6E6E73] mt-1">
+                    Check your inbox for instructions to reset your password. The link will expire in 1 hour.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-            {/* Error Message */}
-            {error && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {error}
-              </Alert>
-            )}
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-[#FF3B30]/10 border border-[#FF3B30]/20 rounded-xl">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-[#FF3B30]" />
+                <p className="text-sm text-[#FF3B30]">{error}</p>
+              </div>
+            </div>
+          )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                placeholder="user@example.com"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 3 }}
-                autoFocus
-              />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#86868B]" />
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  placeholder="user@example.com"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-[#F5F5F7] focus:outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20 transition-all disabled:opacity-50"
+                  autoFocus
+                />
+              </div>
+            </div>
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                disabled={loading}
-                sx={{ 
-                  mb: 2,
-                  py: 1.5,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5568d3 0%, #6a4190 100%)',
-                  }
-                }}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-[#0071E3] text-white font-medium hover:bg-[#0077ED] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Send Reset Link'
+              )}
+            </button>
+
+            {/* Back to Login Link */}
+            <div className="text-center pt-2">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 text-[#0071E3] hover:underline text-sm font-medium"
               >
-                {loading ? (
-                  <>
-                    <Box component="span" sx={{ mr: 1 }}>Sending...</Box>
-                  </>
-                ) : (
-                  'Send Reset Link'
-                )}
-              </Button>
+                <ArrowLeft className="w-4 h-4" />
+                Back to Login
+              </Link>
+            </div>
+          </form>
 
-              {/* Back to Login Link */}
-              <Box sx={{ textAlign: 'center' }}>
-                <Link href="/login" passHref legacyBehavior>
-                  <MuiLink
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      textDecoration: 'none',
-                      color: 'primary.main',
-                      '&:hover': {
-                        textDecoration: 'underline'
-                      }
-                    }}
-                  >
-                    <ArrowBackIcon sx={{ fontSize: 18, mr: 0.5 }} />
-                    Back to Login
-                  </MuiLink>
-                </Link>
-              </Box>
-            </form>
-
-            {/* Additional Help */}
-            {success && (
-              <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  <strong>Didn't receive the email?</strong>
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • Check your spam/junk folder<br />
-                  • Make sure you entered the correct email address<br />
-                  • Wait a few minutes and try again
-                </Typography>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+          {/* Additional Help */}
+          {success && (
+            <div className="mt-6 p-4 bg-[#F5F5F7] rounded-xl">
+              <p className="text-sm font-medium text-[#1D1D1F] mb-2">
+                Didn&apos;t receive the email?
+              </p>
+              <ul className="text-sm text-[#6E6E73] space-y-1">
+                <li>• Check your spam/junk folder</li>
+                <li>• Make sure you entered the correct email address</li>
+                <li>• Wait a few minutes and try again</li>
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -80,10 +80,7 @@ function HomeContentInner() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* CHW Card */}
-            <div 
-              className="apple-card p-8 text-left cursor-pointer group"
-              onClick={() => setShowCHWWizard(true)}
-            >
+            <div className="apple-card p-8 text-left group">
               <div className="w-14 h-14 bg-[#0071E3] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Users className="h-7 w-7 text-white" />
               </div>
@@ -93,16 +90,24 @@ function HomeContentInner() {
               <p className="text-[#6E6E73] mb-4 leading-relaxed">
                 Access resources, track certifications, connect with opportunities, and grow your career.
               </p>
-              <span className="apple-link flex items-center gap-1 text-sm">
-                Register as CHW <ArrowRight className="h-4 w-4" />
-              </span>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => setShowCHWWizard(true)}
+                  className="apple-link flex items-center gap-1 text-sm cursor-pointer"
+                >
+                  Register as CHW <ArrowRight className="h-4 w-4" />
+                </button>
+                <Link 
+                  href="/for-chws"
+                  className="apple-link flex items-center gap-1 text-sm text-[#6E6E73] hover:text-[#0071E3]"
+                >
+                  Learn more <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
 
             {/* Nonprofit Card */}
-            <div 
-              className="apple-card p-8 text-left cursor-pointer group"
-              onClick={() => setShowNonprofitWizard(true)}
-            >
+            <div className="apple-card p-8 text-left group">
               <div className="w-14 h-14 bg-[#34C759] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Building2 className="h-7 w-7 text-white" />
               </div>
@@ -112,16 +117,24 @@ function HomeContentInner() {
               <p className="text-[#6E6E73] mb-4 leading-relaxed">
                 Manage your CHW workforce, track outcomes, and demonstrate impact to funders.
               </p>
-              <span className="apple-link flex items-center gap-1 text-sm">
-                Register Organization <ArrowRight className="h-4 w-4" />
-              </span>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => setShowNonprofitWizard(true)}
+                  className="apple-link flex items-center gap-1 text-sm cursor-pointer"
+                >
+                  Register Organization <ArrowRight className="h-4 w-4" />
+                </button>
+                <Link 
+                  href="/for-nonprofits"
+                  className="apple-link flex items-center gap-1 text-sm text-[#6E6E73] hover:text-[#0071E3]"
+                >
+                  Learn more <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
 
             {/* Association Card */}
-            <div 
-              className="apple-card p-8 text-left cursor-pointer group"
-              onClick={() => setShowAssociationWizard(true)}
-            >
+            <div className="apple-card p-8 text-left group">
               <div className="w-14 h-14 bg-[#AF52DE] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Globe className="h-7 w-7 text-white" />
               </div>
@@ -131,9 +144,20 @@ function HomeContentInner() {
               <p className="text-[#6E6E73] mb-4 leading-relaxed">
                 Coordinate statewide initiatives, manage certifications, and support your members.
               </p>
-              <span className="apple-link flex items-center gap-1 text-sm">
-                Register Association <ArrowRight className="h-4 w-4" />
-              </span>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => setShowAssociationWizard(true)}
+                  className="apple-link flex items-center gap-1 text-sm cursor-pointer"
+                >
+                  Register Association <ArrowRight className="h-4 w-4" />
+                </button>
+                <Link 
+                  href="/for-associations"
+                  className="apple-link flex items-center gap-1 text-sm text-[#6E6E73] hover:text-[#0071E3]"
+                >
+                  Learn more <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -212,6 +236,7 @@ function HomeContentInner() {
               <h4 className="text-xs font-semibold text-[#1D1D1F] mb-4">For You</h4>
               <ul className="space-y-2">
                 <li><Link href="/for-chws" className="text-xs text-[#6E6E73] hover:text-[#1D1D1F]">For CHWs</Link></li>
+                <li><Link href="/for-nonprofits" className="text-xs text-[#6E6E73] hover:text-[#1D1D1F]">For Nonprofits</Link></li>
                 <li><Link href="/for-associations" className="text-xs text-[#6E6E73] hover:text-[#1D1D1F]">For Associations</Link></li>
                 <li><Link href="/training" className="text-xs text-[#6E6E73] hover:text-[#1D1D1F]">Training</Link></li>
               </ul>

@@ -675,12 +675,29 @@ export default function AdminUsers() {
         </Paper>
       )}
       
-      {/* User Creation/Editing Dialog */}
-      <Dialog open={openUserDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
+      {/* User Creation/Editing Dialog - Apple Style */}
+      <Dialog 
+        open={openUserDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          fontSize: '1.25rem', 
+          fontWeight: 600, 
+          color: '#1D1D1F',
+          borderBottom: '1px solid #D2D2D7',
+          pb: 2
+        }}>
           {isEditMode ? 'Edit User' : 'Create New User'}
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent sx={{ pt: 3 }}>
           {error && (
             <Alert severity="error" sx={{ mb: 3 }}>
               {error}
@@ -882,11 +899,29 @@ export default function AdminUsers() {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+        <DialogActions sx={{ borderTop: '1px solid #D2D2D7', p: 2 }}>
+          <Button 
+            onClick={handleCloseDialog}
+            sx={{ 
+              color: '#0071E3',
+              textTransform: 'none',
+              fontWeight: 500,
+              '&:hover': { backgroundColor: 'rgba(0, 113, 227, 0.08)' }
+            }}
+          >
+            Cancel
+          </Button>
           <Button 
             variant="contained" 
             onClick={isEditMode ? handleUpdateUser : handleCreateUser}
+            sx={{
+              backgroundColor: '#0071E3',
+              textTransform: 'none',
+              fontWeight: 500,
+              borderRadius: '8px',
+              px: 3,
+              '&:hover': { backgroundColor: '#0077ED' }
+            }}
           >
             {isEditMode ? 'Update User' : 'Create User'}
           </Button>

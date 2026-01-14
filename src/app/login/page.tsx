@@ -4,16 +4,9 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle, Users, Building2, Globe, Landmark } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Image from 'next/image';
+import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, Users, Building2, Globe, Landmark } from 'lucide-react';
+import AppleNav from '@/components/Layout/AppleNav';
 
 function LoginFormContent() {
   const { signIn } = useAuth();
@@ -39,41 +32,36 @@ function LoginFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [loginType, setLoginType] = useState<'chw' | 'nonprofit' | 'association' | 'state' | null>(null);
 
   const loginTypeConfig = {
     chw: {
-      title: 'Community Health Worker',
+      title: 'CHW',
+      fullTitle: 'Community Health Worker',
       description: 'Access your CHW dashboard, resources, and referral tools',
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
+      color: '#0071E3',
     },
     nonprofit: {
-      title: 'Nonprofit Organization',
+      title: 'Nonprofit',
+      fullTitle: 'Nonprofit Organization',
       description: 'Manage services, receive referrals, and track impact',
       icon: Building2,
-      color: 'text-teal-600',
-      bgColor: 'bg-teal-50',
-      borderColor: 'border-teal-200',
+      color: '#34C759',
     },
     association: {
-      title: 'CHW Association',
+      title: 'Association',
+      fullTitle: 'CHW Association',
       description: 'Coordinate statewide CHW activities and training',
       icon: Globe,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
+      color: '#AF52DE',
     },
     state: {
-      title: 'State Agency',
+      title: 'State',
+      fullTitle: 'State Agency',
       description: 'Access workforce data, grants, and policy tools',
       icon: Landmark,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      borderColor: 'border-indigo-200',
+      color: '#FF9500',
     },
   };
 
@@ -102,7 +90,6 @@ function LoginFormContent() {
     
     try {
       await signIn(email, password);
-      // Redirect to profile page after login
       const redirectUrl = searchParams?.get('redirect') || '/profile';
       console.log('[LOGIN] Redirecting to profile page:', redirectUrl);
       router.push(redirectUrl);
@@ -132,198 +119,213 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 p-4">
-      <Card className="w-full max-w-lg shadow-xl border-0 bg-white/95 backdrop-blur-xl">
-        <CardHeader className="space-y-1 text-center pb-4">
-          <CardTitle className="text-3xl font-bold text-slate-800">
-            CHWOne Platform
-          </CardTitle>
-          <CardDescription className="text-slate-500">
-            Select your account type and sign in
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          {/* Login Type Selector */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-slate-700 text-center">Select your account type:</p>
-            <div className="grid grid-cols-4 gap-2">
-              {(['chw', 'nonprofit', 'association', 'state'] as const).map((type) => {
-                const config = loginTypeConfig[type];
-                const isSelected = loginType === type;
-                const IconComponent = config.icon;
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setLoginType(type)}
-                    className={cn(
-                      'flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all duration-300',
-                      'hover:scale-105 hover:shadow-md',
-                      isSelected 
-                        ? cn(config.bgColor, config.borderColor, 'shadow-md scale-105')
-                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                    )}
-                  >
-                    <IconComponent 
-                      className={cn(
-                        'h-6 w-6 transition-all duration-300',
-                        isSelected ? cn(config.color, 'scale-110') : 'text-slate-400'
-                      )} 
-                    />
-                    <span className={cn(
-                      'text-xs font-medium transition-colors duration-300',
-                      isSelected ? config.color : 'text-slate-500'
-                    )}>
-                      {type === 'chw' ? 'CHW' : 
-                       type === 'nonprofit' ? 'Nonprofit' : 
-                       type === 'association' ? 'Association' : 'State'}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#F5F5F7]">
+      <AppleNav variant="light" />
 
-          {/* Selected Login Type Info */}
-          {currentConfig ? (
-            <div className={cn(
-              'p-3 rounded-lg border flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300',
-              currentConfig.bgColor,
-              currentConfig.borderColor
-            )}>
-              <currentConfig.icon className={cn('h-8 w-8 transition-all duration-300', currentConfig.color)} />
-              <div>
-                <p className={cn('font-semibold text-sm', currentConfig.color)}>{currentConfig.title}</p>
-                <p className="text-xs text-slate-500">{currentConfig.description}</p>
-              </div>
+      <div className="flex items-center justify-center min-h-[calc(100vh-44px)] py-12 px-4">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <Image 
+                src="/images/CHWOneLogoDesign.png" 
+                alt="CHWOne" 
+                width={60} 
+                height={60} 
+                className="rounded-2xl"
+              />
             </div>
-          ) : (
-            <div className="p-3 rounded-lg border border-amber-200 bg-amber-50 text-center">
-              <p className="text-sm text-amber-700 font-medium">Please select your account type above to continue</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className={cn(
-            'space-y-4 transition-all duration-300',
-            !loginType && 'opacity-50 pointer-events-none'
-          )}>
-            {error && (
-              <Alert variant="destructive" className="bg-red-50 border-red-200">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="user@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-11"
-                  required
-                  disabled={!loginType}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-11"
-                  required
-                  disabled={!loginType}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 z-10"
-                  disabled={!loginType}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  disabled={!loginType}
-                />
-                <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-                  Remember me
-                </Label>
-              </div>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-primary hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            
-            <Button
-              type="submit"
-              className="w-full bg-slate-800 hover:bg-slate-900"
-              disabled={loading || !loginType}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Sign In
-                </>
-              )}
-            </Button>
-          </form>
-          
-          <div className="text-center text-sm text-slate-500">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary font-medium hover:underline">
-              Register here
-            </Link>
-          </div>
-          
-          <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-            <span className={cn(
-              "w-2 h-2 rounded-full",
-              isOnline ? "bg-green-500" : "bg-red-500"
-            )} />
-            {isOnline ? 'Online' : 'Offline'}
-          </div>
-          
-          <Separator />
-          
-          <div className="text-center space-y-2">
-            <p className="text-sm text-slate-500">Need quick access?</p>
-            <Button variant="outline" size="sm" onClick={fillDemoCredentials}>
-              Use Demo Account
-            </Button>
-            <p className="text-xs text-slate-400">
-              Email: admin@example.com | Password: admin123
+            <h1 className="apple-headline text-[#1D1D1F] mb-2">
+              Sign in to CHWOne
+            </h1>
+            <p className="text-[#6E6E73]">
+              Select your account type and sign in
             </p>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            {/* Account Type Selector */}
+            <div className="mb-6">
+              <p className="text-sm font-medium text-[#1D1D1F] text-center mb-4">Select your account type:</p>
+              <div className="grid grid-cols-4 gap-2">
+                {(['chw', 'nonprofit', 'association', 'state'] as const).map((type) => {
+                  const config = loginTypeConfig[type];
+                  const isSelected = loginType === type;
+                  const IconComponent = config.icon;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setLoginType(type)}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        isSelected 
+                          ? 'border-[#0071E3] bg-[#F5F5F7] scale-105 shadow-md'
+                          : 'border-[#D2D2D7] bg-white hover:border-[#86868B] hover:bg-[#F5F5F7]'
+                      }`}
+                      style={isSelected ? { borderColor: config.color } : {}}
+                    >
+                      <IconComponent 
+                        className="h-6 w-6 transition-all"
+                        style={{ color: isSelected ? config.color : '#86868B' }}
+                      />
+                      <span 
+                        className="text-xs font-medium transition-colors"
+                        style={{ color: isSelected ? config.color : '#6E6E73' }}
+                      >
+                        {config.title}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected Type Info */}
+            {currentConfig ? (
+              <div 
+                className="p-4 rounded-xl mb-6 flex items-center gap-3"
+                style={{ backgroundColor: `${currentConfig.color}10` }}
+              >
+                <currentConfig.icon className="h-8 w-8" style={{ color: currentConfig.color }} />
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: currentConfig.color }}>
+                    {currentConfig.fullTitle}
+                  </p>
+                  <p className="text-xs text-[#6E6E73]">{currentConfig.description}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl mb-6 bg-[#FFF3CD] text-center">
+                <p className="text-sm text-[#856404] font-medium">Please select your account type above to continue</p>
+              </div>
+            )}
+
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} className={`space-y-4 ${!loginType ? 'opacity-50 pointer-events-none' : ''}`}>
+              {error && (
+                <div className="p-4 rounded-xl bg-[#FFEBEE] border border-[#FFCDD2]">
+                  <p className="text-sm text-[#C62828]">{error}</p>
+                </div>
+              )}
+              
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#86868B]" />
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="user@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-[#F5F5F7] focus:outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20 transition-all"
+                    required
+                    disabled={!loginType}
+                  />
+                </div>
+              </div>
+              
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#86868B]" />
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-12 py-3 rounded-xl border border-[#D2D2D7] bg-[#F5F5F7] focus:outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20 transition-all"
+                    required
+                    disabled={!loginType}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#86868B] hover:text-[#1D1D1F]"
+                    disabled={!loginType}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Forgot Password */}
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-[#0071E3] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-[#0071E3] text-white font-medium hover:bg-[#0077ED] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !loginType}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-5 w-5" />
+                    Sign In
+                  </>
+                )}
+              </button>
+            </form>
+            
+            {/* Divider */}
+            <div className="flex items-center gap-4 my-6">
+              <div className="flex-1 h-px bg-[#D2D2D7]" />
+              <span className="text-xs text-[#86868B]">or</span>
+              <div className="flex-1 h-px bg-[#D2D2D7]" />
+            </div>
+            
+            {/* Demo Account */}
+            <div className="text-center">
+              <p className="text-sm text-[#6E6E73] mb-2">Need quick access?</p>
+              <button
+                onClick={fillDemoCredentials}
+                className="px-4 py-2 rounded-xl border border-[#D2D2D7] text-sm text-[#1D1D1F] hover:bg-[#F5F5F7] transition-colors"
+              >
+                Use Demo Account
+              </button>
+              <p className="text-xs text-[#86868B] mt-2">
+                admin@example.com / admin123
+              </p>
+            </div>
+          </div>
+
+          {/* Register Link */}
+          <div className="text-center mt-6">
+            <p className="text-sm text-[#6E6E73]">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="text-[#0071E3] font-medium hover:underline">
+                Register here
+              </Link>
+            </p>
+          </div>
+
+          {/* Network Status */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#34C759]' : 'bg-[#FF3B30]'}`} />
+            <span className="text-xs text-[#86868B]">{isOnline ? 'Online' : 'Offline'}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -332,8 +334,8 @@ export default function LoginPage() {
   return (
     <AuthProvider>
       <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#86868B]" />
         </div>
       }>
         <LoginFormContent />

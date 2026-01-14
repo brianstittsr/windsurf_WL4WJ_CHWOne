@@ -127,6 +127,70 @@ export class UserManagementService {
       await setDoc(doc(db, 'users', user.uid), userProfile);
       console.log('User profile saved to Firestore successfully');
       
+      // Also create a CHW profile for CHW users so profile page works
+      if (userData.role === UserRole.CHW || userData.role === UserRole.WL4WJ_CHW) {
+        try {
+          const nameParts = displayName ? displayName.trim().split(' ') : [];
+          const firstName = userData.firstName || (nameParts.length > 0 ? nameParts[0] : '');
+          const lastName = userData.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : '');
+          
+          const chwProfile = {
+            userId: user.uid,
+            firstName: firstName,
+            lastName: lastName,
+            displayName: displayName || '',
+            email: userData.email.toLowerCase(),
+            phone: '',
+            professional: {
+              headline: '',
+              bio: '',
+              expertise: [],
+              languages: ['English'],
+              availableForOpportunities: true,
+              yearsOfExperience: 0,
+              specializations: [],
+              currentOrganization: userData.organization || '',
+              currentPosition: userData.title || ''
+            },
+            serviceArea: {
+              region: '',
+              countiesWorkedIn: [],
+              countyResideIn: ''
+            },
+            certification: {
+              certificationNumber: '',
+              certificationStatus: 'not_certified'
+            },
+            contactPreferences: {
+              allowDirectMessages: true,
+              showEmail: false,
+              showPhone: false,
+              showAddress: false
+            },
+            membership: {
+              dateRegistered: serverTimestamp(),
+              includeInDirectory: true
+            },
+            toolAccess: {
+              referrals: true,
+              forms: true,
+              datasets: false,
+              reports: false,
+              aiAssistant: false,
+              grants: false,
+              projects: false
+            },
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          
+          await setDoc(doc(db, 'chwProfiles', user.uid), chwProfile);
+          console.log('CHW profile created for user:', user.uid);
+        } catch (chwError) {
+          console.warn('Could not create CHW profile:', chwError);
+        }
+      }
+      
       // Double-check that the user was created properly
       const savedUser = await this.getUserById(user.uid);
       if (!savedUser) {
@@ -252,18 +316,25 @@ export class UserManagementService {
   static async getAdminUsers(): Promise<UserProfile[]> {
     try {
       console.log('Fetching admin users specifically from Firestore...');
+      // Avoid composite index requirement by filtering without orderBy
       const q = query(
         collection(db, 'users'), 
-        where('role', '==', UserRole.ADMIN),
-        orderBy('createdAt', 'desc')
+        where('role', '==', UserRole.ADMIN)
       );
       
       const querySnapshot = await getDocs(q);
       console.log(`Retrieved ${querySnapshot.size} admin users`);
       
-      return querySnapshot.docs.map(doc => {
+      const users = querySnapshot.docs.map(doc => {
         const userData = doc.data();
         return this.formatUserProfile(doc.id, userData);
+      });
+      
+      // Sort in memory by createdAt descending
+      return users.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
       });
     } catch (error) {
       console.error('Error getting admin users:', error);
@@ -288,8 +359,47 @@ export class UserManagementService {
         updatedAt: serverTimestamp()
       };
       
-      // Update Firestore document
+      // Update Firestore document in users collection
       await updateDoc(doc(db, 'users', uid), updateData);
+      
+      // Also sync relevant fields to CHW profile if it exists
+      if (updates.displayName || updates.firstName || updates.lastName || updates.phoneNumber || updates.photoURL) {
+        try {
+          const chwProfileRef = doc(db, 'chwProfiles', uid);
+          const chwProfileSnap = await getDoc(chwProfileRef);
+          
+          if (chwProfileSnap.exists()) {
+            const chwUpdates: Record<string, any> = {
+              updatedAt: serverTimestamp()
+            };
+            
+            // Sync displayName
+            if (updates.displayName) {
+              chwUpdates.displayName = updates.displayName;
+              // Try to split displayName into firstName and lastName
+              const nameParts = updates.displayName.trim().split(' ');
+              if (nameParts.length >= 2) {
+                chwUpdates.firstName = nameParts[0];
+                chwUpdates.lastName = nameParts.slice(1).join(' ');
+              } else if (nameParts.length === 1) {
+                chwUpdates.firstName = nameParts[0];
+              }
+            }
+            
+            // Sync individual name fields if provided
+            if (updates.firstName) chwUpdates.firstName = updates.firstName;
+            if (updates.lastName) chwUpdates.lastName = updates.lastName;
+            if (updates.phoneNumber) chwUpdates.phone = updates.phoneNumber;
+            if (updates.photoURL) chwUpdates.profilePicture = updates.photoURL;
+            
+            await updateDoc(chwProfileRef, chwUpdates);
+            console.log('Synced user updates to CHW profile:', uid);
+          }
+        } catch (chwError) {
+          // Don't fail the main update if CHW profile sync fails
+          console.warn('Could not sync to CHW profile (may not exist):', chwError);
+        }
+      }
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;

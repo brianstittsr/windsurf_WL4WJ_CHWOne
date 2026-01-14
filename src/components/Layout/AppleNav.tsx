@@ -29,8 +29,6 @@ export default function AppleNav({ variant = 'light' }: AppleNavProps) {
     { href: '/about', label: 'About' },
     { href: '/services', label: 'Services' },
     { href: '/products', label: 'Products' },
-    { href: '/for-chws', label: 'For CHWs' },
-    { href: '/for-associations', label: 'For Associations' },
   ];
 
   const bgClass = variant === 'dark' 

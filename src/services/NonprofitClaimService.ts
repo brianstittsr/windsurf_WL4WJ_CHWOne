@@ -78,7 +78,7 @@ export class NonprofitClaimService {
       const claimData = {
         resourceId: input.resourceId,
         organizationName: input.organizationName,
-        ein: input.ein.replace(/\D/g, ''), // Store only digits
+        ein: String(input.ein || '').replace(/\D/g, ''), // Store only digits
         claimantUserId: userId,
         claimantEmail: input.claimantEmail,
         claimantName: input.claimantName,
@@ -110,9 +110,13 @@ export class NonprofitClaimService {
    * Lookup EIN using IRS database (via API)
    * In production, this would call a real EIN verification API
    */
-  static async lookupEIN(ein: string): Promise<EINLookupData | null> {
+  static async lookupEIN(ein: string | number | undefined | null): Promise<EINLookupData | null> {
     try {
-      const cleanEIN = ein.replace(/\D/g, '');
+      if (ein === undefined || ein === null) {
+        return null;
+      }
+      const einString = String(ein);
+      const cleanEIN = einString.replace(/\D/g, '');
       
       if (cleanEIN.length !== 9) {
         return null;

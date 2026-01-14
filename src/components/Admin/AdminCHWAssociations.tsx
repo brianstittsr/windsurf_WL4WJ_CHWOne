@@ -53,18 +53,87 @@ import CHWAssociationService from '@/services/ChwAssociationService';
 import StateService from '@/services/StateService';
 import { CHWAssociation, WithDate, State, ApprovalStatus } from '@/types/hierarchy';
 
-// Association form data interface
+// Program types matching public wizard
+const PROGRAM_TYPES = [
+  'CHW Training & Certification',
+  'Continuing Education',
+  'Professional Development',
+  'Networking Events',
+  'Advocacy & Policy',
+  'Research & Data Collection',
+  'Resource Coordination',
+  'Quality Assurance',
+  'Mentorship Programs',
+  'Community Outreach',
+  'Grant Writing Support',
+  'Technical Assistance'
+];
+
+// Membership tiers matching public wizard
+const MEMBERSHIP_TIERS = [
+  'Individual CHW Members',
+  'Organizational Members',
+  'Student Members',
+  'Associate Members',
+  'Honorary Members'
+];
+
+// Form address structure (simpler than hierarchy Address type)
+interface FormAddress {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+// Form contact info structure (simpler than hierarchy ContactInfo type)
+interface FormContactInfo {
+  email: string;
+  phone: string;
+  website: string;
+  address: FormAddress;
+}
+
+// Association form data interface - expanded to match public wizard
 interface AssociationFormData {
+  // Basic Info
   name: string;
-  description: string;
+  acronym: string;
   stateId: string;
-  contactInfo: {
-    email: string;
-    phone?: string;
-    website?: string;
-  };
-  logo?: string;
-  primaryColor?: string;
+  yearFounded: string;
+  ein: string;
+  mission: string;
+  vision: string;
+  description: string;
+  
+  // Leadership & Contact
+  executiveDirectorName: string;
+  executiveDirectorEmail: string;
+  executiveDirectorPhone: string;
+  boardChairName: string;
+  boardChairEmail: string;
+  contactInfo: FormContactInfo;
+  
+  // Programs & Services
+  programsOffered: string[];
+  certificationProgram: boolean;
+  trainingProgram: boolean;
+  advocacyActivities: string;
+  partnerOrganizations: string;
+  
+  // Membership & Structure
+  membershipTiers: string[];
+  currentMemberCount: number;
+  chwMemberCount: number;
+  organizationalMemberCount: number;
+  annualMembershipFee: string;
+  governanceStructure: string;
+  
+  // Branding
+  logo: string;
+  primaryColor: string;
+  
+  // Status
   isActive: boolean;
   approvalStatus: ApprovalStatus;
 }
@@ -102,20 +171,63 @@ export default function AdminCHWAssociations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // State for association creation/editing
-  const [openAssociationDialog, setOpenAssociationDialog] = useState(false);
-  const [associationFormData, setAssociationFormData] = useState<AssociationFormData>({
+  // Default form data matching all fields from public wizard
+  const getDefaultFormData = (): AssociationFormData => ({
+    // Basic Info
     name: '',
-    description: '',
+    acronym: '',
     stateId: '',
+    yearFounded: '',
+    ein: '',
+    mission: '',
+    vision: '',
+    description: '',
+    
+    // Leadership & Contact
+    executiveDirectorName: '',
+    executiveDirectorEmail: '',
+    executiveDirectorPhone: '',
+    boardChairName: '',
+    boardChairEmail: '',
     contactInfo: {
       email: '',
       phone: '',
       website: '',
+      address: {
+        street: '',
+        city: '',
+        state: '',
+        zipCode: ''
+      }
     },
+    
+    // Programs & Services
+    programsOffered: [],
+    certificationProgram: false,
+    trainingProgram: false,
+    advocacyActivities: '',
+    partnerOrganizations: '',
+    
+    // Membership & Structure
+    membershipTiers: [],
+    currentMemberCount: 0,
+    chwMemberCount: 0,
+    organizationalMemberCount: 0,
+    annualMembershipFee: '',
+    governanceStructure: '',
+    
+    // Branding
+    logo: '',
+    primaryColor: '',
+    
+    // Status
     isActive: true,
     approvalStatus: 'pending',
   });
+
+  // State for association creation/editing
+  const [openAssociationDialog, setOpenAssociationDialog] = useState(false);
+  const [associationFormData, setAssociationFormData] = useState<AssociationFormData>(getDefaultFormData());
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingAssociationId, setEditingAssociationId] = useState<string | null>(null);
   
@@ -174,18 +286,7 @@ export default function AdminCHWAssociations() {
   
   // Reset form data for creating a new association
   const resetAssociationForm = () => {
-    setAssociationFormData({
-      name: '',
-      description: '',
-      stateId: '',
-      contactInfo: {
-        email: '',
-        phone: '',
-        website: '',
-      },
-      isActive: true,
-      approvalStatus: 'pending',
-    });
+    setAssociationFormData(getDefaultFormData());
     setIsEditMode(false);
     setEditingAssociationId(null);
   };
@@ -198,17 +299,58 @@ export default function AdminCHWAssociations() {
   
   // Open dialog to edit an existing association
   const handleOpenEditDialog = (association: WithDate<CHWAssociation>) => {
+    // Get any extended data that might be stored
+    const extData = association as any;
+    
     setAssociationFormData({
+      // Basic Info
       name: association.name,
-      description: association.description || '',
+      acronym: extData.acronym || association.abbreviation || '',
       stateId: association.stateId,
+      yearFounded: extData.yearFounded?.toString() || '',
+      ein: extData.ein || '',
+      mission: extData.mission || '',
+      vision: extData.vision || '',
+      description: association.description || '',
+      
+      // Leadership & Contact
+      executiveDirectorName: extData.executiveDirectorName || '',
+      executiveDirectorEmail: extData.executiveDirectorEmail || '',
+      executiveDirectorPhone: extData.executiveDirectorPhone || '',
+      boardChairName: extData.boardChairName || '',
+      boardChairEmail: extData.boardChairEmail || '',
       contactInfo: {
-        email: association.contactInfo.email,
-        phone: association.contactInfo.phone,
-        website: association.contactInfo.website,
+        email: association.contactInfo?.email || '',
+        phone: association.contactInfo?.phone || '',
+        website: association.contactInfo?.website || '',
+        address: {
+          street: association.contactInfo?.address?.street1 || extData.mailingAddress?.street || '',
+          city: association.contactInfo?.address?.city || extData.mailingAddress?.city || '',
+          state: association.contactInfo?.address?.state || extData.mailingAddress?.state || '',
+          zipCode: association.contactInfo?.address?.zipCode || extData.mailingAddress?.zipCode || ''
+        }
       },
-      logo: association.logo,
-      primaryColor: association.primaryColor,
+      
+      // Programs & Services
+      programsOffered: extData.programsOffered || [],
+      certificationProgram: extData.certificationProgram || false,
+      trainingProgram: extData.trainingProgram || false,
+      advocacyActivities: extData.advocacyActivities || '',
+      partnerOrganizations: extData.partnerOrganizations || '',
+      
+      // Membership & Structure
+      membershipTiers: extData.membershipTiers || [],
+      currentMemberCount: extData.currentMemberCount || 0,
+      chwMemberCount: extData.chwMemberCount || 0,
+      organizationalMemberCount: extData.organizationalMemberCount || 0,
+      annualMembershipFee: extData.annualMembershipFee || '',
+      governanceStructure: extData.governanceStructure || '',
+      
+      // Branding
+      logo: association.logo || '',
+      primaryColor: association.primaryColor || '',
+      
+      // Status
       isActive: association.isActive,
       approvalStatus: association.approvalStatus || 'pending',
     });
@@ -225,17 +367,31 @@ export default function AdminCHWAssociations() {
   // Handle form field changes
   const handleFormChange = (field: string, value: any) => {
     setAssociationFormData(prev => {
-      // Create a copy of the current state
-      const newState = { ...prev };
+      // Handle nested contactInfo.address fields
+      if (field.startsWith('contactInfo.address.')) {
+        const addressField = field.split('.')[2];
+        return {
+          ...prev,
+          contactInfo: {
+            ...prev.contactInfo,
+            address: {
+              ...prev.contactInfo.address,
+              [addressField]: value
+            }
+          }
+        };
+      }
       
       // Handle nested contactInfo fields
       if (field.startsWith('contactInfo.')) {
         const contactField = field.split('.')[1];
-        newState.contactInfo = {
-          ...prev.contactInfo,
-          [contactField]: value
+        return {
+          ...prev,
+          contactInfo: {
+            ...prev.contactInfo,
+            [contactField]: value
+          }
         };
-        return newState;
       }
       
       // Handle top-level fields
@@ -254,26 +410,61 @@ export default function AdminCHWAssociations() {
         return;
       }
       
+      // Convert form contact info to service ContactInfo format
+      const serviceContactInfo = {
+        email: associationFormData.contactInfo.email,
+        phone: associationFormData.contactInfo.phone || undefined,
+        website: associationFormData.contactInfo.website || undefined,
+        address: associationFormData.contactInfo.address.street ? {
+          street1: associationFormData.contactInfo.address.street,
+          city: associationFormData.contactInfo.address.city,
+          state: associationFormData.contactInfo.address.state,
+          zipCode: associationFormData.contactInfo.address.zipCode,
+          country: 'USA'
+        } : undefined
+      };
+      
       // Create association via service
       const newAssociation = await CHWAssociationService.createAssociation({
         name: associationFormData.name,
-        // Generate abbreviation from name if not provided
-        abbreviation: associationFormData.name
+        // Use acronym if provided, otherwise generate from name
+        abbreviation: associationFormData.acronym || associationFormData.name
           .split(' ')
           .map(word => word[0])
           .join('')
           .toUpperCase(),
         description: associationFormData.description,
         stateId: associationFormData.stateId,
-        contactInfo: associationFormData.contactInfo,
-        logo: associationFormData.logo,
-        primaryColor: associationFormData.primaryColor,
+        contactInfo: serviceContactInfo,
+        logo: associationFormData.logo || undefined,
+        primaryColor: associationFormData.primaryColor || undefined,
         // isActive will be set to true by default in the service
         approvalStatus: associationFormData.approvalStatus,
         administrators: [], // No admins initially
         // Required claim fields
         claimStatus: 'unclaimed',
-      });
+        // Extended fields from public wizard
+        ...(associationFormData.ein && { ein: associationFormData.ein }),
+        ...(associationFormData.yearFounded && { yearFounded: parseInt(associationFormData.yearFounded) }),
+        ...(associationFormData.mission && { mission: associationFormData.mission }),
+        ...(associationFormData.vision && { vision: associationFormData.vision }),
+        ...(associationFormData.executiveDirectorName && { executiveDirectorName: associationFormData.executiveDirectorName }),
+        ...(associationFormData.executiveDirectorEmail && { executiveDirectorEmail: associationFormData.executiveDirectorEmail }),
+        ...(associationFormData.executiveDirectorPhone && { executiveDirectorPhone: associationFormData.executiveDirectorPhone }),
+        ...(associationFormData.boardChairName && { boardChairName: associationFormData.boardChairName }),
+        ...(associationFormData.boardChairEmail && { boardChairEmail: associationFormData.boardChairEmail }),
+        ...(associationFormData.programsOffered.length > 0 && { programsOffered: associationFormData.programsOffered }),
+        ...(associationFormData.certificationProgram && { certificationProgram: associationFormData.certificationProgram }),
+        ...(associationFormData.trainingProgram && { trainingProgram: associationFormData.trainingProgram }),
+        ...(associationFormData.advocacyActivities && { advocacyActivities: associationFormData.advocacyActivities }),
+        ...(associationFormData.partnerOrganizations && { partnerOrganizations: associationFormData.partnerOrganizations }),
+        ...(associationFormData.membershipTiers.length > 0 && { membershipTiers: associationFormData.membershipTiers }),
+        ...(associationFormData.currentMemberCount > 0 && { currentMemberCount: associationFormData.currentMemberCount }),
+        ...(associationFormData.chwMemberCount > 0 && { chwMemberCount: associationFormData.chwMemberCount }),
+        ...(associationFormData.organizationalMemberCount > 0 && { organizationalMemberCount: associationFormData.organizationalMemberCount }),
+        ...(associationFormData.annualMembershipFee && { annualMembershipFee: associationFormData.annualMembershipFee }),
+        ...(associationFormData.governanceStructure && { governanceStructure: associationFormData.governanceStructure }),
+      } as any);
       
       // Update active status if needed (the default is already true, so we only need to change if false)
       if (!associationFormData.isActive) {
@@ -304,20 +495,54 @@ export default function AdminCHWAssociations() {
         return;
       }
       
+      // Convert form contact info to service ContactInfo format
+      const serviceContactInfo = {
+        email: associationFormData.contactInfo.email,
+        phone: associationFormData.contactInfo.phone || undefined,
+        website: associationFormData.contactInfo.website || undefined,
+        address: associationFormData.contactInfo.address.street ? {
+          street1: associationFormData.contactInfo.address.street,
+          city: associationFormData.contactInfo.address.city,
+          state: associationFormData.contactInfo.address.state,
+          zipCode: associationFormData.contactInfo.address.zipCode,
+          country: 'USA'
+        } : undefined
+      };
+      
       // Update association via service
       await CHWAssociationService.updateAssociation(editingAssociationId, {
         name: associationFormData.name,
+        abbreviation: associationFormData.acronym || undefined,
         description: associationFormData.description,
-        contactInfo: associationFormData.contactInfo,
-        logo: associationFormData.logo,
-        primaryColor: associationFormData.primaryColor,
-        // isActive is handled separately since it's part of BaseEntity
+        contactInfo: serviceContactInfo,
+        logo: associationFormData.logo || undefined,
+        primaryColor: associationFormData.primaryColor || undefined,
         approvalStatus: associationFormData.approvalStatus,
-      });
+        // Extended fields from public wizard
+        ...(associationFormData.ein && { ein: associationFormData.ein }),
+        ...(associationFormData.yearFounded && { yearFounded: parseInt(associationFormData.yearFounded) }),
+        ...(associationFormData.mission && { mission: associationFormData.mission }),
+        ...(associationFormData.vision && { vision: associationFormData.vision }),
+        ...(associationFormData.executiveDirectorName && { executiveDirectorName: associationFormData.executiveDirectorName }),
+        ...(associationFormData.executiveDirectorEmail && { executiveDirectorEmail: associationFormData.executiveDirectorEmail }),
+        ...(associationFormData.executiveDirectorPhone && { executiveDirectorPhone: associationFormData.executiveDirectorPhone }),
+        ...(associationFormData.boardChairName && { boardChairName: associationFormData.boardChairName }),
+        ...(associationFormData.boardChairEmail && { boardChairEmail: associationFormData.boardChairEmail }),
+        programsOffered: associationFormData.programsOffered,
+        certificationProgram: associationFormData.certificationProgram,
+        trainingProgram: associationFormData.trainingProgram,
+        ...(associationFormData.advocacyActivities && { advocacyActivities: associationFormData.advocacyActivities }),
+        ...(associationFormData.partnerOrganizations && { partnerOrganizations: associationFormData.partnerOrganizations }),
+        membershipTiers: associationFormData.membershipTiers,
+        currentMemberCount: associationFormData.currentMemberCount,
+        chwMemberCount: associationFormData.chwMemberCount,
+        organizationalMemberCount: associationFormData.organizationalMemberCount,
+        ...(associationFormData.annualMembershipFee && { annualMembershipFee: associationFormData.annualMembershipFee }),
+        ...(associationFormData.governanceStructure && { governanceStructure: associationFormData.governanceStructure }),
+      } as any);
       
       // Update the isActive status separately
       if (associationFormData.isActive !== undefined) {
-        // This is a custom method in our service specifically for active status
         await CHWAssociationService.setUserActiveStatus(editingAssociationId, associationFormData.isActive);
       }
       
@@ -440,12 +665,12 @@ export default function AdminCHWAssociations() {
         {renderAssociationsTable()}
       </TabPanel>
       
-      {/* Association Creation/Editing Dialog */}
-      <Dialog open={openAssociationDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      {/* Association Creation/Editing Dialog - Expanded to match public wizard */}
+      <Dialog open={openAssociationDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
         <DialogTitle>
           {isEditMode ? 'Edit CHW Association' : 'Create New CHW Association'}
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ maxHeight: '70vh' }}>
           {error && (
             <Alert severity="error" sx={{ mb: 3 }}>
               {error}
@@ -453,6 +678,14 @@ export default function AdminCHWAssociations() {
           )}
           
           <Grid container spacing={3}>
+            {/* Section: Association Information */}
+            <Grid item xs={12}>
+              <Typography variant="h6" sx={{ color: '#0071E3', mb: 1 }}>
+                Association Information
+              </Typography>
+              <Divider />
+            </Grid>
+            
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -463,7 +696,17 @@ export default function AdminCHWAssociations() {
               />
             </Grid>
             
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={3}>
+              <TextField
+                fullWidth
+                label="Acronym"
+                value={associationFormData.acronym}
+                onChange={(e) => handleFormChange('acronym', e.target.value)}
+                placeholder="e.g., NCCHWA"
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={3}>
               <FormControl fullWidth required>
                 <InputLabel id="state-select-label">State</InputLabel>
                 <Select
@@ -471,7 +714,7 @@ export default function AdminCHWAssociations() {
                   value={associationFormData.stateId}
                   label="State"
                   onChange={(e) => handleFormChange('stateId', e.target.value)}
-                  disabled={isEditMode} // Can't change state once created
+                  disabled={isEditMode}
                 >
                   {states.map((state) => (
                     <MenuItem key={state.id} value={state.id}>
@@ -482,27 +725,116 @@ export default function AdminCHWAssociations() {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Description"
-                multiline
-                rows={3}
-                value={associationFormData.description}
-                onChange={(e) => handleFormChange('description', e.target.value)}
+                label="Year Founded"
+                type="number"
+                value={associationFormData.yearFounded}
+                onChange={(e) => handleFormChange('yearFounded', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="EIN (Tax ID)"
+                value={associationFormData.ein}
+                onChange={(e) => handleFormChange('ein', e.target.value)}
+                placeholder="XX-XXXXXXX"
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Website"
+                value={associationFormData.contactInfo.website}
+                onChange={(e) => handleFormChange('contactInfo.website', e.target.value)}
               />
             </Grid>
             
             <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Contact Information
+              <TextField
+                fullWidth
+                label="Mission Statement"
+                multiline
+                rows={2}
+                value={associationFormData.mission}
+                onChange={(e) => handleFormChange('mission', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Vision Statement"
+                multiline
+                rows={2}
+                value={associationFormData.vision}
+                onChange={(e) => handleFormChange('vision', e.target.value)}
+              />
+            </Grid>
+            
+            {/* Section: Leadership & Contact */}
+            <Grid item xs={12}>
+              <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                Leadership & Contact
               </Typography>
+              <Divider />
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Executive Director Name"
+                value={associationFormData.executiveDirectorName}
+                onChange={(e) => handleFormChange('executiveDirectorName', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Executive Director Email"
+                type="email"
+                value={associationFormData.executiveDirectorEmail}
+                onChange={(e) => handleFormChange('executiveDirectorEmail', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Executive Director Phone"
+                value={associationFormData.executiveDirectorPhone}
+                onChange={(e) => handleFormChange('executiveDirectorPhone', e.target.value)}
+              />
             </Grid>
             
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Contact Email"
+                label="Board Chair Name"
+                value={associationFormData.boardChairName}
+                onChange={(e) => handleFormChange('boardChairName', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Board Chair Email"
+                type="email"
+                value={associationFormData.boardChairEmail}
+                onChange={(e) => handleFormChange('boardChairEmail', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Primary Contact Email"
                 required
                 type="email"
                 value={associationFormData.contactInfo.email}
@@ -513,30 +845,225 @@ export default function AdminCHWAssociations() {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Contact Phone"
-                value={associationFormData.contactInfo.phone || ''}
+                label="Primary Contact Phone"
+                value={associationFormData.contactInfo.phone}
                 onChange={(e) => handleFormChange('contactInfo.phone', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Mailing Address - Street"
+                value={associationFormData.contactInfo.address.street}
+                onChange={(e) => handleFormChange('contactInfo.address.street', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={2}>
+              <TextField
+                fullWidth
+                label="City"
+                value={associationFormData.contactInfo.address.city}
+                onChange={(e) => handleFormChange('contactInfo.address.city', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={2}>
+              <TextField
+                fullWidth
+                label="State"
+                value={associationFormData.contactInfo.address.state}
+                onChange={(e) => handleFormChange('contactInfo.address.state', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={2}>
+              <TextField
+                fullWidth
+                label="Zip Code"
+                value={associationFormData.contactInfo.address.zipCode}
+                onChange={(e) => handleFormChange('contactInfo.address.zipCode', e.target.value)}
+              />
+            </Grid>
+            
+            {/* Section: Programs & Services */}
+            <Grid item xs={12}>
+              <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                Programs & Services
+              </Typography>
+              <Divider />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel id="programs-label">Programs Offered</InputLabel>
+                <Select
+                  labelId="programs-label"
+                  multiple
+                  value={associationFormData.programsOffered}
+                  label="Programs Offered"
+                  onChange={(e) => handleFormChange('programsOffered', e.target.value)}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {(selected as string[]).map((value) => (
+                        <Chip key={value} label={value} size="small" />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {PROGRAM_TYPES.map((program) => (
+                    <MenuItem key={program} value={program}>
+                      {program}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={associationFormData.certificationProgram}
+                    onChange={(e) => handleFormChange('certificationProgram', e.target.checked)}
+                  />
+                }
+                label="Offers CHW Certification Program"
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={associationFormData.trainingProgram}
+                    onChange={(e) => handleFormChange('trainingProgram', e.target.checked)}
+                  />
+                }
+                label="Offers CHW Training Program"
               />
             </Grid>
             
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Website"
-                value={associationFormData.contactInfo.website || ''}
-                onChange={(e) => handleFormChange('contactInfo.website', e.target.value)}
+                label="Advocacy Activities"
+                multiline
+                rows={2}
+                value={associationFormData.advocacyActivities}
+                onChange={(e) => handleFormChange('advocacyActivities', e.target.value)}
               />
             </Grid>
             
             <Grid item xs={12}>
-              <Divider sx={{ my: 1 }} />
+              <TextField
+                fullWidth
+                label="Partner Organizations"
+                multiline
+                rows={2}
+                value={associationFormData.partnerOrganizations}
+                onChange={(e) => handleFormChange('partnerOrganizations', e.target.value)}
+              />
+            </Grid>
+            
+            {/* Section: Membership & Structure */}
+            <Grid item xs={12}>
+              <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                Membership & Structure
+              </Typography>
+              <Divider />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel id="membership-tiers-label">Membership Tiers</InputLabel>
+                <Select
+                  labelId="membership-tiers-label"
+                  multiple
+                  value={associationFormData.membershipTiers}
+                  label="Membership Tiers"
+                  onChange={(e) => handleFormChange('membershipTiers', e.target.value)}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {(selected as string[]).map((value) => (
+                        <Chip key={value} label={value} size="small" />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {MEMBERSHIP_TIERS.map((tier) => (
+                    <MenuItem key={tier} value={tier}>
+                      {tier}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Total Member Count"
+                type="number"
+                value={associationFormData.currentMemberCount}
+                onChange={(e) => handleFormChange('currentMemberCount', parseInt(e.target.value) || 0)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="CHW Member Count"
+                type="number"
+                value={associationFormData.chwMemberCount}
+                onChange={(e) => handleFormChange('chwMemberCount', parseInt(e.target.value) || 0)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Organizational Member Count"
+                type="number"
+                value={associationFormData.organizationalMemberCount}
+                onChange={(e) => handleFormChange('organizationalMemberCount', parseInt(e.target.value) || 0)}
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Annual Membership Fee"
+                value={associationFormData.annualMembershipFee}
+                onChange={(e) => handleFormChange('annualMembershipFee', e.target.value)}
+                placeholder="e.g., $50 Individual, $500 Organization"
+              />
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Governance Structure"
+                value={associationFormData.governanceStructure}
+                onChange={(e) => handleFormChange('governanceStructure', e.target.value)}
+                placeholder="e.g., Board of Directors"
+              />
+            </Grid>
+            
+            {/* Section: Branding */}
+            <Grid item xs={12}>
+              <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                Branding
+              </Typography>
+              <Divider />
             </Grid>
             
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Logo URL"
-                value={associationFormData.logo || ''}
+                value={associationFormData.logo}
                 onChange={(e) => handleFormChange('logo', e.target.value)}
               />
             </Grid>
@@ -545,19 +1072,20 @@ export default function AdminCHWAssociations() {
               <TextField
                 fullWidth
                 label="Primary Color (hex)"
-                value={associationFormData.primaryColor || ''}
+                value={associationFormData.primaryColor}
                 onChange={(e) => handleFormChange('primaryColor', e.target.value)}
                 placeholder="#0066CC"
               />
             </Grid>
             
+            {/* Section: Status (Edit Mode Only) */}
             {isEditMode && (
               <>
                 <Grid item xs={12}>
-                  <Divider sx={{ my: 1 }} />
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
                     Status
                   </Typography>
+                  <Divider />
                 </Grid>
                 
                 <Grid item xs={12} sm={6}>

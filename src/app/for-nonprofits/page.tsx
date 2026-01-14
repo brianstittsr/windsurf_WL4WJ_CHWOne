@@ -4,62 +4,62 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
-  ArrowRight, Users, GraduationCap, Megaphone, Building,
+  ArrowRight, Users, ClipboardList, BarChart3, DollarSign,
   UserCheck, Database, Bell, Shield, FileText, Network,
-  Award, TrendingUp, Calendar, Map, BarChart3
+  Award, TrendingUp, Calendar
 } from 'lucide-react';
 import AppleNav from '@/components/Layout/AppleNav';
 
-export default function ForAssociationsPage() {
-  const [activeTab, setActiveTab] = useState('members');
+export default function ForNonprofitsPage() {
+  const [activeTab, setActiveTab] = useState('workforce');
 
   const sections = {
-    members: {
-      title: 'Member Management',
-      subtitle: 'Move beyond spreadsheets to a dynamic system.',
-      color: '#AF52DE',
+    workforce: {
+      title: 'Workforce Management',
+      subtitle: 'Manage your entire CHW team from one platform.',
+      color: '#34C759',
       icon: Users,
       features: [
-        { icon: UserCheck, title: 'Automated Workflows', desc: 'From application through renewal' },
-        { icon: Database, title: 'Tiered Membership', desc: 'Individual, Organizational, Student, Lifetime' },
-        { icon: Bell, title: 'Payment Processing', desc: 'Integrated dues, training, and events' },
-        { icon: Award, title: 'Certification Tracking', desc: 'Monitor expiration dates and CE credits' },
+        { icon: UserCheck, title: 'Staff Profiles', desc: 'Centralized credentials, certifications, and training records' },
+        { icon: Bell, title: 'Renewal Reminders', desc: 'Automated certification expiration alerts' },
+        { icon: BarChart3, title: 'Workload Balance', desc: 'Distribute caseloads across your team' },
+        { icon: TrendingUp, title: 'Performance Dashboards', desc: 'Track individual and team productivity' },
       ]
     },
-    training: {
-      title: 'Training Delivery',
-      subtitle: 'Become the premier training destination.',
+    clients: {
+      title: 'Client & Referral Tracking',
+      subtitle: 'Never lose track of a client again.',
       color: '#0071E3',
-      icon: GraduationCap,
+      icon: ClipboardList,
       features: [
-        { icon: Database, title: 'Learning Management', desc: 'Synchronous and asynchronous training' },
-        { icon: Award, title: 'CEU Tracking', desc: 'Integrated with state requirements' },
-        { icon: Network, title: 'Multi-Modal Delivery', desc: 'In-person, virtual, and hybrid' },
-        { icon: FileText, title: 'Competency Assessments', desc: 'Aligned with C3 Project standards' },
+        { icon: Shield, title: 'HIPAA Compliant', desc: 'Secure client records accessible anywhere' },
+        { icon: Network, title: 'Real-Time Tracking', desc: 'Follow referrals from start to completion' },
+        { icon: Bell, title: 'Auto Follow-Ups', desc: 'Reminders ensure no one falls through cracks' },
+        { icon: Database, title: 'Resource Directory', desc: 'Instant service matching for clients' },
       ]
     },
-    advocacy: {
-      title: 'Data-Driven Advocacy',
-      subtitle: 'Transform anecdotes into evidence.',
-      color: '#34C759',
-      icon: Megaphone,
+    outcomes: {
+      title: 'Outcome Measurement',
+      subtitle: 'Prove your impact with data funders trust.',
+      color: '#AF52DE',
+      icon: BarChart3,
       features: [
-        { icon: BarChart3, title: 'Workforce Analytics', desc: 'CHW distribution, demographics, impact' },
-        { icon: FileText, title: 'Auto Reports', desc: 'For legislators and funders' },
-        { icon: TrendingUp, title: 'ROI Calculators', desc: 'Show $2.47-$15 return per dollar' },
-        { icon: Map, title: 'Policy Tracking', desc: 'Monitor CHW legislation' },
+        { icon: FileText, title: 'Custom Tracking', desc: 'Align with your grant requirements' },
+        { icon: BarChart3, title: 'Pre-Built Metrics', desc: 'Diabetes, maternal health, and more' },
+        { icon: Database, title: 'Auto Collection', desc: 'Mobile-friendly forms gather data' },
+        { icon: TrendingUp, title: 'ROI Calculators', desc: 'Show cost savings from prevented ER visits' },
       ]
     },
-    revenue: {
-      title: 'Revenue Management',
-      subtitle: 'Build financial sustainability.',
+    grants: {
+      title: 'Grant Management',
+      subtitle: 'Less paperwork, more mission.',
       color: '#FF9500',
-      icon: Building,
+      icon: DollarSign,
       features: [
-        { icon: Database, title: 'Grant Management', desc: 'Track multiple funders and requirements' },
-        { icon: Calendar, title: 'Event Registration', desc: 'Conferences, trainings, networking' },
-        { icon: Network, title: 'Sponsorship Tracking', desc: 'Corporate and foundation partnerships' },
-        { icon: BarChart3, title: 'Financial Dashboards', desc: 'Revenue trends and cash flow' },
+        { icon: Database, title: 'Multi-Grant Tracking', desc: 'Separate requirements per funder' },
+        { icon: FileText, title: 'Auto Reports', desc: 'Pull data directly from activities' },
+        { icon: Calendar, title: 'Deadline Reminders', desc: 'Never miss a reporting period' },
+        { icon: DollarSign, title: 'Budget Tracking', desc: 'Real-time spend vs. allocation' },
       ]
     }
   };
@@ -72,17 +72,17 @@ export default function ForAssociationsPage() {
       <AppleNav variant="light" />
 
       {/* Hero - Apple Style */}
-      <section className="apple-section bg-[#AF52DE]">
+      <section className="apple-section bg-[#34C759]">
         <div className="apple-container text-center">
           <h1 className="apple-headline-large text-white mb-6">
-            For Associations
+            For Nonprofits
           </h1>
           <p className="apple-subhead text-white/80 max-w-[680px] mx-auto mb-8">
-            Empower your workforce. Amplify your advocacy. Accelerate your impact.
-            Enterprise-level capabilities with grassroots values.
+            Maximize impact. Demonstrate outcomes. Secure funding.
+            Enterprise-level capabilities at nonprofit-friendly pricing.
           </p>
-          <Link href="/register" className="apple-btn bg-white text-[#AF52DE] hover:bg-gray-100">
-            Register Association <ArrowRight className="ml-2 h-4 w-4 inline" />
+          <Link href="/register" className="apple-btn bg-white text-[#34C759] hover:bg-gray-100">
+            Register Organization <ArrowRight className="ml-2 h-4 w-4 inline" />
           </Link>
         </div>
       </section>
@@ -104,7 +104,7 @@ export default function ForAssociationsPage() {
                   }`}
                 >
                   <TabIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{key === 'members' ? 'Members' : key === 'training' ? 'Training' : key === 'advocacy' ? 'Advocacy' : 'Revenue'}</span>
+                  <span className="hidden sm:inline">{key === 'workforce' ? 'Workforce' : key === 'clients' ? 'Clients' : key === 'outcomes' ? 'Outcomes' : 'Grants'}</span>
                 </button>
               );
             })}
@@ -159,22 +159,22 @@ export default function ForAssociationsPage() {
       <section className="apple-section apple-bg-gray">
         <div className="apple-container text-center">
           <h2 className="apple-headline text-[#1D1D1F] mb-6">
-            ROI for your association.
+            ROI for your organization.
           </h2>
           <p className="apple-subhead max-w-[600px] mx-auto mb-16">
-            Associations using CHWOne see measurable improvements across the board.
+            Organizations using CHWOne see measurable improvements across the board.
           </p>
           
           <div className="grid md:grid-cols-5 gap-6">
             {[
-              { value: '60%', label: 'Less admin time' },
-              { value: '35%', label: 'Better retention' },
-              { value: '40%', label: 'Lower training costs' },
+              { value: '70%', label: 'Less paperwork time' },
+              { value: '40%', label: 'Better referral completion' },
+              { value: '85%', label: 'Faster report generation' },
+              { value: '25%', label: 'Better staff retention' },
               { value: '2.3x', label: 'Higher grant success' },
-              { value: '2.5x', label: 'Higher certification rates' },
             ].map((stat, index) => (
               <div key={index} className="bg-white rounded-2xl p-6 text-center">
-                <p className="text-3xl font-bold text-[#AF52DE] mb-2">{stat.value}</p>
+                <p className="text-3xl font-bold text-[#34C759] mb-2">{stat.value}</p>
                 <p className="text-[#6E6E73] text-sm">{stat.label}</p>
               </div>
             ))}
@@ -192,21 +192,21 @@ export default function ForAssociationsPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-[#F5F5F7] rounded-2xl p-8 text-left">
               <p className="text-[#1D1D1F] mb-6">
-                "We've increased membership 40%, reduced admin time by 60%, and secured Medicaid reimbursement using platform data."
+                "CHWOne helped us scale from 8 to 35 CHWs while maintaining quality. We documented $1.2 million in prevented hospitalizations."
               </p>
-              <p className="text-[#6E6E73] text-sm font-medium">Massachusetts Association of CHWs</p>
+              <p className="text-[#6E6E73] text-sm font-medium">Federally Qualified Health Center</p>
             </div>
             <div className="bg-[#F5F5F7] rounded-2xl p-8 text-left">
               <p className="text-[#1D1D1F] mb-6">
-                "CHWOne enabled us to coordinate training across 12 colleges and secure $2.5 million in state funding."
+                "The multilingual forms help us deliver culturally appropriate care while meeting funder requirements."
               </p>
-              <p className="text-[#6E6E73] text-sm font-medium">NC Community Health Workers Association</p>
+              <p className="text-[#6E6E73] text-sm font-medium">Community-Based Organization</p>
             </div>
             <div className="bg-[#F5F5F7] rounded-2xl p-8 text-left">
               <p className="text-[#1D1D1F] mb-6">
-                "The bilingual platform helps us serve 3,500 members statewide and deliver 50,000 CEU hours."
+                "Coordinating CHWs across 12 agencies was impossible until CHWOne. Now we have real-time visibility."
               </p>
-              <p className="text-[#6E6E73] text-sm font-medium">Texas Association of Promotores</p>
+              <p className="text-[#6E6E73] text-sm font-medium">Public Health Department</p>
             </div>
           </div>
         </div>
@@ -216,14 +216,14 @@ export default function ForAssociationsPage() {
       <section className="apple-section bg-[#1D1D1F]">
         <div className="apple-container text-center">
           <h2 className="apple-headline text-white mb-6">
-            Join 50+ associations using CHWOne.
+            Join 500+ nonprofits using CHWOne.
           </h2>
           <p className="text-xl text-[#86868B] max-w-[600px] mx-auto mb-10">
-            Schedule a personalized demo. Nonprofit pricing available.
+            Start free today. No credit card required. Nonprofit pricing available.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register" className="apple-btn apple-btn-primary">
-              Schedule Demo
+              Start Free Trial
             </Link>
             <Link href="/services" className="apple-btn text-white hover:text-[#0071E3] transition-colors">
               View All Services

@@ -1,356 +1,257 @@
 'use client';
 
-import React from 'react';
-import { Box, Typography, Container, Grid, Card, CardContent, Button, List, ListItem, ListItemIcon, ListItemText, Paper, Divider } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import TargetIcon from '@mui/icons-material/GpsFixed';
-import BookIcon from '@mui/icons-material/MenuBook';
-import PeopleIcon from '@mui/icons-material/People';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import React, { useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import MainLayout from '@/components/Layout/MainLayout';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { 
+  ArrowRight, Target, BookOpen, Users, Award,
+  FileText, Network, GraduationCap, UserCheck,
+  Smartphone, Wifi, Globe, Mic, Calendar, Search, MessageSquare
+} from 'lucide-react';
+import AppleNav from '@/components/Layout/AppleNav';
 
 export default function ForCHWsPage() {
+  const [activeTab, setActiveTab] = useState('workflow');
+
+  const sections = {
+    workflow: {
+      title: 'Streamline Your Workflow',
+      subtitle: 'One platform for everything you do.',
+      color: '#0071E3',
+      icon: Target,
+      features: [
+        { icon: FileText, title: 'Digital Records', desc: 'HIPAA-compliant client records accessible from any device' },
+        { icon: Network, title: 'Referral Tracking', desc: 'Real-time tracking from initiation to completion' },
+        { icon: Smartphone, title: 'Mobile Forms', desc: 'Offline-capable forms that sync when connected' },
+        { icon: Search, title: 'Resource Library', desc: 'Instant access to health education materials' },
+      ]
+    },
+    development: {
+      title: 'Professional Development',
+      subtitle: 'Grow your career and credentials.',
+      color: '#34C759',
+      icon: BookOpen,
+      features: [
+        { icon: GraduationCap, title: 'Training Modules', desc: 'Free courses aligned with C3 Project competencies' },
+        { icon: Award, title: 'Certificate Tracking', desc: 'Automated continuing education management' },
+        { icon: FileText, title: 'Certification Prep', desc: 'Study guides for all 23 state programs' },
+        { icon: UserCheck, title: 'Portfolio Builder', desc: 'Document your skills and achievements' },
+      ]
+    },
+    community: {
+      title: 'Connect & Collaborate',
+      subtitle: 'Join thousands of CHWs nationwide.',
+      color: '#AF52DE',
+      icon: Users,
+      features: [
+        { icon: MessageSquare, title: 'Peer Forums', desc: 'Anonymous advice on challenging cases' },
+        { icon: Globe, title: 'Regional Networks', desc: 'Connect with CHWs in your area' },
+        { icon: Users, title: 'Mentorship', desc: 'Pair with experienced CHWs' },
+        { icon: Award, title: 'Success Stories', desc: 'Celebrate wins and learn from others' },
+      ]
+    },
+    impact: {
+      title: 'Demonstrate Your Value',
+      subtitle: 'Prove your $2.47-$15 ROI.',
+      color: '#FF9500',
+      icon: Award,
+      features: [
+        { icon: FileText, title: 'Impact Reports', desc: 'Automated reports showing your contributions' },
+        { icon: Target, title: 'Outcome Tracking', desc: 'Document diabetes control, prevented hospitalizations' },
+        { icon: UserCheck, title: 'Dashboards', desc: 'Share progress with supervisors' },
+        { icon: Award, title: 'Advocacy Tools', desc: 'Data to support fair compensation' },
+      ]
+    }
+  };
+
+  const currentSection = sections[activeTab as keyof typeof sections];
+  const IconComponent = currentSection.icon;
+
   return (
-    <AuthProvider>
-      <MainLayout>
-      <Box
-        sx={{
-          bgcolor: 'primary.main',
-          color: 'white',
-          pt: 8,
-          pb: 6,
-        }}
-      >
-        <Container maxWidth="lg">
-          <Typography variant="h2" component="h1" gutterBottom>
-            CHWOne for Community Health Workers
-          </Typography>
-          <Typography variant="h5" paragraph>
-            Tools and resources designed specifically for CHWs in the field
-          </Typography>
-          <Typography variant="body1" paragraph sx={{ maxWidth: '800px' }}>
-            As a Community Health Worker, you're the trusted bridge between healthcare systems and the communities you serve. 
-            You navigate complex challenges daily—from managing multiple clients to finding resources, tracking referrals, 
-            and documenting outcomes—often with limited tools and support.
-          </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 2 }}>
-            CHWOne changes that.
-          </Typography>
-        </Container>
-      </Box>
+    <div className="min-h-screen bg-white">
+      <AppleNav variant="light" />
 
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h2" gutterBottom>
-          Why CHWs Choose CHWOne
-        </Typography>
+      {/* Hero - Apple Style */}
+      <section className="apple-section bg-[#0071E3]">
+        <div className="apple-container text-center">
+          <h1 className="apple-headline-large text-white mb-6">
+            For CHWs
+          </h1>
+          <p className="apple-subhead text-white/80 max-w-[680px] mx-auto mb-8">
+            Tools and resources designed specifically for Community Health Workers. 
+            Spend less time on paperwork, more time with families.
+          </p>
+          <Link href="/register" className="apple-btn bg-white text-[#0071E3] hover:bg-gray-100">
+            Register as CHW <ArrowRight className="ml-2 h-4 w-4 inline" />
+          </Link>
+        </div>
+      </section>
 
-        <Box sx={{ mb: 6 }}>
-          <Grid container spacing={2} alignItems="flex-start">
-            <Grid item xs={12} md={1}>
-              <TargetIcon sx={{ fontSize: 60, color: 'primary.main' }} />
-            </Grid>
-            <Grid item xs={12} md={11}>
-              <Typography variant="h4" gutterBottom>
-                Streamline Your Daily Workflow
-              </Typography>
-              <Typography paragraph>
-                No more juggling paper forms, spreadsheets, and disconnected systems. CHWOne gives you one secure platform to:
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Manage client information with HIPAA-compliant digital records accessible from any device" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Track referrals in real-time knowing exactly when your client connects with services" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Document outcomes easily with mobile-friendly forms that work offline and sync when connected" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Access resources instantly from a comprehensive library of health education materials in multiple languages" />
-                </ListItem>
-              </List>
-              <Paper sx={{ bgcolor: 'grey.100', p: 3, borderRadius: 2, mt: 2 }}>
-                <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
-                  "Before CHWOne, I spent 3 hours a day on paperwork. Now it's 30 minutes, giving me 2.5 more hours with families who need me."
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  - Maria S., CHW in Texas
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Box>
+      {/* Tab Navigation - Apple Style */}
+      <section className="sticky top-[44px] z-40 bg-white border-b border-[#D2D2D7]">
+        <div className="apple-container">
+          <div className="flex justify-center gap-2 py-4">
+            {Object.entries(sections).map(([key, section]) => {
+              const TabIcon = section.icon;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all ${
+                    activeTab === key
+                      ? 'bg-[#1D1D1F] text-white'
+                      : 'bg-[#F5F5F7] text-[#1D1D1F] hover:bg-[#E8E8ED]'
+                  }`}
+                >
+                  <TabIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{key === 'workflow' ? 'Workflow' : key === 'development' ? 'Development' : key === 'community' ? 'Community' : 'Impact'}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-        <Divider sx={{ my: 4 }} />
+      {/* Section Content - Apple Style */}
+      <section className="apple-section bg-white">
+        <div className="apple-container">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left - Info */}
+            <div>
+              <div 
+                className="w-20 h-20 rounded-3xl flex items-center justify-center mb-8"
+                style={{ backgroundColor: `${currentSection.color}20` }}
+              >
+                <IconComponent className="h-10 w-10" style={{ color: currentSection.color }} />
+              </div>
+              <h2 className="apple-headline text-[#1D1D1F] mb-4">
+                {currentSection.title}
+              </h2>
+              <p className="apple-subhead mb-8">
+                {currentSection.subtitle}
+              </p>
+              <Link
+                href="/register"
+                className="apple-btn apple-btn-primary inline-flex"
+              >
+                Get Started <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </div>
 
-        <Box sx={{ mb: 6 }}>
-          <Grid container spacing={2} alignItems="flex-start">
-            <Grid item xs={12} md={1}>
-              <BookIcon sx={{ fontSize: 60, color: 'primary.main' }} />
-            </Grid>
-            <Grid item xs={12} md={11}>
-              <Typography variant="h4" gutterBottom>
-                Advance Your Professional Development
-              </Typography>
-              <Typography paragraph>
-                Your lived experience is invaluable. Add professional credentials to amplify your impact:
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Access free training modules aligned with C3 Project competencies" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Track continuing education with automated certificate management" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Prepare for certification with study guides and practice assessments for all 23 state programs" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Build your professional portfolio documenting your skills and achievements" />
-                </ListItem>
-              </List>
-              <Paper sx={{ bgcolor: 'secondary.light', p: 3, borderRadius: 2, mt: 2 }}>
-                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                  With CHWs earning a median of $48,200 annually and 13% job growth projected through 2033, investing in your professional development pays off.
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Box>
+            {/* Right - Features */}
+            <div className="grid sm:grid-cols-2 gap-6">
+              {currentSection.features.map((feature, index) => {
+                const FeatureIcon = feature.icon;
+                return (
+                  <div key={index} className="bg-[#F5F5F7] rounded-2xl p-6">
+                    <FeatureIcon className="h-8 w-8 mb-4" style={{ color: currentSection.color }} />
+                    <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">{feature.title}</h3>
+                    <p className="text-[#6E6E73] text-sm">{feature.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <Divider sx={{ my: 4 }} />
-
-        <Box sx={{ mb: 6 }}>
-          <Grid container spacing={2} alignItems="flex-start">
-            <Grid item xs={12} md={1}>
-              <PeopleIcon sx={{ fontSize: 60, color: 'primary.main' }} />
-            </Grid>
-            <Grid item xs={12} md={11}>
-              <Typography variant="h4" gutterBottom>
-                Connect with Your CHW Community
-              </Typography>
-              <Typography paragraph>
-                You're not alone. Join thousands of CHWs nationwide who share your passion:
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Peer support forums for advice on challenging cases (anonymized for privacy)" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Regional networking connecting with CHWs in your area for in-person meetups" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Mentorship matching pairing experienced CHWs with those new to the field" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Success story sharing celebrating wins and learning from challenges" />
-                </ListItem>
-              </List>
-            </Grid>
-          </Grid>
-        </Box>
-
-        <Divider sx={{ my: 4 }} />
-
-        <Box sx={{ mb: 6 }}>
-          <Grid container spacing={2} alignItems="flex-start">
-            <Grid item xs={12} md={1}>
-              <FitnessCenterIcon sx={{ fontSize: 60, color: 'primary.main' }} />
-            </Grid>
-            <Grid item xs={12} md={11}>
-              <Typography variant="h4" gutterBottom>
-                Demonstrate Your Value
-              </Typography>
-              <Typography paragraph>
-                Your work delivers $2.47 to $15 return on investment—now prove it:
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Automated impact reports showing your contributions to health outcomes" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Client success tracking documenting diabetes control, medication adherence, and prevented hospitalizations" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Professional dashboards you can share with supervisors during reviews" />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
-                  <ListItemText primary="Advocacy tools with data to support fair compensation and career advancement" />
-                </ListItem>
-              </List>
-            </Grid>
-          </Grid>
-        </Box>
-
-        <Box sx={{ my: 8 }}>
-          <Typography variant="h3" component="h2" gutterBottom>
-            Real CHWs. Real Results.
-          </Typography>
+      {/* Testimonials - Apple Style */}
+      <section className="apple-section apple-bg-gray">
+        <div className="apple-container text-center">
+          <h2 className="apple-headline text-[#1D1D1F] mb-6">
+            Real CHWs. Real results.
+          </h2>
+          <p className="apple-subhead max-w-[600px] mx-auto mb-16">
+            Join thousands of CHWs who are transforming their work with CHWOne.
+          </p>
           
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="h5" gutterBottom>Jennifer, Rural Health CHW</Typography>
-                  <Typography variant="body1">
-                    "I serve 5 counties covering 1,200 square miles. CHWOne's mobile app lets me document visits immediately, even without internet. When I helped reduce our diabetes emergency visits by 45%, I had the data to prove it."
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            
-            <Grid item xs={12} md={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="h5" gutterBottom>Marcus, Urban Mental Health CHW</Typography>
-                  <Typography variant="body1">
-                    "Managing 60+ clients with complex needs was overwhelming. CHWOne's smart reminders ensure no one falls through the cracks. My supervisor noticed my improved outcomes—I just got promoted to Lead CHW."
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            
-            <Grid item xs={12} md={4}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography variant="h5" gutterBottom>Rosa, Promotora de Salud</Typography>
-                  <Typography variant="body1">
-                    "The bilingual interface and culturally relevant resources help me serve Spanish-speaking families better. I can now show how our program prevented 30 hospitalizations last year, securing continued funding."
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl p-8 text-left">
+              <p className="text-[#1D1D1F] mb-6">
+                "Before CHWOne, I spent 3 hours a day on paperwork. Now it's 30 minutes, giving me 2.5 more hours with families."
+              </p>
+              <p className="text-[#6E6E73] text-sm font-medium">Maria S., CHW in Texas</p>
+            </div>
+            <div className="bg-white rounded-2xl p-8 text-left">
+              <p className="text-[#1D1D1F] mb-6">
+                "CHWOne's smart reminders ensure no one falls through the cracks. I just got promoted to Lead CHW."
+              </p>
+              <p className="text-[#6E6E73] text-sm font-medium">Marcus T., Urban Mental Health CHW</p>
+            </div>
+            <div className="bg-white rounded-2xl p-8 text-left">
+              <p className="text-[#1D1D1F] mb-6">
+                "The bilingual interface helps me serve Spanish-speaking families better. We prevented 30 hospitalizations last year."
+              </p>
+              <p className="text-[#6E6E73] text-sm font-medium">Rosa M., Promotora de Salud</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <Box sx={{ my: 8 }}>
-          <Typography variant="h3" component="h2" gutterBottom>
-            Features Designed for Your Reality
-          </Typography>
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography>Works on any device - smartphone, tablet, or computer</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography>Offline capability - no internet? No problem</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography>Multiple language support - serve diverse communities effectively</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography>Voice-to-text notes - document faster in the field</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography>Smart scheduling - optimize your routes and time</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography>Resource matching - instantly find services your clients need</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
-                <Typography>Secure messaging - coordinate with your care team safely</Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
+      {/* Features Grid - Apple Style */}
+      <section className="apple-section bg-white">
+        <div className="apple-container text-center">
+          <h2 className="apple-headline text-[#1D1D1F] mb-12">
+            Features for your reality.
+          </h2>
+          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Smartphone, label: 'Any Device' },
+              { icon: Wifi, label: 'Works Offline' },
+              { icon: Globe, label: 'Multi-Language' },
+              { icon: Mic, label: 'Voice-to-Text' },
+              { icon: Calendar, label: 'Smart Scheduling' },
+              { icon: Search, label: 'Resource Matching' },
+              { icon: MessageSquare, label: 'Secure Messaging' },
+              { icon: Award, label: 'Certification Tracking' },
+            ].map((item, index) => {
+              const ItemIcon = item.icon;
+              return (
+                <div key={index} className="bg-[#F5F5F7] rounded-2xl p-6 text-center">
+                  <ItemIcon className="h-8 w-8 mx-auto mb-3 text-[#0071E3]" />
+                  <p className="text-[#1D1D1F] font-medium">{item.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-        <Box sx={{ mt: 8, mb: 4, textAlign: 'center' }}>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 4, 
-              borderRadius: 2,
-              background: 'linear-gradient(to right, #0088cc, #005999)'
-            }}
-          >
-            <Typography variant="h3" component="h2" gutterBottom sx={{ color: 'white' }}>
-              Join 10,000+ CHWs Already Using CHWOne
-            </Typography>
-            <Typography variant="h5" sx={{ mb: 3, color: 'white' }}>
-              Start Free Today
-            </Typography>
-            
-            <Grid container spacing={2} justifyContent="center" sx={{ mb: 4 }}>
-              <Grid item xs={6} sm={3}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                  <CheckCircleIcon sx={{ mr: 1 }} />
-                  <Typography>No credit card required</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                  <CheckCircleIcon sx={{ mr: 1 }} />
-                  <Typography>Full access for 30 days</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                  <CheckCircleIcon sx={{ mr: 1 }} />
-                  <Typography>Setup in under 5 minutes</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                  <CheckCircleIcon sx={{ mr: 1 }} />
-                  <Typography>Free training included</Typography>
-                </Box>
-              </Grid>
-            </Grid>
-            
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'center', gap: 2 }}>
-              <Button variant="contained" color="secondary" size="large">
-                Start Your Free Trial
-              </Button>
-              <Button variant="outlined" sx={{ color: 'white', borderColor: 'white' }} size="large">
-                Watch 2-Minute Demo
-              </Button>
-              <Button variant="text" sx={{ color: 'white' }} size="large">
-                Join Live Tour Tuesday 2pm ET
-              </Button>
-            </Box>
-          </Paper>
-        </Box>
-      </Container>
-    </MainLayout>
-    </AuthProvider>
+      {/* CTA - Apple Style */}
+      <section className="apple-section bg-[#1D1D1F]">
+        <div className="apple-container text-center">
+          <h2 className="apple-headline text-white mb-6">
+            Join 10,000+ CHWs using CHWOne.
+          </h2>
+          <p className="text-xl text-[#86868B] max-w-[600px] mx-auto mb-10">
+            Start free today. No credit card required. Full access for 30 days.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/register" className="apple-btn apple-btn-primary">
+              Start Your Free Trial
+            </Link>
+            <Link href="/services" className="apple-btn text-white hover:text-[#0071E3] transition-colors">
+              View All Services
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer - Apple Style */}
+      <footer className="bg-[#F5F5F7] py-12">
+        <div className="apple-container">
+          <div className="border-t border-[#D2D2D7] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Image src="/images/CHWOneLogoDesign.png" alt="CHWOne" width={20} height={20} className="rounded-full" />
+              <span className="text-xs text-[#6E6E73]">© 2025 CHWOne Platform. All rights reserved.</span>
+            </div>
+            <div className="flex gap-6">
+              <Link href="/privacy" className="text-xs text-[#6E6E73] hover:text-[#1D1D1F]">Privacy Policy</Link>
+              <Link href="/terms" className="text-xs text-[#6E6E73] hover:text-[#1D1D1F]">Terms of Use</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

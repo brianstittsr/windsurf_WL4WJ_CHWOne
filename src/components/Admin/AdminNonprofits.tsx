@@ -22,23 +22,137 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import IRSSearchModal from './IRSSearchModal';
 
+// Service categories matching public wizard
+const SERVICE_CATEGORIES = [
+  'Healthcare Services',
+  'Mental Health Services',
+  'Substance Abuse Treatment',
+  'Housing Assistance',
+  'Food Security',
+  'Transportation',
+  'Employment Services',
+  'Education & Training',
+  'Legal Services',
+  'Financial Assistance',
+  'Childcare Services',
+  'Senior Services',
+  'Disability Services',
+  'Crisis Intervention',
+  'Community Health Programs'
+];
+
+// Organization types matching public wizard
+const ORGANIZATION_TYPES = [
+  '501(c)(3) Nonprofit',
+  'Faith-Based Organization',
+  'Community Health Center',
+  'Hospital/Health System',
+  'Government Agency',
+  'Community-Based Organization',
+  'Foundation',
+  'Other'
+];
+
+// NC Counties for service area
+const NC_COUNTIES = [
+  'Alamance', 'Alexander', 'Alleghany', 'Anson', 'Ashe', 'Avery', 'Beaufort', 'Bertie',
+  'Bladen', 'Brunswick', 'Buncombe', 'Burke', 'Cabarrus', 'Caldwell', 'Camden', 'Carteret',
+  'Caswell', 'Catawba', 'Chatham', 'Cherokee', 'Chowan', 'Clay', 'Cleveland', 'Columbus',
+  'Craven', 'Cumberland', 'Currituck', 'Dare', 'Davidson', 'Davie', 'Duplin', 'Durham',
+  'Edgecombe', 'Forsyth', 'Franklin', 'Gaston', 'Gates', 'Graham', 'Granville', 'Greene',
+  'Guilford', 'Halifax', 'Harnett', 'Haywood', 'Henderson', 'Hertford', 'Hoke', 'Hyde',
+  'Iredell', 'Jackson', 'Johnston', 'Jones', 'Lee', 'Lenoir', 'Lincoln', 'Macon', 'Madison',
+  'Martin', 'McDowell', 'Mecklenburg', 'Mitchell', 'Montgomery', 'Moore', 'Nash', 'New Hanover',
+  'Northampton', 'Onslow', 'Orange', 'Pamlico', 'Pasquotank', 'Pender', 'Perquimans', 'Person',
+  'Pitt', 'Polk', 'Randolph', 'Richmond', 'Robeson', 'Rockingham', 'Rowan', 'Rutherford',
+  'Sampson', 'Scotland', 'Stanly', 'Stokes', 'Surry', 'Swain', 'Transylvania', 'Tyrrell',
+  'Union', 'Vance', 'Wake', 'Warren', 'Washington', 'Watauga', 'Wayne', 'Wilkes', 'Wilson',
+  'Yadkin', 'Yancey'
+];
+
+// Extended Nonprofit interface matching public wizard fields
 interface Nonprofit {
   id: string;
+  // Organization Information
   organizationName: string;
   organizationType: string;
   ein: string;
+  yearEstablished?: string;
+  mission?: string;
+  website?: string;
+  
+  // Contact Details
   primaryContact: {
     name: string;
+    title?: string;
     email: string;
     phone: string;
   };
+  organizationPhone?: string;
+  organizationEmail?: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  
+  // Services & Resources
   services: {
     categories: string[];
+    description?: string;
+    eligibilityCriteria?: string;
+    operatingHours?: string;
   };
+  acceptsReferrals?: boolean;
+  referralProcess?: string;
+  
+  // Service Area
+  serviceCounties?: string[];
+  statewideCoverage?: boolean;
+  
+  // Status
   status: string;
   approvalStatus: string;
+  isActive?: boolean;
   createdAt: any;
 }
+
+// Default form data for nonprofit editing
+const getDefaultNonprofitFormData = () => ({
+  organizationName: '',
+  organizationType: '',
+  ein: '',
+  yearEstablished: '',
+  mission: '',
+  website: '',
+  primaryContact: {
+    name: '',
+    title: '',
+    email: '',
+    phone: ''
+  },
+  organizationPhone: '',
+  organizationEmail: '',
+  address: {
+    street: '',
+    city: '',
+    state: 'NC',
+    zipCode: ''
+  },
+  services: {
+    categories: [] as string[],
+    description: '',
+    eligibilityCriteria: '',
+    operatingHours: ''
+  },
+  acceptsReferrals: true,
+  referralProcess: '',
+  serviceCounties: [] as string[],
+  statewideCoverage: false,
+  approvalStatus: 'pending',
+  isActive: true
+});
 
 export default function AdminNonprofits() {
   const [activeTab, setActiveTab] = useState(0);
@@ -53,6 +167,12 @@ export default function AdminNonprofits() {
     severity: 'info'
   });
   
+  // Edit dialog state
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingNonprofit, setEditingNonprofit] = useState<ReturnType<typeof getDefaultNonprofitFormData> | null>(null);
+  const [editingNonprofitId, setEditingNonprofitId] = useState<string | null>(null);
+  const [isCreateMode, setIsCreateMode] = useState(false);
+  
   // Pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
@@ -65,14 +185,12 @@ export default function AdminNonprofits() {
   const fetchNonprofits = async () => {
     try {
       setLoading(true);
-      console.log('Fetching nonprofits from Firestore...');
       const nonprofitsRef = collection(db, 'nonprofits');
       const querySnapshot = await getDocs(nonprofitsRef);
       
       const fetchedNonprofits: Nonprofit[] = [];
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        console.log('Found nonprofit:', docSnap.id, data.organizationName, 'Status:', data.approvalStatus);
         fetchedNonprofits.push({
           id: docSnap.id,
           ...data
@@ -80,9 +198,6 @@ export default function AdminNonprofits() {
       });
       
       setNonprofits(fetchedNonprofits);
-      console.log('Total nonprofits fetched:', fetchedNonprofits.length);
-      console.log('Pending:', fetchedNonprofits.filter(n => n.approvalStatus === 'pending').length);
-      console.log('Approved:', fetchedNonprofits.filter(n => n.approvalStatus === 'approved').length);
     } catch (error) {
       console.error('Error fetching nonprofits:', error);
     } finally {
@@ -150,6 +265,137 @@ export default function AdminNonprofits() {
   const handleViewDetails = (nonprofit: Nonprofit) => {
     setSelectedNonprofit(nonprofit);
     setShowDetailDialog(true);
+  };
+
+  // Open edit dialog for existing nonprofit
+  const handleOpenEditDialog = (nonprofit: Nonprofit) => {
+    setEditingNonprofit({
+      organizationName: nonprofit.organizationName || '',
+      organizationType: nonprofit.organizationType || '',
+      ein: nonprofit.ein || '',
+      yearEstablished: nonprofit.yearEstablished || '',
+      mission: nonprofit.mission || '',
+      website: nonprofit.website || '',
+      primaryContact: {
+        name: nonprofit.primaryContact?.name || '',
+        title: nonprofit.primaryContact?.title || '',
+        email: nonprofit.primaryContact?.email || '',
+        phone: nonprofit.primaryContact?.phone || ''
+      },
+      organizationPhone: nonprofit.organizationPhone || '',
+      organizationEmail: nonprofit.organizationEmail || '',
+      address: {
+        street: nonprofit.address?.street || '',
+        city: nonprofit.address?.city || '',
+        state: nonprofit.address?.state || 'NC',
+        zipCode: nonprofit.address?.zipCode || ''
+      },
+      services: {
+        categories: nonprofit.services?.categories || [],
+        description: nonprofit.services?.description || '',
+        eligibilityCriteria: nonprofit.services?.eligibilityCriteria || '',
+        operatingHours: nonprofit.services?.operatingHours || ''
+      },
+      acceptsReferrals: nonprofit.acceptsReferrals ?? true,
+      referralProcess: nonprofit.referralProcess || '',
+      serviceCounties: nonprofit.serviceCounties || [],
+      statewideCoverage: nonprofit.statewideCoverage || false,
+      approvalStatus: nonprofit.approvalStatus || 'pending',
+      isActive: nonprofit.isActive ?? true
+    });
+    setEditingNonprofitId(nonprofit.id);
+    setIsCreateMode(false);
+    setShowEditDialog(true);
+  };
+
+  // Open create dialog for new nonprofit
+  const handleOpenCreateDialog = () => {
+    setEditingNonprofit(getDefaultNonprofitFormData());
+    setEditingNonprofitId(null);
+    setIsCreateMode(true);
+    setShowEditDialog(true);
+  };
+
+  // Handle form field changes for edit dialog
+  const handleEditFormChange = (field: string, value: any) => {
+    if (!editingNonprofit) return;
+    
+    setEditingNonprofit(prev => {
+      if (!prev) return prev;
+      
+      // Handle nested fields
+      if (field.startsWith('primaryContact.')) {
+        const contactField = field.split('.')[1];
+        return {
+          ...prev,
+          primaryContact: { ...prev.primaryContact, [contactField]: value }
+        };
+      }
+      if (field.startsWith('address.')) {
+        const addressField = field.split('.')[1];
+        return {
+          ...prev,
+          address: { ...prev.address, [addressField]: value }
+        };
+      }
+      if (field.startsWith('services.')) {
+        const servicesField = field.split('.')[1];
+        return {
+          ...prev,
+          services: { ...prev.services, [servicesField]: value }
+        };
+      }
+      
+      return { ...prev, [field]: value };
+    });
+  };
+
+  // Save nonprofit (create or update)
+  const handleSaveNonprofit = async () => {
+    if (!editingNonprofit) return;
+    
+    try {
+      const nonprofitData = sanitizeForFirestore({
+        organizationName: editingNonprofit.organizationName,
+        organizationType: editingNonprofit.organizationType,
+        ein: editingNonprofit.ein,
+        yearEstablished: editingNonprofit.yearEstablished,
+        mission: editingNonprofit.mission,
+        website: editingNonprofit.website,
+        primaryContact: editingNonprofit.primaryContact,
+        organizationPhone: editingNonprofit.organizationPhone,
+        organizationEmail: editingNonprofit.organizationEmail,
+        address: editingNonprofit.address,
+        services: editingNonprofit.services,
+        acceptsReferrals: editingNonprofit.acceptsReferrals,
+        referralProcess: editingNonprofit.referralProcess,
+        serviceCounties: editingNonprofit.serviceCounties,
+        statewideCoverage: editingNonprofit.statewideCoverage,
+        approvalStatus: editingNonprofit.approvalStatus,
+        isActive: editingNonprofit.isActive,
+        updatedAt: serverTimestamp()
+      });
+
+      if (isCreateMode) {
+        // Create new nonprofit
+        await addDoc(collection(db, 'nonprofits'), {
+          ...nonprofitData,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+        setSnackbar({ open: true, message: 'Nonprofit created successfully!', severity: 'success' });
+      } else if (editingNonprofitId) {
+        // Update existing nonprofit
+        await updateDoc(doc(db, 'nonprofits', editingNonprofitId), nonprofitData);
+        setSnackbar({ open: true, message: 'Nonprofit updated successfully!', severity: 'success' });
+      }
+
+      setShowEditDialog(false);
+      fetchNonprofits();
+    } catch (error) {
+      console.error('Error saving nonprofit:', error);
+      setSnackbar({ open: true, message: 'Failed to save nonprofit', severity: 'error' });
+    }
   };
 
   // Helper function to sanitize data for Firestore (remove undefined values)
@@ -498,16 +744,31 @@ export default function AdminNonprofits() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight="bold">
+      {/* Apple-style Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            fontWeight: 600, 
+            color: '#1D1D1F',
+            letterSpacing: '-0.02em'
+          }}
+        >
           Nonprofit Organization Management
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="contained"
-            color="primary"
             startIcon={<ImportIcon />}
             onClick={() => setShowIRSSearchModal(true)}
+            sx={{
+              backgroundColor: '#0071E3',
+              textTransform: 'none',
+              fontWeight: 500,
+              borderRadius: '8px',
+              px: 3,
+              '&:hover': { backgroundColor: '#0077ED' }
+            }}
           >
             Import from IRS
           </Button>
@@ -515,53 +776,105 @@ export default function AdminNonprofits() {
             variant="outlined"
             startIcon={<RefreshIcon />}
             onClick={fetchNonprofits}
+            sx={{
+              color: '#0071E3',
+              borderColor: '#0071E3',
+              textTransform: 'none',
+              fontWeight: 500,
+              borderRadius: '8px',
+              '&:hover': { 
+                borderColor: '#0077ED',
+                backgroundColor: 'rgba(0, 113, 227, 0.08)'
+              }
+            }}
           >
             Refresh
           </Button>
         </Box>
       </Box>
 
-      <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ mb: 2 }}>
-        <Tab label={`ALL NONPROFITS (${nonprofits.length})`} />
-        <Tab label={`ACTIVE NONPROFITS (${nonprofits.filter(n => n.approvalStatus === 'approved').length})`} />
-        <Tab label={`PENDING APPROVAL (${nonprofits.filter(n => n.approvalStatus === 'pending').length})`} />
+      {/* Apple-style Tabs */}
+      <Tabs 
+        value={activeTab} 
+        onChange={(e, v) => setActiveTab(v)} 
+        sx={{ 
+          mb: 3,
+          '& .MuiTab-root': {
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '0.875rem',
+            color: '#6E6E73',
+            '&.Mui-selected': {
+              color: '#0071E3',
+            }
+          },
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#0071E3',
+          }
+        }}
+      >
+        <Tab label={`All Nonprofits (${nonprofits.length})`} />
+        <Tab label={`Active Nonprofits (${nonprofits.filter(n => n.approvalStatus === 'approved').length})`} />
+        <Tab label={`Pending Approval (${nonprofits.filter(n => n.approvalStatus === 'pending').length})`} />
       </Tabs>
       
-      {/* Search and filter bar */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+      {/* Apple-style Search and filter bar */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
         <TextField
           size="small"
           placeholder="Search by name, EIN, contact..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          sx={{ width: 300 }}
+          sx={{ 
+            width: 300,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '10px',
+              backgroundColor: '#F5F5F7',
+              '& fieldset': {
+                borderColor: '#D2D2D7',
+              },
+              '&:hover fieldset': {
+                borderColor: '#86868B',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#0071E3',
+              }
+            }
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
+                <SearchIcon fontSize="small" sx={{ color: '#86868B' }} />
               </InputAdornment>
             ),
           }}
         />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: '#6E6E73' }}>
           Showing {getPaginatedNonprofits().length} of {getFilteredNonprofits().length} results
         </Typography>
       </Box>
 
       {loading ? (
-        <Typography>Loading nonprofits...</Typography>
+        <Typography sx={{ color: '#6E6E73' }}>Loading nonprofits...</Typography>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            borderRadius: '16px', 
+            border: '1px solid #D2D2D7',
+            boxShadow: 'none'
+          }}
+        >
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell><strong>Organization Name</strong></TableCell>
-                <TableCell><strong>Type</strong></TableCell>
-                <TableCell><strong>EIN</strong></TableCell>
-                <TableCell><strong>Contact</strong></TableCell>
-                <TableCell><strong>Services</strong></TableCell>
-                <TableCell><strong>Status</strong></TableCell>
-                <TableCell><strong>Actions</strong></TableCell>
+              <TableRow sx={{ backgroundColor: '#F5F5F7' }}>
+                <TableCell sx={{ fontWeight: 600, color: '#1D1D1F' }}>Organization Name</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#1D1D1F' }}>Type</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#1D1D1F' }}>EIN</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#1D1D1F' }}>Contact</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#1D1D1F' }}>Services</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#1D1D1F' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#1D1D1F' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -575,55 +888,66 @@ export default function AdminNonprofits() {
                 </TableRow>
               ) : (
                 getPaginatedNonprofits().map((nonprofit) => (
-                  <TableRow key={nonprofit.id} hover>
+                  <TableRow key={nonprofit.id} hover sx={{ '&:hover': { backgroundColor: '#F5F5F7' } }}>
                     <TableCell>
-                      <Typography variant="body2" fontWeight="bold">
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1D1D1F' }}>
                         {nonprofit.organizationName}
                       </Typography>
                     </TableCell>
-                    <TableCell>{nonprofit.organizationType}</TableCell>
-                    <TableCell>{nonprofit.ein}</TableCell>
+                    <TableCell sx={{ color: '#6E6E73' }}>{nonprofit.organizationType}</TableCell>
+                    <TableCell sx={{ color: '#6E6E73', fontFamily: 'monospace' }}>{nonprofit.ein}</TableCell>
                     <TableCell>
-                      <Typography variant="body2">{nonprofit.primaryContact?.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="body2" sx={{ color: '#1D1D1F' }}>{nonprofit.primaryContact?.name}</Typography>
+                      <Typography variant="caption" sx={{ color: '#6E6E73' }}>
                         {nonprofit.primaryContact?.email}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       {nonprofit.services?.categories?.slice(0, 2).map((cat, idx) => (
-                        <Chip key={idx} label={cat} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
+                        <Chip key={idx} label={cat} size="small" sx={{ mr: 0.5, mb: 0.5, backgroundColor: '#F5F5F7', color: '#1D1D1F' }} />
                       ))}
                       {nonprofit.services?.categories?.length > 2 && (
-                        <Chip label={`+${nonprofit.services.categories.length - 2}`} size="small" />
+                        <Chip label={`+${nonprofit.services.categories.length - 2}`} size="small" sx={{ backgroundColor: '#E5E5EA', color: '#6E6E73' }} />
                       )}
                     </TableCell>
                     <TableCell>
                       <Chip
                         label={nonprofit.approvalStatus || nonprofit.status}
-                        color={getStatusColor(nonprofit.approvalStatus || nonprofit.status)}
                         size="small"
+                        sx={{
+                          backgroundColor: (nonprofit.approvalStatus || nonprofit.status) === 'approved' ? '#34C75920' : 
+                                          (nonprofit.approvalStatus || nonprofit.status) === 'pending' ? '#FF950020' : '#FF3B3020',
+                          color: (nonprofit.approvalStatus || nonprofit.status) === 'approved' ? '#34C759' : 
+                                 (nonprofit.approvalStatus || nonprofit.status) === 'pending' ? '#FF9500' : '#FF3B30',
+                          fontWeight: 500
+                        }}
                       />
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton size="small" onClick={() => handleViewDetails(nonprofit)} title="View Details">
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleOpenEditDialog(nonprofit)} 
+                          title="Edit Nonprofit"
+                          sx={{ color: '#0071E3', '&:hover': { backgroundColor: '#0071E310' } }}
+                        >
                           <EditIcon fontSize="small" />
                         </IconButton>
                         {nonprofit.approvalStatus === 'pending' && (
                           <>
                             <IconButton
                               size="small"
-                              color="success"
                               onClick={() => handleApprove(nonprofit.id)}
                               title="Approve"
+                              sx={{ color: '#34C759', '&:hover': { backgroundColor: '#34C75910' } }}
                             >
                               <ApproveIcon fontSize="small" />
                             </IconButton>
                             <IconButton
                               size="small"
-                              color="error"
                               onClick={() => handleReject(nonprofit.id)}
                               title="Reject"
+                              sx={{ color: '#FF9500', '&:hover': { backgroundColor: '#FF950010' } }}
                             >
                               <RejectIcon fontSize="small" />
                             </IconButton>
@@ -631,9 +955,9 @@ export default function AdminNonprofits() {
                         )}
                         <IconButton
                           size="small"
-                          color="error"
                           onClick={() => handleDelete(nonprofit.id)}
                           title="Delete"
+                          sx={{ color: '#FF3B30', '&:hover': { backgroundColor: '#FF3B3010' } }}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -704,6 +1028,312 @@ export default function AdminNonprofits() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowDetailDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit/Create Nonprofit Dialog - Matches public wizard fields */}
+      <Dialog open={showEditDialog} onClose={() => setShowEditDialog(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>
+          {isCreateMode ? 'Create New Nonprofit' : 'Edit Nonprofit'}
+        </DialogTitle>
+        <DialogContent dividers sx={{ maxHeight: '70vh' }}>
+          {editingNonprofit && (
+            <Grid container spacing={3}>
+              {/* Section: Organization Information */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ color: '#0071E3', mb: 1 }}>
+                  Organization Information
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Organization Name"
+                  required
+                  value={editingNonprofit.organizationName}
+                  onChange={(e) => handleEditFormChange('organizationName', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Organization Type</InputLabel>
+                  <Select
+                    value={editingNonprofit.organizationType}
+                    label="Organization Type"
+                    onChange={(e) => handleEditFormChange('organizationType', e.target.value)}
+                  >
+                    {ORGANIZATION_TYPES.map((type) => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="EIN (Tax ID)"
+                  value={editingNonprofit.ein}
+                  onChange={(e) => handleEditFormChange('ein', e.target.value)}
+                  placeholder="XX-XXXXXXX"
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Year Established"
+                  type="number"
+                  value={editingNonprofit.yearEstablished}
+                  onChange={(e) => handleEditFormChange('yearEstablished', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Website"
+                  value={editingNonprofit.website}
+                  onChange={(e) => handleEditFormChange('website', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Mission Statement"
+                  multiline
+                  rows={2}
+                  value={editingNonprofit.mission}
+                  onChange={(e) => handleEditFormChange('mission', e.target.value)}
+                />
+              </Grid>
+              
+              {/* Section: Contact Details */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                  Contact Details
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Primary Contact Name"
+                  value={editingNonprofit.primaryContact.name}
+                  onChange={(e) => handleEditFormChange('primaryContact.name', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Primary Contact Title"
+                  value={editingNonprofit.primaryContact.title}
+                  onChange={(e) => handleEditFormChange('primaryContact.title', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Primary Contact Email"
+                  type="email"
+                  value={editingNonprofit.primaryContact.email}
+                  onChange={(e) => handleEditFormChange('primaryContact.email', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Primary Contact Phone"
+                  value={editingNonprofit.primaryContact.phone}
+                  onChange={(e) => handleEditFormChange('primaryContact.phone', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Organization Phone"
+                  value={editingNonprofit.organizationPhone}
+                  onChange={(e) => handleEditFormChange('organizationPhone', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Organization Email"
+                  type="email"
+                  value={editingNonprofit.organizationEmail}
+                  onChange={(e) => handleEditFormChange('organizationEmail', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Street Address"
+                  value={editingNonprofit.address.street}
+                  onChange={(e) => handleEditFormChange('address.street', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={2}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={editingNonprofit.address.city}
+                  onChange={(e) => handleEditFormChange('address.city', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={2}>
+                <TextField
+                  fullWidth
+                  label="State"
+                  value={editingNonprofit.address.state}
+                  onChange={(e) => handleEditFormChange('address.state', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={2}>
+                <TextField
+                  fullWidth
+                  label="Zip Code"
+                  value={editingNonprofit.address.zipCode}
+                  onChange={(e) => handleEditFormChange('address.zipCode', e.target.value)}
+                />
+              </Grid>
+              
+              {/* Section: Services & Resources */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                  Services & Resources
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Service Categories</InputLabel>
+                  <Select
+                    multiple
+                    value={editingNonprofit.services.categories}
+                    label="Service Categories"
+                    onChange={(e) => handleEditFormChange('services.categories', e.target.value)}
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {(selected as string[]).map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                      </Box>
+                    )}
+                  >
+                    {SERVICE_CATEGORIES.map((cat) => (
+                      <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Services Description"
+                  multiline
+                  rows={2}
+                  value={editingNonprofit.services.description}
+                  onChange={(e) => handleEditFormChange('services.description', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Eligibility Criteria"
+                  multiline
+                  rows={2}
+                  value={editingNonprofit.services.eligibilityCriteria}
+                  onChange={(e) => handleEditFormChange('services.eligibilityCriteria', e.target.value)}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Operating Hours"
+                  value={editingNonprofit.services.operatingHours}
+                  onChange={(e) => handleEditFormChange('services.operatingHours', e.target.value)}
+                  placeholder="e.g., Mon-Fri 9am-5pm"
+                />
+              </Grid>
+              
+              {/* Section: Service Area */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                  Service Area
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Counties Served</InputLabel>
+                  <Select
+                    multiple
+                    value={editingNonprofit.serviceCounties}
+                    label="Counties Served"
+                    onChange={(e) => handleEditFormChange('serviceCounties', e.target.value)}
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {(selected as string[]).slice(0, 5).map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                        {(selected as string[]).length > 5 && (
+                          <Chip label={`+${(selected as string[]).length - 5} more`} size="small" />
+                        )}
+                      </Box>
+                    )}
+                  >
+                    {NC_COUNTIES.map((county) => (
+                      <MenuItem key={county} value={county}>{county}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              {/* Section: Status */}
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ color: '#0071E3', mb: 1, mt: 2 }}>
+                  Status
+                </Typography>
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Approval Status</InputLabel>
+                  <Select
+                    value={editingNonprofit.approvalStatus}
+                    label="Approval Status"
+                    onChange={(e) => handleEditFormChange('approvalStatus', e.target.value)}
+                  >
+                    <MenuItem value="pending">Pending</MenuItem>
+                    <MenuItem value="approved">Approved</MenuItem>
+                    <MenuItem value="rejected">Rejected</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowEditDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveNonprofit}>
+            {isCreateMode ? 'Create Nonprofit' : 'Save Changes'}
+          </Button>
         </DialogActions>
       </Dialog>
 

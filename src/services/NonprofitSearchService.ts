@@ -86,9 +86,13 @@ class NonprofitSearchService {
   /**
    * Get detailed nonprofit information by EIN
    */
-  static async getNonprofitDetails(ein: string): Promise<NonprofitDetails> {
+  static async getNonprofitDetails(ein: string | number | undefined | null): Promise<NonprofitDetails> {
     try {
-      const cleanEin = ein.replace(/\D/g, '');
+      if (ein === undefined || ein === null) {
+        throw new Error('EIN is required');
+      }
+      const einString = String(ein);
+      const cleanEin = einString.replace(/\D/g, '');
       const response = await fetch(`/api/nonprofits/${cleanEin}`);
 
       if (!response.ok) {
@@ -105,9 +109,15 @@ class NonprofitSearchService {
   /**
    * Check if a nonprofit already exists in our system by EIN
    */
-  static async findNonprofitByEin(ein: string): Promise<NonprofitOrganization | null> {
+  static async findNonprofitByEin(ein: string | number | undefined | null): Promise<NonprofitOrganization | null> {
     try {
-      const cleanEin = ein.replace(/\D/g, '');
+      // Ensure ein is a string before calling replace
+      if (ein === undefined || ein === null) {
+        console.warn('findNonprofitByEin called with undefined/null EIN');
+        return null;
+      }
+      const einString = String(ein);
+      const cleanEin = einString.replace(/\D/g, '');
       const q = query(
         collection(db, NONPROFIT_COLLECTIONS.ORGANIZATIONS),
         where('ein', '==', cleanEin)
@@ -209,7 +219,7 @@ class NonprofitSearchService {
       // Create nonprofit organization document
       const nonprofitData: Omit<NonprofitOrganization, 'id' | 'createdAt' | 'updatedAt'> = {
         name: details.name,
-        ein: details.ein.replace(/\D/g, ''),
+        ein: String(details.ein || '').replace(/\D/g, ''),
         description: '',
         address: details.address,
         medicaidRegion: additionalData?.medicaidRegion || MedicaidRegion.STATEWIDE,
