@@ -22,71 +22,9 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import QRCode from 'qrcode';
 
-// Mock students data for demonstration
-const generateMockStudents = (): Student[] => {
-  const names = [
-    'Juan Pérez', 'María González', 'Carlos Rodríguez', 'Ana Martínez',
-    'Luis García', 'Carmen López', 'José Hernández', 'Rosa Díaz',
-    'Miguel Torres', 'Elena Ramírez', 'Pedro Flores', 'Isabel Morales',
-    'Francisco Jiménez', 'Teresa Ruiz', 'Antonio Vargas', 'Patricia Castro',
-    'Manuel Ortiz', 'Lucía Mendoza'
-  ];
-  
-  const students: Student[] = [];
-  
-  CLASS_SCHEDULES.forEach((schedule, classIndex) => {
-    // Add 12-18 students per class
-    const studentsInClass = Math.floor(Math.random() * 7) + 12;
-    
-    for (let i = 0; i < Math.min(studentsInClass, names.length); i++) {
-      const studentId = `S${String(classIndex * 100 + i + 1).padStart(3, '0')}`;
-      const name = names[i];
-      const nameParts = name.toLowerCase().split(' ');
-      
-      students.push({
-        id: studentId,
-        name: name,
-        email: `${nameParts[0]}.${nameParts[1]}@email.com`,
-        phone: `555-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-        county: Math.random() > 0.5 ? 'moore' : 'montgomery',
-        classId: schedule.id,
-        registrationDate: new Date(2025, 0, Math.floor(Math.random() * 5) + 1).toISOString(),
-        attendance: {
-          present: Math.floor(Math.random() * 5) + 10,
-          total: 15,
-        },
-        proficiencyAssessments: generateRandomAssessments(),
-        isPresent: Math.random() > 0.2,
-        completed: false,
-      });
-    }
-  });
-  
-  return students;
-};
-
-const generateRandomAssessments = () => {
-  const assessments: Student['proficiencyAssessments'] = {};
-  const levels = ['beginning', 'developing', 'proficient', 'mastery'];
-  const topicCodes = ['Class1A', 'Class1B', 'Class2A', 'Class2B', 'Class3A'];
-  
-  // Randomly assess some topics
-  topicCodes.forEach(code => {
-    if (Math.random() > 0.3) {
-      assessments[code] = {
-        level: levels[Math.floor(Math.random() * levels.length)],
-        date: new Date(2025, 0, Math.floor(Math.random() * 15) + 1).toISOString(),
-        assessedBy: 'María García',
-      };
-    }
-  });
-  
-  return assessments;
-};
-
 // QR Code configurations
 const QR_CONFIGS = [
-  { id: 'registration', path: '/forms/digital-literacy', color: '#0071E3', en: 'Student Registration', es: 'Registro de Estudiantes', desc: 'New students scan to register | Nuevos estudiantes escanean para registrarse' },
+  { id: 'registration', path: '/forms/digital-literacy/register', color: '#0071E3', en: 'Student Registration', es: 'Registro de Estudiantes', desc: 'New students scan to register | Nuevos estudiantes escanean para registrarse' },
   { id: 'checkin', path: '/checkin', color: '#34C759', en: 'Daily Check-in', es: 'Registro Diario', desc: 'Students scan for attendance | Estudiantes escanean para asistencia' },
   { id: 'feedback', path: '/forms/feedback', color: '#FF9500', en: 'Feedback Form', es: 'Formulario de Retroalimentación', desc: 'Students provide feedback | Estudiantes dan retroalimentación' },
   { id: 'assessment', path: '/forms/assessment', color: '#5856D6', en: 'Progress Assessment', es: 'Evaluación de Progreso', desc: 'Weekly skill assessments | Evaluaciones semanales' },
@@ -134,7 +72,7 @@ function DigitalLiteracyContent() {
     generateQRCodes();
   }, []);
 
-  // Fetch real data from Firebase, fallback to mock if no data
+  // Fetch real data from Firebase only
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -144,80 +82,54 @@ function DigitalLiteracyContent() {
         const studentsRef = collection(db, 'digital_literacy_students');
         const snapshot = await getDocs(studentsRef);
         
-        if (snapshot.docs.length > 0) {
-          // Use real Firebase data
-          const firebaseStudents: Student[] = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              name: data.name || data.studentName || '',
-              email: data.email || '',
-              phone: data.phone || '',
-              county: data.county || '',
-              classId: data.classId || data.classTime || '',
-              registrationDate: data.registrationDate || data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-              attendance: data.attendance || { present: 0, total: 0 },
-              proficiencyAssessments: data.proficiencyAssessments || {},
-              isPresent: data.isPresent || false,
-              completed: data.completed || false,
-              completionDate: data.completionDate,
-              tabletSerial: data.tabletSerial,
-            };
-          });
-          
-          setStudents(firebaseStudents);
-          
-          // Calculate real enrollments
-          const enrollments: { [classId: string]: number } = {};
-          firebaseStudents.forEach(student => {
-            if (student.classId) {
-              enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
-            }
-          });
-          setClassEnrollments(enrollments);
-          
-          // Calculate real metrics
-          setMetrics({
-            totalStudents: firebaseStudents.length,
-            completedStudents: firebaseStudents.filter(s => s.completed).length,
-            totalClasses: CLASS_SCHEDULES.length,
-            fullClasses: Object.values(enrollments).filter(c => c >= 18).length
-          });
-        } else {
-          // Fallback to mock data if no Firebase data
-          const mockStudents = generateMockStudents();
-          setStudents(mockStudents);
-          
-          const enrollments: { [classId: string]: number } = {};
-          mockStudents.forEach(student => {
-            enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
-          });
-          setClassEnrollments(enrollments);
-          
-          setMetrics({
-            totalStudents: mockStudents.length,
-            completedStudents: mockStudents.filter(s => s.completed).length,
-            totalClasses: CLASS_SCHEDULES.length,
-            fullClasses: Object.values(enrollments).filter(c => c >= 18).length
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching students:', error);
-        // Fallback to mock data on error
-        const mockStudents = generateMockStudents();
-        setStudents(mockStudents);
+        // Use real Firebase data only - no mock data fallback
+        const firebaseStudents: Student[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name || data.studentName || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            county: data.county || '',
+            classId: data.classId || data.classTime || '',
+            registrationDate: data.registrationDate || data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            attendance: data.attendance || { present: 0, total: 0 },
+            proficiencyAssessments: data.proficiencyAssessments || {},
+            isPresent: data.isPresent || false,
+            completed: data.completed || false,
+            completionDate: data.completionDate,
+            tabletSerial: data.tabletSerial,
+          };
+        });
         
+        setStudents(firebaseStudents);
+        
+        // Calculate real enrollments
         const enrollments: { [classId: string]: number } = {};
-        mockStudents.forEach(student => {
-          enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
+        firebaseStudents.forEach(student => {
+          if (student.classId) {
+            enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
+          }
         });
         setClassEnrollments(enrollments);
         
+        // Calculate real metrics
         setMetrics({
-          totalStudents: mockStudents.length,
-          completedStudents: mockStudents.filter(s => s.completed).length,
+          totalStudents: firebaseStudents.length,
+          completedStudents: firebaseStudents.filter(s => s.completed).length,
           totalClasses: CLASS_SCHEDULES.length,
           fullClasses: Object.values(enrollments).filter(c => c >= 18).length
+        });
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        // Show empty state on error - no mock data
+        setStudents([]);
+        setClassEnrollments({});
+        setMetrics({
+          totalStudents: 0,
+          completedStudents: 0,
+          totalClasses: CLASS_SCHEDULES.length,
+          fullClasses: 0
         });
       } finally {
         setLoading(false);
