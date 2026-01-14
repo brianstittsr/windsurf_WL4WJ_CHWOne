@@ -485,17 +485,85 @@ function DigitalLiteracyContent() {
                           content += `</div></body></html>`;
                           printWindow.document.write(content);
                           printWindow.document.close();
-                          printWindow.print();
+                          setTimeout(() => printWindow.print(), 250);
                         }
                       }}
                     >
                       <QrCode className="h-4 w-4 mr-2" />
                       Print All QR Codes | Imprimir Todos
                     </Button>
-                    <Button variant="outline" className="border-[#34C759] text-[#34C759]">
+                    <Button 
+                      variant="outline" 
+                      className="border-[#34C759] text-[#34C759] hover:bg-[#34C759]/10"
+                      onClick={() => {
+                        const studentConfigs = QR_CONFIGS.filter(c => 
+                          ['registration', 'checkin', 'feedback', 'assessment'].includes(c.id)
+                        );
+                        const printWindow = window.open('', '_blank');
+                        if (printWindow) {
+                          let content = `
+                            <html>
+                              <head><title>Student QR Codes | Códigos QR de Estudiantes</title></head>
+                              <body style="font-family:system-ui;padding:40px;">
+                                <h1 style="text-align:center;margin-bottom:40px;">Student QR Codes | Códigos QR de Estudiantes</h1>
+                                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px;">
+                          `;
+                          studentConfigs.forEach(config => {
+                            if (qrCodes[config.id]) {
+                              content += `
+                                <div style="text-align:center;padding:20px;border:2px solid ${config.color};border-radius:16px;">
+                                  <h2 style="color:${config.color};">${config.en}</h2>
+                                  <h3 style="color:#6E6E73;">${config.es}</h3>
+                                  <img src="${qrCodes[config.id]}" style="width:200px;height:200px;margin:20px auto;display:block;" />
+                                  <p style="color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                </div>
+                              `;
+                            }
+                          });
+                          content += `</div></body></html>`;
+                          printWindow.document.write(content);
+                          printWindow.document.close();
+                          setTimeout(() => printWindow.print(), 250);
+                        }
+                      }}
+                    >
                       Print Student Forms Only | Solo Estudiantes
                     </Button>
-                    <Button variant="outline" className="border-[#00C7BE] text-[#00C7BE]">
+                    <Button 
+                      variant="outline" 
+                      className="border-[#00C7BE] text-[#00C7BE] hover:bg-[#00C7BE]/10"
+                      onClick={() => {
+                        const instructorConfigs = QR_CONFIGS.filter(c => 
+                          ['instructor', 'completion'].includes(c.id)
+                        );
+                        const printWindow = window.open('', '_blank');
+                        if (printWindow) {
+                          let content = `
+                            <html>
+                              <head><title>Instructor QR Codes | Códigos QR de Instructor</title></head>
+                              <body style="font-family:system-ui;padding:40px;">
+                                <h1 style="text-align:center;margin-bottom:40px;">Instructor QR Codes | Códigos QR de Instructor</h1>
+                                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px;">
+                          `;
+                          instructorConfigs.forEach(config => {
+                            if (qrCodes[config.id]) {
+                              content += `
+                                <div style="text-align:center;padding:20px;border:2px solid ${config.color};border-radius:16px;">
+                                  <h2 style="color:${config.color};">${config.en}</h2>
+                                  <h3 style="color:#6E6E73;">${config.es}</h3>
+                                  <img src="${qrCodes[config.id]}" style="width:200px;height:200px;margin:20px auto;display:block;" />
+                                  <p style="color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                </div>
+                              `;
+                            }
+                          });
+                          content += `</div></body></html>`;
+                          printWindow.document.write(content);
+                          printWindow.document.close();
+                          setTimeout(() => printWindow.print(), 250);
+                        }
+                      }}
+                    >
                       Print Instructor Forms Only | Solo Instructor
                     </Button>
                   </div>
