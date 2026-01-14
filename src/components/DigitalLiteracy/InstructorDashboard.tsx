@@ -78,6 +78,8 @@ export default function InstructorDashboard({
   const [attendanceBySession, setAttendanceBySession] = useState<{ [key: string]: AttendanceRecord[] }>({});
   const [selectedSession, setSelectedSession] = useState<ClassSession | null>(null);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [todayAttendance, setTodayAttendance] = useState<Set<string>>(new Set());
+  const [loadingAttendance, setLoadingAttendance] = useState(true);
 
   // Load language preference from localStorage
   useEffect(() => {
@@ -153,7 +155,46 @@ export default function InstructorDashboard({
     generateSchedule();
   }, [selectedClass]);
 
-  // Fetch attendance data for the selected class
+  // Fetch today's attendance for the selected class (live data)
+  useEffect(() => {
+    const fetchTodayAttendance = async () => {
+      setLoadingAttendance(true);
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const attendanceRef = collection(db, 'digital_literacy_attendance');
+        const q = query(
+          attendanceRef, 
+          where('classId', '==', selectedClass),
+          where('date', '>=', today.toISOString()),
+          where('date', '<', tomorrow.toISOString())
+        );
+        const snapshot = await getDocs(q);
+        
+        const presentStudentIds = new Set<string>();
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data.studentId) {
+            presentStudentIds.add(data.studentId);
+          }
+        });
+        
+        setTodayAttendance(presentStudentIds);
+      } catch (error) {
+        console.error('Error fetching today attendance:', error);
+        setTodayAttendance(new Set());
+      } finally {
+        setLoadingAttendance(false);
+      }
+    };
+    
+    fetchTodayAttendance();
+  }, [selectedClass]);
+
+  // Fetch all attendance data for the schedule tab
   useEffect(() => {
     const fetchAttendance = async () => {
       if (activeTab !== 'schedule') return;
@@ -200,9 +241,9 @@ export default function InstructorDashboard({
   // Filter students by selected class
   const classStudents = students.filter(s => s.classId === selectedClass);
   
-  // Calculate class stats
+  // Calculate class stats using live attendance data
   const enrolledCount = classStudents.length;
-  const presentCount = classStudents.filter(s => s.isPresent).length;
+  const presentCount = classStudents.filter(s => todayAttendance.has(s.id)).length;
   const absentCount = enrolledCount - presentCount;
   
   // Get current week topics
@@ -713,19 +754,32 @@ export default function InstructorDashboard({
 
         {/* Attendance Tab */}
         <TabsContent value="attendance">
+          {loadingAttendance && (
+            <div className="text-center py-4 mb-4">
+              <div className="animate-spin w-6 h-6 border-4 border-[#0071E3] border-t-transparent rounded-full mx-auto" />
+              <p className="text-sm text-[#6E6E73] mt-2">{language === 'en' ? 'Loading attendance...' : 'Cargando asistencia...'}</p>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {classStudents.map(student => (
-              <StudentCard
-                key={student.id}
-                student={student}
-                language={language}
-                currentWeek={currentWeek}
-                onToggleAttendance={onUpdateAttendance}
-                onViewDetails={handleViewDetails}
-                totalTopicsThisWeek={currentWeekTopics.length}
-                assessedTopicsThisWeek={getAssessedCountThisWeek(student)}
-              />
-            ))}
+            {classStudents.map(student => {
+              // Override isPresent with live attendance data
+              const studentWithLiveAttendance = {
+                ...student,
+                isPresent: todayAttendance.has(student.id)
+              };
+              return (
+                <StudentCard
+                  key={student.id}
+                  student={studentWithLiveAttendance}
+                  language={language}
+                  currentWeek={currentWeek}
+                  onToggleAttendance={onUpdateAttendance}
+                  onViewDetails={handleViewDetails}
+                  totalTopicsThisWeek={currentWeekTopics.length}
+                  assessedTopicsThisWeek={getAssessedCountThisWeek(student)}
+                />
+              );
+            })}
             
             {classStudents.length === 0 && (
               <div className="col-span-full">
