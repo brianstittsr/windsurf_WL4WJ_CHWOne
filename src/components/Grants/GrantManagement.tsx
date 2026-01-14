@@ -698,305 +698,241 @@ export default function GrantManagement() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-10 h-10 border-3 border-[#FF9500] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[#86868B] text-sm">Loading grants...</p>
+        </div>
+      </div>
     );
   }
 
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            Grant Management
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage funding sources and track grant utilization
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            startIcon={<AssessmentIcon />}
+      {/* Apple-style Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">Grant Management</h2>
+          <p className="text-[#6E6E73] mt-1">Manage funding sources and track grant utilization</p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button
             onClick={() => setShowWizardDialog(true)}
-            size="large"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#5856D6] text-white rounded-xl font-medium text-sm hover:bg-[#4B49B8] transition-colors"
           >
-            Launch Grant Analyzer
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<Sparkles size={20} />}
+            <AssessmentIcon sx={{ fontSize: 18 }} />
+            Grant Analyzer
+          </button>
+          <button
             onClick={() => setShowGeneratorDialog(true)}
-            size="large"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
           >
-            Launch Grant Creator
-          </Button>
-        </Box>
-      </Box>
+            <Sparkles size={18} />
+            Grant Creator
+          </button>
+        </div>
+      </div>
 
-      {/* Metrics Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                {grants.filter(g => g.status === 'active').length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Active Grants
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                ${grants.reduce((sum, g) => sum + g.amount, 0).toLocaleString()}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Funding
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                {grants.reduce((sum, g) => sum + g.projectIds.length, 0)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Projects Funded
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-                {grants.filter(g => getUpcomingReporting(g)).length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Pending Reports
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* Apple-style Metrics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
+          <p className="text-4xl font-semibold text-[#34C759] mb-1">
+            {grants.filter(g => g.status === 'active').length}
+          </p>
+          <p className="text-sm text-[#6E6E73]">Active Grants</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
+          <p className="text-4xl font-semibold text-[#FF9500] mb-1">
+            ${grants.reduce((sum, g) => sum + g.amount, 0).toLocaleString()}
+          </p>
+          <p className="text-sm text-[#6E6E73]">Total Funding</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
+          <p className="text-4xl font-semibold text-[#5856D6] mb-1">
+            {grants.reduce((sum, g) => sum + g.projectIds.length, 0)}
+          </p>
+          <p className="text-sm text-[#6E6E73]">Projects Funded</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
+          <p className="text-4xl font-semibold text-[#0071E3] mb-1">
+            {grants.filter(g => getUpcomingReporting(g)).length}
+          </p>
+          <p className="text-sm text-[#6E6E73]">Pending Reports</p>
+        </div>
+      </div>
 
-      {/* Grants List */}
+      {/* Apple-style Grants List */}
+      <div className="space-y-4">
       {grants.map((grant) => {
         const utilization = calculateUtilization(grant);
         const upcomingReport = getUpcomingReporting(grant);
 
+        // Apple-style status badge colors
+        const getAppleStatusStyle = (status: string) => {
+          switch (status) {
+            case 'active': return 'bg-[#34C759]/10 text-[#34C759]';
+            case 'pending': return 'bg-[#FF9500]/10 text-[#FF9500]';
+            case 'completed': return 'bg-[#0071E3]/10 text-[#0071E3]';
+            case 'cancelled': return 'bg-[#FF3B30]/10 text-[#FF3B30]';
+            default: return 'bg-[#86868B]/10 text-[#86868B]';
+          }
+        };
+
         return (
-          <Card key={grant.id} sx={{ mb: 2 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Box sx={{ flex: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <div key={grant.id} className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="p-5">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-[#1D1D1F]">
                       {grant.title}
-                    </Typography>
-                    <Chip
-                      label={grant.status.replace(/_/g, ' ')}
-                      color={getStatusColor(grant.status) as any}
-                      size="small"
-                    />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    </h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getAppleStatusStyle(grant.status)}`}>
+                      {grant.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <p className="text-sm text-[#6E6E73] line-clamp-2">
                     {grant.description}
-                  </Typography>
+                  </p>
+                </div>
+              </div>
 
-                  <Grid container spacing={2} sx={{ mb: 2 }}>
-                    <Grid item xs={12} md={3}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <MoneyIcon fontSize="small" color="action" />
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            ${grant.amount.toLocaleString()}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Funding Amount
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <BusinessIcon fontSize="small" color="action" />
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {grant.fundingSource}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Funding Source
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CalendarIcon fontSize="small" color="action" />
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {formatDate(grant.endDate)}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            End Date
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                          {(grant as any).projectMilestones?.length || grant.projectIds?.length || 0} {(grant as any).projectMilestones?.length ? 'Milestones' : 'Projects'}
-                        </Typography>
-                        <LinearProgress
-                          variant="determinate"
-                          value={Math.min(utilization, 100)}
-                          sx={{ height: 4, borderRadius: 2 }}
-                        />
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Box>
+              {/* Grant Info Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <MoneyIcon sx={{ fontSize: 18, color: '#86868B' }} />
+                  <div>
+                    <p className="text-sm font-semibold text-[#1D1D1F]">${grant.amount.toLocaleString()}</p>
+                    <p className="text-xs text-[#86868B]">Funding Amount</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <BusinessIcon sx={{ fontSize: 18, color: '#86868B' }} />
+                  <div>
+                    <p className="text-sm font-semibold text-[#1D1D1F]">{grant.fundingSource}</p>
+                    <p className="text-xs text-[#86868B]">Funding Source</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CalendarIcon sx={{ fontSize: 18, color: '#86868B' }} />
+                  <div>
+                    <p className="text-sm font-semibold text-[#1D1D1F]">{formatDate(grant.endDate)}</p>
+                    <p className="text-xs text-[#86868B]">End Date</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#1D1D1F] mb-1">
+                    {(grant as any).projectMilestones?.length || grant.projectIds?.length || 0} {(grant as any).projectMilestones?.length ? 'Milestones' : 'Projects'}
+                  </p>
+                  <div className="w-full bg-[#E5E5EA] rounded-full h-1">
+                    <div 
+                      className="bg-[#0071E3] h-1 rounded-full transition-all" 
+                      style={{ width: `${Math.min(utilization, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
 
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    color="primary"
-                    startIcon={<VisibilityIcon />}
-                    onClick={() => {
-                      router.push(`/collaborations/${grant.id}`);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    color="secondary"
-                    startIcon={<ClipboardList size={16} />}
-                    onClick={() => handleOpenFormGenerator(grant)}
-                  >
-                    Generate Forms
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    color="info"
-                    startIcon={<LayoutDashboard size={16} />}
-                    onClick={() => handleOpenDashboardGenerator(grant)}
-                  >
-                    Generate Dashboard
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<DownloadIcon />}
-                    onClick={() => handleExportGrant(grant)}
-                  >
-                    Export
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => handleDeleteGrant(grant)}
-                  >
-                    Delete
-                  </Button>
-                </Box>
-              </Box>
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => router.push(`/collaborations/${grant.id}`)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#0071E3] bg-[#0071E3]/10 rounded-lg hover:bg-[#0071E3]/20 transition-colors"
+                >
+                  <VisibilityIcon sx={{ fontSize: 16 }} />
+                  View Details
+                </button>
+                <button
+                  onClick={() => handleOpenFormGenerator(grant)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#5856D6] bg-[#5856D6]/10 rounded-lg hover:bg-[#5856D6]/20 transition-colors"
+                >
+                  <ClipboardList size={16} />
+                  Generate Forms
+                </button>
+                <button
+                  onClick={() => handleOpenDashboardGenerator(grant)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#32ADE6] bg-[#32ADE6]/10 rounded-lg hover:bg-[#32ADE6]/20 transition-colors"
+                >
+                  <LayoutDashboard size={16} />
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => handleExportGrant(grant)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#6E6E73] bg-[#F5F5F7] rounded-lg hover:bg-[#E5E5EA] transition-colors"
+                >
+                  <DownloadIcon sx={{ fontSize: 16 }} />
+                  Export
+                </button>
+                <button
+                  onClick={() => handleDeleteGrant(grant)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#FF3B30] bg-[#FF3B30]/10 rounded-lg hover:bg-[#FF3B30]/20 transition-colors"
+                >
+                  <DeleteIcon sx={{ fontSize: 16 }} />
+                  Delete
+                </button>
+              </div>
 
-              {/* Requirements and Reporting */}
-              <Box sx={{ mt: 2 }}>
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      Requirements & Reporting Schedule
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                          Requirements:
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {grant.requirements && grant.requirements.length > 0 ? (
-                            grant.requirements.map((req, index) => (
-                              <Chip key={index} label={req} size="small" variant="outlined" />
-                            ))
-                          ) : (
-                            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                              No requirements defined
-                            </Typography>
-                          )}
-                        </Box>
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                          Contact Person: {grant.contactPerson || 'Not specified'}
-                        </Typography>
-                        {(() => {
-                          const scheduleInfo = getReportingScheduleItems(grant);
-                          if (upcomingReport) {
-                            return (
-                              <Alert severity="info" sx={{ mt: 1 }}>
-                                Next {upcomingReport.source === 'milestone' ? 'milestone' : 'report'} due: {formatDate(upcomingReport.dueDate)} ({upcomingReport.type})
-                                {upcomingReport.source === 'milestone' && (
-                                  <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
-                                    (Based on milestone schedule)
-                                  </Typography>
-                                )}
-                              </Alert>
-                            );
-                          } else if (scheduleInfo.items.length > 0) {
-                            return (
-                              <Box>
-                                <Typography variant="body2" color="text.secondary">
-                                  {scheduleInfo.items.length} {scheduleInfo.source === 'milestone' ? 'milestone' : 'reporting'} items scheduled
-                                </Typography>
-                                {scheduleInfo.source === 'milestone' && (
-                                  <Chip 
-                                    label="Using milestone dates" 
-                                    size="small" 
-                                    variant="outlined" 
-                                    color="info"
-                                    sx={{ mt: 0.5 }}
-                                  />
-                                )}
-                              </Box>
-                            );
-                          } else {
-                            return (
-                              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                No reporting schedule or milestones defined
-                              </Typography>
-                            );
-                          }
-                        })()}
-                      </Grid>
-                    </Grid>
-                  </AccordionDetails>
-                </Accordion>
-              </Box>
-            </CardContent>
-          </Card>
+              {/* Requirements Section - Expandable */}
+              {(grant.requirements?.length > 0 || upcomingReport) && (
+                <div className="mt-4 pt-4 border-t border-[#D2D2D7]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {grant.requirements && grant.requirements.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-[#1D1D1F] mb-2">Requirements</p>
+                        <div className="flex flex-wrap gap-1">
+                          {grant.requirements.map((req, index) => (
+                            <span key={index} className="px-2 py-1 text-xs bg-[#F5F5F7] text-[#6E6E73] rounded-md">
+                              {req}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {upcomingReport && (
+                      <div className="bg-[#0071E3]/5 rounded-xl p-3">
+                        <p className="text-sm font-semibold text-[#0071E3]">
+                          Next {upcomingReport.source === 'milestone' ? 'Milestone' : 'Report'} Due
+                        </p>
+                        <p className="text-sm text-[#1D1D1F]">
+                          {formatDate(upcomingReport.dueDate)} - {upcomingReport.type}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         );
       })}
 
+      {/* Empty State */}
+      {grants.length === 0 && (
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-12 text-center">
+          <div className="w-16 h-16 bg-[#FF9500]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <MoneyIcon sx={{ fontSize: 32, color: '#FF9500' }} />
+          </div>
+          <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">No grants yet</h3>
+          <p className="text-[#6E6E73] mb-6">Get started by analyzing an existing grant or creating a new one.</p>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={() => setShowWizardDialog(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#5856D6] text-white rounded-xl font-medium text-sm hover:bg-[#4B49B8] transition-colors"
+            >
+              <AssessmentIcon sx={{ fontSize: 18 }} />
+              Grant Analyzer
+            </button>
+            <button
+              onClick={() => setShowGeneratorDialog(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
+            >
+              <Sparkles size={18} />
+              Grant Creator
+            </button>
+          </div>
+        </div>
+      )}
+      </div>
 
       {/* Grant Analyzer Wizard Dialog */}
       <Dialog 
@@ -1006,10 +942,10 @@ export default function GrantManagement() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': { 
-            borderRadius: '12px',
+            borderRadius: '16px',
             maxHeight: '90vh', 
             overflow: 'auto',
-            backgroundColor: '#f8fafc' // Light background for better contrast with wizard content
+            backgroundColor: '#F5F5F7'
           }
         }}
       >
@@ -1060,10 +996,10 @@ export default function GrantManagement() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': { 
-            borderRadius: '12px',
+            borderRadius: '16px',
             maxHeight: '90vh', 
             overflow: 'auto',
-            backgroundColor: '#f8fafc'
+            backgroundColor: '#F5F5F7'
           }
         }}
       >
@@ -1113,14 +1049,15 @@ export default function GrantManagement() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': { 
-            borderRadius: '12px',
+            borderRadius: '16px',
             maxHeight: '90vh', 
-            overflow: 'auto'
+            overflow: 'auto',
+            backgroundColor: '#F5F5F7'
           }
         }}
       >
         <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: 3, bgcolor: 'white', borderRadius: '16px', m: 2 }}>
             {/* Close button */}
             <IconButton 
               onClick={() => setShowDetailsDialog(false)}
@@ -1359,9 +1296,10 @@ export default function GrantManagement() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: '12px',
+            borderRadius: '16px',
             maxHeight: '90vh',
-            overflow: 'auto'
+            overflow: 'auto',
+            backgroundColor: '#F5F5F7'
           }
         }}
       >
@@ -1477,9 +1415,10 @@ export default function GrantManagement() {
         fullWidth
         sx={{
           '& .MuiDialog-paper': {
-            borderRadius: '12px',
+            borderRadius: '16px',
             maxHeight: '90vh',
-            overflow: 'auto'
+            overflow: 'auto',
+            backgroundColor: '#F5F5F7'
           }
         }}
       >
