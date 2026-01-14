@@ -72,16 +72,16 @@ export default function ForAssociationsPage() {
       <AppleNav variant="light" />
 
       {/* Hero - Apple Style */}
-      <section className="apple-section bg-[#AF52DE]">
+      <section className="apple-section bg-[#F5F5F7]">
         <div className="apple-container text-center">
-          <h1 className="apple-headline-large text-white mb-6">
+          <h1 className="apple-headline-large text-[#1D1D1F] mb-6">
             For Associations
           </h1>
-          <p className="apple-subhead text-white/80 max-w-[680px] mx-auto mb-8">
+          <p className="apple-subhead max-w-[680px] mx-auto mb-8">
             Empower your workforce. Amplify your advocacy. Accelerate your impact.
             Enterprise-level capabilities with grassroots values.
           </p>
-          <Link href="/register" className="apple-btn bg-white text-[#AF52DE] hover:bg-gray-100">
+          <Link href="/register" className="apple-btn bg-[#1D1D1F] text-white hover:bg-[#333]">
             Register Association <ArrowRight className="ml-2 h-4 w-4 inline" />
           </Link>
         </div>
