@@ -582,8 +582,18 @@ function DigitalLiteracyContent() {
           </TabsContent>
         </Tabs>
 
-        {/* Apple-styled Footer Stats */}
+        {/* Quick Stats with Link to Full Dashboard */}
         <div className="mt-8 bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+          <div className="p-4 border-b border-[#D2D2D7] flex items-center justify-between">
+            <h3 className="font-semibold text-[#1D1D1F]">Quick Stats | Estadísticas Rápidas</h3>
+            <a 
+              href="/forms/digital-literacy/metrics"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#0071E3] text-white rounded-lg hover:bg-[#0077ED] transition-colors text-sm font-medium"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              View Full Dashboard | Ver Panel Completo
+            </a>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[#D2D2D7]">
             <div className="p-6 text-center">
               <p className="text-4xl font-semibold text-[#0071E3] mb-1">
