@@ -672,8 +672,9 @@ function CollaborationDetailContent() {
     const grantInvoices = (grant as any)?.invoices || [];
     const totalInvoiced = grantInvoices.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
     const totalPaid = grantInvoices.filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
-    const budget = (grant as any)?.budget || 0;
-    return { totalInvoiced, totalPaid, remaining: budget - totalInvoiced };
+    // Use amount, totalBudget, or budget field (whichever exists)
+    const budget = (grant as any)?.amount || (grant as any)?.totalBudget || (grant as any)?.budget || 0;
+    return { totalInvoiced, totalPaid, remaining: budget - totalInvoiced, budget };
   };
 
   // ============ PROGRAM FORM HANDLERS ============
@@ -973,7 +974,7 @@ function CollaborationDetailContent() {
                 <Grid item xs={6} sm={2.4}>
                   <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50' }}>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                      ${((grant as any).budget || 0).toLocaleString()}
+                      ${calculateInvoiceTotals().budget.toLocaleString()}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Total Budget
@@ -1042,10 +1043,10 @@ function CollaborationDetailContent() {
                   color="success"
                   size="small"
                 />
-                {((grant as any).budget || 0) > 0 && (
+                {calculateInvoiceTotals().budget > 0 && (
                   <Chip 
-                    label={`${Math.round((calculateInvoiceTotals().totalPaid / ((grant as any).budget || 1)) * 100)}% Budget Utilized`}
-                    color={calculateInvoiceTotals().totalPaid / ((grant as any).budget || 1) > 0.8 ? 'warning' : 'default'}
+                    label={`${Math.round((calculateInvoiceTotals().totalPaid / calculateInvoiceTotals().budget) * 100)}% Budget Utilized`}
+                    color={calculateInvoiceTotals().totalPaid / calculateInvoiceTotals().budget > 0.8 ? 'warning' : 'default'}
                     size="small"
                   />
                 )}
