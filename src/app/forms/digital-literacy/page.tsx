@@ -89,7 +89,7 @@ const QR_CONFIGS = [
 // Default collaborating organizations (fallback if Firebase fetch fails)
 const DEFAULT_collaboratingOrgs = [
   'Women Leading 4 Wellness and Justice',
-  'Fiesta Christiana Family Services',
+  'Fiesta Family Services',
 ];
 
 function DigitalLiteracyContent() {
