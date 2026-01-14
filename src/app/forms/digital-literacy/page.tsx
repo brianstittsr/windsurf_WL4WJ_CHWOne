@@ -48,28 +48,39 @@ function DigitalLiteracyContent() {
   // Generate QR codes on mount
   useEffect(() => {
     const generateQRCodes = async () => {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      // Wait for window to be available
+      if (typeof window === 'undefined') return;
+      
+      const baseUrl = window.location.origin;
+      console.log('[QR] Generating QR codes with base URL:', baseUrl);
       const codes: { [key: string]: string } = {};
       
       for (const config of QR_CONFIGS) {
         try {
           const url = `${baseUrl}${config.path}`;
+          console.log(`[QR] Generating QR for ${config.id}:`, url);
           const qrDataUrl = await QRCode.toDataURL(url, {
-            width: 200,
+            width: 256,
             margin: 2,
+            errorCorrectionLevel: 'M',
             color: {
               dark: config.color,
               light: '#FFFFFF'
             }
           });
           codes[config.id] = qrDataUrl;
+          console.log(`[QR] Successfully generated QR for ${config.id}`);
         } catch (err) {
-          console.error(`Error generating QR for ${config.id}:`, err);
+          console.error(`[QR] Error generating QR for ${config.id}:`, err);
         }
       }
+      console.log('[QR] All QR codes generated:', Object.keys(codes));
       setQrCodes(codes);
     };
-    generateQRCodes();
+    
+    // Small delay to ensure client-side hydration is complete
+    const timer = setTimeout(generateQRCodes, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Fetch real data from Firebase only
