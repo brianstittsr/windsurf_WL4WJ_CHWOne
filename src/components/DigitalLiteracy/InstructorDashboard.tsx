@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, Users, CheckCircle, XCircle, ArrowLeft, X } from 'lucide-react';
+import { AlertTriangle, Users, CheckCircle, XCircle, ArrowLeft, X, Calendar, Clock, Eye } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import LanguageToggle from './LanguageToggle';
 import StudentCard, { Student } from './StudentCard';
 import StudentDetailView from './StudentDetailView';
@@ -22,6 +24,29 @@ import {
   COURSE_TOPICS,
   getClassSchedule,
 } from '@/lib/translations/digitalLiteracy';
+
+// Class session interface for schedule management
+interface ClassSession {
+  id: string;
+  classId: string;
+  date: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  week: number;
+  topic: string;
+  topicEs: string;
+}
+
+// Attendance record interface
+interface AttendanceRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  classId: string;
+  date: string;
+  checkinTime: string;
+}
 
 interface InstructorDashboardProps {
   students: Student[];
@@ -49,6 +74,10 @@ export default function InstructorDashboard({
   const [viewMode, setViewMode] = useState<'list' | 'detail' | 'completion' | 'certificate'>('list');
   const [showAlert, setShowAlert] = useState(true);
   const [activeTab, setActiveTab] = useState('attendance');
+  const [classScheduleData, setClassScheduleData] = useState<ClassSession[]>([]);
+  const [attendanceBySession, setAttendanceBySession] = useState<{ [key: string]: AttendanceRecord[] }>({});
+  const [selectedSession, setSelectedSession] = useState<ClassSession | null>(null);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
 
   // Load language preference from localStorage
   useEffect(() => {
@@ -63,6 +92,108 @@ export default function InstructorDashboard({
     setLanguage(lang);
     localStorage.setItem('digitalLiteracyLanguage', lang);
   };
+
+  // Generate class schedule for the 6-week program
+  useEffect(() => {
+    const generateSchedule = () => {
+      const schedule: ClassSession[] = [];
+      const programStartDate = new Date('2026-01-06'); // Program start date
+      
+      // Get class info
+      const classInfo = CLASS_SCHEDULES.find(c => c.id === selectedClass);
+      if (!classInfo) return;
+      
+      // Parse day and time from class schedule
+      const classText = classInfo.en;
+      const dayMatch = classText.match(/Monday|Tuesday|Wednesday/);
+      const timeMatch = classText.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))\s*-\s*(\d{1,2}:\d{2}\s*(?:AM|PM))/);
+      
+      if (!dayMatch || !timeMatch) return;
+      
+      const dayOfWeek = dayMatch[0];
+      const startTime = timeMatch[1];
+      const endTime = timeMatch[2];
+      
+      // Map day to number (0=Sunday, 1=Monday, etc.)
+      const dayMap: { [key: string]: number } = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3 };
+      const targetDay = dayMap[dayOfWeek];
+      
+      // Generate 6 weeks of sessions
+      for (let week = 1; week <= 6; week++) {
+        const weekStart = new Date(programStartDate);
+        weekStart.setDate(weekStart.getDate() + (week - 1) * 7);
+        
+        // Find the correct day in this week
+        const sessionDate = new Date(weekStart);
+        const currentDay = sessionDate.getDay();
+        const daysUntilTarget = (targetDay - currentDay + 7) % 7;
+        sessionDate.setDate(sessionDate.getDate() + daysUntilTarget);
+        
+        // Get topic for this week
+        const weekTopics = COURSE_TOPICS.filter(t => t.week === week);
+        const topicText = weekTopics.map(t => t.en).join(' & ') || `Week ${week} Topics`;
+        const topicTextEs = weekTopics.map(t => t.es).join(' & ') || `Temas Semana ${week}`;
+        
+        schedule.push({
+          id: `${selectedClass}-week${week}`,
+          classId: selectedClass,
+          date: sessionDate.toISOString().split('T')[0],
+          dayOfWeek,
+          startTime,
+          endTime,
+          week,
+          topic: topicText,
+          topicEs: topicTextEs,
+        });
+      }
+      
+      setClassScheduleData(schedule);
+    };
+    
+    generateSchedule();
+  }, [selectedClass]);
+
+  // Fetch attendance data for the selected class
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      if (activeTab !== 'schedule') return;
+      
+      setLoadingSchedule(true);
+      try {
+        const attendanceRef = collection(db, 'digital_literacy_attendance');
+        const q = query(attendanceRef, where('classId', '==', selectedClass));
+        const snapshot = await getDocs(q);
+        
+        const records: { [key: string]: AttendanceRecord[] } = {};
+        
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          const dateKey = data.date?.split('T')[0] || '';
+          
+          if (!records[dateKey]) {
+            records[dateKey] = [];
+          }
+          
+          records[dateKey].push({
+            id: doc.id,
+            studentId: data.studentId || '',
+            studentName: data.studentName || '',
+            classId: data.classId || '',
+            date: data.date || '',
+            checkinTime: data.checkinTime || '',
+          });
+        });
+        
+        setAttendanceBySession(records);
+      } catch (error) {
+        console.error('Error fetching attendance:', error);
+      } finally {
+        setLoadingSchedule(false);
+      }
+    };
+    
+    fetchAttendance();
+  }, [selectedClass, activeTab]);
 
   const getText = (key: string) => t(key, language, TRANSLATIONS);
 
@@ -351,6 +482,10 @@ export default function InstructorDashboard({
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
+          <TabsTrigger value="schedule">
+            <Calendar className="h-4 w-4 mr-2" />
+            {language === 'en' ? 'Class Schedule' : 'Horario de Clases'}
+          </TabsTrigger>
           <TabsTrigger value="attendance">
             {language === 'en' ? 'Attendance' : 'Asistencia'}
           </TabsTrigger>
@@ -358,6 +493,223 @@ export default function InstructorDashboard({
             {language === 'en' ? 'Completion' : 'Finalización'}
           </TabsTrigger>
         </TabsList>
+
+        {/* Schedule Tab */}
+        <TabsContent value="schedule">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-[#1D1D1F]">
+                    {language === 'en' ? 'Class Schedule & Attendance' : 'Horario de Clases y Asistencia'}
+                  </h3>
+                  <p className="text-sm text-[#6E6E73]">
+                    {language === 'en' 
+                      ? '6-week program schedule with student check-in data' 
+                      : 'Horario del programa de 6 semanas con datos de registro de estudiantes'}
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-[#0071E3] border-[#0071E3]">
+                  {getClassSchedule(selectedClass, language)}
+                </Badge>
+              </div>
+
+              {loadingSchedule ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-[#0071E3] border-t-transparent rounded-full mx-auto mb-4" />
+                  <p className="text-[#6E6E73]">{language === 'en' ? 'Loading schedule...' : 'Cargando horario...'}</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-[#F5F5F7]">
+                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
+                          {language === 'en' ? 'Week' : 'Semana'}
+                        </th>
+                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
+                          {language === 'en' ? 'Date' : 'Fecha'}
+                        </th>
+                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
+                          {language === 'en' ? 'Day' : 'Día'}
+                        </th>
+                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
+                          {language === 'en' ? 'Time' : 'Hora'}
+                        </th>
+                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
+                          {language === 'en' ? 'Topic' : 'Tema'}
+                        </th>
+                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
+                          {language === 'en' ? 'Check-ins' : 'Registros'}
+                        </th>
+                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
+                          {language === 'en' ? 'Actions' : 'Acciones'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {classScheduleData.map((session, idx) => {
+                        const sessionDate = new Date(session.date);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const isPast = sessionDate < today;
+                        const isToday = sessionDate.toDateString() === today.toDateString();
+                        const checkins = attendanceBySession[session.date] || [];
+                        
+                        return (
+                          <tr 
+                            key={session.id} 
+                            className={`border-b border-[#E5E5EA] hover:bg-[#F5F5F7] transition-colors ${
+                              isToday ? 'bg-[#0071E3]/5' : ''
+                            }`}
+                          >
+                            <td className="p-3">
+                              <Badge 
+                                variant={isToday ? 'default' : 'outline'}
+                                className={isToday ? 'bg-[#0071E3]' : ''}
+                              >
+                                {language === 'en' ? `Week ${session.week}` : `Semana ${session.week}`}
+                              </Badge>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-[#6E6E73]" />
+                                <span className={isToday ? 'font-bold text-[#0071E3]' : ''}>
+                                  {sessionDate.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                                {isToday && (
+                                  <Badge className="bg-[#34C759] text-xs">
+                                    {language === 'en' ? 'Today' : 'Hoy'}
+                                  </Badge>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3 text-[#1D1D1F]">
+                              {language === 'es' 
+                                ? session.dayOfWeek === 'Monday' ? 'Lunes' 
+                                  : session.dayOfWeek === 'Tuesday' ? 'Martes' 
+                                  : 'Miércoles'
+                                : session.dayOfWeek}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-[#6E6E73]" />
+                                <span>{session.startTime} - {session.endTime}</span>
+                              </div>
+                            </td>
+                            <td className="p-3 max-w-[200px]">
+                              <p className="text-sm text-[#1D1D1F] truncate" title={language === 'es' ? session.topicEs : session.topic}>
+                                {language === 'es' ? session.topicEs : session.topic}
+                              </p>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-[#6E6E73]" />
+                                <span className={`font-semibold ${
+                                  checkins.length > 0 ? 'text-[#34C759]' : 'text-[#6E6E73]'
+                                }`}>
+                                  {checkins.length} / {classStudents.length}
+                                </span>
+                                {isPast && checkins.length === 0 && (
+                                  <Badge variant="outline" className="text-[#FF9500] border-[#FF9500] text-xs">
+                                    {language === 'en' ? 'No data' : 'Sin datos'}
+                                  </Badge>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-[#0071E3] text-[#0071E3] hover:bg-[#0071E3]/10"
+                                onClick={() => setSelectedSession(session)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                {language === 'en' ? 'View' : 'Ver'}
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Session Detail Modal */}
+              {selectedSession && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                  <Card className="w-full max-w-2xl max-h-[80vh] overflow-auto">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-6">
+                        <div>
+                          <h3 className="text-xl font-bold text-[#1D1D1F]">
+                            {language === 'en' ? `Week ${selectedSession.week} Attendance` : `Asistencia Semana ${selectedSession.week}`}
+                          </h3>
+                          <p className="text-[#6E6E73]">
+                            {new Date(selectedSession.date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                              weekday: 'long',
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedSession(null)}>
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
+
+                      <div className="mb-4 p-4 bg-[#F5F5F7] rounded-lg">
+                        <p className="font-semibold text-[#1D1D1F]">{language === 'es' ? selectedSession.topicEs : selectedSession.topic}</p>
+                        <p className="text-sm text-[#6E6E73]">{selectedSession.startTime} - {selectedSession.endTime}</p>
+                      </div>
+
+                      <h4 className="font-semibold mb-3 text-[#1D1D1F]">
+                        {language === 'en' ? 'Student Check-ins' : 'Registros de Estudiantes'} 
+                        ({(attendanceBySession[selectedSession.date] || []).length})
+                      </h4>
+
+                      {(attendanceBySession[selectedSession.date] || []).length > 0 ? (
+                        <div className="space-y-2">
+                          {(attendanceBySession[selectedSession.date] || []).map(record => (
+                            <div key={record.id} className="flex items-center justify-between p-3 bg-[#34C759]/10 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <CheckCircle className="h-5 w-5 text-[#34C759]" />
+                                <span className="font-medium text-[#1D1D1F]">{record.studentName}</span>
+                              </div>
+                              <span className="text-sm text-[#6E6E73]">
+                                {new Date(record.checkinTime).toLocaleTimeString(language === 'es' ? 'es-ES' : 'en-US', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-[#6E6E73]">
+                          <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                          <p>{language === 'en' ? 'No check-ins recorded for this session' : 'No hay registros para esta sesión'}</p>
+                        </div>
+                      )}
+
+                      <div className="mt-6 pt-4 border-t border-[#D2D2D7]">
+                        <Button onClick={() => setSelectedSession(null)} className="w-full bg-[#0071E3] hover:bg-[#0077ED]">
+                          {language === 'en' ? 'Close' : 'Cerrar'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Attendance Tab */}
         <TabsContent value="attendance">
