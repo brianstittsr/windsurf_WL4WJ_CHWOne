@@ -86,8 +86,8 @@ const QR_CONFIGS = [
   },
 ];
 
-// Collaborating organizations
-const COLLABORATING_ORGS = [
+// Default collaborating organizations (fallback if Firebase fetch fails)
+const DEFAULT_collaboratingOrgs = [
   'NC Community Health Worker Association (NCCHWA)',
   'Moore County Health Department',
   'Montgomery County Health Department',
@@ -99,6 +99,7 @@ function DigitalLiteracyContent() {
   const [students, setStudents] = useState<Student[]>([]);
   const [classEnrollments, setClassEnrollments] = useState<{ [classId: string]: number }>({});
   const [loading, setLoading] = useState(true);
+  const [collaboratingOrgs, setCollaboratingOrgs] = useState<string[]>(DEFAULT_collaboratingOrgs);
   const [metrics, setMetrics] = useState({
     totalStudents: 0,
     completedStudents: 0,
@@ -143,6 +144,54 @@ function DigitalLiteracyContent() {
     // Small delay to ensure client-side hydration is complete
     const timer = setTimeout(generateQRCodes, 100);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch collaborating organizations from Firebase
+  useEffect(() => {
+    const fetchCollaborations = async () => {
+      try {
+        // Try to fetch from program_collaborations collection
+        const collabRef = collection(db, 'program_collaborations');
+        const q = query(collabRef, where('programId', '==', 'digital_literacy'));
+        const snapshot = await getDocs(q);
+        
+        if (!snapshot.empty) {
+          const orgs: string[] = [];
+          snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.organizationName) {
+              orgs.push(data.organizationName);
+            }
+          });
+          if (orgs.length > 0) {
+            setCollaboratingOrgs(orgs);
+          }
+        } else {
+          // If no program-specific collaborations, try general collaborations collection
+          const generalRef = collection(db, 'collaborations');
+          const generalSnapshot = await getDocs(generalRef);
+          
+          if (!generalSnapshot.empty) {
+            const orgs: string[] = [];
+            generalSnapshot.docs.forEach(doc => {
+              const data = doc.data();
+              // Check if this collaboration is related to digital literacy
+              if (data.name && (data.programs?.includes('digital_literacy') || data.isActive)) {
+                orgs.push(data.name);
+              }
+            });
+            if (orgs.length > 0) {
+              setCollaboratingOrgs(orgs);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching collaborations:', error);
+        // Keep default organizations on error
+      }
+    };
+    
+    fetchCollaborations();
   }, []);
 
   // Fetch real data from Firebase only
@@ -512,7 +561,7 @@ function DigitalLiteracyContent() {
                                         <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
                                         <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
                                         <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
-                                        <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                        <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${collaboratingOrgs.join(' • ')}</p>
                                       </div>
                                     </body>
                                   </html>
@@ -575,7 +624,7 @@ function DigitalLiteracyContent() {
                                     <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
                                     <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
                                     <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
-                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${collaboratingOrgs.join(' • ')}</p>
                                   </div>
                                 </div>
                               `;
@@ -631,7 +680,7 @@ function DigitalLiteracyContent() {
                                     <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
                                     <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
                                     <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
-                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${collaboratingOrgs.join(' • ')}</p>
                                   </div>
                                 </div>
                               `;
@@ -686,7 +735,7 @@ function DigitalLiteracyContent() {
                                     <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
                                     <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
                                     <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
-                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${collaboratingOrgs.join(' • ')}</p>
                                   </div>
                                 </div>
                               `;
