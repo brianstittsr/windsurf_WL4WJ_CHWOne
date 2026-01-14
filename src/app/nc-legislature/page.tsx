@@ -4,13 +4,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { NCRepresentative } from '@/types/ncleg/representative';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
 import { 
   Search, 
   Users, 
@@ -18,14 +11,10 @@ import {
   MapPin, 
   X,
   ChevronRight,
-  Menu,
-  Home,
-  Loader2,
-  Info,
-  Filter,
-  Landmark
+  Filter
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function NCLegislaturePage() {
   const [representatives, setRepresentatives] = useState<NCRepresentative[]>([]);
@@ -33,6 +22,7 @@ export default function NCLegislaturePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [partyFilter, setPartyFilter] = useState<string>('all');
   const [countyFilter, setCountyFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     async function fetchRepresentatives() {
@@ -87,174 +77,214 @@ export default function NCLegislaturePage() {
     setCountyFilter('all');
   };
 
+  const hasActiveFilters = searchTerm || partyFilter !== 'all' || countyFilter !== 'all';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading NC Representatives...</p>
+          <div className="w-12 h-12 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="mt-4 text-[#86868B]">Loading NC Representatives...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Building2 className="h-10 w-10" />
-            <h1 className="text-3xl font-bold">NC General Assembly</h1>
+    <div className="min-h-screen bg-[#F5F5F7]">
+      {/* Apple-style Header */}
+      <div className="bg-[#1D1D1F] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 bg-[#0071E3] rounded-2xl flex items-center justify-center">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-semibold tracking-tight">NC General Assembly</h1>
+              <p className="text-[#86868B] text-lg mt-1">
+                North Carolina House of Representatives • 2025-2026 Session
+              </p>
+            </div>
           </div>
-          <p className="text-blue-100 text-lg">
-            North Carolina House of Representatives • 2025-2026 Session
-          </p>
           
-          {/* Stats */}
-          <div className="flex gap-6 mt-6">
-            <div className="bg-white/10 rounded-lg px-4 py-2">
-              <span className="text-2xl font-bold">{stats.total}</span>
-              <span className="ml-2 text-blue-100">Total Members</span>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5">
+              <p className="text-[#86868B] text-sm font-medium">Total Members</p>
+              <p className="text-4xl font-semibold mt-1">{stats.total}</p>
             </div>
-            <div className="bg-red-500/20 rounded-lg px-4 py-2">
-              <span className="text-2xl font-bold">{stats.republicans}</span>
-              <span className="ml-2 text-red-100">Republicans</span>
+            <div className="bg-[#FF3B30]/20 backdrop-blur-xl rounded-2xl p-5">
+              <p className="text-[#FF6961] text-sm font-medium">Republicans</p>
+              <p className="text-4xl font-semibold mt-1">{stats.republicans}</p>
             </div>
-            <div className="bg-blue-500/20 rounded-lg px-4 py-2">
-              <span className="text-2xl font-bold">{stats.democrats}</span>
-              <span className="ml-2 text-blue-100">Democrats</span>
+            <div className="bg-[#0071E3]/20 backdrop-blur-xl rounded-2xl p-5">
+              <p className="text-[#5AC8FA] text-sm font-medium">Democrats</p>
+              <p className="text-4xl font-semibold mt-1">{stats.democrats}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="container mx-auto px-4 py-6">
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap gap-4 items-end">
-              <div className="flex-1 min-w-[250px]">
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search by name, county, or district..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search and Filters */}
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search Input */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#86868B]" />
+                <input
+                  type="text"
+                  placeholder="Search by name, county, or district..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-[#F5F5F7] border-0 rounded-xl text-[#1D1D1F] placeholder-[#86868B] focus:outline-none focus:ring-2 focus:ring-[#0071E3]"
+                />
               </div>
-              
-              <div className="w-[150px]">
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Party</label>
-                <Select value={partyFilter} onValueChange={setPartyFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Parties" />
-                  </SelectTrigger>
-                  <SelectContent className="z-50">
-                    <SelectItem value="all">All Parties</SelectItem>
-                    <SelectItem value="R">Republican</SelectItem>
-                    <SelectItem value="D">Democrat</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="w-[200px]">
-                <label className="text-sm font-medium text-gray-700 mb-1 block">County</label>
-                <Select value={countyFilter} onValueChange={setCountyFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Counties" />
-                  </SelectTrigger>
-                  <SelectContent className="z-50">
-                    <SelectItem value="all">All Counties</SelectItem>
-                    {counties.map(county => (
-                      <SelectItem key={county} value={county}>{county}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {(searchTerm || partyFilter !== 'all' || countyFilter !== 'all') && (
-                <Button variant="outline" onClick={clearFilters} className="gap-2">
-                  <X className="h-4 w-4" />
-                  Clear Filters
-                </Button>
+            </div>
+
+            {/* Filter Toggle Button (Mobile) */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="lg:hidden flex items-center justify-center gap-2 px-4 py-3 bg-[#F5F5F7] rounded-xl text-[#1D1D1F] font-medium"
+            >
+              <Filter className="w-5 h-5" />
+              Filters
+              {hasActiveFilters && (
+                <span className="w-2 h-2 bg-[#0071E3] rounded-full" />
+              )}
+            </button>
+
+            {/* Desktop Filters */}
+            <div className={`${showFilters ? 'flex' : 'hidden'} lg:flex flex-col sm:flex-row gap-4`}>
+              {/* Party Filter */}
+              <select
+                value={partyFilter}
+                onChange={(e) => setPartyFilter(e.target.value)}
+                className="px-4 py-3 bg-[#F5F5F7] border-0 rounded-xl text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#0071E3] min-w-[150px]"
+              >
+                <option value="all">All Parties</option>
+                <option value="R">Republican</option>
+                <option value="D">Democrat</option>
+              </select>
+
+              {/* County Filter */}
+              <select
+                value={countyFilter}
+                onChange={(e) => setCountyFilter(e.target.value)}
+                className="px-4 py-3 bg-[#F5F5F7] border-0 rounded-xl text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#0071E3] min-w-[180px]"
+              >
+                <option value="all">All Counties</option>
+                {counties.map(county => (
+                  <option key={county} value={county}>{county}</option>
+                ))}
+              </select>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-2 px-4 py-3 text-[#FF3B30] hover:bg-[#FF3B30]/10 rounded-xl transition-colors font-medium"
+                >
+                  <X className="w-4 h-4" />
+                  Clear
+                </button>
               )}
             </div>
-            
-            <div className="mt-4 text-sm text-gray-500">
-              Showing {filteredReps.length} of {representatives.length} representatives
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Results Count */}
+          <div className="mt-4 pt-4 border-t border-[#D2D2D7]">
+            <p className="text-sm text-[#86868B]">
+              Showing <span className="font-semibold text-[#1D1D1F]">{filteredReps.length}</span> of {representatives.length} representatives
+            </p>
+          </div>
+        </div>
 
         {/* Representatives Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredReps.map((rep) => (
             <Link 
               key={`${rep.chamber}-${rep.id}`} 
               href={`/nc-legislature/${rep.id}`}
+              className="group"
             >
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full">
-                <CardContent className="p-6">
-                  <div className="flex gap-5">
+              <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="p-5">
+                  <div className="flex gap-4">
                     {/* Photo */}
                     <div className="flex-shrink-0">
                       {rep.photoBase64 ? (
                         <img
                           src={`data:${rep.photoMimeType || 'image/jpeg'};base64,${rep.photoBase64}`}
                           alt={rep.name}
-                          className="w-56 h-72 object-cover rounded-lg shadow-md"
+                          className="w-24 h-32 object-cover rounded-xl"
                         />
                       ) : (
-                        <div className="w-56 h-72 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <Users className="h-16 w-16 text-gray-400" />
+                        <div className="w-24 h-32 bg-[#F5F5F7] rounded-xl flex items-center justify-center">
+                          <Users className="w-10 h-10 text-[#86868B]" />
                         </div>
                       )}
                     </div>
                     
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg text-gray-900">{rep.name}</h3>
-                      <Badge 
-                        variant={rep.party === 'R' ? 'destructive' : 'default'}
-                        className={`mt-2 ${rep.party === 'R' ? 'bg-red-600' : 'bg-blue-600'}`}
-                      >
+                      <h3 className="font-semibold text-lg text-[#1D1D1F] truncate">{rep.name}</h3>
+                      
+                      {/* Party Badge */}
+                      <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${
+                        rep.party === 'R' 
+                          ? 'bg-[#FF3B30]/10 text-[#FF3B30]' 
+                          : 'bg-[#0071E3]/10 text-[#0071E3]'
+                      }`}>
                         {rep.party === 'R' ? 'Republican' : 'Democrat'}
-                      </Badge>
+                      </span>
+                      
                       <div className="mt-3 space-y-1">
-                        <div className="flex items-center gap-2 text-gray-700">
-                          <MapPin className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium">District {rep.district}</span>
+                        <div className="flex items-center gap-2 text-[#1D1D1F]">
+                          <MapPin className="w-4 h-4 text-[#86868B]" />
+                          <span className="font-medium text-sm">District {rep.district}</span>
                         </div>
-                        <div className="text-gray-600">
+                        <p className="text-sm text-[#6E6E73] line-clamp-1">
                           {rep.counties?.join(', ')}
-                        </div>
-                        {rep.biography?.occupation && (
-                          <div className="text-sm text-gray-500 mt-2 pt-2 border-t">
-                            {rep.biography.occupation}
-                          </div>
-                        )}
-                      </div>
-                      <div className="mt-4 flex items-center text-blue-600 text-sm font-medium">
-                        View Details
-                        <ChevronRight className="h-4 w-4 ml-1" />
+                        </p>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Occupation */}
+                  {rep.biography?.occupation && (
+                    <div className="mt-4 pt-4 border-t border-[#D2D2D7]">
+                      <p className="text-sm text-[#86868B] line-clamp-1">{rep.biography.occupation}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* View Details Footer */}
+                <div className="px-5 py-3 bg-[#F5F5F7] border-t border-[#D2D2D7] flex items-center justify-between">
+                  <span className="text-sm font-medium text-[#0071E3]">View Details</span>
+                  <ChevronRight className="w-4 h-4 text-[#0071E3] group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
             </Link>
           ))}
         </div>
 
+        {/* Empty State */}
         {filteredReps.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No representatives found matching your criteria.</p>
-            <Button variant="link" onClick={clearFilters}>Clear filters</Button>
+          <div className="bg-white rounded-2xl border border-[#D2D2D7] p-12 text-center">
+            <div className="w-16 h-16 bg-[#F5F5F7] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-[#86868B]" />
+            </div>
+            <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">No representatives found</h3>
+            <p className="text-[#6E6E73] mb-4">Try adjusting your search or filter criteria.</p>
+            <button
+              onClick={clearFilters}
+              className="px-5 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
+            >
+              Clear All Filters
+            </button>
           </div>
         )}
       </div>
