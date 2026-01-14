@@ -127,17 +127,34 @@ export default function ClassCheckInPage() {
   const [status, setStatus] = useState<CheckInStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [studentName, setStudentName] = useState('');
-  const [checkInTime, setCheckInTime] = useState<Date | null>(null);
+  const [checkInTime, setCheckInTime] = useState<string>('');
   const [language, setLanguage] = useState<'en' | 'es'>('en');
-  const [currentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState<string>('');
   const [location, setLocation] = useState(locationParam || '');
+  const [mounted, setMounted] = useState(false);
 
-  // Detect browser language
+  // Set mounted state and initialize date on client only
   useEffect(() => {
+    setMounted(true);
+    const now = new Date();
+    setCurrentDate(now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }));
+    
+    // Detect browser language
     if (typeof navigator !== 'undefined') {
       const browserLang = navigator.language.toLowerCase();
       if (browserLang.startsWith('es')) {
         setLanguage('es');
+        setCurrentDate(now.toLocaleDateString('es-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }));
       }
     }
   }, []);
@@ -192,11 +209,11 @@ export default function ClassCheckInPage() {
       if (data.success) {
         setStatus('success');
         setStudentName(selectedStudent.name);
-        setCheckInTime(new Date());
+        setCheckInTime(new Date().toLocaleString(language === 'es' ? 'es-US' : 'en-US'));
       } else if (data.error === 'already_checked_in') {
         setStatus('success');
         setStudentName(selectedStudent.name);
-        setCheckInTime(new Date(data.checkInTime));
+        setCheckInTime(new Date(data.checkInTime).toLocaleString(language === 'es' ? 'es-US' : 'en-US'));
         setErrorMessage(language === 'es'
           ? 'Ya está registrado para esta clase'
           : 'You are already checked in for this class');
@@ -269,12 +286,7 @@ export default function ClassCheckInPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CalendarIcon color="primary" fontSize="small" />
               <Typography variant="body2">
-                {currentDate.toLocaleDateString(language === 'es' ? 'es-US' : 'en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
+                {currentDate || 'Loading...'}
               </Typography>
             </Box>
             {location && (
@@ -306,7 +318,7 @@ export default function ClassCheckInPage() {
           </Typography>
           {checkInTime && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {checkInTime.toLocaleString(language === 'es' ? 'es-US' : 'en-US')}
+              {checkInTime}
             </Typography>
           )}
           {errorMessage && (

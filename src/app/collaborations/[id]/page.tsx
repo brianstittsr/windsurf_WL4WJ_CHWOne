@@ -1390,7 +1390,7 @@ function CollaborationDetailContent() {
                           size="small" 
                           variant="outlined" 
                           startIcon={<ViewIcon />}
-                          onClick={() => handleViewProgram(program)}
+                          onClick={() => window.open('/forms/digital-literacy', '_blank')}
                         >
                           View Details
                         </Button>
