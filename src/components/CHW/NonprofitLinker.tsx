@@ -39,8 +39,9 @@ import {
 } from 'lucide-react';
 import NonprofitSearchService, { NonprofitSearchResult, NonprofitDetails } from '@/services/NonprofitSearchService';
 import { NonprofitOrganization, MedicaidRegion } from '@/types/nonprofit.types';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { OrganizationTag } from '@/types/chw-profile.types';
 
 interface NonprofitLinkerProps {
   currentNonprofitId?: string;
@@ -197,27 +198,62 @@ export default function NonprofitLinker({
   };
 
   // Link CHW to nonprofit
-  const linkToNonprofit = async (nonprofitId: string) => {
+  const linkToNonprofit = async (nonprofitId: string, nonprofitData?: NonprofitOrganization) => {
     if (!currentUser?.uid) return;
 
     try {
       // Link CHW to nonprofit
       await NonprofitSearchService.linkCHWToNonprofit(currentUser.uid, nonprofitId);
 
-      // Update user profile with nonprofit ID
+      // Get the nonprofit data if not provided
+      let nonprofit = nonprofitData || existingNonprofits.find(np => np.id === nonprofitId);
+      
+      if (!nonprofit) {
+        // Try to fetch from Firebase
+        const nonprofitRef = doc(db, 'nonprofit_organizations', nonprofitId);
+        const nonprofitSnap = await getDoc(nonprofitRef);
+        if (nonprofitSnap.exists()) {
+          nonprofit = { id: nonprofitSnap.id, ...nonprofitSnap.data() } as NonprofitOrganization;
+        }
+      }
+
+      // Create organization tag
+      const organizationTag: OrganizationTag = {
+        id: nonprofitId,
+        name: nonprofit?.name || 'Unknown Organization',
+        ein: nonprofit?.ein,
+        claimedAt: new Date().toISOString(),
+      };
+
+      // Update user profile with nonprofit ID and add organization tag
       await updateDoc(doc(db, 'users', currentUser.uid), {
         linkedNonprofitId: nonprofitId,
+        organizationTags: arrayUnion(organizationTag),
         updatedAt: serverTimestamp(),
       });
 
+      // Also update CHW profile if it exists
+      try {
+        const chwProfileRef = doc(db, 'chwProfiles', currentUser.uid);
+        const chwProfileSnap = await getDoc(chwProfileRef);
+        if (chwProfileSnap.exists()) {
+          await updateDoc(chwProfileRef, {
+            organizationTags: arrayUnion(organizationTag),
+            'serviceArea.nonprofitOrganizationId': nonprofitId,
+            'serviceArea.nonprofitOrganizationName': nonprofit?.name || 'Unknown Organization',
+            updatedAt: serverTimestamp(),
+          });
+        }
+      } catch (chwErr) {
+        console.log('CHW profile update skipped (may not exist):', chwErr);
+      }
+
       // Update local state
-      const nonprofit = existingNonprofits.find(np => np.id === nonprofitId) ||
-        await NonprofitSearchService.findNonprofitByEin('');
-      
       if (nonprofit) {
         setLinkedNonprofit(nonprofit);
       }
 
+      console.log('Successfully linked to nonprofit and added organization tag:', organizationTag);
       onNonprofitLinked?.(nonprofitId);
     } catch (err) {
       setError('Failed to link to nonprofit. Please try again.');

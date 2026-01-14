@@ -217,6 +217,7 @@ export default function EnhancedProfileComponent({
             },
             toolAccess: data.toolAccess || DEFAULT_CHW_PROFILE.toolAccess,
             socialLinks: data.socialLinks || {},
+            organizationTags: data.organizationTags || [],
             createdAt: data.createdAt,
             updatedAt: data.updatedAt
           });
@@ -521,6 +522,28 @@ export default function EnhancedProfileComponent({
               <Typography variant="caption" color="text.secondary">
                 {profile.serviceArea.region} CHW
               </Typography>
+              
+              {/* Organization Tags */}
+              {profile.organizationTags && profile.organizationTags.length > 0 && (
+                <Box sx={{ mt: 1.5, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {profile.organizationTags.map((tag) => (
+                    <Chip
+                      key={tag.id}
+                      icon={<Business sx={{ fontSize: 16 }} />}
+                      label={tag.name}
+                      size="small"
+                      sx={{
+                        bgcolor: '#E3F2FD',
+                        color: '#1565C0',
+                        fontWeight: 500,
+                        '& .MuiChip-icon': {
+                          color: '#1565C0'
+                        }
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
             </Box>
           </Box>
           

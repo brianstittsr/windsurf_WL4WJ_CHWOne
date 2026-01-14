@@ -107,6 +107,17 @@ export interface UserToolAccess {
 }
 
 /**
+ * Organization tag for claimed nonprofits
+ */
+export interface OrganizationTag {
+  id: string;           // Nonprofit organization ID
+  name: string;         // Organization name for display
+  ein?: string;         // EIN if available
+  claimedAt: string;    // ISO date string when claimed
+  role?: string;        // User's role at the organization
+}
+
+/**
  * Complete CHW Profile
  */
 export interface CHWProfile {
@@ -127,6 +138,9 @@ export interface CHWProfile {
   // Profile Display
   profilePicture?: string;
   displayName?: string;
+  
+  // Organization Tags (claimed nonprofits)
+  organizationTags?: OrganizationTag[];
   
   // Professional Information
   professional: ProfessionalInfo;

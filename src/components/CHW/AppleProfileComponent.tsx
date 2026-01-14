@@ -350,6 +350,7 @@ export default function AppleProfileComponent({
             },
             toolAccess: data.toolAccess || DEFAULT_CHW_PROFILE.toolAccess,
             socialLinks: data.socialLinks || {},
+            organizationTags: data.organizationTags || [],
             createdAt: data.createdAt,
             updatedAt: data.updatedAt
           });
@@ -590,6 +591,21 @@ export default function AppleProfileComponent({
                   {profile.serviceArea?.region || 'Region'} CHW
                 </span>
               </div>
+              
+              {/* Organization Tags */}
+              {profile.organizationTags && profile.organizationTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {profile.organizationTags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#E3F2FD] text-[#1565C0] text-sm font-medium"
+                    >
+                      <Building2 className="w-3.5 h-3.5 mr-1.5" />
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Actions & Certification Status */}
