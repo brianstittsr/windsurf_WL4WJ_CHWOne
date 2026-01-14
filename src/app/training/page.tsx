@@ -167,7 +167,7 @@ function TrainingContent() {
           <Typography variant="h3" component="h1" sx={{ mb: 2, fontWeight: 700 }}>
             Training Portal
           </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
+          <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
             Enhance your skills and knowledge with our comprehensive training courses designed for healthcare professionals and community health workers.
           </Typography>
           
@@ -177,7 +177,7 @@ function TrainingContent() {
             variant="outlined"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ maxWidth: 600, mx: 'auto' }}
+            sx={{ width: '100%' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

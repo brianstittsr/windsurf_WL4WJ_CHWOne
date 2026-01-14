@@ -3,10 +3,9 @@
 import React from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { FolderKanban } from 'lucide-react';
 import ProjectManagement from '@/components/Projects/ProjectManagement';
-import { Box, Typography } from '@mui/material';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
 // Inner component that uses the auth context
 function ProjectsContent() {
@@ -14,7 +13,16 @@ function ProjectsContent() {
   const router = useRouter();
 
   if (loading) {
-    return <AnimatedLoading message="Loading Projects..." />;
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-10 h-10 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#86868B] text-sm">Loading Projects...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
   }
 
   if (!currentUser) {
@@ -24,11 +32,23 @@ function ProjectsContent() {
 
   return (
     <AdminLayout>
-      <Box sx={{ py: 4, px: 2 }}>
-        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Project Management</Typography>
-        <Typography color="text.secondary" sx={{ mb: 4 }}>Coordinate and track health initiatives, community programs, and CHW assignments across your organization</Typography>
-        <ProjectManagement />
-      </Box>
+      <div className="space-y-6">
+        {/* Apple-style Page Header */}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-[#AF52DE] rounded-2xl flex items-center justify-center">
+            <FolderKanban className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">Projects</h1>
+            <p className="text-[#6E6E73]">Coordinate health initiatives and community programs</p>
+          </div>
+        </div>
+
+        {/* Project Management Component */}
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+          <ProjectManagement />
+        </div>
+      </div>
     </AdminLayout>
   );
 }

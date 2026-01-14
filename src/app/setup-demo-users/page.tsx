@@ -201,7 +201,7 @@ function SetupDemoUsersPageContent() {
   }
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+    <Box sx={{ p: 3, width: '100%' }}>
       <Typography variant="h4" gutterBottom>
         Setup Demo Users
       </Typography>

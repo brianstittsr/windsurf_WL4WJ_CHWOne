@@ -3,25 +3,11 @@
 import React, { useState } from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { redirect } from 'next/navigation';
-import { 
-  Box, 
-  Button, 
-  Typography, 
-  Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton
-} from '@mui/material';
-import { 
-  Add as AddIcon,
-  Close as CloseIcon 
-} from '@mui/icons-material';
 import Link from 'next/link';
+import { FileText, Plus, Sparkles, X, LayoutTemplate, GraduationCap } from 'lucide-react';
 import FormsManagement from '@/components/Forms/FormsManagement';
 import BmadFormWizard from '@/components/Forms/BmadFormWizard';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
 // Inner component that uses the auth context
 function FormsContent() {
@@ -30,7 +16,16 @@ function FormsContent() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   if (loading) {
-    return <AnimatedLoading message="Loading Forms..." />;
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-10 h-10 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#86868B] text-sm">Loading Forms...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
   }
 
   if (!currentUser) {
@@ -41,7 +36,6 @@ function FormsContent() {
   const handleWizardComplete = (formId: string) => {
     console.log('Form generated:', formId);
     setWizardOpen(false);
-    // Reload the page to show the new form
     window.location.reload();
   };
 
@@ -52,80 +46,89 @@ function FormsContent() {
 
   return (
     <AdminLayout>
-      <Box sx={{ py: 4, px: 2 }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Forms Management</Typography>
-          <Typography color="text.secondary" sx={{ mb: 4 }}>Create, manage, and analyze health assessment forms and data collection tools for Community Health Workers</Typography>
-          
-          <Stack direction="row" spacing={2} sx={{ mb: 4 }} flexWrap="wrap" useFlexGap>
-            <Button component={Link} href="/forms/templates" variant="outlined">Form Templates</Button>
-            <Button 
-              variant="contained" 
-              color="primary"
-              size="large"
-              startIcon={<AddIcon />}
-              onClick={() => setWizardOpen(true)}
-              sx={{ 
-                px: 4,
-                py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 600
-              }}
-            >
-              Create with AI Wizard
-            </Button>
-            <Button 
-              variant="outlined"
-              onClick={handleCreateManually}
-            >
-              Create Form Manually
-            </Button>
-            <Button 
-              component={Link}
-              href="/forms/digital-literacy"
-              variant="contained"
-              color="secondary"
-              sx={{ 
-                background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%)',
-                }
-              }}
-            >
-              🌐 Digital Literacy Program
-            </Button>
-          </Stack>
-        </Box>
-        
-        <FormsManagement 
-          openCreateModal={createModalOpen}
-          onCreateModalClose={() => setCreateModalOpen(false)}
-        />
-      </Box>
+      <div className="space-y-6">
+        {/* Apple-style Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-[#5856D6] rounded-2xl flex items-center justify-center">
+              <FileText className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">Forms</h1>
+              <p className="text-[#6E6E73]">Create and manage health assessment forms</p>
+            </div>
+          </div>
+        </div>
 
-      {/* AI Wizard Dialog */}
-      <Dialog
-        open={wizardOpen}
-        onClose={() => setWizardOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          CHWOne AI Form Wizard
-          <IconButton
-            aria-label="close"
-            onClick={() => setWizardOpen(false)}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+        {/* Action Buttons - Apple Style */}
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => setWizardOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
           >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 0 }}>
-          <BmadFormWizard 
-            onComplete={handleWizardComplete}
+            <Sparkles className="w-4 h-4" />
+            Create with AI Wizard
+          </button>
+          <button
+            onClick={handleCreateManually}
+            className="flex items-center gap-2 px-5 py-3 bg-white text-[#1D1D1F] border border-[#D2D2D7] rounded-xl font-medium text-sm hover:bg-[#F5F5F7] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create Form Manually
+          </button>
+          <Link
+            href="/forms/templates"
+            className="flex items-center gap-2 px-5 py-3 bg-white text-[#1D1D1F] border border-[#D2D2D7] rounded-xl font-medium text-sm hover:bg-[#F5F5F7] transition-colors"
+          >
+            <LayoutTemplate className="w-4 h-4" />
+            Form Templates
+          </Link>
+          <Link
+            href="/forms/digital-literacy"
+            className="flex items-center gap-2 px-5 py-3 bg-[#AF52DE] text-white rounded-xl font-medium text-sm hover:bg-[#9B3DC9] transition-colors"
+          >
+            <GraduationCap className="w-4 h-4" />
+            Digital Literacy Program
+          </Link>
+        </div>
+
+        {/* Forms Management Component */}
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+          <FormsManagement 
+            openCreateModal={createModalOpen}
+            onCreateModalClose={() => setCreateModalOpen(false)}
           />
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
+
+      {/* AI Wizard Dialog - Apple Style */}
+      {wizardOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setWizardOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#D2D2D7]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#0071E3] rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-[#1D1D1F]">AI Form Wizard</h2>
+                  <p className="text-sm text-[#6E6E73]">Create forms with AI assistance</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setWizardOpen(false)}
+                className="p-2 rounded-xl hover:bg-[#F5F5F7] text-[#6E6E73] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+              <BmadFormWizard onComplete={handleWizardComplete} />
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

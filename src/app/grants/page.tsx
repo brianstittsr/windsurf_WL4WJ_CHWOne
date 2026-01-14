@@ -3,10 +3,9 @@
 import React from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { DollarSign } from 'lucide-react';
 import GrantManagement from '@/components/Grants/GrantManagement';
-import { Box, Typography } from '@mui/material';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import AnimatedLoading from '@/components/Common/AnimatedLoading';
 
 // Inner component that uses the auth context
 function GrantsContent() {
@@ -14,7 +13,16 @@ function GrantsContent() {
   const router = useRouter();
 
   if (loading) {
-    return <AnimatedLoading message="Loading Grants..." />;
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-10 h-10 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#86868B] text-sm">Loading Grants...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
   }
 
   if (!currentUser) {
@@ -24,11 +32,23 @@ function GrantsContent() {
 
   return (
     <AdminLayout>
-      <Box sx={{ py: 4, px: 2 }}>
-        <Typography variant="h3" component="h1" sx={{ mb: 2 }}>Grant Management</Typography>
-        <Typography color="text.secondary" sx={{ mb: 4 }}>Track funding opportunities, manage grant applications, and monitor funding for CHW programs and initiatives</Typography>
-        <GrantManagement />
-      </Box>
+      <div className="space-y-6">
+        {/* Apple-style Page Header */}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-[#FF9500] rounded-2xl flex items-center justify-center">
+            <DollarSign className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">Grants</h1>
+            <p className="text-[#6E6E73]">Track funding opportunities and manage grant applications</p>
+          </div>
+        </div>
+
+        {/* Grant Management Component */}
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+          <GrantManagement />
+        </div>
+      </div>
     </AdminLayout>
   );
 }

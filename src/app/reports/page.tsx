@@ -1,36 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  Box, 
-  Grid, 
-  Card, 
-  CardContent, 
-  CardActions, 
-  Button, 
-  Dialog, 
-  DialogContent,
-  CircularProgress,
-  Alert,
-  Snackbar,
-  Tabs,
-  Tab,
-  Chip,
-  IconButton,
-  Tooltip,
-  Divider
-} from '@mui/material';
+import { BarChart3, Plus, FileText, Eye, Trash2, Pencil, Share2, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import AnimatedLoading from '@/components/Common/AnimatedLoading';
-import { 
-  Add as AddIcon, 
-  PictureAsPdf as PdfIcon,
-  Visibility as VisibilityIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  Share as ShareIcon
-} from '@mui/icons-material';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import ConversationInterface from '@/components/Reports/ConversationInterface';
 import ReportPreview from '@/components/Reports/ReportPreview';
@@ -405,264 +377,266 @@ function ReportsContent() {
   };
   
   if (authLoading) {
-    return <AnimatedLoading message="Loading Reports..." />;
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-10 h-10 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#86868B] text-sm">Loading Reports...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
   }
   
   if (!currentUser) {
     return (
       <AdminLayout>
-        <Box sx={{ py: 4, px: 2 }}>
-          <Alert severity="warning">
-            Please log in to access reports
-          </Alert>
-        </Box>
+        <div className="p-6">
+          <div className="flex items-center gap-3 p-4 bg-[#FF9500]/10 border border-[#FF9500]/20 rounded-xl">
+            <AlertCircle className="w-5 h-5 text-[#FF9500]" />
+            <p className="text-sm font-medium text-[#FF9500]">Please log in to access reports</p>
+          </div>
+        </div>
       </AdminLayout>
     );
   }
+
+  const tabs = ['All Reports', 'My Reports', 'Shared with Me'];
   
   return (
     <AdminLayout>
-      <Box sx={{ py: 4, px: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" component="h1">
-          Reports
-        </Typography>
-        
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setShowCreateDialog(true)}
-        >
-          Create Report
-        </Button>
-      </Box>
-      
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-      
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="report tabs">
-          <Tab label="All Reports" id="reports-tab-0" aria-controls="reports-tabpanel-0" />
-          <Tab label="My Reports" id="reports-tab-1" aria-controls="reports-tabpanel-1" />
-          <Tab label="Shared with Me" id="reports-tab-2" aria-controls="reports-tabpanel-2" />
-        </Tabs>
-      </Box>
-      
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Box role="tabpanel" hidden={tabValue !== 0} id="reports-tabpanel-0" aria-labelledby="reports-tab-0">
-          <Grid container spacing={3}>
+      <div className="space-y-6">
+        {/* Apple-style Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-[#FF2D55] rounded-2xl flex items-center justify-center">
+              <BarChart3 className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">Reports</h1>
+              <p className="text-[#6E6E73]">Generate and manage data reports</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => setShowCreateDialog(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create Report
+          </button>
+        </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="flex items-center justify-between p-4 bg-[#FF3B30]/10 border border-[#FF3B30]/20 rounded-xl">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-[#FF3B30]" />
+              <p className="text-sm font-medium text-[#FF3B30]">{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className="text-[#FF3B30] hover:text-[#FF3B30]/70">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Apple-style Tabs */}
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-2">
+          <div className="flex gap-1">
+            {tabs.map((tab, index) => (
+              <button
+                key={tab}
+                onClick={() => setTabValue(index)}
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  tabValue === index
+                    ? 'bg-[#0071E3] text-white'
+                    : 'text-[#1D1D1F] hover:bg-[#F5F5F7]'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {reports.length > 0 ? (
               reports.map((report) => (
-                <Grid item xs={12} sm={6} md={4} key={report.id}>
-                  <Card 
-                    sx={{ 
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: 4
-                      }
-                    }}
-                  >
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Typography variant="h6" component="h3" noWrap sx={{ maxWidth: '80%' }}>
-                          {report.config.title || 'Untitled Report'}
-                        </Typography>
-                        
-                        <Chip 
-                          label={report.status.toUpperCase()} 
-                          color={
-                            report.status === 'complete' ? 'success' :
-                            report.status === 'generating' ? 'info' :
-                            report.status === 'error' ? 'error' :
-                            'default'
-                          }
-                          size="small"
-                        />
-                      </Box>
-                      
-                      {report.config.description && (
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary" 
-                          sx={{ 
-                            mb: 2,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}
-                        >
-                          {report.config.description}
-                        </Typography>
-                      )}
-                      
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                        {report.config.datasets?.map((datasetId, index) => (
-                          <Chip 
-                            key={index} 
-                            label={`Dataset ${index + 1}`} 
-                            size="small" 
-                            variant="outlined" 
-                          />
-                        ))}
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'auto' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          Created: {formatDate(report.createdAt)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Updated: {formatDate(report.updatedAt)}
-                        </Typography>
-                      </Box>
-                    </CardContent>
+                <div
+                  key={report.id}
+                  className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all"
+                >
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-base font-semibold text-[#1D1D1F] truncate flex-1 mr-2">
+                        {report.config.title || 'Untitled Report'}
+                      </h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        report.status === 'complete' ? 'bg-[#34C759]/10 text-[#34C759]' :
+                        report.status === 'generating' ? 'bg-[#0071E3]/10 text-[#0071E3]' :
+                        report.status === 'error' ? 'bg-[#FF3B30]/10 text-[#FF3B30]' :
+                        'bg-[#86868B]/10 text-[#86868B]'
+                      }`}>
+                        {report.status.toUpperCase()}
+                      </span>
+                    </div>
                     
-                    <Divider />
+                    {report.config.description && (
+                      <p className="text-sm text-[#6E6E73] mb-3 line-clamp-2">
+                        {report.config.description}
+                      </p>
+                    )}
                     
-                    <CardActions>
-                      <Tooltip title="View Report">
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleViewReport(report)}
-                          disabled={report.status === 'generating'}
-                        >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      
-                      <Tooltip title="Edit Report">
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleEditReport(report)}
-                          disabled={report.status === 'generating'}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      
-                      <Tooltip title="Share Report">
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleShareReport(report)}
-                          disabled={report.status === 'generating'}
-                        >
-                          <ShareIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      
-                      <Box sx={{ flexGrow: 1 }} />
-                      
-                      {report.pdfUrl && (
-                        <Tooltip title="Download PDF">
-                          <IconButton 
-                            size="small" 
-                            component="a" 
-                            href={report.pdfUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                          >
-                            <PdfIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      
-                      <Tooltip title="Delete Report">
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleDeleteReport(report)}
-                          color="error"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </CardActions>
-                  </Card>
-                </Grid>
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {report.config.datasets?.map((datasetId, index) => (
+                        <span key={index} className="px-2 py-0.5 bg-[#F5F5F7] text-[#6E6E73] text-xs rounded-full">
+                          Dataset {index + 1}
+                        </span>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-between text-xs text-[#86868B]">
+                      <span>Created: {formatDate(report.createdAt)}</span>
+                      <span>Updated: {formatDate(report.updatedAt)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="px-5 py-3 bg-[#F5F5F7] border-t border-[#D2D2D7] flex items-center gap-2">
+                    <button
+                      onClick={() => handleViewReport(report)}
+                      disabled={report.status === 'generating'}
+                      className="p-2 rounded-lg hover:bg-white text-[#6E6E73] hover:text-[#0071E3] transition-colors disabled:opacity-50"
+                      title="View Report"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleEditReport(report)}
+                      disabled={report.status === 'generating'}
+                      className="p-2 rounded-lg hover:bg-white text-[#6E6E73] hover:text-[#0071E3] transition-colors disabled:opacity-50"
+                      title="Edit Report"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleShareReport(report)}
+                      disabled={report.status === 'generating'}
+                      className="p-2 rounded-lg hover:bg-white text-[#6E6E73] hover:text-[#0071E3] transition-colors disabled:opacity-50"
+                      title="Share Report"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <div className="flex-1" />
+                    {report.pdfUrl && (
+                      <a
+                        href={report.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg hover:bg-white text-[#6E6E73] hover:text-[#0071E3] transition-colors"
+                        title="Download PDF"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => handleDeleteReport(report)}
+                      className="p-2 rounded-lg hover:bg-white text-[#6E6E73] hover:text-[#FF3B30] transition-colors"
+                      title="Delete Report"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               ))
             ) : (
-              <Grid item xs={12}>
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="h6" color="text.secondary">
-                    No reports available
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Create a report to get started
-                  </Typography>
-                </Box>
-              </Grid>
+              <div className="col-span-full text-center py-12">
+                <div className="w-16 h-16 bg-[#F5F5F7] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <BarChart3 className="w-8 h-8 text-[#86868B]" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#1D1D1F] mb-1">No reports available</h3>
+                <p className="text-sm text-[#6E6E73]">Create a report to get started</p>
+              </div>
             )}
-          </Grid>
-        </Box>
-      )}
-      
-      {/* Create Report Dialog */}
-      <Dialog 
-        open={showCreateDialog} 
-        onClose={() => setShowCreateDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogContent sx={{ p: 0, height: 600 }}>
-          <ConversationInterface
-            onConfigUpdate={handleConfigUpdate}
-            onGenerateReport={handleGenerateReport}
-            availableDatasetIds={mockDatasetIds}
-          />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Report Preview Dialog */}
-      <Dialog 
-        open={!!selectedReport} 
-        onClose={() => setSelectedReport(null)}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogContent sx={{ p: 0 }}>
-          {selectedReport ? (
-            <ReportPreview
-              report={selectedReport}
-              onEdit={() => {
-                setSelectedReport(null);
-                setReportConfig(selectedReport.config);
-                setShowCreateDialog(true);
-              }}
-              onClose={() => setSelectedReport(null)}
-            />
-          ) : <></>}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Notification Snackbar */}
-      {notification && (
-        <Snackbar
-          open={true}
-          autoHideDuration={6000}
-          onClose={() => setNotification(null)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert 
-            onClose={() => setNotification(null)} 
-            severity={notification.severity}
-            sx={{ width: '100%' }}
-          >
-            {notification.message}
-          </Alert>
-        </Snackbar>
-      )}
-      </Box>
+          </div>
+        )}
+
+        {/* Create Report Dialog - Apple Style */}
+        {showCreateDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateDialog(false)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl h-[600px] overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#D2D2D7]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#FF2D55] rounded-xl flex items-center justify-center">
+                    <Plus className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#1D1D1F]">Create Report</h2>
+                    <p className="text-sm text-[#6E6E73]">Generate a new data report</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCreateDialog(false)}
+                  className="p-2 rounded-xl hover:bg-[#F5F5F7] text-[#6E6E73] transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="h-[calc(100%-80px)] overflow-hidden">
+                <ConversationInterface
+                  onConfigUpdate={handleConfigUpdate}
+                  onGenerateReport={handleGenerateReport}
+                  availableDatasetIds={mockDatasetIds}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Report Preview Dialog - Apple Style */}
+        {selectedReport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedReport(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
+              <ReportPreview
+                report={selectedReport}
+                onEdit={() => {
+                  setSelectedReport(null);
+                  setReportConfig(selectedReport.config);
+                  setShowCreateDialog(true);
+                }}
+                onClose={() => setSelectedReport(null)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Notification Toast - Apple Style */}
+        {notification && (
+          <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4">
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg ${
+              notification.severity === 'success' ? 'bg-[#34C759] text-white' :
+              notification.severity === 'error' ? 'bg-[#FF3B30] text-white' :
+              'bg-[#0071E3] text-white'
+            }`}>
+              {notification.severity === 'success' && <CheckCircle className="w-5 h-5" />}
+              {notification.severity === 'error' && <AlertCircle className="w-5 h-5" />}
+              {notification.severity === 'info' && <Info className="w-5 h-5" />}
+              <p className="text-sm font-medium">{notification.message}</p>
+              <button onClick={() => setNotification(null)} className="ml-2 hover:opacity-70">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </AdminLayout>
   );
 }

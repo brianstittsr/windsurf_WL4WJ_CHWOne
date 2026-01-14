@@ -147,7 +147,7 @@ export default function ProfileComponent({
   const renewalStatus = getRenewalStatus();
 
   return (
-    <Card sx={{ maxWidth: 800, mx: 'auto' }}>
+    <Card sx={{ maxWidth: '100%', width: '100%' }}>
       <CardContent sx={{ p: 3 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>

@@ -24,8 +24,8 @@ interface AuthContextType {
   switchRole: (role: UserRole) => Promise<void>;
 }
 
-// Create the auth context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create the auth context - exported for components that need to check if inside provider
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Custom hook to use the auth context
 export function useAuth() {

@@ -1,24 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  Box, 
-  Tabs, 
-  Tab, 
-  Button, 
-  Dialog, 
-  DialogContent,
-  CircularProgress,
-  Alert,
-  Snackbar,
-  Paper,
-  Divider,
-  Chip
-} from '@mui/material';
+import { Database, Plus, GitMerge, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import AnimatedLoading from '@/components/Common/AnimatedLoading';
-import { Add as AddIcon, Merge as MergeIcon } from '@mui/icons-material';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import DatasetUpload from '@/components/Datasets/DatasetUpload';
 import DatasetList from '@/components/Datasets/DatasetList';
@@ -302,154 +286,208 @@ function DatasetsContent() {
   };
   
   if (authLoading) {
-    return <AnimatedLoading message="Loading Datasets..." />;
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-10 h-10 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#86868B] text-sm">Loading Datasets...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
   }
   
   if (!currentUser) {
     return (
       <AdminLayout>
-        <Box sx={{ py: 4, px: 2 }}>
-          <Alert severity="warning">
-            Please log in to access datasets
-          </Alert>
-        </Box>
+        <div className="p-6">
+          <div className="flex items-center gap-3 p-4 bg-[#FF9500]/10 border border-[#FF9500]/20 rounded-xl">
+            <AlertCircle className="w-5 h-5 text-[#FF9500]" />
+            <p className="text-sm font-medium text-[#FF9500]">Please log in to access datasets</p>
+          </div>
+        </div>
       </AdminLayout>
     );
   }
   
+  const tabs = ['All Datasets', 'My Uploads', 'Transformed'];
+  
   return (
     <AdminLayout>
-      <Box sx={{ py: 4, px: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" component="h1">
-          Datasets
-        </Typography>
-        
-        <Box>
-          {selectedDatasets.length > 0 ? (
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<MergeIcon />}
-              onClick={handleMergeDatasets}
-              sx={{ mr: 1 }}
-            >
-              Merge Selected ({selectedDatasets.length})
-            </Button>
-          ) : null}
+      <div className="space-y-6">
+        {/* Apple-style Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-[#34C759] rounded-2xl flex items-center justify-center">
+              <Database className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">Datasets</h1>
+              <p className="text-[#6E6E73]">Upload, manage, and analyze your data</p>
+            </div>
+          </div>
           
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setShowUploadDialog(true)}
-          >
-            Upload Dataset
-          </Button>
-        </Box>
-      </Box>
-      
-      {selectedDatasets.length > 0 && (
-        <Paper sx={{ p: 2, mb: 3, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
-          <Typography variant="subtitle1">
-            {selectedDatasets.length} dataset(s) selected for merging
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-            {selectedDatasets.map((dataset, index) => (
-              <Chip 
-                key={dataset.id} 
-                label={dataset.name} 
-                onDelete={() => handleSelectForMerge(dataset)} 
-                color="primary"
-                variant="outlined"
-                sx={{ bgcolor: 'white', color: 'primary.main' }}
-              />
+          <div className="flex flex-wrap gap-3">
+            {selectedDatasets.length > 0 && (
+              <button
+                onClick={handleMergeDatasets}
+                className="flex items-center gap-2 px-5 py-3 bg-[#AF52DE] text-white rounded-xl font-medium text-sm hover:bg-[#9B3DC9] transition-colors"
+              >
+                <GitMerge className="w-4 h-4" />
+                Merge Selected ({selectedDatasets.length})
+              </button>
+            )}
+            <button
+              onClick={() => setShowUploadDialog(true)}
+              className="flex items-center gap-2 px-5 py-3 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Upload Dataset
+            </button>
+          </div>
+        </div>
+
+        {/* Selected Datasets for Merge */}
+        {selectedDatasets.length > 0 && (
+          <div className="p-4 bg-[#0071E3]/10 border border-[#0071E3]/20 rounded-xl">
+            <p className="text-sm font-medium text-[#0071E3] mb-2">
+              {selectedDatasets.length} dataset(s) selected for merging
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {selectedDatasets.map((dataset) => (
+                <span
+                  key={dataset.id}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#0071E3]/30 rounded-full text-sm text-[#0071E3]"
+                >
+                  {dataset.name}
+                  <button
+                    onClick={() => handleSelectForMerge(dataset)}
+                    className="ml-1 hover:text-[#FF3B30]"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Error Alert */}
+        {error && (
+          <div className="flex items-center justify-between p-4 bg-[#FF3B30]/10 border border-[#FF3B30]/20 rounded-xl">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-[#FF3B30]" />
+              <p className="text-sm font-medium text-[#FF3B30]">{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className="text-[#FF3B30] hover:text-[#FF3B30]/70">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Apple-style Tabs */}
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-2">
+          <div className="flex gap-1">
+            {tabs.map((tab, index) => (
+              <button
+                key={tab}
+                onClick={() => setTabValue(index)}
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  tabValue === index
+                    ? 'bg-[#0071E3] text-white'
+                    : 'text-[#1D1D1F] hover:bg-[#F5F5F7]'
+                }`}
+              >
+                {tab}
+              </button>
             ))}
-          </Box>
-        </Paper>
-      )}
-      
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-      
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="dataset tabs">
-          <Tab label="All Datasets" id="datasets-tab-0" aria-controls="datasets-tabpanel-0" />
-          <Tab label="My Uploads" id="datasets-tab-1" aria-controls="datasets-tabpanel-1" />
-          <Tab label="Transformed" id="datasets-tab-2" aria-controls="datasets-tabpanel-2" />
-        </Tabs>
-      </Box>
-      
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Box role="tabpanel" hidden={tabValue !== 0} id="datasets-tabpanel-0" aria-labelledby="datasets-tab-0">
-          <DatasetList
-            datasets={datasets}
-            onViewDataset={handleViewDataset}
-            onDeleteDataset={handleDeleteDataset}
-            onExportDataset={handleExportDataset}
-            onEditDataset={handleEditDataset}
-            onAnalyzeDataset={handleAnalyzeDataset}
-            onSelectForMerge={handleSelectForMerge}
-          />
-        </Box>
-      )}
-      
-      {/* Upload Dialog */}
-      <Dialog 
-        open={showUploadDialog} 
-        onClose={() => setShowUploadDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogContent>
-          <DatasetUpload onUploadComplete={handleUploadComplete} />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Dataset Detail Dialog */}
-      <Dialog 
-        open={!!selectedDataset} 
-        onClose={() => setSelectedDataset(null)}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogContent sx={{ p: 0 }}>
-          {selectedDataset ? (
-            <DatasetDetail
-              dataset={selectedDataset}
-              onClose={() => setSelectedDataset(null)}
-              onExport={handleExportDataset}
-              onAnalyze={handleAnalyzeDataset}
+          </div>
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+            <DatasetList
+              datasets={datasets}
+              onViewDataset={handleViewDataset}
+              onDeleteDataset={handleDeleteDataset}
+              onExportDataset={handleExportDataset}
+              onEditDataset={handleEditDataset}
+              onAnalyzeDataset={handleAnalyzeDataset}
               onSelectForMerge={handleSelectForMerge}
             />
-          ) : <></>}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={!!notification}
-        autoHideDuration={6000}
-        onClose={() => setNotification(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        {notification ? (
-          <Alert 
-            onClose={() => setNotification(null)} 
-            severity={notification.severity}
-            sx={{ width: '100%' }}
-          >
-            {notification.message}
-          </Alert>
-        ) : <></>}
-      </Snackbar>
-      </Box>
+          </div>
+        )}
+
+        {/* Upload Dialog - Apple Style */}
+        {showUploadDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowUploadDialog(false)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#D2D2D7]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#34C759] rounded-xl flex items-center justify-center">
+                    <Plus className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#1D1D1F]">Upload Dataset</h2>
+                    <p className="text-sm text-[#6E6E73]">Import your data files</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowUploadDialog(false)}
+                  className="p-2 rounded-xl hover:bg-[#F5F5F7] text-[#6E6E73] transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <DatasetUpload onUploadComplete={handleUploadComplete} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dataset Detail Dialog - Apple Style */}
+        {selectedDataset && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedDataset(null)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              <DatasetDetail
+                dataset={selectedDataset}
+                onClose={() => setSelectedDataset(null)}
+                onExport={handleExportDataset}
+                onAnalyze={handleAnalyzeDataset}
+                onSelectForMerge={handleSelectForMerge}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Notification Toast - Apple Style */}
+        {notification && (
+          <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4">
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg ${
+              notification.severity === 'success' ? 'bg-[#34C759] text-white' :
+              notification.severity === 'error' ? 'bg-[#FF3B30] text-white' :
+              'bg-[#0071E3] text-white'
+            }`}>
+              {notification.severity === 'success' && <CheckCircle className="w-5 h-5" />}
+              {notification.severity === 'error' && <AlertCircle className="w-5 h-5" />}
+              {notification.severity === 'info' && <Info className="w-5 h-5" />}
+              <p className="text-sm font-medium">{notification.message}</p>
+              <button onClick={() => setNotification(null)} className="ml-2 hover:opacity-70">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </AdminLayout>
   );
 }

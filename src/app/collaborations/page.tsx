@@ -3,31 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  Chip,
-  Avatar,
-  AvatarGroup,
-  CircularProgress,
-  LinearProgress,
-  Divider,
-  Alert
-} from '@mui/material';
-import {
-  CalendarToday as CalendarIcon,
-  Groups as GroupsIcon,
-  Visibility as VisibilityIcon,
-  TrendingUp as TrendingUpIcon,
-  Business as BusinessIcon
-} from '@mui/icons-material';
+import { Handshake, Calendar, Users, Eye, Building2, AlertCircle } from 'lucide-react';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Grant } from '@/lib/schema/unified-schema';
 
 interface CollaborationCardData {
@@ -167,7 +144,16 @@ function CollaborationsContent() {
   };
 
   if (authLoading || loading) {
-    return <AnimatedLoading message="Loading Collaborations..." />;
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-10 h-10 border-3 border-[#0071E3] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#86868B] text-sm">Loading Collaborations...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
   }
 
   if (!currentUser) {
@@ -176,216 +162,148 @@ function CollaborationsContent() {
 
   return (
     <AdminLayout>
-      <Box sx={{ py: 4, px: 2 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" component="h1" sx={{ mb: 1, fontWeight: 700 }}>
-            Collaborations
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
-            View and manage grant collaborations between organizations
-          </Typography>
-        </Box>
+      <div className="space-y-6">
+        {/* Apple-style Page Header */}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-[#5856D6] rounded-2xl flex items-center justify-center">
+            <Handshake className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-[#1D1D1F] tracking-tight">Collaborations</h1>
+            <p className="text-[#6E6E73]">View and manage grant collaborations between organizations</p>
+          </div>
+        </div>
 
         {/* Collaborations Grid */}
         {collaborations.length === 0 ? (
-          <Alert severity="info" sx={{ mb: 4 }}>
-            No collaborations found. Create a grant using the Grant Analyzer to start a new collaboration.
-          </Alert>
+          <div className="flex items-center gap-3 p-4 bg-[#0071E3]/10 border border-[#0071E3]/20 rounded-xl">
+            <AlertCircle className="w-5 h-5 text-[#0071E3]" />
+            <p className="text-sm font-medium text-[#0071E3]">
+              No collaborations found. Create a grant using the Grant Analyzer to start a new collaboration.
+            </p>
+          </div>
         ) : (
-          <Grid container spacing={3}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {collaborations.map((collab) => (
-              <Grid item xs={12} md={6} key={collab.id}>
-                <Card 
-                  sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 4
-                    }
-                  }}
-                >
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    {/* Status and Title */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600, flex: 1, mr: 2 }}>
-                        {collab.grantTitle}
-                      </Typography>
-                      <Chip 
-                        label={collab.status} 
-                        color={getStatusColor(collab.status) as any}
-                        size="small"
-                      />
-                    </Box>
+              <div
+                key={collab.id}
+                className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all"
+              >
+                <div className="p-5">
+                  {/* Status and Title */}
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-base font-semibold text-[#1D1D1F] flex-1 mr-2">
+                      {collab.grantTitle}
+                    </h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      collab.status === 'active' ? 'bg-[#34C759]/10 text-[#34C759]' :
+                      collab.status === 'pending' ? 'bg-[#FF9500]/10 text-[#FF9500]' :
+                      collab.status === 'completed' ? 'bg-[#0071E3]/10 text-[#0071E3]' :
+                      'bg-[#86868B]/10 text-[#86868B]'
+                    }`}>
+                      {collab.status}
+                    </span>
+                  </div>
 
-                    {/* Description */}
-                    {collab.grantDescription ? (
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary" 
-                        sx={{ 
-                          mb: 3,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {collab.grantDescription}
-                      </Typography>
-                    ) : (
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary" 
-                        sx={{ mb: 3, fontStyle: 'italic' }}
-                      >
-                        No description available. Upload a grant document to populate details.
-                      </Typography>
-                    )}
+                  {/* Description */}
+                  <p className="text-sm text-[#6E6E73] mb-4 line-clamp-2">
+                    {collab.grantDescription || 'No description available. Upload a grant document to populate details.'}
+                  </p>
 
-                    {/* Collaborating Organizations */}
-                    <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <GroupsIcon fontSize="small" color="action" />
-                      Collaborating Organizations
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
+                  {/* Collaborating Organizations */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-4 h-4 text-[#86868B]" />
+                      <span className="text-sm font-medium text-[#1D1D1F]">Collaborating Organizations</span>
+                    </div>
+                    <div className="space-y-2">
                       {collab.organizations.slice(0, 3).map((org, index) => (
-                        <Box 
-                          key={index} 
-                          sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 1.5,
-                            p: 1.5,
-                            bgcolor: 'grey.50',
-                            borderRadius: 1,
-                            border: '1px solid',
-                            borderColor: 'grey.200'
-                          }}
-                        >
-                          <Avatar 
-                            src={org.logoUrl}
-                            sx={{ 
-                              width: 40, 
-                              height: 40,
-                              bgcolor: getRoleColor(org.role),
-                              fontSize: '0.9rem'
-                            }}
+                        <div key={index} className="flex items-center gap-3 p-2 bg-[#F5F5F7] rounded-lg">
+                          <div 
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
+                            style={{ backgroundColor: getRoleColor(org.role) }}
                           >
                             {org.name.charAt(0)}
-                          </Avatar>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {org.name}
-                            </Typography>
-                            <Chip 
-                              label={org.role} 
-                              size="small" 
-                              sx={{ 
-                                height: 20, 
-                                fontSize: '0.7rem',
-                                bgcolor: getRoleColor(org.role),
-                                color: 'white'
-                              }} 
-                            />
-                          </Box>
-                        </Box>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-[#1D1D1F]">{org.name}</p>
+                            <span 
+                              className="text-xs px-2 py-0.5 rounded-full text-white"
+                              style={{ backgroundColor: getRoleColor(org.role) }}
+                            >
+                              {org.role}
+                            </span>
+                          </div>
+                        </div>
                       ))}
                       {collab.organizations.length > 3 && (
-                        <Typography variant="caption" color="text.secondary">
-                          +{collab.organizations.length - 3} more organizations
-                        </Typography>
+                        <p className="text-xs text-[#86868B]">+{collab.organizations.length - 3} more organizations</p>
                       )}
-                    </Box>
+                    </div>
+                  </div>
 
-                    <Divider sx={{ my: 2 }} />
-
-                    {/* Dates and Progress */}
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarIcon fontSize="small" color="action" />
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">
-                              Start Date
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {collab.startDate.toLocaleDateString()}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarIcon fontSize="small" color="action" />
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">
-                              End Date
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {collab.endDate.toLocaleDateString()}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Grid>
-                    </Grid>
+                  <div className="border-t border-[#D2D2D7] pt-4">
+                    {/* Dates */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-[#86868B]" />
+                        <div>
+                          <p className="text-xs text-[#86868B]">Start Date</p>
+                          <p className="text-sm font-medium text-[#1D1D1F]">{collab.startDate.toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-[#86868B]" />
+                        <div>
+                          <p className="text-xs text-[#86868B]">End Date</p>
+                          <p className="text-sm font-medium text-[#1D1D1F]">{collab.endDate.toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    </div>
 
                     {/* Progress Bar */}
-                    <Box sx={{ mt: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          Progress
-                        </Typography>
-                        <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                          {collab.progress}%
-                        </Typography>
-                      </Box>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={collab.progress} 
-                        sx={{ 
-                          height: 8, 
-                          borderRadius: 4,
-                          bgcolor: 'grey.200',
-                          '& .MuiLinearProgress-bar': {
-                            borderRadius: 4,
-                            bgcolor: collab.progress >= 75 ? 'success.main' : 
-                                     collab.progress >= 50 ? 'primary.main' : 
-                                     collab.progress >= 25 ? 'warning.main' : 'error.main'
-                          }
-                        }}
-                      />
-                    </Box>
+                    <div className="mb-4">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-xs text-[#86868B]">Progress</span>
+                        <span className="text-xs font-semibold text-[#1D1D1F]">{collab.progress}%</span>
+                      </div>
+                      <div className="h-2 bg-[#E5E5EA] rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all ${
+                            collab.progress >= 75 ? 'bg-[#34C759]' :
+                            collab.progress >= 50 ? 'bg-[#0071E3]' :
+                            collab.progress >= 25 ? 'bg-[#FF9500]' : 'bg-[#FF3B30]'
+                          }`}
+                          style={{ width: `${collab.progress}%` }}
+                        />
+                      </div>
+                    </div>
 
                     {/* Funding Amount */}
-                    <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <BusinessIcon fontSize="small" color="action" />
-                      <Typography variant="body2">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-[#86868B]" />
+                      <span className="text-sm text-[#1D1D1F]">
                         <strong>Funding:</strong> ${collab.fundingAmount.toLocaleString()}
-                      </Typography>
-                    </Box>
-                  </CardContent>
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-                  <CardActions sx={{ p: 2, pt: 0 }}>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => router.push(`/collaborations/${collab.id}`)}
-                    >
-                      View Collaboration
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
+                {/* Action Button */}
+                <div className="px-5 py-3 bg-[#F5F5F7] border-t border-[#D2D2D7]">
+                  <button
+                    onClick={() => router.push(`/collaborations/${collab.id}`)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Collaboration
+                  </button>
+                </div>
+              </div>
             ))}
-          </Grid>
+          </div>
         )}
-      </Box>
+      </div>
     </AdminLayout>
   );
 }

@@ -2,51 +2,244 @@
 @tailwind components;
 @tailwind utilities;
 
-/* shadcn/ui CSS Variables */
+/* Apple-Inspired Design System */
 @layer base {
   :root {
+    /* Apple Color Palette */
+    --apple-white: #FFFFFF;
+    --apple-black: #1D1D1F;
+    --apple-gray-100: #F5F5F7;
+    --apple-gray-200: #E8E8ED;
+    --apple-gray-300: #D2D2D7;
+    --apple-gray-400: #86868B;
+    --apple-gray-500: #6E6E73;
+    --apple-blue: #0071E3;
+    --apple-blue-hover: #0077ED;
+    
+    /* shadcn/ui CSS Variables - Apple themed */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --popover-foreground: 0 0% 11%;
+    --primary: 211 100% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 0 0% 11%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 0 0% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 211 100% 45%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 211 100% 50%;
+  }
+}
+
+/* Apple Typography */
+@layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'kern' 1;
+    letter-spacing: -0.01em;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+}
+
+/* Apple-style utility classes */
+@layer utilities {
+  .apple-headline-large {
+    font-size: clamp(40px, 8vw, 96px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  
+  .apple-headline {
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+  
+  .apple-headline-small {
+    font-size: clamp(24px, 4vw, 48px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  
+  .apple-subhead {
+    font-size: clamp(19px, 2.5vw, 28px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    color: var(--apple-gray-500);
+  }
+  
+  .apple-body {
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
+  }
+  
+  .apple-caption {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.4;
+    color: var(--apple-gray-400);
+  }
+  
+  .apple-link {
+    color: var(--apple-blue);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  
+  .apple-link:hover {
+    color: var(--apple-blue-hover);
+    text-decoration: underline;
+  }
+  
+  .apple-section {
+    padding: 100px 0;
+  }
+  
+  .apple-section-tight {
+    padding: 60px 0;
+  }
+  
+  .apple-container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 22px;
+  }
+  
+  .apple-container-wide {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 22px;
+  }
+  
+  .apple-bg-gray {
+    background-color: var(--apple-gray-100);
+  }
+  
+  .apple-text-gray {
+    color: var(--apple-gray-500);
+  }
+  
+  .apple-text-black {
+    color: var(--apple-black);
+  }
+  
+  .apple-nav {
+    height: 44px;
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+  
+  .apple-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 22px;
+    font-size: 17px;
+    font-weight: 400;
+    border-radius: 980px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .apple-btn-primary {
+    background-color: var(--apple-blue);
+    color: white;
+  }
+  
+  .apple-btn-primary:hover {
+    background-color: var(--apple-blue-hover);
+  }
+  
+  .apple-btn-secondary {
+    background-color: transparent;
+    color: var(--apple-blue);
+    border: none;
+  }
+  
+  .apple-btn-secondary:hover {
+    text-decoration: underline;
+  }
+  
+  .apple-card {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .apple-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  }
+  
+  .apple-fade-in {
+    animation: appleFadeIn 0.6s ease-out forwards;
+  }
+  
+  @keyframes appleFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 

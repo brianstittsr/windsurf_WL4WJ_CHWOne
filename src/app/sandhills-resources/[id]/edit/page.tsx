@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Container } from '@mui/material';
 import { useParams } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import AdminLayout from '@/components/Layout/AdminLayout';
@@ -13,9 +12,7 @@ function EditResourcePageContent() {
 
   return (
     <AdminLayout>
-      <Container maxWidth="lg" sx={{ py: 3 }}>
-        <SandhillsResourceForm resourceId={resourceId} />
-      </Container>
+      <SandhillsResourceForm resourceId={resourceId} />
     </AdminLayout>
   );
 }

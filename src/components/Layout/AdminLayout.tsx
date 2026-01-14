@@ -197,16 +197,16 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-slate-100 flex">
+      <div className="min-h-screen bg-[#F5F5F7] flex">
         {/* Desktop Sidebar */}
         <aside 
           className={cn(
-            'fixed inset-y-0 left-0 z-50 bg-slate-900 text-white transition-all duration-300 hidden md:flex md:flex-col',
+            'fixed inset-y-0 left-0 z-50 bg-[#1D1D1F] text-white transition-all duration-300 hidden md:flex md:flex-col',
             sidebarCollapsed ? 'w-16' : 'w-64'
           )}
         >
           {/* Sidebar Header */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-slate-700 shrink-0">
+          <div className="h-16 flex items-center justify-between px-4 border-b border-[#3D3D3F] shrink-0">
             {!sidebarCollapsed && (
               <Link href="/" className="flex items-center gap-2">
                 <Image 
@@ -233,7 +233,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
             {filteredSections.map((section) => {
               const SectionIcon = section.icon;
               const isExpanded = expandedSections[section.title];
@@ -248,14 +248,14 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                           <SectionIcon className="h-4 w-4 text-slate-400" />
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700">
+                      <TooltipContent side="right" className="bg-[#1D1D1F] text-white border-[#3D3D3F]">
                         {section.title}
                       </TooltipContent>
                     </Tooltip>
                   ) : (
                     <button
                       onClick={() => toggleSection(section.title)}
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#86868B] hover:text-white hover:bg-[#2D2D2F] transition-all"
                     >
                       <SectionIcon className="h-4 w-4 flex-shrink-0" />
                       <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wider">
@@ -282,14 +282,14 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                                   className={cn(
                                     'flex items-center justify-center p-2 rounded-lg transition-all',
                                     isActive 
-                                      ? 'bg-blue-600 text-white' 
-                                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                      ? 'bg-[#0071E3] text-white' 
+                                      : 'text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white'
                                   )}
                                 >
                                   <ItemIcon className="h-5 w-5" />
                                 </Link>
                               </TooltipTrigger>
-                              <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700">
+                              <TooltipContent side="right" className="bg-[#1D1D1F] text-white border-[#3D3D3F]">
                                 {item.label}
                               </TooltipContent>
                             </Tooltip>
@@ -303,8 +303,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                             className={cn(
                               'flex items-center gap-3 px-3 py-2 rounded-lg transition-all',
                               isActive 
-                                ? 'bg-blue-600 text-white' 
-                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                ? 'bg-[#0071E3] text-white' 
+                                : 'text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white'
                             )}
                           >
                             <ItemIcon className="h-5 w-5 flex-shrink-0" />
@@ -321,56 +321,56 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </nav>
 
           {/* Sidebar Footer */}
-          <div className="p-2 border-t border-slate-700 shrink-0 space-y-1">
+          <div className="p-3 border-t border-[#3D3D3F] shrink-0 space-y-1">
             {sidebarCollapsed ? (
               <>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
-                    <Link href="/" className="flex items-center justify-center p-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+                    <Link href="/" className="flex items-center justify-center p-2 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
                       <Home className="h-5 w-5" />
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700">Home</TooltipContent>
+                  <TooltipContent side="right" className="bg-[#1D1D1F] text-white border-[#3D3D3F]">Home</TooltipContent>
                 </Tooltip>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center p-2 rounded-lg text-slate-300 hover:bg-red-600 hover:text-white transition-all"
+                      className="w-full flex items-center justify-center p-2 rounded-xl text-[#A1A1A6] hover:bg-[#FF3B30] hover:text-white transition-all"
                     >
                       <LogOut className="h-5 w-5" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700">Sign Out</TooltipContent>
+                  <TooltipContent side="right" className="bg-[#1D1D1F] text-white border-[#3D3D3F]">Sign Out</TooltipContent>
                 </Tooltip>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => setSidebarCollapsed(false)}
-                      className="w-full flex items-center justify-center p-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+                      className="w-full flex items-center justify-center p-2 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all"
                     >
                       <PanelLeft className="h-5 w-5" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="bg-slate-800 text-white border-slate-700">Expand Sidebar</TooltipContent>
+                  <TooltipContent side="right" className="bg-[#1D1D1F] text-white border-[#3D3D3F]">Expand Sidebar</TooltipContent>
                 </Tooltip>
               </>
             ) : (
               <>
-                <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+                <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
                   <Home className="h-5 w-5 flex-shrink-0" />
                   <span className="text-sm">Home</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-red-600 hover:text-white transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#A1A1A6] hover:bg-[#FF3B30] hover:text-white transition-all"
                 >
                   <LogOut className="h-5 w-5 flex-shrink-0" />
                   <span className="text-sm">Sign Out</span>
                 </button>
                 <button
                   onClick={() => setSidebarCollapsed(true)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all"
                 >
                   <PanelLeftClose className="h-5 w-5 flex-shrink-0" />
                   <span className="text-sm">Collapse Sidebar</span>
@@ -381,7 +381,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
         </aside>
 
         {/* Mobile Header */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white h-16 flex items-center justify-between px-4">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#1D1D1F] text-white h-16 flex items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <Image 
               src="/images/CHWOneLogoDesign.png" 
@@ -394,7 +394,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg hover:bg-slate-800"
+            className="p-2 rounded-xl hover:bg-[#2D2D2F] transition-colors"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -402,13 +402,13 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-40 bg-slate-900/95 pt-16 overflow-y-auto">
+          <div className="md:hidden fixed inset-0 z-40 bg-[#1D1D1F]/98 backdrop-blur-xl pt-16 overflow-y-auto">
             <nav className="p-4 space-y-4">
               {filteredSections.map((section) => {
                 const SectionIcon = section.icon;
                 return (
                   <div key={section.title}>
-                    <div className="flex items-center gap-2 px-4 py-2 text-slate-400">
+                    <div className="flex items-center gap-2 px-4 py-2 text-[#86868B]">
                       <SectionIcon className="h-4 w-4" />
                       <span className="text-xs font-semibold uppercase tracking-wider">{section.title}</span>
                     </div>
@@ -423,10 +423,10 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                             href={item.href}
                             onClick={() => setMobileMenuOpen(false)}
                             className={cn(
-                              'flex items-center gap-3 px-4 py-3 rounded-lg transition-all',
+                              'flex items-center gap-3 px-4 py-3 rounded-xl transition-all',
                               isActive 
-                                ? 'bg-blue-600 text-white' 
-                                : 'text-slate-300 hover:bg-slate-800'
+                                ? 'bg-[#0071E3] text-white' 
+                                : 'text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white'
                             )}
                           >
                             <ItemIcon className="h-5 w-5" />
@@ -438,16 +438,16 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                   </div>
                 );
               })}
-              <div className="border-t border-slate-700 pt-4 mt-4">
+              <div className="border-t border-[#3D3D3F] pt-4 mt-4">
                 <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
                     <Home className="h-5 w-5" />
                     <span>Home</span>
                   </button>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-red-600 hover:text-white transition-all"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#A1A1A6] hover:bg-[#FF3B30] hover:text-white transition-all"
                 >
                   <LogOut className="h-5 w-5" />
                   <span>Sign Out</span>
@@ -463,25 +463,25 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           sidebarCollapsed ? 'md:ml-16' : 'md:ml-64',
           'pt-16 md:pt-0'
         )}>
-          {/* Top Header Bar */}
-          <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30">
+          {/* Top Header Bar - Apple Style */}
+          <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-[#D2D2D7] flex items-center justify-between px-6 sticky top-0 z-30">
             <div className="flex items-center gap-4">
-              <h1 className="text-lg font-semibold text-slate-800">
+              <h1 className="text-lg font-semibold text-[#1D1D1F] tracking-tight">
                 {currentPageTitle}
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-600">
+              <button className="p-2 rounded-xl hover:bg-[#F5F5F7] text-[#6E6E73] transition-colors">
                 <Bell className="h-5 w-5" />
               </button>
               
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-3 hover:bg-slate-100 rounded-lg p-2 transition-colors">
+                  <button className="flex items-center gap-3 hover:bg-[#F5F5F7] rounded-xl p-2 transition-colors">
                     <div className="text-right hidden sm:block">
-                      <p className="text-sm font-medium text-slate-900">{userProfile?.displayName || 'User'}</p>
-                      <p className="text-xs text-slate-500">{currentUser.email}</p>
+                      <p className="text-sm font-medium text-[#1D1D1F]">{userProfile?.displayName || 'User'}</p>
+                      <p className="text-xs text-[#86868B]">{currentUser.email}</p>
                     </div>
                     {(userProfile as any)?.profilePicture ? (
                       <img 
@@ -490,7 +490,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0071E3] to-[#5856D6] flex items-center justify-center text-white font-semibold">
                         {(userProfile?.displayName || currentUser?.email || 'U').charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -521,8 +521,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
             </div>
           </header>
 
-          {/* Page Content - Full Width */}
-          <div className="p-4">
+          {/* Page Content - Wide Container */}
+          <div className="p-6 max-w-[1600px] mx-auto w-full">
             {children}
           </div>
         </main>
