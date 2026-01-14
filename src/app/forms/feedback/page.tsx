@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { MessageSquare, Star, Send, Loader2, ThumbsUp, Mail } from 'lucide-react';
 
 interface RegisteredStudent {
@@ -158,12 +159,12 @@ export default function FeedbackFormPage() {
               Your feedback helps us improve the program.<br/>
               Sus comentarios nos ayudan a mejorar el programa.
             </p>
-            <a
+            <Link
               href="/"
               className="inline-block px-6 py-3 bg-[#5856D6] text-white rounded-xl font-medium hover:bg-[#4B49B8] transition-colors"
             >
               Return Home | Volver al Inicio
-            </a>
+            </Link>
           </div>
         </div>
       </div>
