@@ -184,7 +184,7 @@ export default function NonprofitLinker({
         }
       );
 
-      await linkToNonprofit(savedNonprofit.id!);
+      await linkToNonprofit(savedNonprofit.id!, savedNonprofit);
       setShowAddDialog(false);
       setSelectedNonprofit(null);
       setSearchResults([]);
@@ -217,11 +217,11 @@ export default function NonprofitLinker({
         }
       }
 
-      // Create organization tag
+      // Create organization tag - ensure no undefined values for Firestore
       const organizationTag: OrganizationTag = {
         id: nonprofitId,
         name: nonprofit?.name || 'Unknown Organization',
-        ein: nonprofit?.ein,
+        ein: nonprofit?.ein || null,
         claimedAt: new Date().toISOString(),
       };
 

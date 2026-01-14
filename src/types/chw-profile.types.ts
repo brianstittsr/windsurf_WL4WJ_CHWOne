@@ -112,7 +112,7 @@ export interface UserToolAccess {
 export interface OrganizationTag {
   id: string;           // Nonprofit organization ID
   name: string;         // Organization name for display
-  ein?: string;         // EIN if available
+  ein?: string | null;  // EIN if available (null for Firestore compatibility)
   claimedAt: string;    // ISO date string when claimed
   role?: string;        // User's role at the organization
 }

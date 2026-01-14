@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
@@ -288,17 +288,17 @@ export default function AppleProfileComponent({
     socialLinks: {}
   });
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!currentUser) {
-        setLoading(false);
-        return;
-      }
+  // Extracted loadProfile function so it can be called after linking
+  const loadProfile = useCallback(async () => {
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        const profileRef = doc(db, COLLECTIONS.CHW_PROFILES, currentUser.uid);
-        const profileSnap = await getDoc(profileRef);
+    try {
+      setLoading(true);
+      const profileRef = doc(db, COLLECTIONS.CHW_PROFILES, currentUser.uid);
+      const profileSnap = await getDoc(profileRef);
 
         if (profileSnap.exists()) {
           const data = profileSnap.data();
@@ -370,10 +370,12 @@ export default function AppleProfileComponent({
       } finally {
         setLoading(false);
       }
-    };
-
-    loadProfile();
   }, [currentUser]);
+
+  // Load profile on mount and when currentUser changes
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const handleInputChange = (field: string, value: any, section?: keyof CHWProfile) => {
     if (section) {
@@ -1054,8 +1056,14 @@ export default function AppleProfileComponent({
               </p>
               <NonprofitLinker
                 currentNonprofitId={userProfile?.linkedNonprofitId}
-                onNonprofitLinked={(id) => console.log('Linked to nonprofit:', id)}
-                onNonprofitUnlinked={() => console.log('Unlinked from nonprofit')}
+                onNonprofitLinked={(id) => {
+                  console.log('Linked to nonprofit:', id);
+                  loadProfile(); // Refresh profile to show organization lozenge
+                }}
+                onNonprofitUnlinked={() => {
+                  console.log('Unlinked from nonprofit');
+                  loadProfile(); // Refresh profile to remove organization lozenge
+                }}
               />
             </div>
           </CardSection>
