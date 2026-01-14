@@ -22,14 +22,76 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import QRCode from 'qrcode';
 
-// QR Code configurations
+// QR Code configurations with usage directions
 const QR_CONFIGS = [
-  { id: 'registration', path: '/forms/digital-literacy/register', color: '#0071E3', en: 'Student Registration', es: 'Registro de Estudiantes', desc: 'New students scan to register | Nuevos estudiantes escanean para registrarse' },
-  { id: 'checkin', path: '/checkin', color: '#34C759', en: 'Daily Check-in', es: 'Registro Diario', desc: 'Students scan for attendance | Estudiantes escanean para asistencia' },
-  { id: 'feedback', path: '/forms/feedback', color: '#FF9500', en: 'Feedback Form', es: 'Formulario de Retroalimentación', desc: 'Students provide feedback | Estudiantes dan retroalimentación' },
-  { id: 'assessment', path: '/forms/assessment', color: '#5856D6', en: 'Progress Assessment', es: 'Evaluación de Progreso', desc: 'Weekly skill assessments | Evaluaciones semanales' },
-  { id: 'instructor', path: '/forms/instructor-checkin', color: '#00C7BE', en: 'Instructor Check-in', es: 'Registro de Instructor', desc: 'Instructors log sessions | Instructores registran sesiones' },
-  { id: 'completion', path: '/forms/completion', color: '#FF3B30', en: 'Completion Form', es: 'Formulario de Finalización', desc: 'Final completion and tablet | Finalización y tableta' },
+  { 
+    id: 'registration', 
+    path: '/forms/digital-literacy/register', 
+    color: '#0071E3', 
+    en: 'Student Registration', 
+    es: 'Registro de Estudiantes', 
+    desc: 'New students scan to register | Nuevos estudiantes escanean para registrarse',
+    whenToUse: 'WHEN TO USE: Before the first class begins. New students should scan this QR code to register for the Digital Literacy Program.',
+    whenToUseEs: 'CUÁNDO USAR: Antes de que comience la primera clase. Los nuevos estudiantes deben escanear este código QR para registrarse en el Programa de Alfabetización Digital.'
+  },
+  { 
+    id: 'checkin', 
+    path: '/checkin', 
+    color: '#34C759', 
+    en: 'Daily Check-in', 
+    es: 'Registro Diario', 
+    desc: 'Students scan for attendance | Estudiantes escanean para asistencia',
+    whenToUse: 'WHEN TO USE: At the END of each class session. Students scan to confirm they stayed for the entire class.',
+    whenToUseEs: 'CUÁNDO USAR: Al FINAL de cada sesión de clase. Los estudiantes escanean para confirmar que permanecieron durante toda la clase.'
+  },
+  { 
+    id: 'feedback', 
+    path: '/forms/feedback', 
+    color: '#FF9500', 
+    en: 'Feedback Form', 
+    es: 'Formulario de Retroalimentación', 
+    desc: 'Students provide feedback | Estudiantes dan retroalimentación',
+    whenToUse: 'WHEN TO USE: After completing a class or module. Students provide feedback on their learning experience.',
+    whenToUseEs: 'CUÁNDO USAR: Después de completar una clase o módulo. Los estudiantes proporcionan retroalimentación sobre su experiencia de aprendizaje.'
+  },
+  { 
+    id: 'assessment', 
+    path: '/forms/assessment', 
+    color: '#5856D6', 
+    en: 'Progress Assessment', 
+    es: 'Evaluación de Progreso', 
+    desc: 'Weekly skill assessments | Evaluaciones semanales',
+    whenToUse: 'WHEN TO USE: At the end of each week. Students complete skill assessments to track their progress.',
+    whenToUseEs: 'CUÁNDO USAR: Al final de cada semana. Los estudiantes completan evaluaciones de habilidades para seguir su progreso.'
+  },
+  { 
+    id: 'instructor', 
+    path: '/forms/instructor-checkin', 
+    color: '#00C7BE', 
+    en: 'Instructor Check-in', 
+    es: 'Registro de Instructor', 
+    desc: 'Instructors log sessions | Instructores registran sesiones',
+    whenToUse: 'WHEN TO USE: BEFORE class starts (30 min prior). Instructors scan to confirm arrival and readiness.',
+    whenToUseEs: 'CUÁNDO USAR: ANTES de que comience la clase (30 min antes). Los instructores escanean para confirmar llegada y preparación.'
+  },
+  { 
+    id: 'completion', 
+    path: '/forms/completion', 
+    color: '#FF3B30', 
+    en: 'Completion Form', 
+    es: 'Formulario de Finalización', 
+    desc: 'Final completion and tablet | Finalización y tableta',
+    whenToUse: 'WHEN TO USE: At the END of the program. Students complete this form to receive their certificate and tablet.',
+    whenToUseEs: 'CUÁNDO USAR: Al FINAL del programa. Los estudiantes completan este formulario para recibir su certificado y tableta.'
+  },
+];
+
+// Collaborating organizations
+const COLLABORATING_ORGS = [
+  'NC Community Health Worker Association (NCCHWA)',
+  'Moore County Health Department',
+  'Montgomery County Health Department',
+  'Digital Literacy Initiative Partners'
 ];
 
 function DigitalLiteracyContent() {
@@ -428,17 +490,35 @@ function DigitalLiteracyContent() {
                               if (printWindow) {
                                 printWindow.document.write(`
                                   <html>
-                                    <head><title>${config.en} QR Code</title></head>
-                                    <body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui;">
-                                      <h1 style="color:${config.color};margin-bottom:20px;">${config.en}</h1>
-                                      <h2 style="color:#6E6E73;margin-bottom:30px;">${config.es}</h2>
-                                      <img src="${qrCodes[config.id]}" style="width:300px;height:300px;" />
-                                      <p style="margin-top:20px;color:#6E6E73;">${config.desc}</p>
+                                    <head>
+                                      <title>${config.en} QR Code</title>
+                                      <style>
+                                        @media print {
+                                          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                                        }
+                                      </style>
+                                    </head>
+                                    <body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui;padding:40px;box-sizing:border-box;">
+                                      <div style="text-align:center;max-width:600px;">
+                                        <h1 style="color:${config.color};font-size:36px;margin-bottom:10px;font-weight:bold;">${config.en}</h1>
+                                        <h2 style="color:#6E6E73;font-size:28px;margin-bottom:30px;">${config.es}</h2>
+                                        <div style="border:4px solid ${config.color};border-radius:24px;padding:30px;display:inline-block;background:white;">
+                                          <img src="${qrCodes[config.id]}" style="width:400px;height:400px;display:block;" />
+                                        </div>
+                                        <div style="margin-top:30px;padding:20px;background:${config.color}15;border-radius:12px;">
+                                          <p style="color:${config.color};font-weight:bold;font-size:16px;margin:0 0 10px 0;">${config.whenToUse}</p>
+                                          <p style="color:#6E6E73;font-size:14px;margin:0;">${config.whenToUseEs}</p>
+                                        </div>
+                                        <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                        <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
+                                        <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
+                                        <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                      </div>
                                     </body>
                                   </html>
                                 `);
                                 printWindow.document.close();
-                                printWindow.print();
+                                setTimeout(() => printWindow.print(), 250);
                               }
                             }
                           }}
@@ -457,6 +537,7 @@ function DigitalLiteracyContent() {
                   <h4 className="text-lg font-semibold mb-4 text-[#1D1D1F]">
                     Bulk Print Options | Opciones de Impresión Masiva
                   </h4>
+                  <p className="text-sm text-[#6E6E73] mb-4">Each QR code prints on a separate page | Cada código QR se imprime en una página separada</p>
                   <div className="flex flex-wrap justify-center gap-3">
                     <Button 
                       className="bg-[#0071E3] hover:bg-[#0077ED]"
@@ -465,24 +546,42 @@ function DigitalLiteracyContent() {
                         if (printWindow) {
                           let content = `
                             <html>
-                              <head><title>All QR Codes | Todos los Códigos QR</title></head>
-                              <body style="font-family:system-ui;padding:40px;">
-                                <h1 style="text-align:center;margin-bottom:40px;">Digital Literacy Program QR Codes</h1>
-                                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px;">
+                              <head>
+                                <title>All QR Codes | Todos los Códigos QR</title>
+                                <style>
+                                  @media print {
+                                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                                    .page { page-break-after: always; }
+                                    .page:last-child { page-break-after: auto; }
+                                  }
+                                </style>
+                              </head>
+                              <body style="font-family:system-ui;margin:0;padding:0;">
                           `;
                           QR_CONFIGS.forEach(config => {
                             if (qrCodes[config.id]) {
                               content += `
-                                <div style="text-align:center;padding:20px;border:2px solid ${config.color};border-radius:16px;">
-                                  <h2 style="color:${config.color};">${config.en}</h2>
-                                  <h3 style="color:#6E6E73;">${config.es}</h3>
-                                  <img src="${qrCodes[config.id]}" style="width:200px;height:200px;margin:20px auto;" />
-                                  <p style="color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                <div class="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;box-sizing:border-box;">
+                                  <div style="text-align:center;max-width:600px;">
+                                    <h1 style="color:${config.color};font-size:36px;margin-bottom:10px;font-weight:bold;">${config.en}</h1>
+                                    <h2 style="color:#6E6E73;font-size:28px;margin-bottom:30px;">${config.es}</h2>
+                                    <div style="border:4px solid ${config.color};border-radius:24px;padding:30px;display:inline-block;background:white;">
+                                      <img src="${qrCodes[config.id]}" style="width:400px;height:400px;display:block;" />
+                                    </div>
+                                    <div style="margin-top:30px;padding:20px;background:${config.color}15;border-radius:12px;">
+                                      <p style="color:${config.color};font-weight:bold;font-size:16px;margin:0 0 10px 0;">${config.whenToUse}</p>
+                                      <p style="color:#6E6E73;font-size:14px;margin:0;">${config.whenToUseEs}</p>
+                                    </div>
+                                    <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                    <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
+                                    <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
+                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                  </div>
                                 </div>
                               `;
                             }
                           });
-                          content += `</div></body></html>`;
+                          content += `</body></html>`;
                           printWindow.document.write(content);
                           printWindow.document.close();
                           setTimeout(() => printWindow.print(), 250);
@@ -503,24 +602,42 @@ function DigitalLiteracyContent() {
                         if (printWindow) {
                           let content = `
                             <html>
-                              <head><title>Student QR Codes | Códigos QR de Estudiantes</title></head>
-                              <body style="font-family:system-ui;padding:40px;">
-                                <h1 style="text-align:center;margin-bottom:40px;">Student QR Codes | Códigos QR de Estudiantes</h1>
-                                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px;">
+                              <head>
+                                <title>Student QR Codes | Códigos QR de Estudiantes</title>
+                                <style>
+                                  @media print {
+                                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                                    .page { page-break-after: always; }
+                                    .page:last-child { page-break-after: auto; }
+                                  }
+                                </style>
+                              </head>
+                              <body style="font-family:system-ui;margin:0;padding:0;">
                           `;
                           studentConfigs.forEach(config => {
                             if (qrCodes[config.id]) {
                               content += `
-                                <div style="text-align:center;padding:20px;border:2px solid ${config.color};border-radius:16px;">
-                                  <h2 style="color:${config.color};">${config.en}</h2>
-                                  <h3 style="color:#6E6E73;">${config.es}</h3>
-                                  <img src="${qrCodes[config.id]}" style="width:200px;height:200px;margin:20px auto;display:block;" />
-                                  <p style="color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                <div class="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;box-sizing:border-box;">
+                                  <div style="text-align:center;max-width:600px;">
+                                    <h1 style="color:${config.color};font-size:36px;margin-bottom:10px;font-weight:bold;">${config.en}</h1>
+                                    <h2 style="color:#6E6E73;font-size:28px;margin-bottom:30px;">${config.es}</h2>
+                                    <div style="border:4px solid ${config.color};border-radius:24px;padding:30px;display:inline-block;background:white;">
+                                      <img src="${qrCodes[config.id]}" style="width:400px;height:400px;display:block;" />
+                                    </div>
+                                    <div style="margin-top:30px;padding:20px;background:${config.color}15;border-radius:12px;">
+                                      <p style="color:${config.color};font-weight:bold;font-size:16px;margin:0 0 10px 0;">${config.whenToUse}</p>
+                                      <p style="color:#6E6E73;font-size:14px;margin:0;">${config.whenToUseEs}</p>
+                                    </div>
+                                    <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                    <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
+                                    <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
+                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                  </div>
                                 </div>
                               `;
                             }
                           });
-                          content += `</div></body></html>`;
+                          content += `</body></html>`;
                           printWindow.document.write(content);
                           printWindow.document.close();
                           setTimeout(() => printWindow.print(), 250);
@@ -540,24 +657,42 @@ function DigitalLiteracyContent() {
                         if (printWindow) {
                           let content = `
                             <html>
-                              <head><title>Instructor QR Codes | Códigos QR de Instructor</title></head>
-                              <body style="font-family:system-ui;padding:40px;">
-                                <h1 style="text-align:center;margin-bottom:40px;">Instructor QR Codes | Códigos QR de Instructor</h1>
-                                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px;">
+                              <head>
+                                <title>Instructor QR Codes | Códigos QR de Instructor</title>
+                                <style>
+                                  @media print {
+                                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                                    .page { page-break-after: always; }
+                                    .page:last-child { page-break-after: auto; }
+                                  }
+                                </style>
+                              </head>
+                              <body style="font-family:system-ui;margin:0;padding:0;">
                           `;
                           instructorConfigs.forEach(config => {
                             if (qrCodes[config.id]) {
                               content += `
-                                <div style="text-align:center;padding:20px;border:2px solid ${config.color};border-radius:16px;">
-                                  <h2 style="color:${config.color};">${config.en}</h2>
-                                  <h3 style="color:#6E6E73;">${config.es}</h3>
-                                  <img src="${qrCodes[config.id]}" style="width:200px;height:200px;margin:20px auto;display:block;" />
-                                  <p style="color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                <div class="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;box-sizing:border-box;">
+                                  <div style="text-align:center;max-width:600px;">
+                                    <h1 style="color:${config.color};font-size:36px;margin-bottom:10px;font-weight:bold;">${config.en}</h1>
+                                    <h2 style="color:#6E6E73;font-size:28px;margin-bottom:30px;">${config.es}</h2>
+                                    <div style="border:4px solid ${config.color};border-radius:24px;padding:30px;display:inline-block;background:white;">
+                                      <img src="${qrCodes[config.id]}" style="width:400px;height:400px;display:block;" />
+                                    </div>
+                                    <div style="margin-top:30px;padding:20px;background:${config.color}15;border-radius:12px;">
+                                      <p style="color:${config.color};font-weight:bold;font-size:16px;margin:0 0 10px 0;">${config.whenToUse}</p>
+                                      <p style="color:#6E6E73;font-size:14px;margin:0;">${config.whenToUseEs}</p>
+                                    </div>
+                                    <p style="margin-top:20px;color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                    <hr style="margin:30px 0;border:none;border-top:1px solid #D2D2D7;" />
+                                    <p style="color:#1D1D1F;font-weight:600;font-size:14px;margin-bottom:10px;">Collaborating Organizations | Organizaciones Colaboradoras:</p>
+                                    <p style="color:#6E6E73;font-size:12px;line-height:1.6;">${COLLABORATING_ORGS.join(' • ')}</p>
+                                  </div>
                                 </div>
                               `;
                             }
                           });
-                          content += `</div></body></html>`;
+                          content += `</body></html>`;
                           printWindow.document.write(content);
                           printWindow.document.close();
                           setTimeout(() => printWindow.print(), 250);
