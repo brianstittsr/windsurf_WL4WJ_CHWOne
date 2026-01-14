@@ -18,6 +18,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserPlus, LayoutDashboard, QrCode, GraduationCap, FileBarChart, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Mock students data for demonstration
 const generateMockStudents = (): Student[] => {
@@ -85,22 +87,108 @@ function DigitalLiteracyContent() {
   const [activeTab, setActiveTab] = useState('registration');
   const [students, setStudents] = useState<Student[]>([]);
   const [classEnrollments, setClassEnrollments] = useState<{ [classId: string]: number }>({});
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState({
+    totalStudents: 0,
+    completedStudents: 0,
+    totalClasses: 6,
+    fullClasses: 0
+  });
 
-  // Initialize mock data
+  // Fetch real data from Firebase, fallback to mock if no data
   useEffect(() => {
-    const mockStudents = generateMockStudents();
-    setStudents(mockStudents);
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        
+        // Try to fetch from Firebase digital_literacy_students collection
+        const studentsRef = collection(db, 'digital_literacy_students');
+        const snapshot = await getDocs(studentsRef);
+        
+        if (snapshot.docs.length > 0) {
+          // Use real Firebase data
+          const firebaseStudents: Student[] = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || data.studentName || '',
+              email: data.email || '',
+              phone: data.phone || '',
+              county: data.county || '',
+              classId: data.classId || data.classTime || '',
+              registrationDate: data.registrationDate || data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+              attendance: data.attendance || { present: 0, total: 0 },
+              proficiencyAssessments: data.proficiencyAssessments || {},
+              isPresent: data.isPresent || false,
+              completed: data.completed || false,
+              completionDate: data.completionDate,
+              tabletSerial: data.tabletSerial,
+            };
+          });
+          
+          setStudents(firebaseStudents);
+          
+          // Calculate real enrollments
+          const enrollments: { [classId: string]: number } = {};
+          firebaseStudents.forEach(student => {
+            if (student.classId) {
+              enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
+            }
+          });
+          setClassEnrollments(enrollments);
+          
+          // Calculate real metrics
+          setMetrics({
+            totalStudents: firebaseStudents.length,
+            completedStudents: firebaseStudents.filter(s => s.completed).length,
+            totalClasses: CLASS_SCHEDULES.length,
+            fullClasses: Object.values(enrollments).filter(c => c >= 18).length
+          });
+        } else {
+          // Fallback to mock data if no Firebase data
+          const mockStudents = generateMockStudents();
+          setStudents(mockStudents);
+          
+          const enrollments: { [classId: string]: number } = {};
+          mockStudents.forEach(student => {
+            enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
+          });
+          setClassEnrollments(enrollments);
+          
+          setMetrics({
+            totalStudents: mockStudents.length,
+            completedStudents: mockStudents.filter(s => s.completed).length,
+            totalClasses: CLASS_SCHEDULES.length,
+            fullClasses: Object.values(enrollments).filter(c => c >= 18).length
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        // Fallback to mock data on error
+        const mockStudents = generateMockStudents();
+        setStudents(mockStudents);
+        
+        const enrollments: { [classId: string]: number } = {};
+        mockStudents.forEach(student => {
+          enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
+        });
+        setClassEnrollments(enrollments);
+        
+        setMetrics({
+          totalStudents: mockStudents.length,
+          completedStudents: mockStudents.filter(s => s.completed).length,
+          totalClasses: CLASS_SCHEDULES.length,
+          fullClasses: Object.values(enrollments).filter(c => c >= 18).length
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Calculate enrollments per class
-    const enrollments: { [classId: string]: number } = {};
-    mockStudents.forEach(student => {
-      enrollments[student.classId] = (enrollments[student.classId] || 0) + 1;
-    });
-    setClassEnrollments(enrollments);
+    fetchStudents();
   }, []);
 
   const handleRegistration = async (data: any) => {
-    // Simulate registration
     console.log('Registration data:', data);
     
     // Check if email already exists
@@ -109,29 +197,77 @@ function DigitalLiteracyContent() {
       throw new Error('EMAIL_EXISTS');
     }
     
-    // Create new student
-    const newStudent: Student = {
-      id: `S${String(students.length + 1).padStart(3, '0')}`,
-      name: data.studentName,
-      email: data.email,
-      phone: data.phone,
-      county: data.county,
-      classId: data.classTime,
-      registrationDate: data.registrationDate,
-      attendance: { present: 0, total: 0 },
-      proficiencyAssessments: {},
-      isPresent: false,
-      completed: false,
-    };
-    
-    setStudents(prev => [...prev, newStudent]);
-    setClassEnrollments(prev => ({
-      ...prev,
-      [data.classTime]: (prev[data.classTime] || 0) + 1,
-    }));
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Save to Firebase
+      const studentsRef = collection(db, 'digital_literacy_students');
+      const docRef = await addDoc(studentsRef, {
+        name: data.studentName,
+        email: data.email,
+        phone: data.phone,
+        county: data.county,
+        classId: data.classTime,
+        registrationDate: data.registrationDate,
+        attendance: { present: 0, total: 0 },
+        proficiencyAssessments: {},
+        isPresent: false,
+        completed: false,
+        createdAt: serverTimestamp(),
+      });
+      
+      // Create new student with Firebase ID
+      const newStudent: Student = {
+        id: docRef.id,
+        name: data.studentName,
+        email: data.email,
+        phone: data.phone,
+        county: data.county,
+        classId: data.classTime,
+        registrationDate: data.registrationDate,
+        attendance: { present: 0, total: 0 },
+        proficiencyAssessments: {},
+        isPresent: false,
+        completed: false,
+      };
+      
+      setStudents(prev => [...prev, newStudent]);
+      setClassEnrollments(prev => ({
+        ...prev,
+        [data.classTime]: (prev[data.classTime] || 0) + 1,
+      }));
+      
+      // Update metrics
+      setMetrics(prev => ({
+        ...prev,
+        totalStudents: prev.totalStudents + 1,
+      }));
+    } catch (error) {
+      console.error('Error saving to Firebase:', error);
+      // Still add locally even if Firebase fails
+      const newStudent: Student = {
+        id: `S${String(students.length + 1).padStart(3, '0')}`,
+        name: data.studentName,
+        email: data.email,
+        phone: data.phone,
+        county: data.county,
+        classId: data.classTime,
+        registrationDate: data.registrationDate,
+        attendance: { present: 0, total: 0 },
+        proficiencyAssessments: {},
+        isPresent: false,
+        completed: false,
+      };
+      
+      setStudents(prev => [...prev, newStudent]);
+      setClassEnrollments(prev => ({
+        ...prev,
+        [data.classTime]: (prev[data.classTime] || 0) + 1,
+      }));
+      
+      setMetrics(prev => ({
+        ...prev,
+        totalStudents: prev.totalStudents + 1,
+      }));
+    }
   };
 
   const handleUpdateAttendance = (studentId: string, isPresent: boolean) => {
@@ -195,23 +331,27 @@ function DigitalLiteracyContent() {
   return (
     <AdminLayout>
       <div className="max-w-7xl mx-auto py-6 px-4">
-        {/* Header */}
-        <Card className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
-          <CardContent className="p-6">
-            <h1 className="text-3xl font-bold mb-1">
-              🌐 Digital Literacy Program
-            </h1>
-            <h2 className="text-xl font-semibold opacity-90">
-              Programa de Alfabetización Digital
-            </h2>
-            <p className="mt-2 opacity-80">
-              Bilingual Student Tracking System | Sistema Bilingüe de Seguimiento de Estudiantes
-            </p>
-            <p className="mt-1 text-sm opacity-70">
-              108 students across 6 classes (18 students per class) | 108 estudiantes en 6 clases (18 estudiantes por clase)
-            </p>
-          </CardContent>
-        </Card>
+        {/* Apple-styled Header */}
+        <div className="mb-8 bg-gradient-to-r from-[#0071E3] to-[#5856D6] rounded-2xl p-8 text-white">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-4xl">🌐</span>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Digital Literacy Program
+              </h1>
+              <h2 className="text-xl font-medium opacity-90">
+                Programa de Alfabetización Digital
+              </h2>
+            </div>
+          </div>
+          <p className="mt-3 opacity-90">
+            Bilingual Student Tracking System | Sistema Bilingüe de Seguimiento de Estudiantes
+          </p>
+          <p className="mt-1 text-sm opacity-75">
+            {loading ? 'Loading...' : `${metrics.totalStudents} students across ${metrics.totalClasses} classes`} | 
+            {loading ? ' Cargando...' : ` ${metrics.totalStudents} estudiantes en ${metrics.totalClasses} clases`}
+          </p>
+        </div>
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -448,29 +588,35 @@ function DigitalLiteracyContent() {
           </TabsContent>
         </Tabs>
 
-        {/* Footer Stats */}
-        <Card className="mt-6 bg-slate-50">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap justify-around gap-4">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">{students.length}</p>
-                <p className="text-sm text-muted-foreground">Total Students | Total Estudiantes</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-green-600">{students.filter(s => s.completed).length}</p>
-                <p className="text-sm text-muted-foreground">Completed | Completados</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-sky-600">6</p>
-                <p className="text-sm text-muted-foreground">Classes | Clases</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-amber-600">{Object.values(classEnrollments).filter(c => c >= 18).length}</p>
-                <p className="text-sm text-muted-foreground">Full Classes | Clases Completas</p>
-              </div>
+        {/* Apple-styled Footer Stats */}
+        <div className="mt-8 bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[#D2D2D7]">
+            <div className="p-6 text-center">
+              <p className="text-4xl font-semibold text-[#0071E3] mb-1">
+                {loading ? '...' : metrics.totalStudents}
+              </p>
+              <p className="text-sm text-[#6E6E73]">Total Students | Total Estudiantes</p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-6 text-center">
+              <p className="text-4xl font-semibold text-[#34C759] mb-1">
+                {loading ? '...' : metrics.completedStudents}
+              </p>
+              <p className="text-sm text-[#6E6E73]">Completed | Completados</p>
+            </div>
+            <div className="p-6 text-center">
+              <p className="text-4xl font-semibold text-[#5856D6] mb-1">
+                {metrics.totalClasses}
+              </p>
+              <p className="text-sm text-[#6E6E73]">Classes | Clases</p>
+            </div>
+            <div className="p-6 text-center">
+              <p className="text-4xl font-semibold text-[#FF9500] mb-1">
+                {loading ? '...' : metrics.fullClasses}
+              </p>
+              <p className="text-sm text-[#6E6E73]">Full Classes | Clases Completas</p>
+            </div>
+          </div>
+        </div>
       </div>
     </AdminLayout>
   );
