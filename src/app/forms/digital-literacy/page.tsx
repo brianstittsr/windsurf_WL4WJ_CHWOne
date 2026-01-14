@@ -88,10 +88,8 @@ const QR_CONFIGS = [
 
 // Default collaborating organizations (fallback if Firebase fetch fails)
 const DEFAULT_collaboratingOrgs = [
-  'NC Community Health Worker Association (NCCHWA)',
-  'Moore County Health Department',
-  'Montgomery County Health Department',
-  'Digital Literacy Initiative Partners'
+  'Women Leading 4 Wellness and Justice',
+  'Fiesta Christiana Family Services',
 ];
 
 function DigitalLiteracyContent() {
