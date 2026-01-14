@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/firebaseConfig';
 import { UserProfile, OrganizationType, UserRole } from '@/types/firebase/schema';
 import { ensureOrganizationType } from '@/utils/organizationTypeMapping';
@@ -197,10 +197,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setState(prev => ({ ...prev, user: user, profile: updatedProfile, loading: false }));
           } else {
             // Handle case where user exists in Auth but not in Firestore
-            console.warn('[AUTH] ⚠️ User document does NOT exist in Firestore!');
-            console.warn('[AUTH] User is authenticated but has no profile document');
-            console.warn('[AUTH] Please create a user document at: users/' + user.uid);
-            setState(prev => ({ ...prev, user: user, profile: null, loading: false }));
+            // Create a new user document automatically
+            console.warn('[AUTH] ⚠️ User document does NOT exist in Firestore - creating one...');
+            
+            const newUserData = {
+              uid: user.uid,
+              email: user.email || '',
+              displayName: user.displayName || user.email?.split('@')[0] || 'User',
+              role: 'user' as UserRole,
+              organization: 'general' as const,
+              organizationType: 'individual' as OrganizationType,
+              permissions: {
+                canCreateForms: false,
+                canEditForms: false,
+                canDeleteForms: false,
+                canViewAllSubmissions: false,
+                canManageUsers: false,
+                canAccessAdmin: false,
+              },
+              isActive: true,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            };
+            
+            try {
+              await setDoc(userDocRef, newUserData);
+              console.log('[AUTH] ✅ Created new user document for:', user.uid);
+              // Re-fetch the document to get the proper Timestamp values
+              const newDoc = await getDoc(userDocRef);
+              const createdProfile = newDoc.data() as UserProfile;
+              setState(prev => ({ ...prev, user: user, profile: createdProfile, loading: false }));
+            } catch (createError) {
+              console.error('[AUTH] ❌ Error creating user document:', createError);
+              setState(prev => ({ ...prev, user: user, profile: null, loading: false, error: String(createError) }));
+            }
           }
         } catch (error) {
           console.error('[AUTH] ❌ Error fetching user document:', error);
