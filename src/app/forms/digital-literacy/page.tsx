@@ -511,22 +511,22 @@ function DigitalLiteracyContent() {
           </TabsContent>
 
           <TabsContent value="metrics" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Dashboard Link */}
-              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-6" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-[#0071E3]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <LayoutDashboard className="w-8 h-8 text-[#0071E3]" />
+                  <div className="w-14 h-14 bg-[#0071E3]/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <LayoutDashboard className="w-7 h-7 text-[#0071E3]" />
                   </div>
-                  <h3 className="text-xl font-semibold text-[#1D1D1F] mb-2">
+                  <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">
                     Interactive Dashboard
                   </h3>
-                  <p className="text-[#86868B] mb-4 text-sm">
-                    View real-time analytics with filtering and drill-down capabilities.
+                  <p className="text-[#86868B] mb-4 text-xs">
+                    Real-time analytics with filtering capabilities.
                   </p>
                   <a 
                     href="/forms/digital-literacy/metrics"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#0071E3] text-white rounded-full font-medium hover:bg-[#0077ED] transition-colors shadow-lg text-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0071E3] text-white rounded-full font-medium hover:bg-[#0077ED] transition-colors shadow-lg text-sm"
                   >
                     <LayoutDashboard className="w-4 h-4" />
                     Open Dashboard
@@ -535,45 +535,67 @@ function DigitalLiteracyContent() {
               </div>
 
               {/* Weekly Report Link */}
-              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-6" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-[#5856D6]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Calendar className="w-8 h-8 text-[#5856D6]" />
+                  <div className="w-14 h-14 bg-[#5856D6]/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Calendar className="w-7 h-7 text-[#5856D6]" />
                   </div>
-                  <h3 className="text-xl font-semibold text-[#1D1D1F] mb-2">
+                  <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">
                     Weekly Report
                   </h3>
-                  <p className="text-[#86868B] mb-4 text-sm">
-                    Detailed weekly analysis with executive summary and trend explanations.
+                  <p className="text-[#86868B] mb-4 text-xs">
+                    Weekly analysis with executive summary.
                   </p>
                   <a 
                     href="/forms/digital-literacy/weekly-report"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#5856D6] text-white rounded-full font-medium hover:bg-[#4B4ACF] transition-colors shadow-lg text-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#5856D6] text-white rounded-full font-medium hover:bg-[#4B4ACF] transition-colors shadow-lg text-sm"
                   >
                     <Calendar className="w-4 h-4" />
-                    View Weekly Report
+                    View Report
+                  </a>
+                </div>
+              </div>
+
+              {/* Custom Report Wizard */}
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-6" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div className="text-center">
+                  <div className="w-14 h-14 bg-[#FF9500]/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <FileBarChart className="w-7 h-7 text-[#FF9500]" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">
+                    Custom Report
+                  </h3>
+                  <p className="text-[#86868B] mb-4 text-xs">
+                    Create custom reports with AI-enhanced comments.
+                  </p>
+                  <a 
+                    href="/forms/digital-literacy/custom-report"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF9500] text-white rounded-full font-medium hover:bg-[#E68600] transition-colors shadow-lg text-sm"
+                  >
+                    <FileBarChart className="w-4 h-4" />
+                    Create Report
                   </a>
                 </div>
               </div>
 
               {/* PDF Report Link */}
-              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-6" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-[#34C759]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <FileBarChart className="w-8 h-8 text-[#34C759]" />
+                  <div className="w-14 h-14 bg-[#34C759]/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <FileBarChart className="w-7 h-7 text-[#34C759]" />
                   </div>
-                  <h3 className="text-xl font-semibold text-[#1D1D1F] mb-2">
-                    Program Status Report
+                  <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">
+                    Status Report
                   </h3>
-                  <p className="text-[#86868B] mb-4 text-sm">
-                    Comprehensive PDF with milestones, metrics, and student highlights.
+                  <p className="text-[#86868B] mb-4 text-xs">
+                    Full program PDF with milestones and metrics.
                   </p>
                   <a 
                     href="/forms/digital-literacy/report"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#34C759] text-white rounded-full font-medium hover:bg-[#2DB84D] transition-colors shadow-lg text-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#34C759] text-white rounded-full font-medium hover:bg-[#2DB84D] transition-colors shadow-lg text-sm"
                   >
                     <FileBarChart className="w-4 h-4" />
-                    Generate Report
+                    Generate PDF
                   </a>
                 </div>
               </div>
