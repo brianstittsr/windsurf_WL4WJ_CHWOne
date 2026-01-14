@@ -71,45 +71,47 @@ function MetricCard({
   onClick?: () => void;
 }) {
   return (
-    <Card 
-      className={`bg-white border-[#D2D2D7] hover:shadow-lg transition-all cursor-pointer ${onClick ? 'hover:scale-[1.02]' : ''}`}
+    <div 
+      className={`bg-white rounded-3xl border border-[#E5E5EA] p-6 hover:shadow-xl transition-all duration-300 ${onClick ? 'cursor-pointer hover:scale-[1.02]' : ''}`}
       onClick={onClick}
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-[#6E6E73] mb-1">{title}</p>
-            <p className="text-4xl font-bold" style={{ color }}>{value}</p>
-            {subtitle && <p className="text-sm text-[#6E6E73] mt-1">{subtitle}</p>}
-            {trend && (
-              <div className="flex items-center gap-1 mt-2">
-                {trend.value >= 0 ? (
-                  <TrendingUp className="w-4 h-4 text-[#34C759]" />
-                ) : (
-                  <TrendingUp className="w-4 h-4 text-[#FF3B30] rotate-180" />
-                )}
-                <span className={`text-sm font-medium ${trend.value >= 0 ? 'text-[#34C759]' : 'text-[#FF3B30]'}`}>
-                  {trend.value >= 0 ? '+' : ''}{trend.value}% {trend.label}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
-            <Icon className="w-7 h-7" style={{ color }} />
-          </div>
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-[#86868B] mb-2">{title}</p>
+          <p className="text-5xl font-semibold tracking-tight" style={{ color }}>{value}</p>
+          {subtitle && <p className="text-sm text-[#86868B] mt-2">{subtitle}</p>}
+          {trend && (
+            <div className="flex items-center gap-1.5 mt-3">
+              {trend.value >= 0 ? (
+                <TrendingUp className="w-4 h-4 text-[#34C759]" />
+              ) : (
+                <TrendingUp className="w-4 h-4 text-[#FF3B30] rotate-180" />
+              )}
+              <span className={`text-sm font-medium ${trend.value >= 0 ? 'text-[#34C759]' : 'text-[#FF3B30]'}`}>
+                {trend.value >= 0 ? '+' : ''}{trend.value}% {trend.label}
+              </span>
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+        <div 
+          className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ml-4" 
+          style={{ backgroundColor: `${color}12` }}
+        >
+          <Icon className="w-8 h-8" style={{ color }} />
+        </div>
+      </div>
+    </div>
   );
 }
 
 function ProgressBar({ value, max, color, label }: { value: number; max: number; color: string; label?: string }) {
   const percentage = max > 0 ? (value / max) * 100 : 0;
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {label && (
         <div className="flex justify-between text-sm">
-          <span className="text-[#6E6E73]">{label}</span>
+          <span className="text-[#86868B] font-medium">{label}</span>
           <span className="font-medium text-[#1D1D1F]">{value}/{max}</span>
         </div>
       )}
@@ -407,45 +409,47 @@ function ProgramMetricsDashboard() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto py-6 px-4">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-          <div>
-            <Link 
-              href="/forms/digital-literacy"
-              className="inline-flex items-center text-[#0071E3] hover:text-[#0077ED] mb-2"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Program | Volver al Programa
-            </Link>
-            <h1 className="text-3xl font-bold text-[#1D1D1F]">
-              Program Metrics Dashboard
-            </h1>
-            <p className="text-[#6E6E73] mt-1">
-              Digital Literacy Program Analytics | Análisis del Programa de Alfabetización Digital
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              className="border-[#D2D2D7]"
-              onClick={() => window.location.reload()}
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button 
-              className="bg-[#0071E3] hover:bg-[#0077ED]"
-              onClick={exportToCSV}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
-            </Button>
+      <div className="w-full max-w-[1600px] mx-auto py-8 px-6 lg:px-12">
+        {/* Apple-styled Header */}
+        <div className="mb-10">
+          <Link 
+            href="/forms/digital-literacy"
+            className="inline-flex items-center text-[#0071E3] hover:text-[#0077ED] text-sm font-medium mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Program | Volver al Programa
+          </Link>
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-bold text-[#1D1D1F] tracking-tight">
+                Program Metrics Dashboard
+              </h1>
+              <p className="text-lg text-[#6E6E73] mt-2">
+                Digital Literacy Program Analytics | Análisis del Programa de Alfabetización Digital
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                className="border-[#D2D2D7] hover:bg-[#F5F5F7] rounded-full px-6"
+                onClick={() => window.location.reload()}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button 
+                className="bg-[#0071E3] hover:bg-[#0077ED] rounded-full px-6 shadow-lg"
+                onClick={exportToCSV}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <MetricCard
             title="Total Students | Total Estudiantes"
             value={metrics.totalStudents}
@@ -477,38 +481,48 @@ function ProgramMetricsDashboard() {
           />
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
-            <TabsTrigger value="overview" className="py-3">
+        {/* Apple-styled Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="inline-flex bg-[#F5F5F7] p-1.5 rounded-2xl gap-1">
+            <TabsTrigger 
+              value="overview" 
+              className="px-6 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+            >
               <BarChart3 className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="students" className="py-3">
+            <TabsTrigger 
+              value="students" 
+              className="px-6 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+            >
               <Users className="w-4 h-4 mr-2" />
               Students
             </TabsTrigger>
-            <TabsTrigger value="attendance" className="py-3">
+            <TabsTrigger 
+              value="attendance" 
+              className="px-6 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+            >
               <Calendar className="w-4 h-4 mr-2" />
               Attendance
             </TabsTrigger>
-            <TabsTrigger value="instructors" className="py-3">
+            <TabsTrigger 
+              value="instructors" 
+              className="px-6 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+            >
               <GraduationCap className="w-4 h-4 mr-2" />
               Instructors
             </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Class Enrollment */}
-              <Card className="border-[#D2D2D7]">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-[#1D1D1F]">
-                    Class Enrollment | Inscripción por Clase
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <h3 className="text-xl font-semibold text-[#1D1D1F] mb-6">
+                  Class Enrollment | Inscripción por Clase
+                </h3>
+                <div className="space-y-5">
                   {CLASS_SCHEDULES.map(cls => (
                     <ProgressBar
                       key={cls.id}
@@ -518,72 +532,66 @@ function ProgramMetricsDashboard() {
                       label={cls.en.replace('Class ', '').split(':')[0]}
                     />
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* County Distribution */}
-              <Card className="border-[#D2D2D7]">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-[#1D1D1F]">
-                    County Distribution | Distribución por Condado
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {COUNTIES.map(county => {
-                      const count = metrics.countyDistribution[county.id] || 0;
-                      const percentage = metrics.totalStudents > 0 
-                        ? Math.round((count / metrics.totalStudents) * 100) 
-                        : 0;
-                      return (
-                        <div key={county.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <h3 className="text-xl font-semibold text-[#1D1D1F] mb-6">
+                  County Distribution | Distribución por Condado
+                </h3>
+                <div className="space-y-5">
+                  {COUNTIES.map(county => {
+                    const count = metrics.countyDistribution[county.id] || 0;
+                    const percentage = metrics.totalStudents > 0 
+                      ? Math.round((count / metrics.totalStudents) * 100) 
+                      : 0;
+                    return (
+                      <div key={county.id} className="flex items-center justify-between p-4 bg-[#F5F5F7] rounded-2xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#5856D6]/10 flex items-center justify-center">
                             <MapPin className="w-5 h-5 text-[#5856D6]" />
-                            <div>
-                              <p className="font-medium text-[#1D1D1F]">{county.en}</p>
-                              <p className="text-sm text-[#6E6E73]">{county.es}</p>
-                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-[#5856D6]">{count}</p>
-                            <p className="text-sm text-[#6E6E73]">{percentage}%</p>
+                          <div>
+                            <p className="font-medium text-[#1D1D1F]">{county.en}</p>
+                            <p className="text-sm text-[#86868B]">{county.es}</p>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+                        <div className="text-right">
+                          <p className="text-3xl font-semibold text-[#5856D6]">{count}</p>
+                          <p className="text-sm text-[#86868B]">{percentage}%</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
 
-              {/* Weekly Trend */}
-              <Card className="border-[#D2D2D7] lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-[#1D1D1F]">
-                    Weekly Registration Trend | Tendencia de Registro Semanal
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-end justify-between h-40 gap-4">
-                    {['4 weeks ago', '3 weeks ago', '2 weeks ago', 'This week'].map((label, idx) => {
-                      const value = metrics.weeklyRegistrations[idx];
-                      const maxValue = Math.max(...metrics.weeklyRegistrations, 1);
-                      const height = (value / maxValue) * 100;
-                      return (
-                        <div key={label} className="flex-1 flex flex-col items-center gap-2">
-                          <div className="w-full bg-[#E5E5EA] rounded-t-lg relative" style={{ height: '120px' }}>
-                            <div 
-                              className="absolute bottom-0 w-full bg-gradient-to-t from-[#0071E3] to-[#5856D6] rounded-t-lg transition-all duration-500"
-                              style={{ height: `${height}%` }}
-                            />
-                          </div>
-                          <p className="text-2xl font-bold text-[#1D1D1F]">{value}</p>
-                          <p className="text-xs text-[#6E6E73] text-center">{label}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Weekly Trend */}
+            <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+              <h3 className="text-xl font-semibold text-[#1D1D1F] mb-6">
+                Weekly Registration Trend | Tendencia de Registro Semanal
+              </h3>
+              <div className="flex items-end justify-between h-48 gap-6">
+                {['4 weeks ago', '3 weeks ago', '2 weeks ago', 'This week'].map((label, idx) => {
+                  const value = metrics.weeklyRegistrations[idx];
+                  const maxValue = Math.max(...metrics.weeklyRegistrations, 1);
+                  const height = (value / maxValue) * 100;
+                  return (
+                    <div key={label} className="flex-1 flex flex-col items-center gap-3">
+                      <div className="w-full bg-[#F5F5F7] rounded-2xl relative" style={{ height: '140px' }}>
+                        <div 
+                          className="absolute bottom-0 w-full bg-gradient-to-t from-[#0071E3] to-[#5856D6] rounded-2xl transition-all duration-500"
+                          style={{ height: `${Math.max(height, 5)}%` }}
+                        />
+                      </div>
+                      <p className="text-3xl font-semibold text-[#1D1D1F]">{value}</p>
+                      <p className="text-sm text-[#86868B] text-center">{label}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </TabsContent>
 
