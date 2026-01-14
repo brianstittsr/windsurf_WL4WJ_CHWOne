@@ -403,54 +403,79 @@ function DigitalLiteracyContent() {
 
   return (
     <AdminLayout>
-      <div className="max-w-7xl mx-auto py-6 px-4">
+      <div className="w-full max-w-[1600px] mx-auto py-8 px-6 lg:px-12">
         {/* Apple-styled Header */}
-        <div className="mb-8 bg-gradient-to-r from-[#0071E3] to-[#5856D6] rounded-2xl p-8 text-white">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-4xl">🌐</span>
+        <div className="mb-10 bg-gradient-to-r from-[#0071E3] to-[#5856D6] rounded-3xl p-10 text-white" style={{ boxShadow: '0 8px 32px rgba(0,113,227,0.3)' }}>
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <span className="text-4xl">🌐</span>
+            </div>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight">
+              <h1 className="text-4xl font-semibold tracking-tight">
                 Digital Literacy Program
               </h1>
-              <h2 className="text-xl font-medium opacity-90">
+              <h2 className="text-2xl font-medium opacity-90">
                 Programa de Alfabetización Digital
               </h2>
             </div>
           </div>
-          <p className="mt-3 opacity-90">
+          <p className="mt-4 text-lg opacity-90">
             Bilingual Student Tracking System | Sistema Bilingüe de Seguimiento de Estudiantes
           </p>
-          <p className="mt-1 text-sm opacity-75">
+          <p className="mt-2 text-sm opacity-75">
             {loading ? 'Loading...' : `${metrics.totalStudents} students across ${metrics.totalClasses} classes`} | 
             {loading ? ' Cargando...' : ` ${metrics.totalStudents} estudiantes en ${metrics.totalClasses} clases`}
           </p>
         </div>
 
-        {/* Navigation Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-5 h-auto">
-            <TabsTrigger value="registration" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <UserPlus className="h-4 w-4" />
+        {/* Apple-styled Navigation Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="inline-flex bg-[#F5F5F7] p-1.5 rounded-2xl gap-1 flex-wrap">
+            <TabsTrigger 
+              value="registration" 
+              className="px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-sm font-medium"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Student Registration</span>
               <span className="sm:hidden">Register</span>
             </TabsTrigger>
-            <TabsTrigger value="instructor" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <GraduationCap className="h-4 w-4" />
+            <TabsTrigger 
+              value="instructor" 
+              className="px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-sm font-medium"
+            >
+              <GraduationCap className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Instructor Registration</span>
               <span className="sm:hidden">Instructor</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <LayoutDashboard className="h-4 w-4" />
+            <TabsTrigger 
+              value="dashboard" 
+              className="px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-sm font-medium"
+            >
+              <LayoutDashboard className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Instructor Dashboard</span>
               <span className="sm:hidden">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="qrcodes" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <QrCode className="h-4 w-4" />
+            <TabsTrigger 
+              value="metrics" 
+              className="px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-sm font-medium"
+            >
+              <FileBarChart className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Program Metrics</span>
+              <span className="sm:hidden">Metrics</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="qrcodes" 
+              className="px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-sm font-medium"
+            >
+              <QrCode className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">QR Codes</span>
               <span className="sm:hidden">QR</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2 py-3 text-xs sm:text-sm">
-              <FileBarChart className="h-4 w-4" />
+            <TabsTrigger 
+              value="reports" 
+              className="px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all text-sm font-medium"
+            >
+              <FileBarChart className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">AI Reports</span>
               <span className="sm:hidden">Reports</span>
             </TabsTrigger>
@@ -483,6 +508,32 @@ function DigitalLiteracyContent() {
               instructorName="María García"
               programDirector="Dr. James Wilson"
             />
+          </TabsContent>
+
+          <TabsContent value="metrics" className="mt-6">
+            <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+              <div className="text-center">
+                <div className="w-20 h-20 bg-[#0071E3]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <FileBarChart className="w-10 h-10 text-[#0071E3]" />
+                </div>
+                <h3 className="text-2xl font-semibold text-[#1D1D1F] mb-3">
+                  Program Metrics Dashboard
+                </h3>
+                <p className="text-[#86868B] mb-6 max-w-md mx-auto">
+                  View comprehensive analytics, student progress, attendance rates, and instructor performance metrics.
+                </p>
+                <p className="text-[#86868B] mb-6 max-w-md mx-auto">
+                  Vea análisis completos, progreso de estudiantes, tasas de asistencia y métricas de rendimiento de instructores.
+                </p>
+                <a 
+                  href="/forms/digital-literacy/metrics"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-[#0071E3] text-white rounded-full font-medium hover:bg-[#0077ED] transition-colors shadow-lg"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  Open Full Dashboard | Abrir Panel Completo
+                </a>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="qrcodes" className="mt-6">
