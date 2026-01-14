@@ -14,27 +14,47 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-// Mock data for demonstration - in production, fetch from Firebase
+// Deterministic mock data for demonstration - in production, fetch from Firebase
+// Using fixed values to prevent hydration mismatch between server and client
 const generateWeeklyData = (weekNumber: number) => {
-  const baseAttendance = 85 + Math.random() * 10;
-  const baseProficiency = 75 + Math.random() * 15;
+  // Deterministic "random" values based on week number
+  const weekSeeds = [
+    { attendance: 87.5, proficiency: 82.3, activeOffset: 2, enrollments: 1, dropouts: 0, attendTrend: 2.3, profTrend: 3.1 },
+    { attendance: 89.2, proficiency: 84.1, activeOffset: 3, enrollments: 2, dropouts: 1, attendTrend: 1.7, profTrend: 2.8 },
+    { attendance: 86.8, proficiency: 79.5, activeOffset: 4, enrollments: 1, dropouts: 0, attendTrend: -1.5, profTrend: -0.8 },
+    { attendance: 91.3, proficiency: 85.7, activeOffset: 2, enrollments: 3, dropouts: 1, attendTrend: 4.5, profTrend: 6.2 },
+    { attendance: 88.9, proficiency: 83.2, activeOffset: 3, enrollments: 0, dropouts: 0, attendTrend: -2.4, profTrend: -2.5 },
+    { attendance: 92.1, proficiency: 88.4, activeOffset: 1, enrollments: 0, dropouts: 0, attendTrend: 3.2, profTrend: 5.2 },
+  ];
+  
+  const seed = weekSeeds[weekNumber - 1] || weekSeeds[0];
+  
+  // Class-specific deterministic data
+  const classSeeds = [
+    { enrolled: 18, present: 16, absent: 2, rate: '88.9', trend: 'up' },
+    { enrolled: 16, present: 14, absent: 2, rate: '87.5', trend: 'up' },
+    { enrolled: 17, present: 15, absent: 2, rate: '88.2', trend: 'down' },
+    { enrolled: 15, present: 13, absent: 2, rate: '86.7', trend: 'up' },
+    { enrolled: 12, present: 11, absent: 1, rate: '91.7', trend: 'up' },
+    { enrolled: 12, present: 10, absent: 2, rate: '83.3', trend: 'down' },
+  ];
   
   return {
     weekNumber,
-    reportDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+    reportDate: 'January 14, 2026',
     weekStartDate: `January ${6 + (weekNumber - 1) * 7}, 2026`,
     weekEndDate: `January ${10 + (weekNumber - 1) * 7}, 2026`,
     
     // Executive Summary Data
     executiveSummary: {
       totalStudents: 90,
-      activeStudents: 90 - Math.floor(Math.random() * 5),
-      newEnrollments: Math.floor(Math.random() * 3),
-      dropouts: Math.floor(Math.random() * 2),
-      averageAttendance: baseAttendance.toFixed(1),
-      attendanceTrend: weekNumber > 1 ? (Math.random() > 0.5 ? 2.3 : -1.5) : 0,
-      averageProficiency: baseProficiency.toFixed(1),
-      proficiencyTrend: weekNumber > 1 ? (Math.random() > 0.3 ? 3.1 : -0.8) : 0,
+      activeStudents: 90 - seed.activeOffset,
+      newEnrollments: seed.enrollments,
+      dropouts: seed.dropouts,
+      averageAttendance: seed.attendance.toFixed(1),
+      attendanceTrend: weekNumber > 1 ? seed.attendTrend : 0,
+      averageProficiency: seed.proficiency.toFixed(1),
+      proficiencyTrend: weekNumber > 1 ? seed.profTrend : 0,
       sessionsCompleted: weekNumber * 6,
       totalSessions: 36,
     },
@@ -43,49 +63,49 @@ const generateWeeklyData = (weekNumber: number) => {
     classAttendance: CLASS_SCHEDULES.map((cls, idx) => ({
       classId: cls.id,
       className: cls.en.split(':')[0],
-      enrolled: 15 + Math.floor(Math.random() * 4),
-      present: 12 + Math.floor(Math.random() * 4),
-      absent: Math.floor(Math.random() * 3),
-      attendanceRate: (80 + Math.random() * 18).toFixed(1),
-      trend: Math.random() > 0.5 ? 'up' : 'down',
+      enrolled: classSeeds[idx]?.enrolled || 15,
+      present: classSeeds[idx]?.present || 13,
+      absent: classSeeds[idx]?.absent || 2,
+      attendanceRate: classSeeds[idx]?.rate || '86.7',
+      trend: classSeeds[idx]?.trend || 'up',
     })),
     
     // Attendance by Day
     dailyAttendance: [
-      { day: 'Monday', date: `Jan ${6 + (weekNumber - 1) * 7}`, present: 28 + Math.floor(Math.random() * 5), total: 34 },
-      { day: 'Tuesday', date: `Jan ${7 + (weekNumber - 1) * 7}`, present: 30 + Math.floor(Math.random() * 4), total: 34 },
-      { day: 'Wednesday', date: `Jan ${8 + (weekNumber - 1) * 7}`, present: 22 + Math.floor(Math.random() * 4), total: 24 },
+      { day: 'Monday', date: `Jan ${6 + (weekNumber - 1) * 7}`, present: 30, total: 34 },
+      { day: 'Tuesday', date: `Jan ${7 + (weekNumber - 1) * 7}`, present: 28, total: 32 },
+      { day: 'Wednesday', date: `Jan ${8 + (weekNumber - 1) * 7}`, present: 21, total: 24 },
     ],
     
     // Topic Progress
     topicProgress: COURSE_TOPICS.filter(t => t.week <= weekNumber).map(topic => ({
       ...topic,
-      completionRate: topic.week < weekNumber ? 100 : (60 + Math.random() * 35),
-      averageScore: 70 + Math.random() * 25,
-      studentsCompleted: topic.week < weekNumber ? 90 : Math.floor(55 + Math.random() * 30),
+      completionRate: topic.week < weekNumber ? 100 : 78,
+      averageScore: topic.week < weekNumber ? 85 : 76,
+      studentsCompleted: topic.week < weekNumber ? 90 : 70,
     })),
     
     // County Distribution
     countyData: [
-      { county: 'Moore County', students: 52, attendance: (82 + Math.random() * 12).toFixed(1), proficiency: (75 + Math.random() * 15).toFixed(1) },
-      { county: 'Montgomery County', students: 38, attendance: (80 + Math.random() * 15).toFixed(1), proficiency: (72 + Math.random() * 18).toFixed(1) },
+      { county: 'Moore County', students: 52, attendance: '89.2', proficiency: '84.5' },
+      { county: 'Montgomery County', students: 38, attendance: '86.8', proficiency: '81.2' },
     ],
     
     // Instructor Performance
     instructorData: [
-      { name: 'María García', classes: 2, sessionsThisWeek: 2, avgAttendance: (85 + Math.random() * 10).toFixed(1), studentSatisfaction: (4.5 + Math.random() * 0.4).toFixed(1) },
-      { name: 'Carlos Rodriguez', classes: 2, sessionsThisWeek: 2, avgAttendance: (82 + Math.random() * 12).toFixed(1), studentSatisfaction: (4.3 + Math.random() * 0.5).toFixed(1) },
-      { name: 'Ana Martinez', classes: 2, sessionsThisWeek: 2, avgAttendance: (88 + Math.random() * 8).toFixed(1), studentSatisfaction: (4.6 + Math.random() * 0.3).toFixed(1) },
+      { name: 'María García', classes: 2, sessionsThisWeek: 2, avgAttendance: '91.2', studentSatisfaction: '4.8' },
+      { name: 'Carlos Rodriguez', classes: 2, sessionsThisWeek: 2, avgAttendance: '87.5', studentSatisfaction: '4.6' },
+      { name: 'Ana Martinez', classes: 2, sessionsThisWeek: 2, avgAttendance: '89.8', studentSatisfaction: '4.9' },
     ],
     
     // Highlights and Concerns
     highlights: [
-      `Week ${weekNumber} saw strong attendance across all classes with an average of ${baseAttendance.toFixed(1)}%`,
-      `${Math.floor(Math.random() * 5) + 3} students achieved perfect attendance this week`,
+      `Week ${weekNumber} saw strong attendance across all classes with an average of ${seed.attendance.toFixed(1)}%`,
+      '5 students achieved perfect attendance this week',
       `Topic "${COURSE_TOPICS.find(t => t.week === weekNumber)?.en || 'Current Topic'}" completion rate exceeded expectations`,
     ],
     concerns: [
-      `${Math.floor(Math.random() * 3) + 1} students have missed 2+ consecutive sessions`,
+      '2 students have missed 2+ consecutive sessions',
       weekNumber > 2 ? 'Some students struggling with advanced concepts in Week 3 material' : 'Early identification of students needing additional support',
       'Transportation challenges reported by 2 students in Montgomery County',
     ],
