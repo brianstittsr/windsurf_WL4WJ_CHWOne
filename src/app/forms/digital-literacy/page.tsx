@@ -16,7 +16,7 @@ import { Language, CLASS_SCHEDULES } from '@/lib/translations/digitalLiteracy';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, LayoutDashboard, QrCode, GraduationCap, FileBarChart, Printer, ExternalLink } from 'lucide-react';
+import { UserPlus, LayoutDashboard, QrCode, GraduationCap, FileBarChart, Printer, ExternalLink, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -511,7 +511,7 @@ function DigitalLiteracyContent() {
           </TabsContent>
 
           <TabsContent value="metrics" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Dashboard Link */}
               <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                 <div className="text-center">
@@ -524,15 +524,34 @@ function DigitalLiteracyContent() {
                   <p className="text-[#86868B] mb-4 text-sm">
                     View real-time analytics with filtering and drill-down capabilities.
                   </p>
-                  <p className="text-[#86868B] mb-4 text-sm">
-                    Vea análisis en tiempo real con capacidades de filtrado.
-                  </p>
                   <a 
                     href="/forms/digital-literacy/metrics"
                     className="inline-flex items-center gap-2 px-6 py-3 bg-[#0071E3] text-white rounded-full font-medium hover:bg-[#0077ED] transition-colors shadow-lg text-sm"
                   >
                     <LayoutDashboard className="w-4 h-4" />
-                    Open Dashboard | Abrir Panel
+                    Open Dashboard
+                  </a>
+                </div>
+              </div>
+
+              {/* Weekly Report Link */}
+              <div className="bg-white rounded-3xl border border-[#E5E5EA] p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[#5856D6]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-8 h-8 text-[#5856D6]" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#1D1D1F] mb-2">
+                    Weekly Report
+                  </h3>
+                  <p className="text-[#86868B] mb-4 text-sm">
+                    Detailed weekly analysis with executive summary and trend explanations.
+                  </p>
+                  <a 
+                    href="/forms/digital-literacy/weekly-report"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#5856D6] text-white rounded-full font-medium hover:bg-[#4B4ACF] transition-colors shadow-lg text-sm"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    View Weekly Report
                   </a>
                 </div>
               </div>
@@ -547,17 +566,14 @@ function DigitalLiteracyContent() {
                     Program Status Report
                   </h3>
                   <p className="text-[#86868B] mb-4 text-sm">
-                    Generate a comprehensive PDF report with milestones, metrics, and student highlights.
-                  </p>
-                  <p className="text-[#86868B] mb-4 text-sm">
-                    Genere un informe PDF completo con hitos, métricas y destacados de estudiantes.
+                    Comprehensive PDF with milestones, metrics, and student highlights.
                   </p>
                   <a 
                     href="/forms/digital-literacy/report"
                     className="inline-flex items-center gap-2 px-6 py-3 bg-[#34C759] text-white rounded-full font-medium hover:bg-[#2DB84D] transition-colors shadow-lg text-sm"
                   >
                     <FileBarChart className="w-4 h-4" />
-                    Generate Report | Generar Informe
+                    Generate Report
                   </a>
                 </div>
               </div>
