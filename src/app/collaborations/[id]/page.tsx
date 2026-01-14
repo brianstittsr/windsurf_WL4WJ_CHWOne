@@ -1069,137 +1069,133 @@ function CollaborationDetailContent() {
           </Tabs>
         </Paper>
 
-        {/* Documents Tab */}
+        {/* Apple-styled Documents Tab */}
         <TabPanel value={tabValue} index={0}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardHeader title="Original Grant Document" />
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    The original grant document that was uploaded and analyzed.
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<DownloadIcon />}
-                      onClick={() => handleExportDocument('original')}
-                    >
-                      Download Original
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardHeader title="AI Analyzed Grant Document" />
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    The structured data extracted by AI from the grant document.
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<DownloadIcon />}
-                      onClick={() => handleExportDocument('analyzed')}
-                    >
-                      Download Analyzed
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Original Grant Document */}
+            <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#0071E3] rounded-xl flex items-center justify-center">
+                    <DocumentIcon sx={{ color: 'white', fontSize: 22 }} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[#1D1D1F]">Original Grant Document</h3>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-[#6E6E73] mb-4">
+                  The original grant document that was uploaded and analyzed.
+                </p>
+                <button
+                  onClick={() => handleExportDocument('original')}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
+                >
+                  <DownloadIcon sx={{ fontSize: 18 }} />
+                  Download Original
+                </button>
+              </div>
+            </div>
+
+            {/* AI Analyzed Grant Document */}
+            <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#5856D6] rounded-xl flex items-center justify-center">
+                    <AIIcon sx={{ color: 'white', fontSize: 22 }} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[#1D1D1F]">AI Analyzed Grant Document</h3>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-[#6E6E73] mb-4">
+                  The structured data extracted by AI from the grant document.
+                </p>
+                <button
+                  onClick={() => handleExportDocument('analyzed')}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#5856D6] text-white rounded-xl font-medium text-sm hover:bg-[#4B49B8] transition-colors"
+                >
+                  <DownloadIcon sx={{ fontSize: 18 }} />
+                  Download Analyzed
+                </button>
+              </div>
+            </div>
+          </div>
         </TabPanel>
 
-        {/* Forms & Data Tab */}
+        {/* Apple-styled Forms & Data Tab */}
         <TabPanel value={tabValue} index={1}>
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Data Collection Forms</Typography>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<FormIcon />}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <h2 className="text-xl font-semibold text-[#1D1D1F]">Data Collection Forms</h2>
+            <div className="flex flex-wrap gap-3">
+              <button
                 onClick={handleGenerateParticipantForm}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
               >
+                <FormIcon sx={{ fontSize: 18 }} />
                 Generate Participant Tracking Form
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon />}
+              </button>
+              <button
                 onClick={() => setShowFormDialog(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 border border-[#D2D2D7] text-[#1D1D1F] rounded-xl font-medium text-sm hover:bg-[#F5F5F7] transition-colors"
               >
+                <AddIcon sx={{ fontSize: 18 }} />
                 Create Additional Form
-              </Button>
-            </Box>
-          </Box>
+              </button>
+            </div>
+          </div>
 
           {formTemplates.length > 0 ? (
-            <Grid container spacing={2}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {formTemplates.map((form: any, index: number) => (
-                <Grid item xs={12} md={6} key={form.id || index}>
-                  <Card>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Box>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                            {form.name}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {form.description || 'No description'}
-                          </Typography>
-                        </Box>
-                        <Chip label={form.purpose || 'data'} size="small" />
-                      </Box>
-                      <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        <Button 
-                          size="small" 
-                          variant="outlined" 
-                          startIcon={<ViewIcon />}
-                          onClick={() => handleViewForm(form)}
-                        >
-                          View
-                        </Button>
-                        <Button 
-                          size="small" 
-                          variant="outlined" 
-                          startIcon={<EditIcon />}
-                          onClick={() => handleEditForm(form)}
-                        >
-                          Edit
-                        </Button>
-                        {form.datasetId && (
-                          <Button 
-                            size="small" 
-                            variant="outlined" 
-                            startIcon={<DatasetIcon />}
-                            color="success"
-                            onClick={() => router.push(`/datasets/${form.datasetId}`)}
-                          >
-                            Data
-                          </Button>
-                        )}
-                        <Button 
-                          size="small" 
-                          variant="outlined" 
-                          startIcon={<DeleteIcon />}
-                          color="error"
-                          onClick={() => handleDeleteFormTemplate(form)}
-                        >
-                          Delete
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                <div key={form.id || index} className="bg-white rounded-2xl border border-[#D2D2D7] p-5 hover:shadow-lg transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-base font-semibold text-[#1D1D1F]">{form.name}</h3>
+                      <p className="text-sm text-[#6E6E73] mt-1">{form.description || 'No description'}</p>
+                    </div>
+                    <span className="px-3 py-1 bg-[#F5F5F7] text-[#6E6E73] rounded-full text-xs font-medium">
+                      {form.purpose || 'data'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <button 
+                      onClick={() => handleViewForm(form)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#0071E3] bg-[#0071E3]/10 rounded-lg hover:bg-[#0071E3]/20 transition-colors"
+                    >
+                      <ViewIcon sx={{ fontSize: 16 }} />
+                      View
+                    </button>
+                    <button 
+                      onClick={() => handleEditForm(form)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#5856D6] bg-[#5856D6]/10 rounded-lg hover:bg-[#5856D6]/20 transition-colors"
+                    >
+                      <EditIcon sx={{ fontSize: 16 }} />
+                      Edit
+                    </button>
+                    {form.datasetId && (
+                      <button 
+                        onClick={() => router.push(`/datasets/${form.datasetId}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#34C759] bg-[#34C759]/10 rounded-lg hover:bg-[#34C759]/20 transition-colors"
+                      >
+                        <DatasetIcon sx={{ fontSize: 16 }} />
+                        Data
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => handleDeleteFormTemplate(form)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#FF3B30] bg-[#FF3B30]/10 rounded-lg hover:bg-[#FF3B30]/20 transition-colors"
+                    >
+                      <DeleteIcon sx={{ fontSize: 16 }} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
               ))}
-            </Grid>
+            </div>
           ) : (
-            <Alert severity="info">
-              No forms have been created yet. Use the buttons above to generate forms for this collaboration.
-            </Alert>
+            <div className="bg-[#0071E3]/5 rounded-2xl p-6 text-center">
+              <p className="text-[#0071E3] font-medium">No forms have been created yet. Use the buttons above to generate forms for this collaboration.</p>
+            </div>
           )}
 
           {/* Data Collection Methods */}
@@ -2807,102 +2803,92 @@ function CollaborationDetailContent() {
                   />
                 </Box>
 
-                {/* Tools & Forms Section */}
-                <Card sx={{ mb: 3, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                  <CardHeader 
-                    title={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <SchoolIcon color="primary" />
-                        <Typography variant="h6">Program Tools & Forms</Typography>
-                      </Box>
-                    }
-                    subheader="Quick access to student and instructor tools"
-                  />
-                  <CardContent>
-                    <Grid container spacing={2}>
+                {/* Apple-styled Tools & Forms Section */}
+                <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden mb-6">
+                  <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[#5856D6] rounded-xl flex items-center justify-center">
+                        <SchoolIcon sx={{ color: 'white', fontSize: 22 }} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-[#1D1D1F]">Program Tools & Forms</h3>
+                        <p className="text-sm text-[#6E6E73]">Quick access to student and instructor tools</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Student Tools */}
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'success.main' }}>
-                          📱 For Students
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <Button 
-                            variant="outlined" 
-                            size="small" 
-                            startIcon={<QrCodeIcon />}
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-lg">📱</span>
+                          <span className="text-sm font-semibold text-[#34C759]">For Students</span>
+                        </div>
+                        <div className="space-y-2">
+                          <button 
                             onClick={() => window.open('/checkin/class1?location=moore', '_blank')}
-                            sx={{ justifyContent: 'flex-start' }}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl text-left hover:bg-[#E5E5EA] transition-colors group"
                           >
-                            QR Code Attendance Check-in
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            size="small" 
-                            startIcon={<CheckCircleIcon />}
+                            <QrCodeIcon sx={{ fontSize: 20, color: '#34C759' }} />
+                            <span className="text-sm font-medium text-[#1D1D1F] group-hover:text-[#34C759]">QR Code Attendance Check-in</span>
+                          </button>
+                          <button 
                             onClick={() => window.open('/progress/demo-student', '_blank')}
-                            sx={{ justifyContent: 'flex-start' }}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl text-left hover:bg-[#E5E5EA] transition-colors group"
                           >
-                            Progress Tracking (10 Units)
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            size="small" 
-                            startIcon={<FeedbackIcon />}
+                            <CheckCircleIcon sx={{ fontSize: 20, color: '#34C759' }} />
+                            <span className="text-sm font-medium text-[#1D1D1F] group-hover:text-[#34C759]">Progress Tracking (10 Units)</span>
+                          </button>
+                          <button 
                             onClick={() => window.open('/forms/feedback', '_blank')}
-                            sx={{ justifyContent: 'flex-start' }}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl text-left hover:bg-[#E5E5EA] transition-colors group"
                           >
-                            Participant Feedback Form
-                          </Button>
-                        </Box>
-                      </Grid>
+                            <FeedbackIcon sx={{ fontSize: 20, color: '#34C759' }} />
+                            <span className="text-sm font-medium text-[#1D1D1F] group-hover:text-[#34C759]">Participant Feedback Form</span>
+                          </button>
+                        </div>
+                      </div>
 
                       {/* Instructor Tools */}
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'primary.main' }}>
-                          👨‍🏫 For Instructors
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <Button 
-                            variant="outlined" 
-                            size="small" 
-                            startIcon={<GroupsIcon />}
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-lg">👨‍🏫</span>
+                          <span className="text-sm font-semibold text-[#0071E3]">For Instructors</span>
+                        </div>
+                        <div className="space-y-2">
+                          <button 
                             onClick={() => window.open('/forms/digital-literacy', '_blank')}
-                            sx={{ justifyContent: 'flex-start' }}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl text-left hover:bg-[#E5E5EA] transition-colors group"
                           >
-                            Student Registration (Bilingual)
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            size="small" 
-                            startIcon={<QrCodeIcon />}
+                            <GroupsIcon sx={{ fontSize: 20, color: '#0071E3' }} />
+                            <span className="text-sm font-medium text-[#1D1D1F] group-hover:text-[#0071E3]">Student Registration (Bilingual)</span>
+                          </button>
+                          <button 
                             onClick={() => {/* TODO: Open QR Generator modal */}}
-                            sx={{ justifyContent: 'flex-start' }}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl text-left hover:bg-[#E5E5EA] transition-colors group"
                           >
-                            Generate Class QR Codes
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            size="small" 
-                            startIcon={<ExitToAppIcon />}
+                            <QrCodeIcon sx={{ fontSize: 20, color: '#0071E3' }} />
+                            <span className="text-sm font-medium text-[#1D1D1F] group-hover:text-[#0071E3]">Generate Class QR Codes</span>
+                          </button>
+                          <button 
                             onClick={() => window.open('/forms/withdrawal', '_blank')}
-                            sx={{ justifyContent: 'flex-start' }}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl text-left hover:bg-[#E5E5EA] transition-colors group"
                           >
-                            Withdrawal Tracking
-                          </Button>
-                          <Button 
-                            variant="outlined" 
-                            size="small" 
-                            startIcon={<ComputerIcon />}
+                            <ExitToAppIcon sx={{ fontSize: 20, color: '#0071E3' }} />
+                            <span className="text-sm font-medium text-[#1D1D1F] group-hover:text-[#0071E3]">Withdrawal Tracking</span>
+                          </button>
+                          <button 
                             onClick={() => window.open('/forms/asset-tracking', '_blank')}
-                            sx={{ justifyContent: 'flex-start' }}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl text-left hover:bg-[#E5E5EA] transition-colors group"
                           >
-                            Computer Asset Tracking
-                          </Button>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
+                            <ComputerIcon sx={{ fontSize: 20, color: '#0071E3' }} />
+                            <span className="text-sm font-medium text-[#1D1D1F] group-hover:text-[#0071E3]">Computer Asset Tracking</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <Grid container spacing={3}>
                   {/* Instructor Dataset Details */}
