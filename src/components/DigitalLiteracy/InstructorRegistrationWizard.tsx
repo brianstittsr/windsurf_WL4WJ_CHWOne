@@ -173,13 +173,8 @@ export default function InstructorRegistrationWizard({
         }
         if (!formData.yearsExperience) newErrors.yearsExperience = getText('messages.requiredField');
         break;
-      case 2: // Availability
-        if (formData.availableDays.length === 0) {
-          newErrors.availableDays = getText('messages.requiredField');
-        }
-        if (formData.preferredTimes.length === 0) {
-          newErrors.preferredTimes = getText('messages.requiredField');
-        }
+      case 2: // Availability - no required fields
+        // Available days and preferred times are optional
         break;
       case 3: // Background
         if (!formData.teachingExperience.trim()) {
@@ -494,7 +489,7 @@ export default function InstructorRegistrationWizard({
             
             <div>
               <Label className="text-base font-medium">
-                {getText('instructorRegistration.availableDays')} *
+                {getText('instructorRegistration.availableDays')}
               </Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                 {DAYS_OF_WEEK.map(day => (
@@ -517,7 +512,7 @@ export default function InstructorRegistrationWizard({
 
             <div>
               <Label className="text-base font-medium">
-                {getText('instructorRegistration.preferredTimes')} *
+                {getText('instructorRegistration.preferredTimes')}
               </Label>
               <div className="space-y-2 mt-2">
                 {['morning', 'afternoon', 'evening'].map(time => (

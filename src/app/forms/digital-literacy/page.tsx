@@ -16,10 +16,11 @@ import { Language, CLASS_SCHEDULES } from '@/lib/translations/digitalLiteracy';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, LayoutDashboard, QrCode, GraduationCap, FileBarChart, Printer } from 'lucide-react';
+import { UserPlus, LayoutDashboard, QrCode, GraduationCap, FileBarChart, Printer, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import QRCode from 'qrcode';
 
 // Mock students data for demonstration
 const generateMockStudents = (): Student[] => {
@@ -83,6 +84,16 @@ const generateRandomAssessments = () => {
   return assessments;
 };
 
+// QR Code configurations
+const QR_CONFIGS = [
+  { id: 'registration', path: '/forms/digital-literacy', color: '#0071E3', en: 'Student Registration', es: 'Registro de Estudiantes', desc: 'New students scan to register | Nuevos estudiantes escanean para registrarse' },
+  { id: 'checkin', path: '/checkin', color: '#34C759', en: 'Daily Check-in', es: 'Registro Diario', desc: 'Students scan for attendance | Estudiantes escanean para asistencia' },
+  { id: 'feedback', path: '/forms/feedback', color: '#FF9500', en: 'Feedback Form', es: 'Formulario de Retroalimentación', desc: 'Students provide feedback | Estudiantes dan retroalimentación' },
+  { id: 'assessment', path: '/forms/assessment', color: '#5856D6', en: 'Progress Assessment', es: 'Evaluación de Progreso', desc: 'Weekly skill assessments | Evaluaciones semanales' },
+  { id: 'instructor', path: '/forms/instructor-checkin', color: '#00C7BE', en: 'Instructor Check-in', es: 'Registro de Instructor', desc: 'Instructors log sessions | Instructores registran sesiones' },
+  { id: 'completion', path: '/forms/completion', color: '#FF3B30', en: 'Completion Form', es: 'Formulario de Finalización', desc: 'Final completion and tablet | Finalización y tableta' },
+];
+
 function DigitalLiteracyContent() {
   const [activeTab, setActiveTab] = useState('registration');
   const [students, setStudents] = useState<Student[]>([]);
@@ -94,6 +105,34 @@ function DigitalLiteracyContent() {
     totalClasses: 6,
     fullClasses: 0
   });
+  const [qrCodes, setQrCodes] = useState<{ [key: string]: string }>({});
+
+  // Generate QR codes on mount
+  useEffect(() => {
+    const generateQRCodes = async () => {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const codes: { [key: string]: string } = {};
+      
+      for (const config of QR_CONFIGS) {
+        try {
+          const url = `${baseUrl}${config.path}`;
+          const qrDataUrl = await QRCode.toDataURL(url, {
+            width: 200,
+            margin: 2,
+            color: {
+              dark: config.color,
+              light: '#FFFFFF'
+            }
+          });
+          codes[config.id] = qrDataUrl;
+        } catch (err) {
+          console.error(`Error generating QR for ${config.id}:`, err);
+        }
+      }
+      setQrCodes(codes);
+    };
+    generateQRCodes();
+  }, []);
 
   // Fetch real data from Firebase, fallback to mock if no data
   useEffect(() => {
@@ -418,159 +457,123 @@ function DigitalLiteracyContent() {
                 QR Code Management | Gestión de Códigos QR
               </h3>
               <p className="text-center text-muted-foreground mb-8">
-                Generate and print QR codes for easy access to forms | Genere e imprima códigos QR para acceso fácil a formularios
+                Scan QR codes for easy access to forms | Escanee códigos QR para acceso fácil a formularios
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Student Registration QR */}
-                <Card className="border-2 border-blue-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-36 h-36 mx-auto mb-4 bg-blue-50 flex items-center justify-center rounded-lg border-2 border-dashed border-blue-500">
-                      <QrCode className="h-20 w-20 text-blue-600" />
-                    </div>
-                    <h4 className="text-lg font-bold text-blue-600">Student Registration</h4>
-                    <p className="font-semibold text-blue-700">Registro de Estudiantes</p>
-                    <p className="text-sm text-muted-foreground mt-2 mb-4">
-                      New students scan to register for classes | Nuevos estudiantes escanean para registrarse
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button size="sm" onClick={() => setActiveTab('registration')}>
-                        View Form | Ver
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Printer className="h-4 w-4 mr-1" /> Print
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Daily Check-in QR */}
-                <Card className="border-2 border-green-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-36 h-36 mx-auto mb-4 bg-green-50 flex items-center justify-center rounded-lg border-2 border-dashed border-green-500">
-                      <QrCode className="h-20 w-20 text-green-600" />
-                    </div>
-                    <h4 className="text-lg font-bold text-green-600">Daily Check-in</h4>
-                    <p className="font-semibold text-green-700">Registro Diario</p>
-                    <p className="text-sm text-muted-foreground mt-2 mb-4">
-                      Students scan daily for attendance | Estudiantes escanean diariamente para asistencia
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                        View Form | Ver
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-green-500 text-green-600 hover:bg-green-50">
-                        <Printer className="h-4 w-4 mr-1" /> Print
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Feedback Form QR */}
-                <Card className="border-2 border-orange-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-36 h-36 mx-auto mb-4 bg-orange-50 flex items-center justify-center rounded-lg border-2 border-dashed border-orange-500">
-                      <QrCode className="h-20 w-20 text-orange-600" />
-                    </div>
-                    <h4 className="text-lg font-bold text-orange-600">Feedback Form</h4>
-                    <p className="font-semibold text-orange-700">Formulario de Retroalimentación</p>
-                    <p className="text-sm text-muted-foreground mt-2 mb-4">
-                      Students provide course feedback | Estudiantes dan retroalimentación del curso
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
-                        View Form | Ver
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-orange-500 text-orange-600 hover:bg-orange-50">
-                        <Printer className="h-4 w-4 mr-1" /> Print
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Progress Assessment QR */}
-                <Card className="border-2 border-purple-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-36 h-36 mx-auto mb-4 bg-purple-50 flex items-center justify-center rounded-lg border-2 border-dashed border-purple-500">
-                      <QrCode className="h-20 w-20 text-purple-600" />
-                    </div>
-                    <h4 className="text-lg font-bold text-purple-600">Progress Assessment</h4>
-                    <p className="font-semibold text-purple-700">Evaluación de Progreso</p>
-                    <p className="text-sm text-muted-foreground mt-2 mb-4">
-                      Weekly skill assessments | Evaluaciones semanales de habilidades
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                        View Form | Ver
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-purple-500 text-purple-600 hover:bg-purple-50">
-                        <Printer className="h-4 w-4 mr-1" /> Print
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Instructor Check-in QR */}
-                <Card className="border-2 border-cyan-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-36 h-36 mx-auto mb-4 bg-cyan-50 flex items-center justify-center rounded-lg border-2 border-dashed border-cyan-500">
-                      <QrCode className="h-20 w-20 text-cyan-600" />
-                    </div>
-                    <h4 className="text-lg font-bold text-cyan-600">Instructor Check-in</h4>
-                    <p className="font-semibold text-cyan-700">Registro de Instructor</p>
-                    <p className="text-sm text-muted-foreground mt-2 mb-4">
-                      Instructors log class sessions | Instructores registran sesiones de clase
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-700">
-                        View Form | Ver
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-cyan-500 text-cyan-600 hover:bg-cyan-50">
-                        <Printer className="h-4 w-4 mr-1" /> Print
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Completion Certificate QR */}
-                <Card className="border-2 border-red-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-36 h-36 mx-auto mb-4 bg-red-50 flex items-center justify-center rounded-lg border-2 border-dashed border-red-500">
-                      <QrCode className="h-20 w-20 text-red-600" />
-                    </div>
-                    <h4 className="text-lg font-bold text-red-600">Completion Form</h4>
-                    <p className="font-semibold text-red-700">Formulario de Finalización</p>
-                    <p className="text-sm text-muted-foreground mt-2 mb-4">
-                      Final completion and tablet assignment | Finalización y asignación de tableta
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <Button size="sm" variant="destructive">
-                        View Form | Ver
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-red-500 text-red-600 hover:bg-red-50">
-                        <Printer className="h-4 w-4 mr-1" /> Print
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                {QR_CONFIGS.map((config) => (
+                  <Card key={config.id} className="border-2 hover:shadow-lg transition-shadow" style={{ borderColor: config.color }}>
+                    <CardContent className="p-6 text-center">
+                      <div 
+                        className="w-44 h-44 mx-auto mb-4 rounded-xl flex items-center justify-center overflow-hidden"
+                        style={{ backgroundColor: `${config.color}10` }}
+                      >
+                        {qrCodes[config.id] ? (
+                          <img 
+                            src={qrCodes[config.id]} 
+                            alt={`QR Code for ${config.en}`}
+                            className="w-40 h-40"
+                          />
+                        ) : (
+                          <QrCode className="h-20 w-20" style={{ color: config.color }} />
+                        )}
+                      </div>
+                      <h4 className="text-lg font-bold" style={{ color: config.color }}>{config.en}</h4>
+                      <p className="font-semibold text-[#6E6E73]">{config.es}</p>
+                      <p className="text-sm text-muted-foreground mt-2 mb-4">
+                        {config.desc}
+                      </p>
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <Button 
+                          size="sm" 
+                          style={{ backgroundColor: config.color }}
+                          onClick={() => {
+                            if (config.id === 'registration') setActiveTab('registration');
+                            else if (config.id === 'feedback') window.open('/forms/feedback', '_blank');
+                            else window.open(config.path, '_blank');
+                          }}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1" /> Open | Abrir
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          style={{ borderColor: config.color, color: config.color }}
+                          onClick={() => {
+                            if (qrCodes[config.id]) {
+                              const printWindow = window.open('', '_blank');
+                              if (printWindow) {
+                                printWindow.document.write(`
+                                  <html>
+                                    <head><title>${config.en} QR Code</title></head>
+                                    <body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui;">
+                                      <h1 style="color:${config.color};margin-bottom:20px;">${config.en}</h1>
+                                      <h2 style="color:#6E6E73;margin-bottom:30px;">${config.es}</h2>
+                                      <img src="${qrCodes[config.id]}" style="width:300px;height:300px;" />
+                                      <p style="margin-top:20px;color:#6E6E73;">${config.desc}</p>
+                                    </body>
+                                  </html>
+                                `);
+                                printWindow.document.close();
+                                printWindow.print();
+                              }
+                            }
+                          }}
+                        >
+                          <Printer className="h-4 w-4 mr-1" /> Print
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
               {/* Print All Section */}
-              <Card className="mt-8 bg-slate-50">
+              <Card className="mt-8 bg-[#F5F5F7] border-[#D2D2D7]">
                 <CardContent className="p-6 text-center">
-                  <h4 className="text-lg font-semibold mb-4">
+                  <h4 className="text-lg font-semibold mb-4 text-[#1D1D1F]">
                     Bulk Print Options | Opciones de Impresión Masiva
                   </h4>
                   <div className="flex flex-wrap justify-center gap-3">
-                    <Button>
+                    <Button 
+                      className="bg-[#0071E3] hover:bg-[#0077ED]"
+                      onClick={() => {
+                        const printWindow = window.open('', '_blank');
+                        if (printWindow) {
+                          let content = `
+                            <html>
+                              <head><title>All QR Codes | Todos los Códigos QR</title></head>
+                              <body style="font-family:system-ui;padding:40px;">
+                                <h1 style="text-align:center;margin-bottom:40px;">Digital Literacy Program QR Codes</h1>
+                                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px;">
+                          `;
+                          QR_CONFIGS.forEach(config => {
+                            if (qrCodes[config.id]) {
+                              content += `
+                                <div style="text-align:center;padding:20px;border:2px solid ${config.color};border-radius:16px;">
+                                  <h2 style="color:${config.color};">${config.en}</h2>
+                                  <h3 style="color:#6E6E73;">${config.es}</h3>
+                                  <img src="${qrCodes[config.id]}" style="width:200px;height:200px;margin:20px auto;" />
+                                  <p style="color:#6E6E73;font-size:14px;">${config.desc}</p>
+                                </div>
+                              `;
+                            }
+                          });
+                          content += `</div></body></html>`;
+                          printWindow.document.write(content);
+                          printWindow.document.close();
+                          printWindow.print();
+                        }
+                      }}
+                    >
                       <QrCode className="h-4 w-4 mr-2" />
                       Print All QR Codes | Imprimir Todos
                     </Button>
-                    <Button variant="outline">
-                      Print Student Forms Only | Solo Formularios de Estudiantes
+                    <Button variant="outline" className="border-[#34C759] text-[#34C759]">
+                      Print Student Forms Only | Solo Estudiantes
                     </Button>
-                    <Button variant="outline">
-                      Print Instructor Forms Only | Solo Formularios de Instructor
+                    <Button variant="outline" className="border-[#00C7BE] text-[#00C7BE]">
+                      Print Instructor Forms Only | Solo Instructor
                     </Button>
                   </div>
                 </CardContent>

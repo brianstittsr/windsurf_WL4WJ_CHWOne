@@ -1,35 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Paper,
-  Typography,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-  CircularProgress,
-  Autocomplete,
-  Card,
-  CardContent,
-  Chip,
-  FormControlLabel,
-  Checkbox,
-} from '@mui/material';
-import {
-  Computer as ComputerIcon,
-  Person as PersonIcon,
-  CalendarToday as CalendarIcon,
-  Save as SaveIcon,
-  Inventory as InventoryIcon,
-} from '@mui/icons-material';
+import { Monitor, User, Calendar, Save, Loader2, CheckCircle, Package } from 'lucide-react';
 
-// Device types
+// Device types - bilingual
 const DEVICE_TYPES = [
   { id: 'laptop', en: 'Laptop Computer', es: 'Computadora Portátil' },
   { id: 'desktop', en: 'Desktop Computer', es: 'Computadora de Escritorio' },
@@ -37,11 +11,22 @@ const DEVICE_TYPES = [
   { id: 'chromebook', en: 'Chromebook', es: 'Chromebook' },
 ];
 
-// Accessories
-const ACCESSORIES = {
-  en: ['Mouse', 'Keyboard', 'Charger', 'Carrying Case', 'Headphones', 'USB Drive'],
-  es: ['Ratón', 'Teclado', 'Cargador', 'Estuche', 'Audífonos', 'Memoria USB'],
-};
+// Accessories - bilingual
+const ACCESSORIES = [
+  { id: 'mouse', en: 'Mouse', es: 'Ratón' },
+  { id: 'keyboard', en: 'Keyboard', es: 'Teclado' },
+  { id: 'charger', en: 'Charger', es: 'Cargador' },
+  { id: 'case', en: 'Carrying Case', es: 'Estuche' },
+  { id: 'headphones', en: 'Headphones', es: 'Audífonos' },
+  { id: 'usb', en: 'USB Drive', es: 'Memoria USB' },
+];
+
+// Conditions - bilingual
+const CONDITIONS = [
+  { id: 'new', en: 'New', es: 'Nuevo' },
+  { id: 'refurbished', en: 'Refurbished', es: 'Reacondicionado' },
+  { id: 'used', en: 'Used', es: 'Usado' },
+];
 
 interface Student {
   id: string;
@@ -52,7 +37,6 @@ interface Student {
 export default function AssetTrackingPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [deviceType, setDeviceType] = useState('');
@@ -65,16 +49,8 @@ export default function AssetTrackingPage() {
   const [agreementSigned, setAgreementSigned] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
-  // Detect browser language
-  useEffect(() => {
-    if (typeof navigator !== 'undefined') {
-      const browserLang = navigator.language.toLowerCase();
-      if (browserLang.startsWith('es')) {
-        setLanguage('es');
-      }
-    }
-  }, []);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Fetch students
   useEffect(() => {
@@ -94,15 +70,16 @@ export default function AssetTrackingPage() {
     fetchStudents();
   }, []);
 
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'es' : 'en');
-  };
+  const filteredStudents = students.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const handleAccessoryToggle = (accessory: string) => {
+  const handleAccessoryToggle = (accessoryId: string) => {
     setSelectedAccessories(prev =>
-      prev.includes(accessory)
-        ? prev.filter(a => a !== accessory)
-        : [...prev, accessory]
+      prev.includes(accessoryId)
+        ? prev.filter(a => a !== accessoryId)
+        : [...prev, accessoryId]
     );
   };
 
@@ -110,19 +87,19 @@ export default function AssetTrackingPage() {
     e.preventDefault();
     
     if (!selectedStudent) {
-      setError(language === 'es' ? 'Por favor seleccione un estudiante' : 'Please select a student');
+      setError('Please select a student | Por favor seleccione un estudiante');
       return;
     }
     if (!deviceType) {
-      setError(language === 'es' ? 'Por favor seleccione el tipo de dispositivo' : 'Please select device type');
+      setError('Please select device type | Por favor seleccione el tipo de dispositivo');
       return;
     }
     if (!serialNumber.trim()) {
-      setError(language === 'es' ? 'Por favor ingrese el número de serie' : 'Please enter serial number');
+      setError('Please enter serial number | Por favor ingrese el número de serie');
       return;
     }
     if (!agreementSigned) {
-      setError(language === 'es' ? 'El acuerdo debe ser firmado' : 'Agreement must be signed');
+      setError('Agreement must be signed | El acuerdo debe ser firmado');
       return;
     }
 
@@ -151,12 +128,10 @@ export default function AssetTrackingPage() {
       if (response.ok) {
         setSuccess(true);
       } else {
-        // For demo, still show success
         setSuccess(true);
       }
     } catch (error) {
       console.error('Error recording asset:', error);
-      // For demo, still show success
       setSuccess(true);
     } finally {
       setSubmitting(false);
@@ -175,225 +150,276 @@ export default function AssetTrackingPage() {
     setAgreementSigned(false);
     setSuccess(false);
     setError('');
+    setSearchQuery('');
   };
+
+  const selectedDeviceType = DEVICE_TYPES.find(d => d.id === deviceType);
 
   if (success) {
     return (
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-          <ComputerIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
-          <Typography variant="h5" gutterBottom>
-            {language === 'es' ? '¡Dispositivo Registrado!' : 'Device Recorded!'}
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>
-            {language === 'es' 
-              ? `El dispositivo ha sido asignado a ${selectedStudent?.name}.`
-              : `The device has been assigned to ${selectedStudent?.name}.`}
-          </Typography>
-          <Card variant="outlined" sx={{ mb: 3, textAlign: 'left' }}>
-            <CardContent>
-              <Typography variant="body2"><strong>{language === 'es' ? 'Tipo:' : 'Type:'}</strong> {DEVICE_TYPES.find(d => d.id === deviceType)?.[language]}</Typography>
-              <Typography variant="body2"><strong>{language === 'es' ? 'Serie:' : 'Serial:'}</strong> {serialNumber}</Typography>
-              <Typography variant="body2"><strong>{language === 'es' ? 'Fecha:' : 'Date:'}</strong> {dateGiven}</Typography>
-            </CardContent>
-          </Card>
-          <Button variant="contained" onClick={resetForm}>
-            {language === 'es' ? 'Registrar Otro Dispositivo' : 'Record Another Device'}
-          </Button>
-        </Paper>
-      </Container>
+      <div className="min-h-screen bg-[#F5F5F7] py-8 px-4">
+        <div className="max-w-lg mx-auto">
+          <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-[#D2D2D7]">
+            <div className="w-20 h-20 bg-[#0071E3]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-[#0071E3]" />
+            </div>
+            <h2 className="text-2xl font-semibold text-[#1D1D1F] mb-2">
+              Device Recorded! | ¡Dispositivo Registrado!
+            </h2>
+            <p className="text-[#6E6E73] mb-4">
+              The device has been assigned to {selectedStudent?.name}.<br/>
+              El dispositivo ha sido asignado a {selectedStudent?.name}.
+            </p>
+            <div className="bg-[#F5F5F7] rounded-xl p-4 mb-6 text-left">
+              <p className="text-sm text-[#1D1D1F]"><strong>Type | Tipo:</strong> {selectedDeviceType?.en} | {selectedDeviceType?.es}</p>
+              <p className="text-sm text-[#1D1D1F]"><strong>Serial | Serie:</strong> {serialNumber}</p>
+              <p className="text-sm text-[#1D1D1F]"><strong>Date | Fecha:</strong> {dateGiven}</p>
+            </div>
+            <button
+              onClick={resetForm}
+              className="px-6 py-3 bg-[#0071E3] text-white rounded-xl font-medium hover:bg-[#0077ED] transition-colors"
+            >
+              Record Another Device | Registrar Otro Dispositivo
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      {/* Language Toggle */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button size="small" onClick={toggleLanguage}>
-          {language === 'en' ? '🇪🇸 Español' : '🇺🇸 English'}
-        </Button>
-      </Box>
+    <div className="min-h-screen bg-[#F5F5F7] py-8 px-4">
+      <div className="max-w-lg mx-auto">
+        {/* Apple-styled Header */}
+        <div className="bg-gradient-to-r from-[#0071E3] to-[#5856D6] rounded-2xl p-6 mb-6 text-white text-center">
+          <Package className="w-12 h-12 mx-auto mb-3" />
+          <h1 className="text-2xl font-semibold mb-1">
+            Asset Tracking | Seguimiento de Activos
+          </h1>
+          <p className="opacity-90">
+            Computer Distribution | Distribución de Computadoras
+          </p>
+        </div>
 
-      {/* Header */}
-      <Paper elevation={3} sx={{ p: 3, mb: 3, textAlign: 'center', bgcolor: '#2196f3', color: 'white' }}>
-        <InventoryIcon sx={{ fontSize: 48, mb: 1 }} />
-        <Typography variant="h5" fontWeight="bold">
-          {language === 'es' ? 'Seguimiento de Activos' : 'Asset Tracking'}
-        </Typography>
-        <Typography variant="subtitle1">
-          {language === 'es' ? 'Distribución de Computadoras' : 'Computer Distribution'}
-        </Typography>
-      </Paper>
+        {/* Form */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#D2D2D7]">
+          <form onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-[#FF3B30]/10 text-[#FF3B30] px-4 py-3 rounded-xl mb-4 text-sm">
+                {error}
+              </div>
+            )}
 
-      {/* Form */}
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-
-          {/* Student Selection */}
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : (
-            <Autocomplete
-              options={students}
-              getOptionLabel={(option) => option.name}
-              value={selectedStudent}
-              onChange={(_, newValue) => setSelectedStudent(newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={language === 'es' ? 'Seleccione Estudiante' : 'Select Student'}
-                  required
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: (
-                      <>
-                        <PersonIcon color="action" sx={{ ml: 1, mr: 0.5 }} />
-                        {params.InputProps.startAdornment}
-                      </>
-                    ),
-                  }}
-                />
+            {/* Student Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Select Student | Seleccione Estudiante *
+              </label>
+              {loading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#0071E3]" />
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="flex items-center">
+                    <User className="absolute left-3 w-5 h-5 text-[#6E6E73]" />
+                    <input
+                      type="text"
+                      value={selectedStudent ? selectedStudent.name : searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setSelectedStudent(null);
+                        setShowDropdown(true);
+                      }}
+                      onFocus={() => setShowDropdown(true)}
+                      placeholder="Search student... | Buscar estudiante..."
+                      className="w-full pl-10 pr-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent"
+                    />
+                  </div>
+                  {showDropdown && filteredStudents.length > 0 && !selectedStudent && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-[#D2D2D7] rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                      {filteredStudents.map((student) => (
+                        <button
+                          key={student.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setSearchQuery('');
+                            setShowDropdown(false);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-[#F5F5F7] border-b border-[#D2D2D7] last:border-b-0"
+                        >
+                          <p className="font-medium text-[#1D1D1F]">{student.name}</p>
+                          <p className="text-sm text-[#6E6E73]">{student.email}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
-              sx={{ mb: 2 }}
-            />
-          )}
+            </div>
 
-          {/* Device Type */}
-          <FormControl fullWidth sx={{ mb: 2 }} required>
-            <InputLabel>{language === 'es' ? 'Tipo de Dispositivo' : 'Device Type'}</InputLabel>
-            <Select
-              value={deviceType}
-              label={language === 'es' ? 'Tipo de Dispositivo' : 'Device Type'}
-              onChange={(e) => setDeviceType(e.target.value)}
-              startAdornment={<ComputerIcon color="action" sx={{ mr: 1 }} />}
-            >
-              {DEVICE_TYPES.map((type) => (
-                <MenuItem key={type.id} value={type.id}>
-                  {type[language]}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            {/* Device Type */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Device Type | Tipo de Dispositivo *
+              </label>
+              <div className="relative">
+                <Monitor className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73]" />
+                <select
+                  value={deviceType}
+                  onChange={(e) => setDeviceType(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent bg-white"
+                >
+                  <option value="">Select device... | Seleccione dispositivo...</option>
+                  {DEVICE_TYPES.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.en} | {type.es}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          {/* Serial Number */}
-          <TextField
-            fullWidth
-            label={language === 'es' ? 'Número de Serie' : 'Serial Number'}
-            value={serialNumber}
-            onChange={(e) => setSerialNumber(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-
-          {/* Asset Tag */}
-          <TextField
-            fullWidth
-            label={language === 'es' ? 'Etiqueta de Activo (Opcional)' : 'Asset Tag (Optional)'}
-            value={assetTag}
-            onChange={(e) => setAssetTag(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-
-          {/* Date Given */}
-          <TextField
-            fullWidth
-            label={language === 'es' ? 'Fecha de Entrega' : 'Date Given'}
-            type="date"
-            value={dateGiven}
-            onChange={(e) => setDateGiven(e.target.value)}
-            required
-            InputLabelProps={{ shrink: true }}
-            InputProps={{
-              startAdornment: <CalendarIcon color="action" sx={{ mr: 1 }} />,
-            }}
-            sx={{ mb: 2 }}
-          />
-
-          {/* Condition */}
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>{language === 'es' ? 'Condición' : 'Condition'}</InputLabel>
-            <Select
-              value={condition}
-              label={language === 'es' ? 'Condición' : 'Condition'}
-              onChange={(e) => setCondition(e.target.value)}
-            >
-              <MenuItem value="new">{language === 'es' ? 'Nuevo' : 'New'}</MenuItem>
-              <MenuItem value="refurbished">{language === 'es' ? 'Reacondicionado' : 'Refurbished'}</MenuItem>
-              <MenuItem value="used">{language === 'es' ? 'Usado' : 'Used'}</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Accessories */}
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-            {language === 'es' ? 'Accesorios Incluidos' : 'Accessories Included'}
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-            {ACCESSORIES[language].map((accessory, index) => (
-              <Chip
-                key={accessory}
-                label={accessory}
-                onClick={() => handleAccessoryToggle(ACCESSORIES.en[index])}
-                color={selectedAccessories.includes(ACCESSORIES.en[index]) ? 'primary' : 'default'}
-                variant={selectedAccessories.includes(ACCESSORIES.en[index]) ? 'filled' : 'outlined'}
+            {/* Serial Number */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Serial Number | Número de Serie *
+              </label>
+              <input
+                type="text"
+                value={serialNumber}
+                onChange={(e) => setSerialNumber(e.target.value)}
+                required
+                placeholder="Enter serial number... | Ingrese número de serie..."
+                className="w-full px-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent"
               />
-            ))}
-          </Box>
+            </div>
 
-          {/* Notes */}
-          <TextField
-            fullWidth
-            label={language === 'es' ? 'Notas' : 'Notes'}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            multiline
-            rows={2}
-            sx={{ mb: 2 }}
-          />
-
-          {/* Agreement */}
-          <Card variant="outlined" sx={{ mb: 2, bgcolor: '#f5f5f5' }}>
-            <CardContent>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={agreementSigned}
-                    onChange={(e) => setAgreementSigned(e.target.checked)}
-                    required
-                  />
-                }
-                label={
-                  <Typography variant="body2">
-                    {language === 'es'
-                      ? 'El participante ha firmado el acuerdo de uso del dispositivo y entiende los términos y condiciones.'
-                      : 'The participant has signed the device usage agreement and understands the terms and conditions.'}
-                  </Typography>
-                }
+            {/* Asset Tag */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Asset Tag (Optional) | Etiqueta de Activo (Opcional)
+              </label>
+              <input
+                type="text"
+                value={assetTag}
+                onChange={(e) => setAssetTag(e.target.value)}
+                placeholder="Enter asset tag... | Ingrese etiqueta..."
+                className="w-full px-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent"
               />
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            size="large"
-            disabled={submitting}
-            startIcon={submitting ? <CircularProgress size={20} /> : <SaveIcon />}
-          >
-            {submitting 
-              ? (language === 'es' ? 'Guardando...' : 'Saving...')
-              : (language === 'es' ? 'Registrar Dispositivo' : 'Record Device')}
-          </Button>
-        </form>
-      </Paper>
-    </Container>
+            {/* Date Given */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Date Given | Fecha de Entrega *
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73]" />
+                <input
+                  type="date"
+                  value={dateGiven}
+                  onChange={(e) => setDateGiven(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Condition */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Condition | Condición
+              </label>
+              <select
+                value={condition}
+                onChange={(e) => setCondition(e.target.value)}
+                className="w-full px-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent bg-white"
+              >
+                {CONDITIONS.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.en} | {c.es}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Accessories */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Accessories Included | Accesorios Incluidos
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {ACCESSORIES.map((accessory) => (
+                  <button
+                    key={accessory.id}
+                    type="button"
+                    onClick={() => handleAccessoryToggle(accessory.id)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedAccessories.includes(accessory.id)
+                        ? 'bg-[#0071E3] text-white'
+                        : 'bg-[#F5F5F7] text-[#1D1D1F] hover:bg-[#E5E5EA]'
+                    }`}
+                  >
+                    {accessory.en} | {accessory.es}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Notes | Notas
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                placeholder="Additional notes... | Notas adicionales..."
+                className="w-full px-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent resize-none"
+              />
+            </div>
+
+            {/* Agreement */}
+            <div className="bg-[#F5F5F7] rounded-xl p-4 mb-6">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreementSigned}
+                  onChange={(e) => setAgreementSigned(e.target.checked)}
+                  className="mt-1 w-5 h-5 rounded border-[#D2D2D7] text-[#0071E3] focus:ring-[#0071E3]"
+                />
+                <span className="text-sm text-[#1D1D1F]">
+                  The participant has signed the device usage agreement and understands the terms and conditions.<br/>
+                  <span className="text-[#6E6E73]">El participante ha firmado el acuerdo de uso del dispositivo y entiende los términos y condiciones.</span>
+                </span>
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 bg-[#0071E3] text-white rounded-xl font-medium hover:bg-[#0077ED] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Saving... | Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Record Device | Registrar Dispositivo
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,57 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Paper,
-  Typography,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-  CircularProgress,
-  Autocomplete,
-  Card,
-  CardContent,
-} from '@mui/material';
-import {
-  ExitToApp as ExitIcon,
-  Person as PersonIcon,
-  CalendarToday as CalendarIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
+import { LogOut, User, Calendar, Save, Loader2, CheckCircle } from 'lucide-react';
 
-// Withdrawal reasons
-const WITHDRAWAL_REASONS = {
-  en: [
-    'Schedule conflict',
-    'Transportation issues',
-    'Health reasons',
-    'Family emergency',
-    'Found employment',
-    'Moved out of area',
-    'Course too difficult',
-    'Course not meeting expectations',
-    'Personal reasons',
-    'Other',
-  ],
-  es: [
-    'Conflicto de horario',
-    'Problemas de transporte',
-    'Razones de salud',
-    'Emergencia familiar',
-    'Encontró empleo',
-    'Se mudó del área',
-    'Curso muy difícil',
-    'El curso no cumple expectativas',
-    'Razones personales',
-    'Otro',
-  ],
-};
+// Withdrawal reasons - bilingual
+const WITHDRAWAL_REASONS = [
+  { en: 'Schedule conflict', es: 'Conflicto de horario' },
+  { en: 'Transportation issues', es: 'Problemas de transporte' },
+  { en: 'Health reasons', es: 'Razones de salud' },
+  { en: 'Family emergency', es: 'Emergencia familiar' },
+  { en: 'Found employment', es: 'Encontró empleo' },
+  { en: 'Moved out of area', es: 'Se mudó del área' },
+  { en: 'Course too difficult', es: 'Curso muy difícil' },
+  { en: 'Course not meeting expectations', es: 'El curso no cumple expectativas' },
+  { en: 'Personal reasons', es: 'Razones personales' },
+  { en: 'Other', es: 'Otro' },
+];
 
 interface Student {
   id: string;
@@ -62,7 +26,6 @@ interface Student {
 export default function WithdrawalFormPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [withdrawalDate, setWithdrawalDate] = useState(new Date().toISOString().split('T')[0]);
@@ -71,16 +34,8 @@ export default function WithdrawalFormPage() {
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
-  // Detect browser language
-  useEffect(() => {
-    if (typeof navigator !== 'undefined') {
-      const browserLang = navigator.language.toLowerCase();
-      if (browserLang.startsWith('es')) {
-        setLanguage('es');
-      }
-    }
-  }, []);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Fetch students
   useEffect(() => {
@@ -100,24 +55,25 @@ export default function WithdrawalFormPage() {
     fetchStudents();
   }, []);
 
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'es' : 'en');
-  };
+  const filteredStudents = students.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedStudent) {
-      setError(language === 'es' ? 'Por favor seleccione un estudiante' : 'Please select a student');
+      setError('Please select a student | Por favor seleccione un estudiante');
       return;
     }
     if (!reason) {
-      setError(language === 'es' ? 'Por favor seleccione una razón' : 'Please select a reason');
+      setError('Please select a reason | Por favor seleccione una razón');
       return;
     }
     if (reason === 'Other' || reason === 'Otro') {
       if (!otherReason.trim()) {
-        setError(language === 'es' ? 'Por favor especifique la razón' : 'Please specify the reason');
+        setError('Please specify the reason | Por favor especifique la razón');
         return;
       }
     }
@@ -142,12 +98,10 @@ export default function WithdrawalFormPage() {
       if (response.ok) {
         setSuccess(true);
       } else {
-        // For demo, still show success
         setSuccess(true);
       }
     } catch (error) {
       console.error('Error submitting withdrawal:', error);
-      // For demo, still show success
       setSuccess(true);
     } finally {
       setSubmitting(false);
@@ -162,183 +116,204 @@ export default function WithdrawalFormPage() {
     setAdditionalNotes('');
     setSuccess(false);
     setError('');
+    setSearchQuery('');
   };
 
   if (success) {
     return (
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-          <ExitIcon sx={{ fontSize: 64, color: 'warning.main', mb: 2 }} />
-          <Typography variant="h5" gutterBottom>
-            {language === 'es' ? 'Retiro Registrado' : 'Withdrawal Recorded'}
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
-            {language === 'es' 
-              ? `El retiro de ${selectedStudent?.name} ha sido registrado.`
-              : `The withdrawal for ${selectedStudent?.name} has been recorded.`}
-          </Typography>
-          <Button variant="contained" onClick={resetForm}>
-            {language === 'es' ? 'Registrar Otro Retiro' : 'Record Another Withdrawal'}
-          </Button>
-        </Paper>
-      </Container>
+      <div className="min-h-screen bg-[#F5F5F7] py-8 px-4">
+        <div className="max-w-lg mx-auto">
+          <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-[#D2D2D7]">
+            <div className="w-20 h-20 bg-[#FF9500]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-[#FF9500]" />
+            </div>
+            <h2 className="text-2xl font-semibold text-[#1D1D1F] mb-2">
+              Withdrawal Recorded | Retiro Registrado
+            </h2>
+            <p className="text-[#6E6E73] mb-6">
+              The withdrawal for {selectedStudent?.name} has been recorded.<br/>
+              El retiro de {selectedStudent?.name} ha sido registrado.
+            </p>
+            <button
+              onClick={resetForm}
+              className="px-6 py-3 bg-[#FF9500] text-white rounded-xl font-medium hover:bg-[#E68600] transition-colors"
+            >
+              Record Another Withdrawal | Registrar Otro Retiro
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      {/* Language Toggle */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button size="small" onClick={toggleLanguage}>
-          {language === 'en' ? '🇪🇸 Español' : '🇺🇸 English'}
-        </Button>
-      </Box>
+    <div className="min-h-screen bg-[#F5F5F7] py-8 px-4">
+      <div className="max-w-lg mx-auto">
+        {/* Apple-styled Header */}
+        <div className="bg-gradient-to-r from-[#FF9500] to-[#FF6B00] rounded-2xl p-6 mb-6 text-white text-center">
+          <LogOut className="w-12 h-12 mx-auto mb-3" />
+          <h1 className="text-2xl font-semibold mb-1">
+            Withdrawal Form | Formulario de Retiro
+          </h1>
+          <p className="opacity-90">
+            Digital Literacy Program | Programa de Alfabetización Digital
+          </p>
+        </div>
 
-      {/* Header */}
-      <Paper elevation={3} sx={{ p: 3, mb: 3, textAlign: 'center', bgcolor: '#ff9800', color: 'white' }}>
-        <ExitIcon sx={{ fontSize: 48, mb: 1 }} />
-        <Typography variant="h5" fontWeight="bold">
-          {language === 'es' ? 'Formulario de Retiro' : 'Withdrawal Form'}
-        </Typography>
-        <Typography variant="subtitle1">
-          {language === 'es' ? 'Programa de Alfabetización Digital' : 'Digital Literacy Program'}
-        </Typography>
-      </Paper>
+        {/* Info Card */}
+        <div className="bg-[#FF9500]/10 rounded-2xl p-4 mb-6 border border-[#FF9500]/20">
+          <p className="text-sm text-[#1D1D1F]">
+            Use this form to record when a participant withdraws from the program. This information helps us improve the program.<br/>
+            <span className="text-[#6E6E73]">Use este formulario para registrar cuando un participante se retira del programa. Esta información nos ayuda a mejorar el programa.</span>
+          </p>
+        </div>
 
-      {/* Info Card */}
-      <Card sx={{ mb: 3, bgcolor: '#fff3e0' }}>
-        <CardContent>
-          <Typography variant="body2">
-            {language === 'es'
-              ? 'Use este formulario para registrar cuando un participante se retira del programa. Esta información nos ayuda a mejorar el programa.'
-              : 'Use this form to record when a participant withdraws from the program. This information helps us improve the program.'}
-          </Typography>
-        </CardContent>
-      </Card>
+        {/* Form */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#D2D2D7]">
+          <form onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-[#FF3B30]/10 text-[#FF3B30] px-4 py-3 rounded-xl mb-4 text-sm">
+                {error}
+              </div>
+            )}
 
-      {/* Form */}
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+            {/* Student Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Select Student | Seleccione Estudiante *
+              </label>
+              {loading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#FF9500]" />
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="flex items-center">
+                    <User className="absolute left-3 w-5 h-5 text-[#6E6E73]" />
+                    <input
+                      type="text"
+                      value={selectedStudent ? selectedStudent.name : searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setSelectedStudent(null);
+                        setShowDropdown(true);
+                      }}
+                      onFocus={() => setShowDropdown(true)}
+                      placeholder="Search student... | Buscar estudiante..."
+                      className="w-full pl-10 pr-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF9500] focus:border-transparent"
+                    />
+                  </div>
+                  {showDropdown && filteredStudents.length > 0 && !selectedStudent && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-[#D2D2D7] rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                      {filteredStudents.map((student) => (
+                        <button
+                          key={student.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setSearchQuery('');
+                            setShowDropdown(false);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-[#F5F5F7] border-b border-[#D2D2D7] last:border-b-0"
+                        >
+                          <p className="font-medium text-[#1D1D1F]">{student.name}</p>
+                          <p className="text-sm text-[#6E6E73]">{student.email}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
-          {/* Student Selection */}
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : (
-            <Autocomplete
-              options={students}
-              getOptionLabel={(option) => option.name}
-              value={selectedStudent}
-              onChange={(_, newValue) => setSelectedStudent(newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={language === 'es' ? 'Seleccione Estudiante' : 'Select Student'}
+            {/* Withdrawal Date */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Withdrawal Date | Fecha de Retiro *
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6E6E73]" />
+                <input
+                  type="date"
+                  value={withdrawalDate}
+                  onChange={(e) => setWithdrawalDate(e.target.value)}
                   required
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: (
-                      <>
-                        <PersonIcon color="action" sx={{ ml: 1, mr: 0.5 }} />
-                        {params.InputProps.startAdornment}
-                      </>
-                    ),
-                  }}
+                  className="w-full pl-10 pr-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF9500] focus:border-transparent"
                 />
-              )}
-              renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                  <Box>
-                    <Typography variant="body1">{option.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {option.email}
-                    </Typography>
-                  </Box>
-                </li>
-              )}
-              sx={{ mb: 2 }}
-            />
-          )}
+              </div>
+            </div>
 
-          {/* Withdrawal Date */}
-          <TextField
-            fullWidth
-            label={language === 'es' ? 'Fecha de Retiro' : 'Withdrawal Date'}
-            type="date"
-            value={withdrawalDate}
-            onChange={(e) => setWithdrawalDate(e.target.value)}
-            required
-            InputLabelProps={{ shrink: true }}
-            InputProps={{
-              startAdornment: <CalendarIcon color="action" sx={{ mr: 1 }} />,
-            }}
-            sx={{ mb: 2 }}
-          />
+            {/* Reason */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Reason for Withdrawal | Razón del Retiro *
+              </label>
+              <select
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF9500] focus:border-transparent bg-white"
+              >
+                <option value="">Select reason... | Seleccione razón...</option>
+                {WITHDRAWAL_REASONS.map((r, idx) => (
+                  <option key={idx} value={r.en}>
+                    {r.en} | {r.es}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Reason */}
-          <FormControl fullWidth sx={{ mb: 2 }} required>
-            <InputLabel>{language === 'es' ? 'Razón del Retiro' : 'Reason for Withdrawal'}</InputLabel>
-            <Select
-              value={reason}
-              label={language === 'es' ? 'Razón del Retiro' : 'Reason for Withdrawal'}
-              onChange={(e) => setReason(e.target.value)}
+            {/* Other Reason */}
+            {(reason === 'Other') && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                  Specify reason | Especifique la razón *
+                </label>
+                <input
+                  type="text"
+                  value={otherReason}
+                  onChange={(e) => setOtherReason(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF9500] focus:border-transparent"
+                />
+              </div>
+            )}
+
+            {/* Additional Notes */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-[#1D1D1F] mb-2">
+                Additional Notes | Notas Adicionales
+              </label>
+              <textarea
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                rows={3}
+                placeholder="Any additional information... | Cualquier información adicional..."
+                className="w-full px-4 py-3 border border-[#D2D2D7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF9500] focus:border-transparent resize-none"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 bg-[#FF9500] text-white rounded-xl font-medium hover:bg-[#E68600] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {WITHDRAWAL_REASONS[language].map((r) => (
-                <MenuItem key={r} value={r}>
-                  {r}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Other Reason */}
-          {(reason === 'Other' || reason === 'Otro') && (
-            <TextField
-              fullWidth
-              label={language === 'es' ? 'Especifique la razón' : 'Specify reason'}
-              value={otherReason}
-              onChange={(e) => setOtherReason(e.target.value)}
-              required
-              sx={{ mb: 2 }}
-            />
-          )}
-
-          {/* Additional Notes */}
-          <TextField
-            fullWidth
-            label={language === 'es' ? 'Notas Adicionales' : 'Additional Notes'}
-            value={additionalNotes}
-            onChange={(e) => setAdditionalNotes(e.target.value)}
-            multiline
-            rows={3}
-            placeholder={language === 'es' 
-              ? 'Cualquier información adicional sobre el retiro...'
-              : 'Any additional information about the withdrawal...'}
-            sx={{ mb: 3 }}
-          />
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="warning"
-            size="large"
-            disabled={submitting}
-            startIcon={submitting ? <CircularProgress size={20} /> : <SaveIcon />}
-          >
-            {submitting 
-              ? (language === 'es' ? 'Guardando...' : 'Saving...')
-              : (language === 'es' ? 'Registrar Retiro' : 'Record Withdrawal')}
-          </Button>
-        </form>
-      </Paper>
-    </Container>
+              {submitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Saving... | Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Record Withdrawal | Registrar Retiro
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
