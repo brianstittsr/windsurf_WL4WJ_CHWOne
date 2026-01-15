@@ -79,12 +79,20 @@ export default function AppleNav({ variant = 'light' }: AppleNavProps) {
           {/* Auth Links */}
           <div className="hidden md:flex items-center gap-4">
             {currentUser ? (
-              <Link
-                href="/dashboard"
-                className={`text-xs ${textClass} ${linkHoverClass} transition-colors duration-200`}
-              >
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className={`text-xs ${textClass} ${linkHoverClass} transition-colors duration-200`}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="text-xs bg-[#0071E3] text-white px-4 py-1.5 rounded-full hover:bg-[#0077ED] transition-colors duration-200"
+                >
+                  Dashboard
+                </Link>
+              </>
             ) : (
               <>
                 <Link
