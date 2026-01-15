@@ -737,9 +737,9 @@ export default function GrantManagement() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
           <p className="text-4xl font-semibold text-[#34C759] mb-1">
-            {grants.filter(g => g.status === 'active').length}
+            {grants.length}
           </p>
-          <p className="text-sm text-[#6E6E73]">Active Grants</p>
+          <p className="text-sm text-[#6E6E73]">Active Grants/MOUs</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
           <p className="text-4xl font-semibold text-[#FF9500] mb-1">
