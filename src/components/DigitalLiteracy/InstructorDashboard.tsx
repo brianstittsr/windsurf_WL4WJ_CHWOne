@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, Users, CheckCircle, XCircle, ArrowLeft, X, Calendar, Clock, Eye } from 'lucide-react';
+import { AlertTriangle, Users, CheckCircle, XCircle, ArrowLeft, X, Calendar, Clock, Eye, ToggleLeft, ToggleRight, Database } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import LanguageToggle from './LanguageToggle';
@@ -80,6 +80,163 @@ export default function InstructorDashboard({
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [todayAttendance, setTodayAttendance] = useState<Set<string>>(new Set());
   const [loadingAttendance, setLoadingAttendance] = useState(true);
+  const [useMockData, setUseMockData] = useState(false);
+  
+  // Mock student data for demonstration
+  const mockStudents: Student[] = [
+    {
+      id: 'mock-1',
+      name: 'María González',
+      email: 'maria.gonzalez@email.com',
+      phone: '910-555-0101',
+      county: 'moore',
+      classId: selectedClass,
+      registrationDate: '2026-01-02',
+      attendance: { present: 8, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'proficient', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'developing', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'proficient', date: '2026-01-13', assessedBy: instructorName },
+        'Class2B': { level: 'mastery', date: '2026-01-13', assessedBy: instructorName },
+        'Class3A': { level: 'developing', date: '2026-01-20', assessedBy: instructorName },
+      },
+      isPresent: true,
+      completed: false,
+    },
+    {
+      id: 'mock-2',
+      name: 'Carlos Rodríguez',
+      email: 'carlos.rodriguez@email.com',
+      phone: '910-555-0102',
+      county: 'montgomery',
+      classId: selectedClass,
+      registrationDate: '2026-01-03',
+      attendance: { present: 9, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'mastery', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'proficient', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'mastery', date: '2026-01-13', assessedBy: instructorName },
+        'Class2B': { level: 'proficient', date: '2026-01-13', assessedBy: instructorName },
+        'Class3A': { level: 'proficient', date: '2026-01-20', assessedBy: instructorName },
+        'Class3B': { level: 'developing', date: '2026-01-20', assessedBy: instructorName },
+      },
+      isPresent: true,
+      completed: false,
+    },
+    {
+      id: 'mock-3',
+      name: 'Ana Martínez',
+      email: 'ana.martinez@email.com',
+      phone: '910-555-0103',
+      county: 'moore',
+      classId: selectedClass,
+      registrationDate: '2026-01-02',
+      attendance: { present: 7, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'developing', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'beginning', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'developing', date: '2026-01-13', assessedBy: instructorName },
+        'Class2B': { level: 'developing', date: '2026-01-13', assessedBy: instructorName },
+      },
+      isPresent: false,
+      completed: false,
+    },
+    {
+      id: 'mock-4',
+      name: 'José Hernández',
+      email: 'jose.hernandez@email.com',
+      phone: '910-555-0104',
+      county: 'montgomery',
+      classId: selectedClass,
+      registrationDate: '2026-01-04',
+      attendance: { present: 9, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'proficient', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'proficient', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'proficient', date: '2026-01-13', assessedBy: instructorName },
+        'Class2B': { level: 'mastery', date: '2026-01-13', assessedBy: instructorName },
+        'Class3A': { level: 'mastery', date: '2026-01-20', assessedBy: instructorName },
+        'Class3B': { level: 'proficient', date: '2026-01-20', assessedBy: instructorName },
+      },
+      isPresent: true,
+      completed: false,
+    },
+    {
+      id: 'mock-5',
+      name: 'Rosa López',
+      email: 'rosa.lopez@email.com',
+      phone: '910-555-0105',
+      county: 'moore',
+      classId: selectedClass,
+      registrationDate: '2026-01-03',
+      attendance: { present: 8, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'developing', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'proficient', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'proficient', date: '2026-01-13', assessedBy: instructorName },
+        'Class2B': { level: 'proficient', date: '2026-01-13', assessedBy: instructorName },
+        'Class3A': { level: 'developing', date: '2026-01-20', assessedBy: instructorName },
+      },
+      isPresent: true,
+      completed: false,
+    },
+    {
+      id: 'mock-6',
+      name: 'Miguel Santos',
+      email: 'miguel.santos@email.com',
+      phone: '910-555-0106',
+      county: 'montgomery',
+      classId: selectedClass,
+      registrationDate: '2026-01-02',
+      attendance: { present: 6, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'beginning', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'beginning', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'developing', date: '2026-01-13', assessedBy: instructorName },
+      },
+      isPresent: false,
+      completed: false,
+    },
+    {
+      id: 'mock-7',
+      name: 'Elena Vásquez',
+      email: 'elena.vasquez@email.com',
+      phone: '910-555-0107',
+      county: 'moore',
+      classId: selectedClass,
+      registrationDate: '2026-01-04',
+      attendance: { present: 9, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'mastery', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'mastery', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'mastery', date: '2026-01-13', assessedBy: instructorName },
+        'Class2B': { level: 'mastery', date: '2026-01-13', assessedBy: instructorName },
+        'Class3A': { level: 'mastery', date: '2026-01-20', assessedBy: instructorName },
+        'Class3B': { level: 'proficient', date: '2026-01-20', assessedBy: instructorName },
+      },
+      isPresent: true,
+      completed: false,
+    },
+    {
+      id: 'mock-8',
+      name: 'Roberto Silva',
+      email: 'roberto.silva@email.com',
+      phone: '910-555-0108',
+      county: 'montgomery',
+      classId: selectedClass,
+      registrationDate: '2026-01-03',
+      attendance: { present: 8, total: 9 },
+      proficiencyAssessments: {
+        'Class1A': { level: 'proficient', date: '2026-01-06', assessedBy: instructorName },
+        'Class1B': { level: 'developing', date: '2026-01-06', assessedBy: instructorName },
+        'Class2A': { level: 'proficient', date: '2026-01-13', assessedBy: instructorName },
+        'Class2B': { level: 'proficient', date: '2026-01-13', assessedBy: instructorName },
+        'Class3A': { level: 'proficient', date: '2026-01-20', assessedBy: instructorName },
+      },
+      isPresent: true,
+      completed: false,
+    },
+  ];
 
   // Load language preference from localStorage
   useEffect(() => {
@@ -238,12 +395,17 @@ export default function InstructorDashboard({
 
   const getText = (key: string) => t(key, language, TRANSLATIONS);
 
-  // Filter students by selected class
-  const classStudents = students.filter(s => s.classId === selectedClass);
+  // Use mock data or live data based on toggle
+  const activeStudents = useMockData ? mockStudents : students;
   
-  // Calculate class stats using live attendance data
+  // Filter students by selected class
+  const classStudents = activeStudents.filter(s => s.classId === selectedClass);
+  
+  // Calculate class stats - use mock data's isPresent or live attendance data
   const enrolledCount = classStudents.length;
-  const presentCount = classStudents.filter(s => todayAttendance.has(s.id)).length;
+  const presentCount = useMockData 
+    ? classStudents.filter(s => s.isPresent).length 
+    : classStudents.filter(s => todayAttendance.has(s.id)).length;
   const absentCount = enrolledCount - presentCount;
   
   // Get current week topics
@@ -411,9 +573,39 @@ export default function InstructorDashboard({
       {/* Class Selection */}
       <Card className="mb-6">
         <CardContent className="p-6">
-          <h3 className="text-lg font-bold mb-4">
-            {getText('dashboard.selectClass')}
-          </h3>
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-lg font-bold">
+              {getText('dashboard.selectClass')}
+            </h3>
+            
+            {/* Mock Data Toggle */}
+            <Button
+              variant={useMockData ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setUseMockData(!useMockData)}
+              className={`flex items-center gap-2 ${useMockData ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-400 text-purple-600 hover:bg-purple-50'}`}
+            >
+              {useMockData ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+              <Database className="h-4 w-4" />
+              {useMockData 
+                ? (language === 'en' ? 'Mock Data ON' : 'Datos Demo ACTIVO') 
+                : (language === 'en' ? 'Use Mock Data' : 'Usar Datos Demo')}
+            </Button>
+          </div>
+          
+          {/* Mock Data Banner */}
+          {useMockData && (
+            <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-center gap-2 text-purple-700">
+                <Database className="h-5 w-5" />
+                <span className="font-medium">
+                  {language === 'en' 
+                    ? 'Viewing Mock Data - 8 sample students with attendance and proficiency data' 
+                    : 'Viendo Datos Demo - 8 estudiantes de muestra con datos de asistencia y competencia'}
+                </span>
+              </div>
+            </div>
+          )}
           
           <div className="flex gap-4 flex-wrap mb-6">
             <div className="min-w-[300px]">
@@ -754,7 +946,7 @@ export default function InstructorDashboard({
 
         {/* Attendance Tab */}
         <TabsContent value="attendance">
-          {loadingAttendance && (
+          {!useMockData && loadingAttendance && (
             <div className="text-center py-4 mb-4">
               <div className="animate-spin w-6 h-6 border-4 border-[#0071E3] border-t-transparent rounded-full mx-auto" />
               <p className="text-sm text-[#6E6E73] mt-2">{language === 'en' ? 'Loading attendance...' : 'Cargando asistencia...'}</p>
@@ -762,15 +954,17 @@ export default function InstructorDashboard({
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {classStudents.map(student => {
-              // Override isPresent with live attendance data
-              const studentWithLiveAttendance = {
-                ...student,
-                isPresent: todayAttendance.has(student.id)
-              };
+              // Use mock data's isPresent or live attendance data
+              const studentWithAttendance = useMockData 
+                ? student 
+                : {
+                    ...student,
+                    isPresent: todayAttendance.has(student.id)
+                  };
               return (
                 <StudentCard
                   key={student.id}
-                  student={studentWithLiveAttendance}
+                  student={studentWithAttendance}
                   language={language}
                   currentWeek={currentWeek}
                   onToggleAttendance={onUpdateAttendance}

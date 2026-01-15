@@ -739,25 +739,25 @@ export default function GrantManagement() {
           <p className="text-4xl font-semibold text-[#34C759] mb-1">
             {grants.length}
           </p>
-          <p className="text-sm text-[#6E6E73]">Active Grants/MOUs</p>
+          <p className="text-sm text-[#48484A]">Active Grants/MOUs</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
           <p className="text-4xl font-semibold text-[#FF9500] mb-1">
             ${grants.reduce((sum, g) => sum + g.amount, 0).toLocaleString()}
           </p>
-          <p className="text-sm text-[#6E6E73]">Total Funding</p>
+          <p className="text-sm text-[#48484A]">Total Funding</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
           <p className="text-4xl font-semibold text-[#5856D6] mb-1">
             {grants.reduce((sum, g) => sum + g.projectIds.length, 0)}
           </p>
-          <p className="text-sm text-[#6E6E73]">Projects Funded</p>
+          <p className="text-sm text-[#48484A]">Projects Funded</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 text-center">
           <p className="text-4xl font-semibold text-[#0071E3] mb-1">
             {grants.filter(g => getUpcomingReporting(g)).length}
           </p>
-          <p className="text-sm text-[#6E6E73]">Pending Reports</p>
+          <p className="text-sm text-[#48484A]">Pending Reports</p>
         </div>
       </div>
 

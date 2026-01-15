@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button as MuiButton, Box, Typography, Stepper, Step, StepLabel, Paper, Alert } from '@mui/material';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   FileText, 
@@ -11,9 +11,14 @@ import {
   Users, 
   BarChart3, 
   FileCheck, 
-  Sparkles 
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Lightbulb
 } from 'lucide-react';
 import { GrantGeneratorProvider, useGrantGenerator } from '@/contexts/GrantGeneratorContext';
+import { cn } from '@/lib/utils';
 
 // Import wizard steps
 import { GeneratorStep1Overview } from './steps/GeneratorStep1Overview';
@@ -40,43 +45,43 @@ function GrantGeneratorWizardContent({ organizationId, onComplete }: GrantGenera
     { 
       title: 'Project Overview', 
       component: GeneratorStep1Overview, 
-      icon: <FileText className="h-5 w-5" />,
+      icon: FileText,
       description: 'Basic project information and organization details'
     },
     { 
       title: 'Need Statement', 
       component: GeneratorStep2NeedStatement, 
-      icon: <Target className="h-5 w-5" />,
+      icon: Target,
       description: 'Define the problem and community need'
     },
     { 
       title: 'Goals & Objectives', 
       component: GeneratorStep3Goals, 
-      icon: <TrendingUp className="h-5 w-5" />,
+      icon: TrendingUp,
       description: 'Set SMART goals and measurable objectives'
     },
     { 
       title: 'Activities & Methods', 
       component: GeneratorStep4Activities, 
-      icon: <Users className="h-5 w-5" />,
+      icon: Users,
       description: 'Define project activities and implementation plan'
     },
     { 
       title: 'Outcomes & Evaluation', 
       component: GeneratorStep5Outcomes, 
-      icon: <BarChart3 className="h-5 w-5" />,
+      icon: BarChart3,
       description: 'Outcome-based evaluation and data collection'
     },
     { 
       title: 'Budget & Resources', 
       component: GeneratorStep6Budget, 
-      icon: <FileCheck className="h-5 w-5" />,
+      icon: FileCheck,
       description: 'Budget justification and resource allocation'
     },
     { 
       title: 'Review & Generate', 
       component: GeneratorStep7Review, 
-      icon: <Sparkles className="h-5 w-5" />,
+      icon: Sparkles,
       description: 'Review and generate final proposal'
     },
   ];
@@ -88,7 +93,6 @@ function GrantGeneratorWizardContent({ organizationId, onComplete }: GrantGenera
     try {
       setIsGenerating(true);
       
-      // Generate the proposal using AI
       const proposalId = await generateProposal();
       
       toast({
@@ -114,87 +118,157 @@ function GrantGeneratorWizardContent({ organizationId, onComplete }: GrantGenera
   };
 
   const CurrentStepComponent = steps[currentStep].component;
+  const CurrentIcon = steps[currentStep].icon;
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
+    <div className="w-full p-4 md:p-6 max-w-[1200px] mx-auto">
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Sparkles className="h-6 w-6" />
-          AI Grant Proposal Generator
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#5856D6]/10 to-[#AF52DE]/10 rounded-full mb-4">
+          <Sparkles className="h-5 w-5 text-[#5856D6]" />
+          <span className="text-sm font-medium text-[#5856D6]">AI-Powered</span>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-semibold text-[#1D1D1F] tracking-tight mb-2">
+          Grant Proposal Generator
+        </h1>
+        <p className="text-[#6E6E73] text-lg max-w-2xl mx-auto">
           Create a professional, outcome-based grant proposal with AI assistance
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
-      {/* Stepper */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Stepper activeStep={currentStep} alternativeLabel>
-          {steps.map((step, index) => (
-            <Step key={step.title}>
-              <StepLabel
-                optional={
-                  <Typography variant="caption" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                    {step.description}
-                  </Typography>
-                }
+      {/* Progress Bar */}
+      <div className="w-full bg-[#F5F5F7] rounded-full h-2 mb-6">
+        <div
+          className="bg-gradient-to-r from-[#5856D6] to-[#AF52DE] h-full rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+        />
+      </div>
+
+      {/* Step Indicator - Horizontal Scrollable on Mobile */}
+      <div className="overflow-x-auto pb-4 mb-6 -mx-4 px-4">
+        <div className="flex gap-2 md:gap-3 min-w-max md:min-w-0 md:grid md:grid-cols-7">
+          {steps.map((step, index) => {
+            const StepIcon = step.icon;
+            const isCompleted = index < currentStep;
+            const isCurrent = index === currentStep;
+            const isClickable = index < currentStep;
+            
+            return (
+              <div
+                key={index}
+                className={cn(
+                  "flex flex-col items-center transition-all duration-300 min-w-[80px] md:min-w-0",
+                  isCurrent && "scale-105",
+                  isClickable && "cursor-pointer"
+                )}
+                onClick={() => isClickable && setCurrentStep(index)}
               >
-                {step.title}
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-      </Paper>
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300 shadow-sm",
+                    isCompleted && "bg-[#34C759] text-white",
+                    isCurrent && "bg-gradient-to-r from-[#5856D6] to-[#AF52DE] text-white ring-4 ring-[#5856D6]/20",
+                    !isCompleted && !isCurrent && "bg-[#F5F5F7] text-[#6E6E73]"
+                  )}
+                >
+                  <StepIcon className="h-4 w-4" />
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] md:text-xs text-center font-medium transition-colors whitespace-nowrap",
+                    isCurrent ? "text-[#5856D6]" : "text-[#1D1D1F]"
+                  )}
+                >
+                  {step.title}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* AI Assistant Info */}
-      <Alert severity="info" icon={<Sparkles />} sx={{ mb: 3 }}>
-        <strong>AI-Powered Writing:</strong> Our AI will help you craft compelling narratives, 
-        ensure outcome-based evaluation methods, and format your proposal professionally.
-      </Alert>
+      <div className="bg-gradient-to-r from-[#5856D6]/5 to-[#AF52DE]/5 border border-[#5856D6]/20 rounded-2xl p-4 mb-6">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#5856D6] to-[#AF52DE] flex items-center justify-center flex-shrink-0">
+            <Lightbulb className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-[#1D1D1F] mb-1">AI-Powered Writing</h3>
+            <p className="text-sm text-[#6E6E73]">
+              Our AI will help you craft compelling narratives, ensure outcome-based evaluation methods, and format your proposal professionally.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Step Content */}
-      <Paper sx={{ p: 4, mb: 3, minHeight: '400px' }}>
-        <CurrentStepComponent />
-      </Paper>
+      <div className="bg-white rounded-2xl border border-[#D2D2D7] shadow-sm overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#5856D6] to-[#AF52DE] flex items-center justify-center">
+              <CurrentIcon className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[#1D1D1F]">
+                Step {currentStep + 1}: {steps[currentStep].title}
+              </h2>
+              <p className="text-sm text-[#6E6E73]">
+                {steps[currentStep].description}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 min-h-[400px]">
+          <CurrentStepComponent />
+        </div>
+      </div>
 
       {/* Navigation */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <MuiButton
-          variant="outlined"
+      <div className="flex justify-between items-center pt-4">
+        <Button
+          variant="outline"
           onClick={prevStep}
           disabled={currentStep === 0}
-          sx={{ px: 3, py: 1 }}
+          className="rounded-xl px-6 py-2.5 border-[#D2D2D7] text-[#1D1D1F] hover:bg-[#F5F5F7] disabled:opacity-50"
         >
+          <ChevronLeft className="h-4 w-4 mr-2" />
           Previous
-        </MuiButton>
+        </Button>
 
-        <Typography variant="body2" color="text.secondary">
+        <span className="text-sm text-[#6E6E73]">
           Step {currentStep + 1} of {steps.length}
-        </Typography>
+        </span>
 
         {currentStep < steps.length - 1 ? (
-          <MuiButton
-            variant="contained"
+          <Button
             onClick={nextStep}
-            sx={{ px: 3, py: 1 }}
+            className="rounded-xl px-6 py-2.5 bg-gradient-to-r from-[#5856D6] to-[#AF52DE] hover:opacity-90 text-white"
           >
             Next
-          </MuiButton>
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
         ) : (
-          <MuiButton
-            variant="contained"
-            color="success"
+          <Button
             onClick={handleGenerate}
             disabled={isGenerating}
-            startIcon={isGenerating ? undefined : <Sparkles />}
-            sx={{ px: 3, py: 1 }}
+            className="rounded-xl px-6 py-2.5 bg-[#34C759] hover:bg-[#2DB84D] text-white"
           >
-            {isGenerating ? 'Generating...' : 'Generate Proposal'}
-          </MuiButton>
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate Proposal
+              </>
+            )}
+          </Button>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
 

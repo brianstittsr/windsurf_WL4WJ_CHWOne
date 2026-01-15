@@ -87,6 +87,11 @@ import {
 import AdminLayout from '@/components/Layout/AdminLayout';
 import AnimatedLoading from '@/components/Common/AnimatedLoading';
 import { Grant } from '@/lib/schema/unified-schema';
+import { storage } from '@/lib/firebase/firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebaseConfig';
+import { Upload as UploadIcon } from '@mui/icons-material';
 import { 
   ProgramForm, 
   ProgramType, 
@@ -187,6 +192,11 @@ function CollaborationDetailContent() {
   const [mockInstructorData, setMockInstructorData] = useState<Record<string, any>[]>([]);
   const [mockStudentData, setMockStudentData] = useState<Record<string, any>[]>([]);
   const [mockNonprofitData, setMockNonprofitData] = useState<Record<string, any>[]>([]);
+  
+  // MOU Document state
+  const [mouDocumentUrl, setMouDocumentUrl] = useState<string | null>(null);
+  const [mouUploading, setMouUploading] = useState(false);
+  const [mouFileName, setMouFileName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -206,11 +216,62 @@ function CollaborationDetailContent() {
 
       if (result.success && result.grant) {
         setGrant(result.grant);
+        // Load existing MOU document - check for base64 first, then URL
+        if ((result.grant as any).mouDocumentBase64) {
+          setMouDocumentUrl((result.grant as any).mouDocumentBase64);
+          setMouFileName((result.grant as any).mouFileName || 'MOU Document');
+        } else if ((result.grant as any).mouDocumentUrl) {
+          setMouDocumentUrl((result.grant as any).mouDocumentUrl);
+          setMouFileName((result.grant as any).mouFileName || 'MOU Document');
+        }
       }
     } catch (error) {
       console.error('Error fetching collaboration:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle MOU document upload - stores as base64 in Firestore
+  const handleMouUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !grant?.id) return;
+
+    setMouUploading(true);
+    try {
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target?.result as string;
+        
+        // Update the grant document in Firestore with the base64 MOU
+        const grantRef = doc(db, 'grants', grant.id);
+        await updateDoc(grantRef, {
+          mouDocumentBase64: base64Data,
+          mouFileName: file.name,
+          mouFileType: file.type,
+          mouUploadedAt: new Date().toISOString()
+        });
+        
+        // Update local state
+        setMouDocumentUrl(base64Data);
+        setMouFileName(file.name);
+        
+        console.log('MOU document uploaded successfully as base64');
+        setMouUploading(false);
+      };
+      
+      reader.onerror = () => {
+        console.error('Error reading file');
+        alert('Failed to read MOU document. Please try again.');
+        setMouUploading(false);
+      };
+      
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading MOU document:', error);
+      alert('Failed to upload MOU document. Please try again.');
+      setMouUploading(false);
     }
   };
 
@@ -1101,40 +1162,48 @@ function CollaborationDetailContent() {
               </div>
               <div className="p-6">
                 <p className="text-sm text-[#6E6E73] mb-4">
-                  The Memorandum of Understanding (MOU) agreement for this collaboration.
+                  {mouDocumentUrl 
+                    ? `Uploaded: ${mouFileName}` 
+                    : 'Upload the Memorandum of Understanding (MOU) agreement for this collaboration.'}
                 </p>
-                <button
-                  onClick={() => {
-                    // Generate MOU PDF content
-                    const mouContent = {
-                      title: 'Memorandum of Understanding',
-                      grantTitle: grant?.title || 'Grant Collaboration',
-                      grantId: grant?.id,
-                      parties: [
-                        { name: 'WL4WJ', role: 'Lead Organization' },
-                        { name: (grant as any)?.funder || 'Funder Organization', role: 'Funder' }
-                      ],
-                      effectiveDate: grant?.startDate || new Date().toISOString(),
-                      endDate: grant?.endDate || '',
-                      amount: (grant as any)?.amount || (grant as any)?.totalBudget || 0,
-                      purpose: grant?.description || 'Grant collaboration agreement',
-                      generatedAt: new Date().toISOString()
-                    };
-                    const blob = new Blob([JSON.stringify(mouContent, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `MOU-${grant?.id || 'document'}.json`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#34C759] text-white rounded-xl font-medium text-sm hover:bg-[#2DB84D] transition-colors"
-                >
-                  <DownloadIcon sx={{ fontSize: 18 }} />
-                  Download MOU
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  {/* Upload Button */}
+                  <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors cursor-pointer">
+                    <UploadIcon sx={{ fontSize: 18 }} />
+                    {mouUploading ? 'Uploading...' : 'Upload MOU'}
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleMouUpload}
+                      className="hidden"
+                      disabled={mouUploading}
+                    />
+                  </label>
+                  
+                  {/* Download Button - only shows when MOU is uploaded */}
+                  {mouDocumentUrl && (
+                    <button
+                      onClick={() => {
+                        // Handle base64 data download
+                        if (mouDocumentUrl.startsWith('data:')) {
+                          const link = document.createElement('a');
+                          link.href = mouDocumentUrl;
+                          link.download = mouFileName || 'MOU-Document';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        } else {
+                          // Handle URL download (backwards compatibility)
+                          window.open(mouDocumentUrl, '_blank');
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#34C759] text-white rounded-xl font-medium text-sm hover:bg-[#2DB84D] transition-colors"
+                    >
+                      <DownloadIcon sx={{ fontSize: 18 }} />
+                      Download MOU
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1177,11 +1246,14 @@ function CollaborationDetailContent() {
                   The structured data extracted by AI from the grant document.
                 </p>
                 <button
-                  onClick={() => handleExportDocument('analyzed')}
+                  onClick={() => {
+                    setTabValue(4);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#5856D6] text-white rounded-xl font-medium text-sm hover:bg-[#4B49B8] transition-colors"
                 >
-                  <DownloadIcon sx={{ fontSize: 18 }} />
-                  Download Analyzed
+                  <ViewIcon sx={{ fontSize: 18 }} />
+                  View Analyzed
                 </button>
               </div>
             </div>
