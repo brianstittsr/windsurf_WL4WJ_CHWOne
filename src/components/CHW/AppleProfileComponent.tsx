@@ -543,11 +543,11 @@ export default function AppleProfileComponent({
       <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {/* Avatar - 300% larger */}
+            {/* Avatar - 200% of original (reduced from 300%) */}
             <div className="relative flex-shrink-0">
               <div 
-                className={`rounded-full bg-gradient-to-br from-[#0071E3] to-[#5856D6] flex items-center justify-center text-white text-6xl font-semibold overflow-hidden ${isEditing ? 'cursor-pointer ring-4 ring-[#0071E3]/20' : ''}`}
-                style={{ width: '336px', height: '336px' }}
+                className={`rounded-full bg-gradient-to-br from-[#0071E3] to-[#5856D6] flex items-center justify-center text-white text-4xl font-semibold overflow-hidden ${isEditing ? 'cursor-pointer ring-4 ring-[#0071E3]/20' : ''}`}
+                style={{ width: '224px', height: '224px' }}
                 onClick={() => isEditing && document.getElementById('photo-upload')?.click()}
               >
                 {profile.profilePicture ? (
