@@ -217,6 +217,18 @@ export default function NonprofitLinker({
         }
       }
 
+      // Check if this organization is already linked (prevent duplicates)
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      const existingTags: OrganizationTag[] = userSnap.data()?.organizationTags || [];
+      
+      // Check for duplicate
+      const isDuplicate = existingTags.some(tag => tag.id === nonprofitId);
+      if (isDuplicate) {
+        setError('This organization is already linked to your profile.');
+        return;
+      }
+
       // Create organization tag - ensure no undefined values for Firestore
       const organizationTag: OrganizationTag = {
         id: nonprofitId,
@@ -226,7 +238,7 @@ export default function NonprofitLinker({
       };
 
       // Update user profile with nonprofit ID and add organization tag
-      await updateDoc(doc(db, 'users', currentUser.uid), {
+      await updateDoc(userRef, {
         linkedNonprofitId: nonprofitId,
         organizationTags: arrayUnion(organizationTag),
         updatedAt: serverTimestamp(),
@@ -237,12 +249,18 @@ export default function NonprofitLinker({
         const chwProfileRef = doc(db, 'chwProfiles', currentUser.uid);
         const chwProfileSnap = await getDoc(chwProfileRef);
         if (chwProfileSnap.exists()) {
-          await updateDoc(chwProfileRef, {
-            organizationTags: arrayUnion(organizationTag),
-            'serviceArea.nonprofitOrganizationId': nonprofitId,
-            'serviceArea.nonprofitOrganizationName': nonprofit?.name || 'Unknown Organization',
-            updatedAt: serverTimestamp(),
-          });
+          // Check for duplicates in CHW profile too
+          const chwExistingTags: OrganizationTag[] = chwProfileSnap.data()?.organizationTags || [];
+          const chwIsDuplicate = chwExistingTags.some(tag => tag.id === nonprofitId);
+          
+          if (!chwIsDuplicate) {
+            await updateDoc(chwProfileRef, {
+              organizationTags: arrayUnion(organizationTag),
+              'serviceArea.nonprofitOrganizationId': nonprofitId,
+              'serviceArea.nonprofitOrganizationName': nonprofit?.name || 'Unknown Organization',
+              updatedAt: serverTimestamp(),
+            });
+          }
         }
       } catch (chwErr) {
         console.log('CHW profile update skipped (may not exist):', chwErr);

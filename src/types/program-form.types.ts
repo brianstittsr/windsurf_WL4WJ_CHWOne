@@ -189,7 +189,7 @@ export const DEFAULT_INSTRUCTOR_FIELDS: DatasetField[] = [
   { id: 'instructor_email', name: 'instructor_email', label: 'Email', type: 'email', required: true },
   { id: 'instructor_phone', name: 'instructor_phone', label: 'Phone', type: 'phone', required: false },
   { id: 'organization', name: 'organization', label: 'Organization', type: 'text', required: true },
-  { id: 'certification_status', name: 'certification_status', label: 'Certification Status', type: 'select', required: true, options: ['Certified', 'In Training', 'Pending'] },
+  { id: 'certification_status', name: 'certification_status', label: 'CHW Certification Status', type: 'select', required: true, options: ['Certified', 'In Training', 'Pending'] },
   { id: 'classes_taught', name: 'classes_taught', label: 'Classes Taught', type: 'number', required: false },
   { id: 'students_trained', name: 'students_trained', label: 'Students Trained', type: 'number', required: false },
   { id: 'start_date', name: 'start_date', label: 'Start Date', type: 'date', required: true },

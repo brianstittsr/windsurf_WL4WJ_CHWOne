@@ -129,6 +129,9 @@ export default function EnhancedProfileComponent({
     lastName: '',
     email: '',
     phone: '',
+    workPhone: '',
+    cellPhone: '',
+    address: {},
     professional: {
       ...DEFAULT_CHW_PROFILE.professional!,
       headline: '',
@@ -176,6 +179,8 @@ export default function EnhancedProfileComponent({
             lastName: data.lastName || '',
             email: data.email || currentUser.email || '',
             phone: data.phone || '',
+            workPhone: data.workPhone || '',
+            cellPhone: data.cellPhone || '',
             address: data.address || {},
             profilePicture: data.profilePicture || currentUser.photoURL || undefined,
             displayName: data.displayName || `${data.firstName} ${data.lastName}`,
@@ -329,6 +334,37 @@ export default function EnhancedProfileComponent({
   const handleCancel = () => {
     setIsEditing(false);
     setError(null);
+  };
+
+  const handleRemoveOrganizationTag = async (tagId: string) => {
+    if (!currentUser) return;
+    
+    try {
+      // Remove the tag from local state
+      const updatedTags = (profile.organizationTags || []).filter(tag => tag.id !== tagId);
+      setProfile(prev => ({ ...prev, organizationTags: updatedTags }));
+      
+      // Update Firestore
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+      
+      // Update CHW profile
+      const chwProfileRef = doc(db, COLLECTIONS.CHW_PROFILES, currentUser.uid);
+      await updateDoc(chwProfileRef, {
+        organizationTags: updatedTags
+      });
+      
+      // Also update user profile
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        organizationTags: updatedTags
+      });
+      
+      console.log('Organization tag removed:', tagId);
+    } catch (err) {
+      console.error('Error removing organization tag:', err);
+      setError('Failed to remove organization tag');
+    }
   };
 
   const getRenewalStatus = () => {
@@ -526,18 +562,30 @@ export default function EnhancedProfileComponent({
               {/* Organization Tags */}
               {profile.organizationTags && profile.organizationTags.length > 0 && (
                 <Box sx={{ mt: 1.5, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {profile.organizationTags.map((tag) => (
+                  {/* Remove duplicates by filtering unique IDs */}
+                  {profile.organizationTags
+                    .filter((tag, index, self) => 
+                      index === self.findIndex(t => t.id === tag.id)
+                    )
+                    .map((tag) => (
                     <Chip
                       key={tag.id}
                       icon={<Business sx={{ fontSize: 16 }} />}
                       label={tag.name}
                       size="small"
+                      onDelete={isEditing ? () => handleRemoveOrganizationTag(tag.id) : undefined}
                       sx={{
                         bgcolor: '#E3F2FD',
                         color: '#1565C0',
                         fontWeight: 500,
                         '& .MuiChip-icon': {
                           color: '#1565C0'
+                        },
+                        '& .MuiChip-deleteIcon': {
+                          color: '#1565C0',
+                          '&:hover': {
+                            color: '#d32f2f'
+                          }
                         }
                       }}
                     />
@@ -730,13 +778,70 @@ export default function EnhancedProfileComponent({
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Phone Number"
-                value={profile.phone || ''}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
+                label="Work Phone"
+                value={profile.workPhone || ''}
+                onChange={(e) => handleInputChange('workPhone', e.target.value)}
                 disabled={!isEditing}
                 InputProps={{
                   startAdornment: <Phone sx={{ mr: 1, color: 'action.active' }} />
                 }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Cell Phone"
+                value={profile.cellPhone || ''}
+                onChange={(e) => handleInputChange('cellPhone', e.target.value)}
+                disabled={!isEditing}
+                InputProps={{
+                  startAdornment: <Phone sx={{ mr: 1, color: 'action.active' }} />
+                }}
+              />
+            </Grid>
+
+            {/* Address Fields */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Street Address"
+                value={profile.address?.street || ''}
+                onChange={(e) => handleInputChange('street', e.target.value, 'address')}
+                disabled={!isEditing}
+                InputProps={{
+                  startAdornment: <LocationOn sx={{ mr: 1, color: 'action.active' }} />
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="City"
+                value={profile.address?.city || ''}
+                onChange={(e) => handleInputChange('city', e.target.value, 'address')}
+                disabled={!isEditing}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={3}>
+              <TextField
+                fullWidth
+                label="State"
+                value={profile.address?.state || ''}
+                onChange={(e) => handleInputChange('state', e.target.value, 'address')}
+                disabled={!isEditing}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={3}>
+              <TextField
+                fullWidth
+                label="Zip Code"
+                value={profile.address?.zipCode || ''}
+                onChange={(e) => handleInputChange('zipCode', e.target.value, 'address')}
+                disabled={!isEditing}
               />
             </Grid>
 

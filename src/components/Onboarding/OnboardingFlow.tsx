@@ -115,7 +115,7 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
     if (!currentUser?.uid) return;
 
     try {
-      await updateDoc(doc(db, 'users', currentUser.uid), {
+      const updateData: Record<string, any> = {
         firstName: data.firstName,
         lastName: data.lastName,
         displayName: `${data.firstName} ${data.lastName}`,
@@ -126,7 +126,14 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
         bio: data.bio || null,
         profileCompletedAt: new Date(),
         updatedAt: new Date(),
-      });
+      };
+
+      // If an organization was selected from search, also save the linkedNonprofitId
+      if (data.organizationId) {
+        updateData.linkedNonprofitId = data.organizationId;
+      }
+
+      await updateDoc(doc(db, 'users', currentUser.uid), updateData);
     } catch (error) {
       console.error('Error saving profile:', error);
       throw error;
@@ -188,10 +195,16 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
           lastName: userProfile?.lastName || '',
           phone: userProfile?.phoneNumber || '',
           organization: userProfile?.organization || '',
+          organizationId: userProfile?.linkedNonprofitId || '',
           title: userProfile?.title || '',
           region: userProfile?.region || '',
           bio: userProfile?.bio || '',
         }}
+        linkedOrganization={
+          userProfile?.linkedNonprofitId 
+            ? { id: userProfile.linkedNonprofitId, name: userProfile.organization || '' }
+            : null
+        }
       />
     </>
   );

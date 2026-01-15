@@ -128,6 +128,8 @@ export interface CHWProfile {
   lastName: string;
   email: string;
   phone?: string;
+  workPhone?: string;
+  cellPhone?: string;
   address?: {
     street?: string;
     city?: string;

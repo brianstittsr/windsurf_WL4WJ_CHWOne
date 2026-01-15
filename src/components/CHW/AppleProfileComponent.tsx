@@ -543,10 +543,11 @@ export default function AppleProfileComponent({
       <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {/* Avatar */}
+            {/* Avatar - 300% larger */}
             <div className="relative flex-shrink-0">
               <div 
-                className={`w-28 h-28 rounded-full bg-gradient-to-br from-[#0071E3] to-[#5856D6] flex items-center justify-center text-white text-3xl font-semibold overflow-hidden ${isEditing ? 'cursor-pointer ring-4 ring-[#0071E3]/20' : ''}`}
+                className={`rounded-full bg-gradient-to-br from-[#0071E3] to-[#5856D6] flex items-center justify-center text-white text-6xl font-semibold overflow-hidden ${isEditing ? 'cursor-pointer ring-4 ring-[#0071E3]/20' : ''}`}
+                style={{ width: '336px', height: '336px' }}
                 onClick={() => isEditing && document.getElementById('photo-upload')?.click()}
               >
                 {profile.profilePicture ? (
@@ -594,10 +595,14 @@ export default function AppleProfileComponent({
                 </span>
               </div>
               
-              {/* Organization Tags */}
+              {/* Organization Tags - filter duplicates by ID */}
               {profile.organizationTags && profile.organizationTags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
-                  {profile.organizationTags.map((tag) => (
+                  {profile.organizationTags
+                    .filter((tag, index, self) => 
+                      index === self.findIndex(t => t.id === tag.id)
+                    )
+                    .map((tag) => (
                     <span
                       key={tag.id}
                       className="inline-flex items-center px-3 py-1.5 rounded-full bg-[#E3F2FD] text-[#1565C0] text-sm font-medium"

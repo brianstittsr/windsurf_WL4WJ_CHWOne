@@ -1056,22 +1056,88 @@ function CollaborationDetailContent() {
         </Card>
 
         {/* Tabs - Billing/Invoices tab hidden for nonprofit users */}
-        <Paper sx={{ mb: 3, position: 'relative', zIndex: 'auto' }}>
-          <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} variant="scrollable" scrollButtons="auto">
+        <Paper sx={{ mb: 3 }}>
+          <Tabs 
+            value={tabValue} 
+            onChange={(_, v) => setTabValue(v)} 
+            variant="scrollable" 
+            scrollButtons="auto"
+            sx={{
+              minHeight: 48,
+              '& .MuiTab-root': {
+                minWidth: 140,
+                minHeight: 48,
+              }
+            }}
+          >
             <Tab label="Documents" icon={<DocumentIcon />} iconPosition="start" />
             <Tab label="Forms & Data" icon={<FormIcon />} iconPosition="start" />
             <Tab label="Programs" icon={<SchoolIcon />} iconPosition="start" />
             <Tab label="Datasets" icon={<DatasetIcon />} iconPosition="start" />
             <Tab label="AI Reports" icon={<AIIcon />} iconPosition="start" />
             <Tab label="Partners" icon={<GroupsIcon />} iconPosition="start" />
-            {!isNonprofit && <Tab label="Billing / Invoices" icon={<ReceiptIcon />} iconPosition="start" />}
+            <Tab 
+              label="Billing / Invoices" 
+              icon={<ReceiptIcon />} 
+              iconPosition="start" 
+              sx={{ display: isNonprofit ? 'none' : 'inline-flex' }}
+            />
             <Tab label="Milestones / Tasks" icon={<TaskIcon />} iconPosition="start" />
           </Tabs>
         </Paper>
 
         {/* Apple-styled Documents Tab */}
         <TabPanel value={tabValue} index={0}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* MOU Document */}
+            <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#34C759] rounded-xl flex items-center justify-center">
+                    <DocumentIcon sx={{ color: 'white', fontSize: 22 }} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[#1D1D1F]">MOU Document</h3>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-[#6E6E73] mb-4">
+                  The Memorandum of Understanding (MOU) agreement for this collaboration.
+                </p>
+                <button
+                  onClick={() => {
+                    // Generate MOU PDF content
+                    const mouContent = {
+                      title: 'Memorandum of Understanding',
+                      grantTitle: grant?.title || 'Grant Collaboration',
+                      grantId: grant?.id,
+                      parties: [
+                        { name: 'WL4WJ', role: 'Lead Organization' },
+                        { name: (grant as any)?.funder || 'Funder Organization', role: 'Funder' }
+                      ],
+                      effectiveDate: grant?.startDate || new Date().toISOString(),
+                      endDate: grant?.endDate || '',
+                      amount: (grant as any)?.amount || (grant as any)?.totalBudget || 0,
+                      purpose: grant?.description || 'Grant collaboration agreement',
+                      generatedAt: new Date().toISOString()
+                    };
+                    const blob = new Blob([JSON.stringify(mouContent, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `MOU-${grant?.id || 'document'}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#34C759] text-white rounded-xl font-medium text-sm hover:bg-[#2DB84D] transition-colors"
+                >
+                  <DownloadIcon sx={{ fontSize: 18 }} />
+                  Download MOU
+                </button>
+              </div>
+            </div>
+
             {/* Original Grant Document */}
             <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
               <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">

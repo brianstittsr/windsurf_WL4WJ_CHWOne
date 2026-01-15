@@ -22,8 +22,7 @@ const MOCK_DATA = {
   
   // Collaborating Organizations
   collaboratingOrgs: [
-    { name: 'NC Community Health Worker Association (NCCHWA)', logo: '🏛️', role: 'Lead Organization' },
-    { name: 'Moore County Health Department', logo: '🏥', role: 'Partner' },
+    { name: 'Moore County Health Department', logo: '🏥', role: 'Lead Organization' },
     { name: 'Montgomery County Health Department', logo: '🏥', role: 'Partner' },
     { name: 'Digital Literacy Initiative Partners', logo: '💻', role: 'Sponsor' },
   ],
