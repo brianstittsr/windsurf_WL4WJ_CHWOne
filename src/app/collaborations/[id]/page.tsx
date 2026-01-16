@@ -1132,7 +1132,6 @@ function CollaborationDetailContent() {
             }}
           >
             <Tab label="Documents" icon={<DocumentIcon />} iconPosition="start" />
-            <Tab label="Forms & Data" icon={<FormIcon />} iconPosition="start" />
             <Tab label="Programs" icon={<SchoolIcon />} iconPosition="start" />
             <Tab label="Datasets" icon={<DatasetIcon />} iconPosition="start" />
             <Tab label="Partners" icon={<GroupsIcon />} iconPosition="start" />
@@ -1363,119 +1362,8 @@ function CollaborationDetailContent() {
           </div>
         </TabPanel>
 
-        {/* Apple-styled Forms & Data Tab */}
-        <TabPanel value={tabValue} index={1}>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <h2 className="text-xl font-semibold text-[#1D1D1F]">Data Collection Forms</h2>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleGenerateParticipantForm}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
-              >
-                <FormIcon sx={{ fontSize: 18 }} />
-                Generate Participant Tracking Form
-              </button>
-              <button
-                onClick={() => setShowFormDialog(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 border border-[#D2D2D7] text-[#1D1D1F] rounded-xl font-medium text-sm hover:bg-[#F5F5F7] transition-colors"
-              >
-                <AddIcon sx={{ fontSize: 18 }} />
-                Create Additional Form
-              </button>
-            </div>
-          </div>
-
-          {formTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {formTemplates.map((form: any, index: number) => (
-                <div key={form.id || index} className="bg-white rounded-2xl border border-[#D2D2D7] p-5 hover:shadow-lg transition-shadow">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-base font-semibold text-[#1D1D1F]">{form.name}</h3>
-                      <p className="text-sm text-[#6E6E73] mt-1">{form.description || 'No description'}</p>
-                    </div>
-                    <span className="px-3 py-1 bg-[#F5F5F7] text-[#6E6E73] rounded-full text-xs font-medium">
-                      {form.purpose || 'data'}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    <button 
-                      onClick={() => handleViewForm(form)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#0071E3] bg-[#0071E3]/10 rounded-lg hover:bg-[#0071E3]/20 transition-colors"
-                    >
-                      <ViewIcon sx={{ fontSize: 16 }} />
-                      View
-                    </button>
-                    <button 
-                      onClick={() => handleEditForm(form)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#5856D6] bg-[#5856D6]/10 rounded-lg hover:bg-[#5856D6]/20 transition-colors"
-                    >
-                      <EditIcon sx={{ fontSize: 16 }} />
-                      Edit
-                    </button>
-                    {form.datasetId && (
-                      <button 
-                        onClick={() => router.push(`/datasets/${form.datasetId}`)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#34C759] bg-[#34C759]/10 rounded-lg hover:bg-[#34C759]/20 transition-colors"
-                      >
-                        <DatasetIcon sx={{ fontSize: 16 }} />
-                        Data
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => handleDeleteFormTemplate(form)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#FF3B30] bg-[#FF3B30]/10 rounded-lg hover:bg-[#FF3B30]/20 transition-colors"
-                    >
-                      <DeleteIcon sx={{ fontSize: 16 }} />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-[#0071E3]/5 rounded-2xl p-6 text-center">
-              <p className="text-[#0071E3] font-medium">No forms have been created yet. Use the buttons above to generate forms for this collaboration.</p>
-            </div>
-          )}
-
-          {/* Data Collection Methods */}
-          <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Data Collection Methods</Typography>
-          {dataCollectionMethods.length > 0 ? (
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>Method</strong></TableCell>
-                    <TableCell><strong>Frequency</strong></TableCell>
-                    <TableCell><strong>Responsible Entity</strong></TableCell>
-                    <TableCell><strong>Data Points</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {dataCollectionMethods.map((method: any, index: number) => (
-                    <TableRow key={method.id || index}>
-                      <TableCell>{method.name}</TableCell>
-                      <TableCell>
-                        <Chip label={method.frequency} size="small" />
-                      </TableCell>
-                      <TableCell>{method.responsibleEntity}</TableCell>
-                      <TableCell>
-                        {method.dataPoints?.slice(0, 3).join(', ')}
-                        {method.dataPoints?.length > 3 && '...'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          ) : (
-            <Alert severity="info">No data collection methods defined.</Alert>
-          )}
-        </TabPanel>
-
         {/* Programs Tab */}
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={1}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Program Forms</Typography>
             <Button
@@ -1672,7 +1560,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* Datasets Tab */}
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={2}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Linked Datasets</Typography>
             <Button
@@ -1692,7 +1580,7 @@ function CollaborationDetailContent() {
                 Digital Literacy Program Datasets
               </Typography>
               <Grid container spacing={2}>
-                {programForms.map((form: ProgramForm, index: number) => (
+                {programForms.map((form: any, index: number) => (
                   <Grid item xs={12} md={4} key={form.id || index}>
                     <Card sx={{ borderLeft: 4, borderColor: 'primary.main' }}>
                       <CardContent>
@@ -1796,7 +1684,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* Partners Tab */}
-        <TabPanel value={tabValue} index={4}>
+        <TabPanel value={tabValue} index={3}>
           <Typography variant="h6" sx={{ mb: 3 }}>Collaborating Organizations</Typography>
           
           <Grid container spacing={3}>
@@ -1869,7 +1757,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* Billing / Invoices Tab - Hidden for nonprofit users */}
-        {!isNonprofit && <TabPanel value={tabValue} index={5}>
+        {!isNonprofit && <TabPanel value={tabValue} index={4}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Billing & Invoices</Typography>
             <Button
@@ -2079,8 +1967,8 @@ function CollaborationDetailContent() {
           )}
         </TabPanel>}
 
-        {/* Milestones / Tasks Tab - index 6 (was 7 before AI Reports tab removed) */}
-        <TabPanel value={tabValue} index={6}>
+        {/* Milestones / Tasks Tab */}
+        <TabPanel value={tabValue} index={5}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Milestones & Tasks</Typography>
             <Button
