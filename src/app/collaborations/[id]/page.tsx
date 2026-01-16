@@ -1999,8 +1999,8 @@ function CollaborationDetailContent() {
           )}
         </TabPanel>}
 
-        {/* Milestones / Tasks Tab - index adjusts based on whether Invoices tab is shown */}
-        <TabPanel value={tabValue} index={isNonprofit ? 6 : 7}>
+        {/* Milestones / Tasks Tab - always index 7 since Billing tab is hidden with display:none but still in DOM */}
+        <TabPanel value={tabValue} index={7}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Milestones & Tasks</Typography>
             <Button
