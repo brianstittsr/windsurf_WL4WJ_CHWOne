@@ -45,7 +45,7 @@ function GrantsContent() {
         </div>
 
         {/* Grant Management Component */}
-        <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
+        <div className="p-6">
           <GrantManagement />
         </div>
       </div>
