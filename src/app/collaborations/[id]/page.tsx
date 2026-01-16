@@ -1135,7 +1135,6 @@ function CollaborationDetailContent() {
             <Tab label="Forms & Data" icon={<FormIcon />} iconPosition="start" />
             <Tab label="Programs" icon={<SchoolIcon />} iconPosition="start" />
             <Tab label="Datasets" icon={<DatasetIcon />} iconPosition="start" />
-            <Tab label="AI Reports" icon={<AIIcon />} iconPosition="start" />
             <Tab label="Partners" icon={<GroupsIcon />} iconPosition="start" />
             <Tab 
               label="Billing / Invoices" 
@@ -1149,8 +1148,8 @@ function CollaborationDetailContent() {
 
         {/* Apple-styled Documents Tab */}
         <TabPanel value={tabValue} index={0}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* MOU Document */}
+          <div className="space-y-6">
+            {/* MOU Document Card */}
             <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
               <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
                 <div className="flex items-center gap-3">
@@ -1167,7 +1166,6 @@ function CollaborationDetailContent() {
                     : 'Upload the Memorandum of Understanding (MOU) agreement for this collaboration.'}
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {/* Upload Button */}
                   <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors cursor-pointer">
                     <UploadIcon sx={{ fontSize: 18 }} />
                     {mouUploading ? 'Uploading...' : 'Upload MOU'}
@@ -1179,12 +1177,9 @@ function CollaborationDetailContent() {
                       disabled={mouUploading}
                     />
                   </label>
-                  
-                  {/* Download Button - only shows when MOU is uploaded */}
                   {mouDocumentUrl && (
                     <button
                       onClick={() => {
-                        // Handle base64 data download
                         if (mouDocumentUrl.startsWith('data:')) {
                           const link = document.createElement('a');
                           link.href = mouDocumentUrl;
@@ -1193,7 +1188,6 @@ function CollaborationDetailContent() {
                           link.click();
                           document.body.removeChild(link);
                         } else {
-                          // Handle URL download (backwards compatibility)
                           window.open(mouDocumentUrl, '_blank');
                         }
                       }}
@@ -1207,54 +1201,163 @@ function CollaborationDetailContent() {
               </div>
             </div>
 
-            {/* Original Grant Document */}
+            {/* AI Analyzed Grant Document - Full Section */}
             <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
+              <div className="px-6 py-4 border-b border-[#D2D2D7] bg-gradient-to-r from-[#5856D6] to-[#AF52DE]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#0071E3] rounded-xl flex items-center justify-center">
-                    <DocumentIcon sx={{ color: 'white', fontSize: 22 }} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-[#1D1D1F]">Original Grant Document</h3>
-                </div>
-              </div>
-              <div className="p-6">
-                <p className="text-sm text-[#6E6E73] mb-4">
-                  The original grant document that was uploaded and analyzed.
-                </p>
-                <button
-                  onClick={() => handleExportDocument('original')}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0071E3] text-white rounded-xl font-medium text-sm hover:bg-[#0077ED] transition-colors"
-                >
-                  <DownloadIcon sx={{ fontSize: 18 }} />
-                  Download Original
-                </button>
-              </div>
-            </div>
-
-            {/* AI Analyzed Grant Document */}
-            <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#D2D2D7] bg-[#F5F5F7]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#5856D6] rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                     <AIIcon sx={{ color: 'white', fontSize: 22 }} />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#1D1D1F]">AI Analyzed Grant Document</h3>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">AI Analyzed Grant Document</h3>
+                    <p className="text-sm text-white/80">Structured data extracted by AI from the grant document</p>
+                  </div>
                 </div>
               </div>
               <div className="p-6">
-                <p className="text-sm text-[#6E6E73] mb-4">
-                  The structured data extracted by AI from the grant document.
-                </p>
-                <button
-                  onClick={() => {
-                    setTabValue(4);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#5856D6] text-white rounded-xl font-medium text-sm hover:bg-[#4B49B8] transition-colors"
-                >
-                  <ViewIcon sx={{ fontSize: 18 }} />
-                  View Analyzed
-                </button>
+                {/* Grant Overview */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-[#6E6E73] uppercase tracking-wide mb-3">Grant Overview</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-xs text-[#6E6E73] mb-1">Grant Title</p>
+                      <p className="text-sm font-semibold text-[#1D1D1F]">{grant?.title || 'Not specified'}</p>
+                    </div>
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-xs text-[#6E6E73] mb-1">Funding Amount</p>
+                      <p className="text-sm font-semibold text-[#34C759]">${(grant?.amount || 0).toLocaleString()}</p>
+                    </div>
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-xs text-[#6E6E73] mb-1">Funding Source</p>
+                      <p className="text-sm font-semibold text-[#1D1D1F]">{grant?.fundingSource || 'Not specified'}</p>
+                    </div>
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-xs text-[#6E6E73] mb-1">Grant Number</p>
+                      <p className="text-sm font-semibold text-[#1D1D1F]">{(grant as any)?.grantNumber || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-[#6E6E73] uppercase tracking-wide mb-3">Timeline</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-xs text-[#6E6E73] mb-1">Start Date</p>
+                      <p className="text-sm font-semibold text-[#1D1D1F]">
+                        {grant?.startDate?.toDate ? grant.startDate.toDate().toLocaleDateString() : 'Not specified'}
+                      </p>
+                    </div>
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-xs text-[#6E6E73] mb-1">End Date</p>
+                      <p className="text-sm font-semibold text-[#1D1D1F]">
+                        {grant?.endDate?.toDate ? grant.endDate.toDate().toLocaleDateString() : 'Not specified'}
+                      </p>
+                    </div>
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-xs text-[#6E6E73] mb-1">Contact Person</p>
+                      <p className="text-sm font-semibold text-[#1D1D1F]">{grant?.contactPerson || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Collaborating Entities */}
+                {entities.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-[#6E6E73] uppercase tracking-wide mb-3">Collaborating Entities ({entities.length})</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {entities.map((entity: any, index: number) => (
+                        <div key={entity.id || index} className="bg-[#F5F5F7] rounded-xl p-4 flex items-start gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold ${
+                            entity.role === 'lead' ? 'bg-[#5856D6]' : 
+                            entity.role === 'partner' ? 'bg-[#0071E3]' : 
+                            entity.role === 'evaluator' ? 'bg-[#FF9500]' : 'bg-[#86868B]'
+                          }`}>
+                            {entity.name?.charAt(0) || 'E'}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-[#1D1D1F]">{entity.name}</p>
+                            <p className="text-xs text-[#6E6E73] capitalize">{entity.role}</p>
+                            {entity.contactName && (
+                              <p className="text-xs text-[#86868B] mt-1">Contact: {entity.contactName}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Data Collection Methods */}
+                {dataCollectionMethods.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-[#6E6E73] uppercase tracking-wide mb-3">Data Collection Methods ({dataCollectionMethods.length})</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {dataCollectionMethods.map((method: any, index: number) => (
+                        <div key={index} className="bg-[#F5F5F7] rounded-xl p-4">
+                          <p className="text-sm font-semibold text-[#1D1D1F] mb-1">{method.name}</p>
+                          <p className="text-xs text-[#6E6E73] mb-2">{method.description}</p>
+                          <div className="flex flex-wrap gap-1">
+                            <span className="px-2 py-0.5 bg-[#0071E3]/10 text-[#0071E3] text-xs rounded-full">{method.frequency}</span>
+                            {method.dataPoints?.slice(0, 2).map((dp: string, i: number) => (
+                              <span key={i} className="px-2 py-0.5 bg-[#86868B]/10 text-[#6E6E73] text-xs rounded-full">{dp}</span>
+                            ))}
+                            {method.dataPoints?.length > 2 && (
+                              <span className="px-2 py-0.5 bg-[#86868B]/10 text-[#6E6E73] text-xs rounded-full">+{method.dataPoints.length - 2} more</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Project Milestones */}
+                {milestones.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-[#6E6E73] uppercase tracking-wide mb-3">Project Milestones ({milestones.length})</h4>
+                    <div className="space-y-2">
+                      {milestones.map((milestone: any, index: number) => (
+                        <div key={milestone.id || index} className="bg-[#F5F5F7] rounded-xl p-4 flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            milestone.status === 'completed' ? 'bg-[#34C759]' : 
+                            milestone.status === 'in_progress' ? 'bg-[#FF9500]' : 'bg-[#D2D2D7]'
+                          }`}>
+                            {milestone.status === 'completed' ? (
+                              <CheckCircleIcon sx={{ color: 'white', fontSize: 18 }} />
+                            ) : milestone.status === 'in_progress' ? (
+                              <PlayIcon sx={{ color: 'white', fontSize: 18 }} />
+                            ) : (
+                              <ScheduleIcon sx={{ color: '#6E6E73', fontSize: 18 }} />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-[#1D1D1F]">{milestone.name || milestone.title}</p>
+                            {milestone.dueDate && (
+                              <p className="text-xs text-[#6E6E73]">Due: {new Date(milestone.dueDate).toLocaleDateString()}</p>
+                            )}
+                          </div>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            milestone.status === 'completed' ? 'bg-[#34C759]/10 text-[#34C759]' : 
+                            milestone.status === 'in_progress' ? 'bg-[#FF9500]/10 text-[#FF9500]' : 'bg-[#86868B]/10 text-[#86868B]'
+                          }`}>
+                            {milestone.status?.replace('_', ' ') || 'not started'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                {grant?.description && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#6E6E73] uppercase tracking-wide mb-3">Description</h4>
+                    <div className="bg-[#F5F5F7] rounded-xl p-4">
+                      <p className="text-sm text-[#1D1D1F]">{grant.description}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1581,142 +1684,119 @@ function CollaborationDetailContent() {
             </Button>
           </Box>
 
-          <Alert severity="info" sx={{ mb: 3 }}>
-            Datasets are automatically created when forms are submitted. Link existing datasets or create new ones for this collaboration.
-          </Alert>
-
-          <Grid container spacing={2}>
-            {dataCollectionMethods.map((method: any, index: number) => (
-              <Grid item xs={12} md={4} key={index}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <DatasetIcon color="primary" />
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {method.name} Dataset
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Data collected via {method.frequency} {method.name.toLowerCase()}
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Chip label={`${method.dataPoints?.length || 0} fields`} size="small" />
-                      <Chip label={method.frequency} size="small" variant="outlined" />
-                    </Box>
-                  </CardContent>
-                </Card>
+          {/* Digital Literacy Program Datasets */}
+          {programForms.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SchoolIcon color="primary" />
+                Digital Literacy Program Datasets
+              </Typography>
+              <Grid container spacing={2}>
+                {programForms.map((form: ProgramForm, index: number) => (
+                  <Grid item xs={12} md={4} key={form.id || index}>
+                    <Card sx={{ borderLeft: 4, borderColor: 'primary.main' }}>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                          <DatasetIcon color="primary" />
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            {form.name}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {getProgramTypeLabel(form.programType)} - {form.fields?.length || 0} fields
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                          <Chip 
+                            label={form.programType} 
+                            size="small" 
+                            color="primary"
+                            variant="outlined"
+                          />
+                          <Chip 
+                            label={`${form.submissions?.length || 0} submissions`} 
+                            size="small" 
+                          />
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            startIcon={<DownloadIcon />}
+                            onClick={() => {
+                              // Export dataset as CSV
+                              const headers = form.fields?.map((f: any) => f.label || f.name) || [];
+                              const submissions = form.submissions || [];
+                              let csv = headers.join(',') + '\n';
+                              submissions.forEach((sub: any) => {
+                                const row = form.fields?.map((f: any) => {
+                                  const val = sub.data?.[f.name] || '';
+                                  return `"${String(val).replace(/"/g, '""')}"`;
+                                }) || [];
+                                csv += row.join(',') + '\n';
+                              });
+                              const blob = new Blob([csv], { type: 'text/csv' });
+                              const url = URL.createObjectURL(blob);
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.download = `${form.name.replace(/\s+/g, '-').toLowerCase()}-dataset.csv`;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              URL.revokeObjectURL(url);
+                            }}
+                          >
+                            Download CSV
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
-        </TabPanel>
+            </Box>
+          )}
 
-        {/* AI Reports Tab */}
-        <TabPanel value={tabValue} index={4}>
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">AI Generated Reports</Typography>
-            <Button
-              variant="contained"
-              startIcon={<AIIcon />}
-              onClick={() => router.push(`/reports/generate?grantId=${collaborationId}`)}
-            >
-              Generate New Report
-            </Button>
-          </Box>
+          {/* Data Collection Method Datasets */}
+          {dataCollectionMethods.length > 0 && (
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                Data Collection Datasets
+              </Typography>
+              <Grid container spacing={2}>
+                {dataCollectionMethods.map((method: any, index: number) => (
+                  <Grid item xs={12} md={4} key={index}>
+                    <Card>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                          <DatasetIcon color="secondary" />
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            {method.name} Dataset
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Data collected via {method.frequency} {method.name.toLowerCase()}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Chip label={`${method.dataPoints?.length || 0} fields`} size="small" />
+                          <Chip label={method.frequency} size="small" variant="outlined" />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardHeader 
-                  title="Progress Summary Report"
-                  subheader="Auto-generated based on milestone completion"
-                />
-                <CardContent>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      This report provides an AI-generated summary of project progress, 
-                      including milestone status, timeline adherence, and recommendations.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button variant="outlined" startIcon={<DownloadIcon />}>
-                      Download PDF
-                    </Button>
-                    <Button variant="outlined">View Online</Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardHeader 
-                  title="Partner Contribution Report"
-                  subheader="Analysis of partner activities and deliverables"
-                />
-                <CardContent>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Detailed breakdown of each partner's contributions, 
-                      responsibilities fulfilled, and collaboration metrics.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button variant="outlined" startIcon={<DownloadIcon />}>
-                      Download PDF
-                    </Button>
-                    <Button variant="outlined">View Online</Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardHeader 
-                  title="Data Collection Report"
-                  subheader="Summary of collected data and compliance"
-                />
-                <CardContent>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Overview of data collection activities, submission rates, 
-                      data quality metrics, and compliance status.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button variant="outlined" startIcon={<DownloadIcon />}>
-                      Download PDF
-                    </Button>
-                    <Button variant="outlined">View Online</Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card>
-                <CardHeader 
-                  title="Funder Report"
-                  subheader="Formatted report for grant funders"
-                />
-                <CardContent>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Comprehensive report formatted according to funder requirements,
-                      including financials, outcomes, and impact metrics.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button variant="outlined" startIcon={<DownloadIcon />}>
-                      Download PDF
-                    </Button>
-                    <Button variant="outlined">View Online</Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+          {programForms.length === 0 && dataCollectionMethods.length === 0 && (
+            <Alert severity="info">
+              No datasets available yet. Create a Digital Literacy Program or define data collection methods to generate datasets.
+            </Alert>
+          )}
         </TabPanel>
 
         {/* Partners Tab */}
-        <TabPanel value={tabValue} index={5}>
+        <TabPanel value={tabValue} index={4}>
           <Typography variant="h6" sx={{ mb: 3 }}>Collaborating Organizations</Typography>
           
           <Grid container spacing={3}>
@@ -1789,7 +1869,7 @@ function CollaborationDetailContent() {
         </TabPanel>
 
         {/* Billing / Invoices Tab - Hidden for nonprofit users */}
-        {!isNonprofit && <TabPanel value={tabValue} index={6}>
+        {!isNonprofit && <TabPanel value={tabValue} index={5}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Billing & Invoices</Typography>
             <Button
@@ -1999,8 +2079,8 @@ function CollaborationDetailContent() {
           )}
         </TabPanel>}
 
-        {/* Milestones / Tasks Tab - always index 7 since Billing tab is hidden with display:none but still in DOM */}
-        <TabPanel value={tabValue} index={7}>
+        {/* Milestones / Tasks Tab - index 6 (was 7 before AI Reports tab removed) */}
+        <TabPanel value={tabValue} index={6}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Milestones & Tasks</Typography>
             <Button
