@@ -91,42 +91,40 @@ export default function NCLegislaturePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7]">
-      {/* Apple-style Header */}
-      <div className="bg-[#1D1D1F] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-[#0071E3] rounded-2xl flex items-center justify-center">
-              <Building2 className="w-8 h-8 text-white" />
+    <div className="space-y-6">
+      {/* Stats Cards - Apple Style */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-[#0071E3] rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-4xl font-semibold tracking-tight">NC General Assembly</h1>
-              <p className="text-[#86868B] text-lg mt-1">
-                North Carolina House of Representatives • 2025-2026 Session
-              </p>
-            </div>
+            <p className="text-[#6E6E73] text-sm font-medium">Total Members</p>
           </div>
-          
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5">
-              <p className="text-[#86868B] text-sm font-medium">Total Members</p>
-              <p className="text-4xl font-semibold mt-1">{stats.total}</p>
+          <p className="text-3xl font-semibold text-[#1D1D1F]">{stats.total}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-[#FF3B30] rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
             </div>
-            <div className="bg-[#FF3B30]/20 backdrop-blur-xl rounded-2xl p-5">
-              <p className="text-[#FF6961] text-sm font-medium">Republicans</p>
-              <p className="text-4xl font-semibold mt-1">{stats.republicans}</p>
-            </div>
-            <div className="bg-[#0071E3]/20 backdrop-blur-xl rounded-2xl p-5">
-              <p className="text-[#5AC8FA] text-sm font-medium">Democrats</p>
-              <p className="text-4xl font-semibold mt-1">{stats.democrats}</p>
-            </div>
+            <p className="text-[#6E6E73] text-sm font-medium">Republicans</p>
           </div>
+          <p className="text-3xl font-semibold text-[#1D1D1F]">{stats.republicans}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-[#0071E3] rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <p className="text-[#6E6E73] text-sm font-medium">Democrats</p>
+          </div>
+          <p className="text-3xl font-semibold text-[#1D1D1F]">{stats.democrats}</p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         {/* Search and Filters */}
         <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
