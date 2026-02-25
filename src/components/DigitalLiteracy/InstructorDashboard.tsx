@@ -16,6 +16,7 @@ import StudentCard, { Student } from './StudentCard';
 import StudentDetailView from './StudentDetailView';
 import CompletionTracking, { CompletionData } from './CompletionTracking';
 import Certificate from './Certificate';
+import ClassManager, { ClassDefinition } from './ClassManager';
 import { 
   Language, 
   t, 
@@ -607,21 +608,13 @@ export default function InstructorDashboard({
             </div>
           )}
           
-          <div className="flex gap-4 flex-wrap mb-6">
-            <div className="min-w-[300px]">
-              <Label className="mb-2 block">{getText('dashboard.currentClass')}</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CLASS_SCHEDULES.map(schedule => (
-                    <SelectItem key={schedule.id} value={schedule.id}>
-                      {schedule[language]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="flex gap-4 flex-wrap mb-6 items-end">
+            <div className="flex-1 min-w-[300px]">
+              <ClassManager 
+                language={language}
+                selectedClassId={selectedClass}
+                onClassSelect={(classItem: ClassDefinition) => setSelectedClass(classItem.id)}
+              />
             </div>
             
             <div className="min-w-[150px]">

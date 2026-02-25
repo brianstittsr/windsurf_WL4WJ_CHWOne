@@ -152,8 +152,6 @@ function CollaborationDetailContent() {
     completedAt: '',
     completedBy: ''
   });
-  const [showMilestoneHistory, setShowMilestoneHistory] = useState(false);
-  const [selectedMilestoneHistory, setSelectedMilestoneHistory] = useState<any>(null);
   const [showChangeRequestDialog, setShowChangeRequestDialog] = useState(false);
   const [changeRequestForm, setChangeRequestForm] = useState({
     milestoneId: '',
@@ -197,6 +195,367 @@ function CollaborationDetailContent() {
   const [mouDocumentUrl, setMouDocumentUrl] = useState<string | null>(null);
   const [mouUploading, setMouUploading] = useState(false);
   const [mouFileName, setMouFileName] = useState<string | null>(null);
+
+  // Inline date editing state
+  const [editingMilestoneDateId, setEditingMilestoneDateId] = useState<string | null>(null);
+  const [editingDateValue, setEditingDateValue] = useState<string>('');
+
+  // Helper to format date as MM/DD/YYYY without timezone conversion
+  const formatDateDisplay = (dateStr: string | undefined) => {
+    if (!dateStr) return 'Not set';
+    // Handle YYYY-MM-DD format directly to avoid timezone issues
+    if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateStr.split('-');
+      return `${month}/${day}/${year}`;
+    }
+    // Fallback for other date formats
+    const date = new Date(dateStr);
+    return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}/${date.getFullYear()}`;
+  };
+
+  // Helper to get YYYY-MM-DD from a date string for the input field
+  const getDateInputValue = (dateStr: string | undefined) => {
+    if (!dateStr) return '';
+    // If already in YYYY-MM-DD format, return as-is
+    if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateStr;
+    }
+    // Otherwise parse and format
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  // Handle inline date update for milestones
+  const handleUpdateMilestoneDate = async (milestoneId: string, newDate: string) => {
+    if (!grant || !newDate) return;
+    
+    try {
+      const { updateGrant } = await import('@/lib/schema/data-access');
+      const currentMilestones = (grant as any).projectMilestones || [];
+      
+      const updatedMilestones = currentMilestones.map((m: any) => {
+        if (m.id === milestoneId) {
+          return {
+            ...m,
+            dueDate: newDate, // Store as YYYY-MM-DD string directly
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return m;
+      });
+      
+      await updateGrant(grant.id, { projectMilestones: updatedMilestones } as any);
+      setGrant({ ...grant, projectMilestones: updatedMilestones } as any);
+      setEditingMilestoneDateId(null);
+      setEditingDateValue('');
+    } catch (error) {
+      console.error('Error updating milestone date:', error);
+    }
+  };
+
+  // Generate PDF for Grant Metrics and Milestones - Landscape Dashboard Style
+  const handleDownloadMetricsPDF = async () => {
+    try {
+      const jsPDF = (await import('jspdf')).default;
+      // Landscape orientation: 'l' for landscape
+      const doc = new jsPDF('l', 'mm', 'letter');
+      const pageWidth = doc.internal.pageSize.getWidth(); // 279.4mm for letter landscape
+      const pageHeight = doc.internal.pageSize.getHeight(); // 215.9mm for letter landscape
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
+      
+      // Background
+      doc.setFillColor(245, 245, 247); // Light gray background like the dashboard
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      // Header section with white card
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, margin, contentWidth, 25, 3, 3, 'F');
+      
+      // Title
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(29, 29, 31);
+      doc.text('Grant Metrics Report', margin + 10, margin + 12);
+      
+      // Grant Title
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(110, 110, 115);
+      doc.text(grant?.title || 'Untitled Grant', margin + 10, margin + 20);
+
+      // Date on right side
+      doc.setFontSize(9);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin - 10, margin + 16, { align: 'right' });
+
+      let yPos = margin + 35;
+
+      // Grant Metrics Tracker Card
+      const metricsCardHeight = 55;
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, yPos, contentWidth, metricsCardHeight, 3, 3, 'F');
+
+      // Section title with icon placeholder
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(29, 29, 31);
+      doc.text('Grant Metrics Tracker', margin + 10, yPos + 12);
+
+      // Progress circle area
+      const completedCount = milestones.filter((m: any) => m.status === 'completed').length;
+      const progressPercent = milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : 0;
+      
+      // Draw progress circle
+      const circleX = margin + 35;
+      const circleY = yPos + 35;
+      const circleRadius = 15;
+      
+      // Background circle
+      doc.setDrawColor(210, 210, 215);
+      doc.setLineWidth(3);
+      doc.circle(circleX, circleY, circleRadius, 'S');
+      
+      // Progress arc (simplified as colored circle segment)
+      const progressColor = progressPercent >= 75 ? [52, 199, 89] : progressPercent >= 50 ? [255, 149, 0] : [255, 59, 48];
+      doc.setDrawColor(progressColor[0], progressColor[1], progressColor[2]);
+      doc.circle(circleX, circleY, circleRadius, 'S');
+      
+      // Percentage text
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(progressColor[0], progressColor[1], progressColor[2]);
+      doc.text(`${progressPercent}%`, circleX, circleY + 2, { align: 'center' });
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(110, 110, 115);
+      doc.text('Complete', circleX, circleY + 10, { align: 'center' });
+
+      // Metrics boxes - positioned to the right of the progress circle
+      // Calculate box dimensions to fit within available space
+      const availableWidth = contentWidth - 70 - 10; // Space after circle, minus padding
+      const boxWidth = 38;
+      const boxHeight = 28;
+      const boxGap = 6;
+      const boxStartX = margin + 65;
+      const boxY = yPos + 20;
+
+      // Total Milestones box
+      doc.setFillColor(240, 247, 255);
+      doc.setDrawColor(0, 113, 227);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(boxStartX, boxY, boxWidth, boxHeight, 2, 2, 'FD');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 113, 227);
+      doc.text(String(milestones.length), boxStartX + boxWidth/2, boxY + 12, { align: 'center' });
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Total Milestones', boxStartX + boxWidth/2, boxY + 20, { align: 'center' });
+
+      // Completed box
+      doc.setFillColor(240, 255, 245);
+      doc.setDrawColor(52, 199, 89);
+      doc.roundedRect(boxStartX + boxWidth + boxGap, boxY, boxWidth, boxHeight, 2, 2, 'FD');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(52, 199, 89);
+      doc.text(String(completedCount), boxStartX + boxWidth + boxGap + boxWidth/2, boxY + 12, { align: 'center' });
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Completed', boxStartX + boxWidth + boxGap + boxWidth/2, boxY + 20, { align: 'center' });
+
+      // In Progress box
+      const inProgressCount = milestones.filter((m: any) => m.status === 'in_progress').length;
+      doc.setFillColor(255, 250, 240);
+      doc.setDrawColor(255, 149, 0);
+      doc.roundedRect(boxStartX + (boxWidth + boxGap) * 2, boxY, boxWidth, boxHeight, 2, 2, 'FD');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 149, 0);
+      doc.text(String(inProgressCount), boxStartX + (boxWidth + boxGap) * 2 + boxWidth/2, boxY + 12, { align: 'center' });
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'normal');
+      doc.text('In Progress', boxStartX + (boxWidth + boxGap) * 2 + boxWidth/2, boxY + 20, { align: 'center' });
+
+      // Partners box
+      doc.setFillColor(240, 248, 255);
+      doc.setDrawColor(0, 122, 255);
+      doc.roundedRect(boxStartX + (boxWidth + boxGap) * 3, boxY, boxWidth, boxHeight, 2, 2, 'FD');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 122, 255);
+      doc.text(String(entities.length), boxStartX + (boxWidth + boxGap) * 3 + boxWidth/2, boxY + 12, { align: 'center' });
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Partners', boxStartX + (boxWidth + boxGap) * 3 + boxWidth/2, boxY + 20, { align: 'center' });
+
+      // Timeline text only (no progress bar) - positioned on the right side
+      const startDate = grant?.startDate?.toDate ? formatDateDisplay(grant.startDate.toDate().toISOString().split('T')[0]) : 'N/A';
+      const endDate = grant?.endDate?.toDate ? formatDateDisplay(grant.endDate.toDate().toISOString().split('T')[0]) : 'N/A';
+      doc.setFontSize(8);
+      doc.setTextColor(110, 110, 115);
+      doc.text(`Timeline: ${startDate} - ${endDate}`, pageWidth - margin - 10, yPos + 12, { align: 'right' });
+
+      yPos += metricsCardHeight + 8;
+
+      // Billing & Invoicing Card
+      const billingTotals = calculateInvoiceTotals();
+      const billingCardHeight = 35;
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, yPos, contentWidth, billingCardHeight, 3, 3, 'F');
+
+      // Section title
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(29, 29, 31);
+      doc.text('Billing & Invoicing Status', margin + 10, yPos + 10);
+
+      // Billing metrics boxes
+      const billingBoxWidth = 42;
+      const billingBoxHeight = 20;
+      const billingBoxGap = 8;
+      const billingBoxStartX = margin + 10;
+      const billingBoxY = yPos + 14;
+
+      // Total Budget
+      doc.setFillColor(240, 247, 255);
+      doc.setDrawColor(0, 113, 227);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(billingBoxStartX, billingBoxY, billingBoxWidth, billingBoxHeight, 2, 2, 'FD');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 113, 227);
+      doc.text(`$${billingTotals.budget.toLocaleString()}`, billingBoxStartX + billingBoxWidth/2, billingBoxY + 9, { align: 'center' });
+      doc.setFontSize(5);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Total Budget', billingBoxStartX + billingBoxWidth/2, billingBoxY + 15, { align: 'center' });
+
+      // Total Invoices
+      const grantInvoices = (grant as any)?.invoices || [];
+      doc.setFillColor(240, 248, 255);
+      doc.setDrawColor(0, 122, 255);
+      doc.roundedRect(billingBoxStartX + billingBoxWidth + billingBoxGap, billingBoxY, billingBoxWidth, billingBoxHeight, 2, 2, 'FD');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 122, 255);
+      doc.text(String(grantInvoices.length), billingBoxStartX + billingBoxWidth + billingBoxGap + billingBoxWidth/2, billingBoxY + 9, { align: 'center' });
+      doc.setFontSize(5);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Total Invoices', billingBoxStartX + billingBoxWidth + billingBoxGap + billingBoxWidth/2, billingBoxY + 15, { align: 'center' });
+
+      // Invoiced
+      doc.setFillColor(255, 250, 240);
+      doc.setDrawColor(255, 149, 0);
+      doc.roundedRect(billingBoxStartX + (billingBoxWidth + billingBoxGap) * 2, billingBoxY, billingBoxWidth, billingBoxHeight, 2, 2, 'FD');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 149, 0);
+      doc.text(`$${billingTotals.totalInvoiced.toLocaleString()}`, billingBoxStartX + (billingBoxWidth + billingBoxGap) * 2 + billingBoxWidth/2, billingBoxY + 9, { align: 'center' });
+      doc.setFontSize(5);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Invoiced', billingBoxStartX + (billingBoxWidth + billingBoxGap) * 2 + billingBoxWidth/2, billingBoxY + 15, { align: 'center' });
+
+      // Paid
+      doc.setFillColor(240, 255, 245);
+      doc.setDrawColor(52, 199, 89);
+      doc.roundedRect(billingBoxStartX + (billingBoxWidth + billingBoxGap) * 3, billingBoxY, billingBoxWidth, billingBoxHeight, 2, 2, 'FD');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(52, 199, 89);
+      doc.text(`$${billingTotals.totalPaid.toLocaleString()}`, billingBoxStartX + (billingBoxWidth + billingBoxGap) * 3 + billingBoxWidth/2, billingBoxY + 9, { align: 'center' });
+      doc.setFontSize(5);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Paid', billingBoxStartX + (billingBoxWidth + billingBoxGap) * 3 + billingBoxWidth/2, billingBoxY + 15, { align: 'center' });
+
+      // Remaining
+      doc.setFillColor(245, 245, 247);
+      doc.setDrawColor(134, 134, 139);
+      doc.roundedRect(billingBoxStartX + (billingBoxWidth + billingBoxGap) * 4, billingBoxY, billingBoxWidth, billingBoxHeight, 2, 2, 'FD');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(29, 29, 31);
+      doc.text(`$${billingTotals.remaining.toLocaleString()}`, billingBoxStartX + (billingBoxWidth + billingBoxGap) * 4 + billingBoxWidth/2, billingBoxY + 9, { align: 'center' });
+      doc.setFontSize(5);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Remaining', billingBoxStartX + (billingBoxWidth + billingBoxGap) * 4 + billingBoxWidth/2, billingBoxY + 15, { align: 'center' });
+
+      yPos += billingCardHeight + 8;
+
+      // Project Milestones Card
+      const milestonesCardY = yPos;
+      const milestonesCardHeight = pageHeight - yPos - margin - 15;
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, milestonesCardY, contentWidth, milestonesCardHeight, 3, 3, 'F');
+
+      // Section title
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(29, 29, 31);
+      doc.text(`Project Milestones (${milestones.length})`, margin + 10, milestonesCardY + 12);
+
+      // Milestones list - two columns for landscape
+      const colWidth = (contentWidth - 30) / 2;
+      const col1X = margin + 10;
+      const col2X = margin + 20 + colWidth;
+      let milestoneY = milestonesCardY + 22;
+      const rowHeight = 18;
+
+      milestones.forEach((milestone: any, index: number) => {
+        const isSecondColumn = index >= Math.ceil(milestones.length / 2);
+        const colX = isSecondColumn ? col2X : col1X;
+        const adjustedIndex = isSecondColumn ? index - Math.ceil(milestones.length / 2) : index;
+        const currentY = milestonesCardY + 22 + (adjustedIndex * rowHeight);
+
+        // Milestone row background
+        doc.setFillColor(245, 245, 247);
+        doc.roundedRect(colX, currentY - 5, colWidth, rowHeight - 2, 2, 2, 'F');
+
+        // Status indicator circle
+        const statusColor = milestone.status === 'completed' ? [52, 199, 89] : 
+                           milestone.status === 'in_progress' ? [255, 149, 0] : [134, 134, 139];
+        doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+        doc.circle(colX + 8, currentY + 3, 4, 'F');
+
+        // Checkmark for completed
+        if (milestone.status === 'completed') {
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(6);
+          doc.setFont('helvetica', 'bold');
+          doc.text('✓', colX + 8, currentY + 5, { align: 'center' });
+        }
+
+        // Milestone name
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(29, 29, 31);
+        const milestoneName = (milestone.name || milestone.title || `Milestone ${index + 1}`).substring(0, 30);
+        doc.text(milestoneName, colX + 16, currentY + 2);
+
+        // Due date
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 115);
+        doc.text(`Due: ${formatDateDisplay(milestone.dueDate)}`, colX + 16, currentY + 9);
+
+        // Status badge on right
+        const statusText = milestone.status?.replace('_', ' ') || 'not started';
+        doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+        doc.setFontSize(8);
+        doc.text(statusText, colX + colWidth - 5, currentY + 5, { align: 'right' });
+      });
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(134, 134, 139);
+      doc.text('CHWOne Platform', margin, pageHeight - 8);
+      doc.text(`Page 1 of 1`, pageWidth - margin, pageHeight - 8, { align: 'right' });
+
+      // Save the PDF
+      doc.save(`Grant-Metrics-${grant?.title?.replace(/[^a-zA-Z0-9]/g, '-') || 'Report'}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
@@ -423,33 +782,9 @@ function CollaborationDetailContent() {
         completionDescription: milestoneForm.completionDescription,
         completedAt: milestoneForm.status === 'completed' ? (milestoneForm.completedAt || new Date().toISOString()) : null,
         completedBy: milestoneForm.status === 'completed' ? milestoneForm.completedBy : null,
-        updatedAt: new Date().toISOString(),
-        changeHistory: editingMilestone?.changeHistory || []
+        updatedAt: new Date().toISOString()
       };
 
-      // If editing and there are changes, add to change history
-      if (editingMilestone) {
-        const changes: string[] = [];
-        if (editingMilestone.name !== milestoneForm.name) changes.push(`Name changed from "${editingMilestone.name}" to "${milestoneForm.name}"`);
-        if (editingMilestone.description !== milestoneForm.description) changes.push('Description updated');
-        if (editingMilestone.dueDate !== milestoneForm.dueDate) changes.push(`Due date changed to ${milestoneForm.dueDate}`);
-        if (editingMilestone.status !== milestoneForm.status) changes.push(`Status changed from "${editingMilestone.status}" to "${milestoneForm.status}"`);
-        
-        if (changes.length > 0) {
-          milestoneData.changeHistory = [
-            ...(editingMilestone.changeHistory || []),
-            {
-              id: `change_${Date.now()}`,
-              timestamp: new Date().toISOString(),
-              changedBy: currentUser?.email || 'Unknown',
-              changes,
-              status: 'pending_approval',
-              approvedBy: null,
-              approvedAt: null
-            }
-          ];
-        }
-      }
 
       let updatedMilestones;
       if (editingMilestone) {
@@ -484,43 +819,23 @@ function CollaborationDetailContent() {
     }
   };
 
-  const handleMarkMilestoneComplete = async (milestone: any) => {
-    setEditingMilestone(milestone);
-    setMilestoneForm({
-      ...milestoneForm,
-      name: milestone.name || milestone.title,
-      description: milestone.description,
-      dueDate: milestone.dueDate,
-      assignedTo: milestone.assignedTo,
-      status: 'completed',
-      completionDescription: '',
-      completedAt: new Date().toISOString(),
-      completedBy: currentUser?.email || ''
-    });
-    setShowMilestoneDialog(true);
-  };
-
-  const handleViewMilestoneHistory = (milestone: any) => {
-    setSelectedMilestoneHistory(milestone);
-    setShowMilestoneHistory(true);
-  };
-
-  const handleApproveChange = async (milestone: any, changeId: string) => {
+  const handleToggleMilestoneComplete = async (milestone: any) => {
     if (!grant) return;
     
     try {
       const { updateGrant } = await import('@/lib/schema/data-access');
       const currentMilestones = (grant as any).projectMilestones || [];
       
+      const isCompleting = milestone.status !== 'completed';
+      
       const updatedMilestones = currentMilestones.map((m: any) => {
         if (m.id === milestone.id) {
           return {
             ...m,
-            changeHistory: m.changeHistory?.map((ch: any) => 
-              ch.id === changeId 
-                ? { ...ch, status: 'approved', approvedBy: currentUser?.email, approvedAt: new Date().toISOString() }
-                : ch
-            )
+            status: isCompleting ? 'completed' : 'not_started',
+            completedAt: isCompleting ? new Date().toISOString() : null,
+            completedBy: isCompleting ? (currentUser?.email || '') : null,
+            updatedAt: new Date().toISOString()
           };
         }
         return m;
@@ -528,45 +843,11 @@ function CollaborationDetailContent() {
       
       await updateGrant(grant.id, { projectMilestones: updatedMilestones } as any);
       setGrant({ ...grant, projectMilestones: updatedMilestones } as any);
-      
-      // Update the selected milestone history view
-      const updatedMilestone = updatedMilestones.find((m: any) => m.id === milestone.id);
-      setSelectedMilestoneHistory(updatedMilestone);
     } catch (error) {
-      console.error('Error approving change:', error);
+      console.error('Error toggling milestone:', error);
     }
   };
 
-  const handleRejectChange = async (milestone: any, changeId: string, reason?: string) => {
-    if (!grant) return;
-    
-    try {
-      const { updateGrant } = await import('@/lib/schema/data-access');
-      const currentMilestones = (grant as any).projectMilestones || [];
-      
-      const updatedMilestones = currentMilestones.map((m: any) => {
-        if (m.id === milestone.id) {
-          return {
-            ...m,
-            changeHistory: m.changeHistory?.map((ch: any) => 
-              ch.id === changeId 
-                ? { ...ch, status: 'rejected', rejectedBy: currentUser?.email, rejectedAt: new Date().toISOString(), rejectionReason: reason }
-                : ch
-            )
-          };
-        }
-        return m;
-      });
-      
-      await updateGrant(grant.id, { projectMilestones: updatedMilestones } as any);
-      setGrant({ ...grant, projectMilestones: updatedMilestones } as any);
-      
-      const updatedMilestone = updatedMilestones.find((m: any) => m.id === milestone.id);
-      setSelectedMilestoneHistory(updatedMilestone);
-    } catch (error) {
-      console.error('Error rejecting change:', error);
-    }
-  };
 
   // ============ INVOICE HANDLERS ============
   const resetInvoiceForm = () => {
@@ -910,6 +1191,17 @@ function CollaborationDetailContent() {
                 <AnalyticsIcon color="primary" />
                 <Typography variant="h6">Grant Metrics Tracker</Typography>
               </Box>
+            }
+            action={
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleDownloadMetricsPDF}
+                sx={{ mr: 1 }}
+              >
+                Download PDF
+              </Button>
             }
           />
           <CardContent>
@@ -1317,11 +1609,18 @@ function CollaborationDetailContent() {
                     <h4 className="text-sm font-semibold text-[#6E6E73] uppercase tracking-wide mb-3">Project Milestones ({milestones.length})</h4>
                     <div className="space-y-2">
                       {milestones.map((milestone: any, index: number) => (
-                        <div key={milestone.id || index} className="bg-[#F5F5F7] rounded-xl p-4 flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            milestone.status === 'completed' ? 'bg-[#34C759]' : 
-                            milestone.status === 'in_progress' ? 'bg-[#FF9500]' : 'bg-[#D2D2D7]'
-                          }`}>
+                        <div 
+                          key={milestone.id || index} 
+                          className="bg-[#F5F5F7] rounded-xl p-4 flex items-center gap-3"
+                        >
+                          <div 
+                            className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${
+                              milestone.status === 'completed' ? 'bg-[#34C759]' : 
+                              milestone.status === 'in_progress' ? 'bg-[#FF9500]' : 'bg-[#D2D2D7]'
+                            }`}
+                            onClick={() => handleToggleMilestoneComplete(milestone)}
+                            title={milestone.status === 'completed' ? 'Click to mark incomplete' : 'Click to mark complete'}
+                          >
                             {milestone.status === 'completed' ? (
                               <CheckCircleIcon sx={{ color: 'white', fontSize: 18 }} />
                             ) : milestone.status === 'in_progress' ? (
@@ -1332,8 +1631,42 @@ function CollaborationDetailContent() {
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-[#1D1D1F]">{milestone.name || milestone.title}</p>
-                            {milestone.dueDate && (
-                              <p className="text-xs text-[#6E6E73]">Due: {new Date(milestone.dueDate).toLocaleDateString()}</p>
+                            {editingMilestoneDateId === milestone.id ? (
+                              <div className="flex items-center gap-2 mt-1">
+                                <input
+                                  type="date"
+                                  value={editingDateValue}
+                                  onChange={(e) => setEditingDateValue(e.target.value)}
+                                  className="px-2 py-1 text-xs border border-[#D2D2D7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0071E3]"
+                                />
+                                <button
+                                  onClick={() => handleUpdateMilestoneDate(milestone.id, editingDateValue)}
+                                  className="p-1 text-[#34C759] hover:bg-[#34C759]/10 rounded"
+                                  title="Save"
+                                >
+                                  <CheckCircleIcon sx={{ fontSize: 18 }} />
+                                </button>
+                                <button
+                                  onClick={() => { setEditingMilestoneDateId(null); setEditingDateValue(''); }}
+                                  className="p-1 text-[#86868B] hover:bg-[#86868B]/10 rounded"
+                                  title="Cancel"
+                                >
+                                  <CloseIcon sx={{ fontSize: 18 }} />
+                                </button>
+                              </div>
+                            ) : (
+                              <p 
+                                className="text-xs text-[#6E6E73] cursor-pointer hover:text-[#0071E3] inline-flex items-center gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingMilestoneDateId(milestone.id);
+                                  setEditingDateValue(getDateInputValue(milestone.dueDate));
+                                }}
+                                title="Click to edit date"
+                              >
+                                Due: {formatDateDisplay(milestone.dueDate)}
+                                <EditIcon sx={{ fontSize: 12 }} />
+                              </p>
                             )}
                           </div>
                           <span className={`px-2 py-1 text-xs rounded-full ${
@@ -2019,9 +2352,6 @@ function CollaborationDetailContent() {
                             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                               {milestone.name || milestone.title}
                             </Typography>
-                            {milestone.changeHistory?.some((ch: any) => ch.status === 'pending_approval') && (
-                              <Chip label="Pending Approval" size="small" color="warning" />
-                            )}
                           </Box>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                             {milestone.description}
@@ -2033,11 +2363,52 @@ function CollaborationDetailContent() {
                               color={milestone.status === 'completed' ? 'success' : 
                                      milestone.status === 'in_progress' ? 'warning' : 'default'}
                             />
-                            {milestone.dueDate && (
-                              <Typography variant="caption" color="text.secondary">
-                                <CalendarIcon sx={{ fontSize: 14, mr: 0.5, verticalAlign: 'middle' }} />
-                                Due: {new Date(milestone.dueDate).toLocaleDateString()}
-                              </Typography>
+                            {editingMilestoneDateId === milestone.id ? (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <TextField
+                                  type="date"
+                                  size="small"
+                                  value={editingDateValue}
+                                  onChange={(e) => setEditingDateValue(e.target.value)}
+                                  sx={{ width: 150 }}
+                                  InputProps={{ sx: { fontSize: '0.75rem' } }}
+                                />
+                                <IconButton 
+                                  size="small" 
+                                  color="success"
+                                  onClick={() => handleUpdateMilestoneDate(milestone.id, editingDateValue)}
+                                >
+                                  <CheckCircleIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton 
+                                  size="small"
+                                  onClick={() => { setEditingMilestoneDateId(null); setEditingDateValue(''); }}
+                                >
+                                  <CloseIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            ) : (
+                              <Box 
+                                sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  cursor: 'pointer',
+                                  '&:hover': { bgcolor: 'action.hover', borderRadius: 1 },
+                                  px: 0.5,
+                                  py: 0.25
+                                }}
+                                onClick={() => {
+                                  setEditingMilestoneDateId(milestone.id);
+                                  setEditingDateValue(getDateInputValue(milestone.dueDate));
+                                }}
+                                title="Click to edit date"
+                              >
+                                <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  Due: {formatDateDisplay(milestone.dueDate)}
+                                </Typography>
+                                <EditIcon sx={{ fontSize: 12, ml: 0.5, color: 'text.disabled' }} />
+                              </Box>
                             )}
                             {milestone.assignedTo && (
                               <Typography variant="caption" color="text.secondary">
@@ -2068,26 +2439,14 @@ function CollaborationDetailContent() {
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
-                          {milestone.status !== 'completed' && (
-                            <IconButton 
-                              size="small" 
-                              color="success" 
-                              onClick={() => handleMarkMilestoneComplete(milestone)}
-                              title="Mark complete"
-                            >
-                              <CheckCircleIcon fontSize="small" />
-                            </IconButton>
-                          )}
-                          {milestone.changeHistory?.length > 0 && (
-                            <IconButton 
-                              size="small" 
-                              color="info"
-                              onClick={() => handleViewMilestoneHistory(milestone)}
-                              title="View change history"
-                            >
-                              <HistoryIcon fontSize="small" />
-                            </IconButton>
-                          )}
+                          <IconButton 
+                            size="small" 
+                            color={milestone.status === 'completed' ? 'default' : 'success'}
+                            onClick={() => handleToggleMilestoneComplete(milestone)}
+                            title={milestone.status === 'completed' ? 'Mark incomplete' : 'Mark complete'}
+                          >
+                            <CheckCircleIcon fontSize="small" />
+                          </IconButton>
                           <IconButton 
                             size="small" 
                             color="error"
@@ -2428,107 +2787,6 @@ function CollaborationDetailContent() {
             >
               {editingMilestone ? 'Save Changes' : 'Create Milestone'}
             </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Milestone Change History Dialog */}
-        <Dialog
-          open={showMilestoneHistory}
-          onClose={() => setShowMilestoneHistory(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <HistoryIcon />
-              Change History: {selectedMilestoneHistory?.name || selectedMilestoneHistory?.title}
-            </Box>
-          </DialogTitle>
-          <DialogContent>
-            {selectedMilestoneHistory?.changeHistory?.length > 0 ? (
-              <List>
-                {selectedMilestoneHistory.changeHistory.map((change: any, index: number) => (
-                  <ListItem 
-                    key={change.id || index}
-                    sx={{ 
-                      flexDirection: 'column', 
-                      alignItems: 'flex-start',
-                      borderLeft: 3,
-                      borderColor: change.status === 'approved' ? 'success.main' : 
-                                   change.status === 'rejected' ? 'error.main' : 'warning.main',
-                      mb: 2,
-                      bgcolor: 'grey.50',
-                      borderRadius: 1
-                    }}
-                  >
-                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="subtitle2">
-                        {new Date(change.timestamp).toLocaleString()}
-                      </Typography>
-                      <Chip 
-                        label={change.status?.replace('_', ' ')} 
-                        size="small"
-                        color={change.status === 'approved' ? 'success' : 
-                               change.status === 'rejected' ? 'error' : 'warning'}
-                      />
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                      Changed by: {change.changedBy}
-                    </Typography>
-                    <Box sx={{ mb: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600 }}>Changes:</Typography>
-                      <ul style={{ margin: '4px 0', paddingLeft: 20 }}>
-                        {change.changes?.map((c: string, i: number) => (
-                          <li key={i}><Typography variant="body2">{c}</Typography></li>
-                        ))}
-                      </ul>
-                    </Box>
-                    {change.status === 'approved' && (
-                      <Typography variant="caption" color="success.main">
-                        Approved by {change.approvedBy} on {new Date(change.approvedAt).toLocaleString()}
-                      </Typography>
-                    )}
-                    {change.status === 'rejected' && (
-                      <Typography variant="caption" color="error.main">
-                        Rejected by {change.rejectedBy}: {change.rejectionReason || 'No reason provided'}
-                      </Typography>
-                    )}
-                    {change.status === 'pending_approval' && (
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="success"
-                          startIcon={<ApproveIcon />}
-                          onClick={() => handleApproveChange(selectedMilestoneHistory, change.id)}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          startIcon={<RejectIcon />}
-                          onClick={() => {
-                            const reason = prompt('Please provide a reason for rejection:');
-                            if (reason !== null) {
-                              handleRejectChange(selectedMilestoneHistory, change.id, reason);
-                            }
-                          }}
-                        >
-                          Reject
-                        </Button>
-                      </Box>
-                    )}
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
-              <Alert severity="info">No change history available for this milestone.</Alert>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowMilestoneHistory(false)}>Close</Button>
           </DialogActions>
         </Dialog>
 

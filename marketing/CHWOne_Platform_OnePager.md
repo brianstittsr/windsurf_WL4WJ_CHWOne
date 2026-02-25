@@ -102,9 +102,9 @@ Organizations using CHWOne report:
 **Women Leading 4 Wellness and Justice**  
 *Empowering Community Health Through Technology*
 
-📧 **Email**: info@chwoneplatform.org  
-🌐 **Website**: www.chwoneplatform.org  
-📞 **Phone**: (555) 123-CHW1  
+📧 **Email**: anab@womenleading.org  
+🌐 **Website**: www.chwone.org  
+📞 **Phone**: (919) 444-2864  
 
 ---
 

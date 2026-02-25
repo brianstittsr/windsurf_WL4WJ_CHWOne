@@ -134,9 +134,9 @@ const AppleInput = ({
         placeholder={placeholder}
         className={`
           w-full px-4 py-3 rounded-xl border border-[#D2D2D7] bg-white
-          text-[#1D1D1F] text-sm placeholder:text-[#86868B]
+          text-[#1D1D1F] text-sm placeholder:text-[#6E6E73]
           focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent
-          disabled:bg-[#F5F5F7] disabled:text-[#86868B] disabled:cursor-not-allowed
+          disabled:bg-[#F5F5F7] disabled:text-[#1D1D1F] disabled:cursor-not-allowed
           transition-all duration-200
           ${Icon ? 'pl-10' : ''}
         `}
@@ -172,7 +172,7 @@ const AppleSelect = ({
           w-full px-4 py-3 rounded-xl border border-[#D2D2D7] bg-white
           text-[#1D1D1F] text-sm appearance-none cursor-pointer
           focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent
-          disabled:bg-[#F5F5F7] disabled:text-[#86868B] disabled:cursor-not-allowed
+          disabled:bg-[#F5F5F7] disabled:text-[#1D1D1F] disabled:cursor-not-allowed
           transition-all duration-200
         `}
       >
@@ -800,7 +800,7 @@ export default function AppleProfileComponent({
                     disabled={!isEditing}
                     rows={4}
                     placeholder="Tell others about your background and experience..."
-                    className="w-full px-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#86868B] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#86868B] disabled:cursor-not-allowed transition-all duration-200 resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#6E6E73] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#1D1D1F] disabled:cursor-not-allowed transition-all duration-200 resize-none"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1232,7 +1232,7 @@ export default function AppleProfileComponent({
                     }}
                     disabled={!isEditing}
                     placeholder="https://linkedin.com/in/yourprofile"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#86868B] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#86868B] disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#6E6E73] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#1D1D1F] disabled:cursor-not-allowed transition-all duration-200"
                   />
                 </div>
               </div>
@@ -1251,7 +1251,7 @@ export default function AppleProfileComponent({
                     }}
                     disabled={!isEditing}
                     placeholder="https://twitter.com/yourhandle"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#86868B] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#86868B] disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#6E6E73] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#1D1D1F] disabled:cursor-not-allowed transition-all duration-200"
                   />
                 </div>
               </div>
@@ -1270,7 +1270,7 @@ export default function AppleProfileComponent({
                     }}
                     disabled={!isEditing}
                     placeholder="https://facebook.com/yourprofile"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#86868B] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#86868B] disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#6E6E73] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#1D1D1F] disabled:cursor-not-allowed transition-all duration-200"
                   />
                 </div>
               </div>
@@ -1289,7 +1289,7 @@ export default function AppleProfileComponent({
                     }}
                     disabled={!isEditing}
                     placeholder="https://yourwebsite.com"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#86868B] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#86868B] disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#D2D2D7] bg-white text-[#1D1D1F] text-sm placeholder:text-[#6E6E73] focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent disabled:bg-[#F5F5F7] disabled:text-[#1D1D1F] disabled:cursor-not-allowed transition-all duration-200"
                   />
                 </div>
               </div>
