@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, Phone, User, Calendar, MapPin, Clock, CheckCircle2, Loader2 } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { 
-  CLASS_SCHEDULES, 
   COUNTIES, 
   t, 
   Language 
 } from '@/lib/translations/digitalLiteracy';
+import type { ClassDefinition } from './ClassManager';
 
 interface RegistrationFormData {
   registrationDate: string;
@@ -42,9 +44,39 @@ export default function BilingualRegistrationForm({
     county: '',
   });
   
+  const [classes, setClasses] = useState<ClassDefinition[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
   const [errors, setErrors] = useState<Partial<RegistrationFormData>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error' | 'classFull' | 'emailExists'>('idle');
+
+  // Fetch classes from Firebase
+  useEffect(() => {
+    const fetchClasses = async () => {
+      setLoadingClasses(true);
+      try {
+        const classesRef = collection(db, 'digital_literacy_classes');
+        const q = query(classesRef, where('status', '==', 'active'), orderBy('name', 'asc'));
+        const snapshot = await getDocs(q);
+        
+        const classesData: ClassDefinition[] = snapshot.docs.map(doc => ({
+          id: doc.id,
+          currentEnrollment: 0,
+          ...doc.data(),
+        } as ClassDefinition));
+        
+        setClasses(classesData);
+      } catch (error) {
+        console.error('Error fetching classes:', error);
+        // Fallback to empty array
+        setClasses([]);
+      } finally {
+        setLoadingClasses(false);
+      }
+    };
+    
+    fetchClasses();
+  }, []);
 
   const MAX_STUDENTS_PER_CLASS = 18;
 
@@ -247,19 +279,24 @@ export default function BilingualRegistrationForm({
                 if (errors.classTime) setErrors(prev => ({ ...prev, classTime: undefined }));
               }}>
                 <SelectTrigger className={`pl-10 ${errors.classTime ? 'border-red-500' : ''}`}>
-                  <SelectValue placeholder="-- Select | Seleccionar --" />
+                  <SelectValue placeholder={loadingClasses ? "Loading classes... | Cargando clases..." : "-- Select | Seleccionar --"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLASS_SCHEDULES.map((schedule) => (
+                  {classes.length === 0 && !loadingClasses && (
+                    <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                      No classes available | No hay clases disponibles
+                    </div>
+                  )}
+                  {classes.map((classItem) => (
                     <SelectItem 
-                      key={schedule.id} 
-                      value={schedule.id}
-                      disabled={isClassFull(schedule.id)}
+                      key={classItem.id} 
+                      value={classItem.id}
+                      disabled={isClassFull(classItem.id) || classItem.status !== 'active'}
                     >
-                      {schedule.en} | {schedule.es}
-                      {isClassFull(schedule.id) && ' (FULL | COMPLETO)'}
-                      {!isClassFull(schedule.id) && classEnrollments[schedule.id] && 
-                        ` (${classEnrollments[schedule.id]}/18)`
+                      {classItem.name} | {classItem.nameEs}
+                      {isClassFull(classItem.id) && ' (FULL | COMPLETO)'}
+                      {!isClassFull(classItem.id) && classEnrollments[classItem.id] && 
+                        ` (${classEnrollments[classItem.id]}/${classItem.maxCapacity || 18})`
                       }
                     </SelectItem>
                   ))}
@@ -360,7 +397,7 @@ export default function BilingualRegistrationForm({
                 <SelectTrigger className={`pl-10 ${errors.county ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="-- Select Your County | Seleccione su Condado --" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50" position="popper" sideOffset={4}>
                   {COUNTIES.map((county) => (
                     <SelectItem key={county.id} value={county.id}>
                       {county.en} | {county.es}

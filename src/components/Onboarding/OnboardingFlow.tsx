@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import WelcomeModal from './WelcomeModal';
 import ProfileCompletionModal, { ProfileFormData } from './ProfileCompletionModal';
@@ -112,7 +113,16 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
   };
 
   const handleProfileSave = async (data: ProfileFormData) => {
-    if (!currentUser?.uid) return;
+    if (!currentUser?.uid) {
+      throw new Error('Not authenticated');
+    }
+
+    let photoURL = data.photoURL || userProfile?.photoURL || null;
+    if (data.photoFile) {
+      const storageRef = ref(storage, `users/${currentUser.uid}/profile-photo`);
+      await uploadBytes(storageRef, data.photoFile);
+      photoURL = await getDownloadURL(storageRef);
+    }
 
     try {
       const updateData: Record<string, any> = {
@@ -124,8 +134,9 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
         title: data.title || null,
         region: data.region || null,
         bio: data.bio || null,
-        profileCompletedAt: new Date(),
-        updatedAt: new Date(),
+        photoURL: photoURL || null,
+        profileCompletedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
       // If an organization was selected from search, also save the linkedNonprofitId
@@ -199,6 +210,7 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
           title: userProfile?.title || '',
           region: userProfile?.region || '',
           bio: userProfile?.bio || '',
+          photoURL: userProfile?.photoURL || '',
         }}
         linkedOrganization={
           userProfile?.linkedNonprofitId 

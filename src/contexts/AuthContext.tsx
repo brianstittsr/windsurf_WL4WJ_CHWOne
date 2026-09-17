@@ -11,6 +11,14 @@ import { COLLECTIONS } from '@/lib/schema/unified-schema';
 // Auto-login control - disabled to prevent auto-login
 const DISABLE_AUTO_LOGIN = false; // Enable auto-login
 
+// WL4WJ account credentials
+const WL4WJ_ALLOWED_EMAILS = [
+  'brians@wl4wj.org',
+  'anab@wl4wj.org',
+  'kimp@wl4wj.org',
+];
+const WL4WJ_PASSWORD = 'Justice4All2023!!';
+
 // Define the shape of our auth context
 interface AuthContextType {
   currentUser: User | null;
@@ -76,21 +84,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setLoading(true);
     setError(null);
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const isWl4wj = WL4WJ_ALLOWED_EMAILS.includes(normalizedEmail);
     
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      let userCredential;
+
+      if (isWl4wj) {
+        if (password !== WL4WJ_PASSWORD) {
+          throw new Error('Invalid email or password.');
+        }
+        try {
+          userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
+        } catch (error: any) {
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            try {
+              userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+            } catch (createError: any) {
+              if (createError.code === 'auth/email-already-in-use') {
+                throw new Error('Invalid email or password.');
+              }
+              throw createError;
+            }
+            const newUser = userCredential.user;
+            await setDoc(doc(db, COLLECTIONS.USERS, newUser.uid), {
+              uid: newUser.uid,
+              email: normalizedEmail,
+              displayName: normalizedEmail.split('@')[0],
+              role: UserRole.WL4WJ_CHW,
+              roles: [UserRole.WL4WJ_CHW],
+              organization: 'wl4wj' as const,
+              organizationType: OrganizationType.CHW,
+              permissions: {
+                canCreateForms: true,
+                canEditForms: true,
+                canDeleteForms: false,
+                canViewAnalytics: true,
+                canManageUsers: false,
+                canUploadFiles: true,
+                canAccessAllOrganizations: false,
+              },
+              isActive: true,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      }
+
       setCurrentUser(userCredential.user);
       return userCredential.user;
     } catch (error: any) {
       console.error('Sign in error:', error);
       let errorMessage = 'Failed to sign in. Please try again.';
       
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential' || error.code === 'auth/email-already-in-use') {
         errorMessage = 'Invalid email or password.';
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = 'Too many failed attempts. Please try again later.';
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = 'Network error. Please check your connection.';
+      } else if (error.message === 'Invalid email or password.') {
+        errorMessage = error.message;
       }
       
       setError(errorMessage);

@@ -12,7 +12,7 @@ import {
   Student,
   CompletionData,
 } from '@/components/DigitalLiteracy';
-import { Language, CLASS_SCHEDULES } from '@/lib/translations/digitalLiteracy';
+import { Language } from '@/lib/translations/digitalLiteracy';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -194,9 +194,14 @@ function DigitalLiteracyContent() {
 
   // Fetch real data from Firebase only
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch classes count from Firebase
+        const classesRef = collection(db, 'digital_literacy_classes');
+        const classesSnapshot = await getDocs(classesRef);
+        const totalClassesCount = classesSnapshot.size;
         
         // Try to fetch from Firebase digital_literacy_students collection
         const studentsRef = collection(db, 'digital_literacy_students');
@@ -237,7 +242,7 @@ function DigitalLiteracyContent() {
         setMetrics({
           totalStudents: firebaseStudents.length,
           completedStudents: firebaseStudents.filter(s => s.completed).length,
-          totalClasses: CLASS_SCHEDULES.length,
+          totalClasses: totalClassesCount,
           fullClasses: Object.values(enrollments).filter(c => c >= 18).length
         });
       } catch (error) {
@@ -248,7 +253,7 @@ function DigitalLiteracyContent() {
         setMetrics({
           totalStudents: 0,
           completedStudents: 0,
-          totalClasses: CLASS_SCHEDULES.length,
+          totalClasses: 0,
           fullClasses: 0
         });
       } finally {
@@ -256,7 +261,7 @@ function DigitalLiteracyContent() {
       }
     };
     
-    fetchStudents();
+    fetchData();
   }, []);
 
   const handleRegistration = async (data: any) => {

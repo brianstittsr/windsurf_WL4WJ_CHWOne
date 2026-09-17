@@ -763,9 +763,6 @@ export default function InstructorDashboard({
                           {language === 'en' ? 'Time' : 'Hora'}
                         </th>
                         <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
-                          {language === 'en' ? 'Topic' : 'Tema'}
-                        </th>
-                        <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
                           {language === 'en' ? 'Check-ins' : 'Registros'}
                         </th>
                         <th className="text-left p-3 font-semibold text-[#1D1D1F] border-b border-[#D2D2D7]">
@@ -826,11 +823,6 @@ export default function InstructorDashboard({
                                 <Clock className="h-4 w-4 text-[#6E6E73]" />
                                 <span>{session.startTime} - {session.endTime}</span>
                               </div>
-                            </td>
-                            <td className="p-3 max-w-[200px]">
-                              <p className="text-sm text-[#1D1D1F] truncate" title={language === 'es' ? session.topicEs : session.topic}>
-                                {language === 'es' ? session.topicEs : session.topic}
-                              </p>
                             </td>
                             <td className="p-3">
                               <div className="flex items-center gap-2">

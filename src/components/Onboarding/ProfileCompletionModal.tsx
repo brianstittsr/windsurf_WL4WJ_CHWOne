@@ -29,7 +29,8 @@ import {
   Loader2,
   Search,
   CheckCircle,
-  X
+  X,
+  Upload
 } from 'lucide-react';
 import NonprofitSearchService from '@/services/NonprofitSearchService';
 import { NonprofitOrganization } from '@/types/nonprofit.types';
@@ -51,6 +52,8 @@ export interface ProfileFormData {
   title: string;
   region: string;
   bio: string;
+  photoURL?: string;
+  photoFile?: File;
 }
 
 const NC_REGIONS = [
@@ -79,7 +82,10 @@ export default function ProfileCompletionModal({
     title: initialData?.title || '',
     region: initialData?.region || '',
     bio: initialData?.bio || '',
+    photoURL: initialData?.photoURL || '',
+    photoFile: initialData?.photoFile,
   });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photoURL || null);
 
   // Organization search state
   const [orgSearchQuery, setOrgSearchQuery] = useState('');
@@ -118,7 +124,10 @@ export default function ProfileCompletionModal({
         title: initialData.title || '',
         region: initialData.region || '',
         bio: initialData.bio || '',
+        photoURL: initialData.photoURL || '',
+        photoFile: initialData.photoFile,
       });
+      setPhotoPreview(initialData.photoURL || null);
     }
   }, [initialData]);
 
@@ -136,6 +145,14 @@ export default function ProfileCompletionModal({
 
   const handleChange = (field: keyof ProfileFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, photoFile: file }));
+      setPhotoPreview(URL.createObjectURL(file));
+    }
   };
 
   // Search organizations
@@ -261,6 +278,29 @@ export default function ProfileCompletionModal({
                 onChange={(e) => handleChange('phone', e.target.value)}
                 placeholder="(555) 123-4567"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="photo" className="flex items-center gap-2">
+                <Upload className="h-3 w-3" />
+                Profile Photo
+              </Label>
+              <div className="flex items-center gap-4">
+                {photoPreview && (
+                  <img
+                    src={photoPreview}
+                    alt="Profile preview"
+                    className="h-16 w-16 rounded-full object-cover border border-slate-200"
+                  />
+                )}
+                <Input
+                  id="photo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="flex-1"
+                />
+              </div>
             </div>
           </div>
 

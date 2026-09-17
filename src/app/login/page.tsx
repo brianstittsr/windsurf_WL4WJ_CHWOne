@@ -5,7 +5,7 @@ import { useAuth, AuthProvider } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, Users, Building2, Globe, Landmark } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, Users, Building2, Globe, Landmark, Heart } from 'lucide-react';
 import AppleNav from '@/components/Layout/AppleNav';
 
 function LoginFormContent() {
@@ -32,7 +32,7 @@ function LoginFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [loginType, setLoginType] = useState<'chw' | 'nonprofit' | 'association' | 'state' | null>(null);
+  const [loginType, setLoginType] = useState<'chw' | 'nonprofit' | 'association' | 'state' | 'wl4wj' | null>(null);
 
   const loginTypeConfig = {
     chw: {
@@ -62,6 +62,13 @@ function LoginFormContent() {
       description: 'Access workforce data, grants, and policy tools',
       icon: Landmark,
       color: '#FF9500',
+    },
+    wl4wj: {
+      title: 'WL4WJ',
+      fullTitle: 'Women Leading 4 Wellness & Justice',
+      description: 'Access WL4WJ resources, training, and community tools',
+      icon: Heart,
+      color: '#E94E77',
     },
   };
 
@@ -148,8 +155,8 @@ function LoginFormContent() {
             {/* Account Type Selector */}
             <div className="mb-6">
               <p className="text-sm font-medium text-[#1D1D1F] text-center mb-4">Select your account type:</p>
-              <div className="grid grid-cols-4 gap-2">
-                {(['chw', 'nonprofit', 'association', 'state'] as const).map((type) => {
+              <div className="grid grid-cols-5 gap-2">
+                {(['chw', 'nonprofit', 'association', 'state', 'wl4wj'] as const).map((type) => {
                   const config = loginTypeConfig[type];
                   const isSelected = loginType === type;
                   const IconComponent = config.icon;
@@ -158,7 +165,7 @@ function LoginFormContent() {
                       key={type}
                       type="button"
                       onClick={() => setLoginType(type)}
-                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                      className={`flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all ${
                         isSelected 
                           ? 'border-[#0071E3] bg-[#F5F5F7] scale-105 shadow-md'
                           : 'border-[#D2D2D7] bg-white hover:border-[#86868B] hover:bg-[#F5F5F7]'

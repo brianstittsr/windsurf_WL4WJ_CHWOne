@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Plus, Edit2, Trash2, Save, X, Calendar, Clock, Users, 
-  CheckCircle, AlertCircle, Settings
+  CheckCircle, AlertCircle, Settings, Copy
 } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { 
@@ -217,6 +217,34 @@ export default function ClassManager({
     }
   };
 
+  // DUPLICATE - Copy class with new ID
+  const handleDuplicateClass = async (classItem: ClassDefinition) => {
+    setSaving(true);
+    try {
+      const classId = `class-${Date.now()}`;
+      const duplicatedClass: ClassDefinition = {
+        ...classItem,
+        id: classId,
+        name: `${classItem.name} (Copy)`,
+        nameEs: `${classItem.nameEs} (Copia)`,
+        currentEnrollment: 0,
+        status: 'active',
+      };
+
+      await setDoc(doc(db, 'digital_literacy_classes', classId), {
+        ...duplicatedClass,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      setClasses([...classes, duplicatedClass].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (error) {
+      console.error('Error duplicating class:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // DELETE - Remove class
   const handleDeleteClass = async (classId: string) => {
     const classToDelete = classes.find(c => c.id === classId);
@@ -405,20 +433,32 @@ export default function ClassManager({
                         {getStatusBadge(classItem.status)}
                       </td>
                       <td className="p-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => startEditing(classItem)}
                             className="text-[#0071E3] hover:bg-[#0071E3]/10"
+                            title={language === 'en' ? 'Edit' : 'Editar'}
                           >
                             <Edit2 className="w-4 h-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => handleDuplicateClass(classItem)}
+                            className="text-[#FF9500] hover:bg-[#FF9500]/10"
+                            title={language === 'en' ? 'Duplicate' : 'Duplicar'}
+                            disabled={saving}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => handleDeleteClass(classItem.id)}
                             className="text-[#FF3B30] hover:bg-[#FF3B30]/10"
+                            title={language === 'en' ? 'Delete' : 'Eliminar'}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

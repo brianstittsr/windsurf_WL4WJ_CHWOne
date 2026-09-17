@@ -2,9 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
-import { CLASS_SCHEDULES } from '@/lib/translations/digitalLiteracy';
+import { collection, getDocs, addDoc, query, where, serverTimestamp, orderBy } from 'firebase/firestore';
 import { CheckCircle, Loader2, Clock, User, Calendar, AlertCircle } from 'lucide-react';
+
+interface ClassDefinition {
+  id: string;
+  name: string;
+  nameEs: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  maxCapacity: number;
+  status: string;
+}
 
 interface RegisteredStudent {
   id: string;
@@ -13,55 +23,40 @@ interface RegisteredStudent {
   classId: string;
 }
 
+// Parse time string like "10:00 AM" to minutes since midnight
+function parseTimeToMinutes(timeStr: string): number {
+  const [time, period] = timeStr.split(' ');
+  const [hours, minutes] = time.split(':').map(Number);
+  let totalMinutes = hours * 60 + minutes;
+  if (period === 'PM' && hours !== 12) totalMinutes += 12 * 60;
+  if (period === 'AM' && hours === 12) totalMinutes = minutes;
+  return totalMinutes;
+}
+
 // Helper to determine which class is active based on current day and time
-function getActiveClass(): { classId: string; className: string; isActive: boolean } | null {
+function getActiveClass(classes: ClassDefinition[]): { classId: string; className: string; isActive: boolean } | null {
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, 2=Tuesday, etc.
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const currentDay = dayNames[now.getDay()];
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   const currentTime = currentHour * 60 + currentMinute; // Convert to minutes since midnight
 
-  // Class schedule mapping
-  // Monday (1): Class 1 (10:00-12:00), Class 2 (13:00-15:00)
-  // Tuesday (2): Class 3 (10:00-12:00), Class 4 (13:00-15:00)
-  // Wednesday (3): Class 5 (10:00-12:00), Class 6 (13:00-15:00)
+  // Find active class based on current day and time
+  for (const cls of classes) {
+    if (cls.status !== 'active') continue;
+    if (cls.dayOfWeek !== currentDay) continue;
 
-  const scheduleMap: { [key: number]: { morning: string; afternoon: string } } = {
-    1: { morning: 'class1', afternoon: 'class2' }, // Monday
-    2: { morning: 'class3', afternoon: 'class4' }, // Tuesday
-    3: { morning: 'class5', afternoon: 'class6' }, // Wednesday
-  };
+    const startMinutes = parseTimeToMinutes(cls.startTime);
+    const endMinutes = parseTimeToMinutes(cls.endTime) + 30; // 30 min grace period
 
-  const daySchedule = scheduleMap[dayOfWeek];
-  if (!daySchedule) {
-    return null; // No classes on this day
-  }
-
-  // Morning class: 10:00 AM - 12:00 PM (600 - 720 minutes)
-  // Afternoon class: 1:00 PM - 3:00 PM (780 - 900 minutes)
-  // Allow check-in during class time and up to 30 minutes after class ends
-
-  const morningStart = 10 * 60; // 10:00 AM = 600 minutes
-  const morningEnd = 12 * 60 + 30; // 12:30 PM = 750 minutes (30 min grace period)
-  const afternoonStart = 13 * 60; // 1:00 PM = 780 minutes
-  const afternoonEnd = 15 * 60 + 30; // 3:30 PM = 930 minutes (30 min grace period)
-
-  if (currentTime >= morningStart && currentTime <= morningEnd) {
-    const schedule = CLASS_SCHEDULES.find(s => s.id === daySchedule.morning);
-    return {
-      classId: daySchedule.morning,
-      className: schedule?.en || daySchedule.morning,
-      isActive: true
-    };
-  }
-
-  if (currentTime >= afternoonStart && currentTime <= afternoonEnd) {
-    const schedule = CLASS_SCHEDULES.find(s => s.id === daySchedule.afternoon);
-    return {
-      classId: daySchedule.afternoon,
-      className: schedule?.en || daySchedule.afternoon,
-      isActive: true
-    };
+    if (currentTime >= startMinutes && currentTime <= endMinutes) {
+      return {
+        classId: cls.id,
+        className: cls.name,
+        isActive: true
+      };
+    }
   }
 
   return null; // No active class at this time
@@ -73,6 +68,7 @@ export default function DailyCheckinPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false);
+  const [classes, setClasses] = useState<ClassDefinition[]>([]);
   
   const [activeClass, setActiveClass] = useState<{ classId: string; className: string; isActive: boolean } | null>(null);
   const [registeredStudents, setRegisteredStudents] = useState<RegisteredStudent[]>([]);
@@ -86,8 +82,20 @@ export default function DailyCheckinPage() {
       try {
         setLoading(true);
         
-        // Determine active class
-        const active = getActiveClass();
+        // Fetch all active classes from Firebase
+        const classesRef = collection(db, 'digital_literacy_classes');
+        const classesQuery = query(classesRef, where('status', '==', 'active'), orderBy('name', 'asc'));
+        const classesSnapshot = await getDocs(classesQuery);
+        
+        const classesData: ClassDefinition[] = classesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        } as ClassDefinition));
+        
+        setClasses(classesData);
+        
+        // Determine active class using fetched classes
+        const active = getActiveClass(classesData);
         setActiveClass(active);
 
         if (active) {
@@ -215,9 +223,20 @@ export default function DailyCheckinPage() {
           <div className="mt-6 p-4 bg-[#F5F5F7] rounded-xl">
             <p className="text-sm font-semibold text-[#1D1D1F] mb-2">Class Schedule | Horario de Clases:</p>
             <ul className="text-sm text-[#6E6E73] space-y-1">
-              <li>Monday | Lunes: 10:00 AM - 12:00 PM, 1:00 PM - 3:00 PM</li>
-              <li>Tuesday | Martes: 10:00 AM - 12:00 PM, 1:00 PM - 3:00 PM</li>
-              <li>Wednesday | Miércoles: 10:00 AM - 12:00 PM, 1:00 PM - 3:00 PM</li>
+              {classes.length > 0 ? (
+                classes.map(cls => (
+                  <li key={cls.id}>
+                    {cls.dayOfWeek} | {cls.dayOfWeek === 'Monday' ? 'Lunes' : 
+                      cls.dayOfWeek === 'Tuesday' ? 'Martes' : 
+                      cls.dayOfWeek === 'Wednesday' ? 'Miércoles' :
+                      cls.dayOfWeek === 'Thursday' ? 'Jueves' :
+                      cls.dayOfWeek === 'Friday' ? 'Viernes' :
+                      cls.dayOfWeek === 'Saturday' ? 'Sábado' : 'Domingo'}: {cls.startTime} - {cls.endTime}
+                  </li>
+                ))
+              ) : (
+                <li>No active classes scheduled | No hay clases activas programadas</li>
+              )}
             </ul>
           </div>
         </div>
