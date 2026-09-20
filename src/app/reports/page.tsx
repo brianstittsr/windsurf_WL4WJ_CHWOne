@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { BarChart3, Plus, FileText, Eye, Trash2, Pencil, Share2, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useAuth, AuthProvider } from '@/contexts/AuthContext';
-import ConversationInterface from '@/components/Reports/ConversationInterface';
+import ReportWizard from '@/components/Reports/ReportWizard';
 import ReportPreview from '@/components/Reports/ReportPreview';
-import { Report, ReportConfig } from '@/types/bmad.types';
-import { reportGenerationService } from '@/services/bmad/ReportGenerationService';
-import { v4 as uuidv4 } from 'uuid';
+import { Report, Dataset } from '@/types/bmad.types';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
 
@@ -154,24 +153,21 @@ const mockReports_UNUSED: Report[] = [
   }
 ];
 
-// Mock dataset IDs for development
-const mockDatasetIds = ['dataset-1', 'dataset-2', 'dataset-3'];
-
 // Inner component that uses the auth context
 function ReportsContent() {
   const { currentUser, loading: authLoading } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [reports, setReports] = useState<Report[]>([]);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [reportConfig, setReportConfig] = useState<ReportConfig | null>(null);
   const [notification, setNotification] = useState<{ message: string; severity: 'success' | 'error' | 'info' } | null>(null);
   
-  // Load reports
+  // Load reports and datasets
   useEffect(() => {
-    const loadReports = async () => {
+    const loadData = async () => {
       if (!currentUser) {
         setLoading(false);
         return;
@@ -179,12 +175,14 @@ function ReportsContent() {
 
       try {
         setLoading(true);
+
+        // Load reports
         const reportsRef = collection(db, 'reports');
-        const q = query(reportsRef, where('userId', '==', currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        
+        const reportsQuery = query(reportsRef, where('userId', '==', currentUser.uid));
+        const reportsSnapshot = await getDocs(reportsQuery);
+
         const fetchedReports: Report[] = [];
-        querySnapshot.forEach((docSnap) => {
+        reportsSnapshot.forEach((docSnap) => {
           const data = docSnap.data();
           fetchedReports.push({
             id: docSnap.id,
@@ -206,29 +204,52 @@ function ReportsContent() {
             pdfUrl: data.pdfUrl
           } as Report);
         });
-        
+
         setReports(fetchedReports);
-        console.log('Fetched reports:', fetchedReports.length);
+
+        // Load datasets
+        const datasetsRef = collection(db, 'datasets');
+        const datasetsSnapshot = await getDocs(datasetsRef);
+        const fetchedDatasets: Dataset[] = [];
+        datasetsSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.userId === currentUser.uid || data.userId === 'system') {
+            fetchedDatasets.push({
+              id: docSnap.id,
+              name: data.name || 'Untitled Dataset',
+              description: data.description || '',
+              format: data.format || 'json',
+              size: data.size || 0,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              updatedAt: data.updatedAt?.toDate() || new Date(),
+              columns: data.fields || data.columns || [],
+              rowCount: data.recordCount || data.rowCount || 0,
+              userId: data.userId || currentUser.uid,
+              previewData: data.previewData || [],
+              metadata: data.metadata || {},
+              sourceUrl: data.sourceUrl
+            } as Dataset);
+          }
+        });
+
+        setDatasets(fetchedDatasets);
+        console.log('Fetched reports:', fetchedReports.length, 'datasets:', fetchedDatasets.length);
       } catch (err) {
-        console.error('Error loading reports:', err);
-        setError(`Failed to load reports: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        console.error('Error loading reports or datasets:', err);
+        setError(`Failed to load reports or datasets: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
     };
     
-    loadReports();
+    loadData();
   }, [currentUser]);
   
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
   
-  const handleConfigUpdate = (config: ReportConfig) => {
-    setReportConfig(config);
-  };
-  
-  const handleGenerateReport = async (config: ReportConfig) => {
+  const handleGenerateReport = async (report: Report) => {
     if (!currentUser) {
       setNotification({
         message: 'Please sign in to generate reports',
@@ -238,88 +259,37 @@ function ReportsContent() {
     }
 
     try {
-      // Create report data for Firestore
       const reportData = {
-        config: {
-          ...config,
-          status: 'generating',
-          updatedAt: serverTimestamp()
-        },
+        config: report.config,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         userId: currentUser.uid,
-        status: 'generating'
+        status: report.status,
+        pdfUrl: report.pdfUrl || null,
+        aiRecommendation: report.aiRecommendation || null
       };
-      
-      // Save to Firestore
+
       const reportsRef = collection(db, 'reports');
       const docRef = await addDoc(reportsRef, reportData);
-      
-      // Create local report object
-      const newReport: Report = {
-        id: docRef.id,
-        config: {
-          ...config,
-          status: 'generating',
-          updatedAt: new Date()
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userId: currentUser.uid,
-        status: 'generating'
-      };
-      
-      // Add to reports list
-      setReports(prev => [newReport, ...prev]);
-      
-      // Close create dialog
-      setShowCreateDialog(false);
-      
-      // Show notification
-      setNotification({
-        message: 'Report generation started',
-        severity: 'info'
-      });
-      
-      // In a real implementation, we would call the report generation service
-      // For now, we'll simulate a delay and then update the report status
-      setTimeout(async () => {
-        try {
-          const reportRef = doc(db, 'reports', docRef.id);
-          await addDoc(collection(reportRef, 'updates'), {
-            status: 'complete',
-            pdfUrl: `https://example.com/reports/${docRef.id}.pdf`,
-            updatedAt: serverTimestamp()
-          });
 
-          setReports(prev => prev.map(r => 
-            r.id === docRef.id 
-              ? {
-                  ...r,
-                  status: 'complete',
-                  config: {
-                    ...r.config,
-                    status: 'complete',
-                    updatedAt: new Date()
-                  },
-                  updatedAt: new Date(),
-                  pdfUrl: `https://example.com/reports/${r.id}.pdf`
-                }
-              : r
-          ));
-          
-          setNotification({
-            message: 'Report generated successfully',
-            severity: 'success'
-          });
-        } catch (updateErr) {
-          console.error('Error updating report status:', updateErr);
-        }
-      }, 3000);
-    } catch (err) {
-      console.error('Error generating report:', err);
+      const savedReport: Report = {
+        ...report,
+        id: docRef.id,
+        userId: currentUser.uid,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      setReports(prev => [savedReport, ...prev]);
+      setShowCreateDialog(false);
       setNotification({
-        message: `Failed to generate report: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        message: 'Report generated successfully',
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error saving report:', err);
+      setNotification({
+        message: `Failed to save report: ${err instanceof Error ? err.message : 'Unknown error'}`,
         severity: 'error'
       });
     }
@@ -442,7 +412,7 @@ function ReportsContent() {
         )}
 
         {/* Apple-style Tabs */}
-        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-2">
+        <div className="relative z-0 bg-white rounded-2xl border border-[#D2D2D7] p-2">
           <div className="flex gap-1">
             {tabs.map((tab, index) => (
               <button
@@ -568,8 +538,8 @@ function ReportsContent() {
         )}
 
         {/* Create Report Dialog - Apple Style */}
-        {showCreateDialog && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {showCreateDialog && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateDialog(false)} />
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl h-[600px] overflow-hidden">
               <div className="flex items-center justify-between px-6 py-4 border-b border-[#D2D2D7]">
@@ -590,14 +560,16 @@ function ReportsContent() {
                 </button>
               </div>
               <div className="h-[calc(100%-80px)] overflow-hidden">
-                <ConversationInterface
-                  onConfigUpdate={handleConfigUpdate}
-                  onGenerateReport={handleGenerateReport}
-                  availableDatasetIds={mockDatasetIds}
+                <ReportWizard
+                  datasets={datasets}
+                  userId={currentUser.uid}
+                  onGenerate={handleGenerateReport}
+                  onCancel={() => setShowCreateDialog(false)}
                 />
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Report Preview Dialog - Apple Style */}
@@ -609,7 +581,6 @@ function ReportsContent() {
                 report={selectedReport}
                 onEdit={() => {
                   setSelectedReport(null);
-                  setReportConfig(selectedReport.config);
                   setShowCreateDialog(true);
                 }}
                 onClose={() => setSelectedReport(null)}

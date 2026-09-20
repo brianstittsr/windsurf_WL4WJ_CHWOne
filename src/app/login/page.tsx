@@ -24,6 +24,8 @@ function LoginFormContent() {
     return () => {
       window.removeEventListener('online', updateNetworkStatus);
       window.removeEventListener('offline', updateNetworkStatus);
+      window.removeEventListener('offline', updateNetworkStatus);
+      window.removeEventListener('offline', updateNetworkStatus);
     };
   }, []);
 

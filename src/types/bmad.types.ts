@@ -75,7 +75,15 @@ export interface ReportConfig {
   userId?: string;
   isTemplate?: boolean;
   status?: 'draft' | 'generating' | 'complete' | 'error';
+  recommendation?: string;
+  includeCoverPage?: boolean;
+  reportStyle?: ReportStyle;
+  statisticsLevel?: StatisticsLevel;
 }
+
+export type ReportStyle = 'text' | 'dashboard' | 'onepager';
+
+export type StatisticsLevel = 'none' | 'basic' | 'advanced';
 
 export interface ReportSection {
   id: string;
@@ -86,6 +94,29 @@ export interface ReportSection {
   visualizationId?: string;
   tableData?: any[];
   tableColumns?: string[];
+}
+
+export interface ColumnStatistics {
+  dataset: string;
+  column: string;
+  type: DatasetColumn['type'];
+  count: number;
+  missing: number;
+  unique: number;
+  min?: number;
+  max?: number;
+  mean?: number;
+  median?: number;
+  stdDev?: number;
+  variance?: number;
+  q1?: number;
+  q3?: number;
+  iqr?: number;
+  skewness?: number;
+  kurtosis?: number;
+  outlierCount?: number;
+  topValue?: string;
+  topValueCount?: number;
 }
 
 export interface Visualization {
@@ -119,6 +150,7 @@ export interface Report {
   userId: string;
   status: 'draft' | 'generating' | 'complete' | 'error';
   error?: string;
+  aiRecommendation?: string;
 }
 
 // Conversation Types

@@ -209,6 +209,7 @@ export default function DatasetDetail({
           <Tab label="Preview" id="dataset-tab-0" aria-controls="dataset-tabpanel-0" />
           <Tab label="Schema" id="dataset-tab-1" aria-controls="dataset-tabpanel-1" />
           <Tab label="Statistics" id="dataset-tab-2" aria-controls="dataset-tabpanel-2" />
+          <Tab label="Summary" id="dataset-tab-3" aria-controls="dataset-tabpanel-3" />
         </Tabs>
       </Box>
       
@@ -326,6 +327,52 @@ export default function DatasetDetail({
               </TableBody>
             </Table>
           </TableContainer>
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={3}>
+          <Box sx={{ p: 1 }}>
+            <Grid container spacing={2}>
+              {[
+                { label: 'Format', value: dataset.format ? dataset.format.toUpperCase() : 'N/A' },
+                { label: 'Rows', value: (dataset.rowCount ?? 0).toLocaleString() },
+                { label: 'Columns', value: (dataset.columns?.length ?? 0).toLocaleString() },
+                { label: 'Missing Values', value: dataset.columns?.reduce((sum: number, col: any) => sum + (col.missingCount || 0), 0).toLocaleString() || '0' },
+                { label: 'Numeric Columns', value: dataset.columns?.filter((col: any) => col.type === 'number').length.toLocaleString() || '0' },
+                { label: 'String Columns', value: dataset.columns?.filter((col: any) => col.type === 'string').length.toLocaleString() || '0' },
+                { label: 'Date Columns', value: dataset.columns?.filter((col: any) => col.type === 'date').length.toLocaleString() || '0' },
+                { label: 'Total Unique Values', value: dataset.columns?.reduce((sum: number, col: any) => sum + (col.uniqueValues || 0), 0).toLocaleString() || '0' },
+                { label: 'Created', value: formatDate(dataset.createdAt) },
+                { label: 'Owner', value: dataset.userId || 'Unknown' },
+                { label: 'Record Count', value: dataset.metadata?.recordCount ? dataset.metadata.recordCount.toLocaleString() : (dataset.rowCount ?? 0).toLocaleString() }
+              ].map((stat, i) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {stat.label}
+                      </Typography>
+                      <Typography variant="h6" sx={{ mt: 1, wordBreak: 'break-word' }}>
+                        {stat.value}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            
+            {dataset.description && (
+              <Card variant="outlined" sx={{ mt: 2 }}>
+                <CardContent>
+                  <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                    Description
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1 }}>
+                    {dataset.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
         </TabPanel>
       </Box>
       

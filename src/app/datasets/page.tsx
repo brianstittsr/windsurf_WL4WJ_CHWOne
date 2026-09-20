@@ -11,7 +11,7 @@ import { Dataset, TransformedDataset } from '@/types/bmad.types';
 import { dataProcessingService } from '@/services/bmad/DataProcessingService';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, deleteDoc, doc, setDoc } from 'firebase/firestore';
 
 // Mock datasets for development (kept for reference)
 const mockDatasets_UNUSED: Dataset[] = [
@@ -162,13 +162,31 @@ function DatasetsContent() {
     setTabValue(newValue);
   };
   
-  const handleUploadComplete = (dataset: Dataset) => {
-    setDatasets(prev => [dataset, ...prev]);
-    setShowUploadDialog(false);
-    setNotification({
-      message: `Dataset "${dataset.name}" uploaded successfully`,
-      severity: 'success'
-    });
+  const handleUploadComplete = async (dataset: Dataset) => {
+    try {
+      if (currentUser) {
+        const datasetData = {
+          ...dataset,
+          userId: currentUser.uid,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        await setDoc(doc(db, 'datasets', dataset.id), datasetData);
+      }
+
+      setDatasets(prev => [dataset, ...prev]);
+      setShowUploadDialog(false);
+      setNotification({
+        message: `Dataset "${dataset.name}" uploaded successfully`,
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error saving dataset:', err);
+      setNotification({
+        message: `Dataset processed but failed to save: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        severity: 'error'
+      });
+    }
   };
   
   const handleViewDataset = (dataset: Dataset) => {

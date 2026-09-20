@@ -170,8 +170,12 @@ export default function DatasetMergeAssistant({ datasets, onMergeComplete }: Dat
 
     try {
       const mergedDataset = await dataProcessingService.mergeDatasets(
-        selectedDatasets[0].id,
-        selectedDatasets[1].id
+        selectedDatasets,
+        {
+          mergeType: mergeStrategy.mergeType,
+          keyColumns: mergeStrategy.keyColumns,
+          name: mergeStrategy.name || 'Merged Dataset'
+        }
       );
       
       onMergeComplete(mergedDataset);

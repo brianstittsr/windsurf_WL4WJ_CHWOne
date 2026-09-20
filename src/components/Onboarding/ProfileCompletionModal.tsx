@@ -20,20 +20,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  User, 
-  Briefcase, 
-  MapPin, 
+import {
+  User,
+  Briefcase,
+  MapPin,
   Phone,
   Building2,
   Loader2,
   Search,
   CheckCircle,
   X,
-  Upload
+  Upload,
+  Home,
+  Award,
+  Globe,
 } from 'lucide-react';
 import NonprofitSearchService from '@/services/NonprofitSearchService';
 import { NonprofitOrganization } from '@/types/nonprofit.types';
+import {
+  EXPERTISE_OPTIONS,
+  LANGUAGE_OPTIONS,
+  NC_COUNTIES,
+} from '@/types/chw-profile.types';
 
 interface ProfileCompletionModalProps {
   open: boolean;
@@ -47,13 +55,24 @@ export interface ProfileFormData {
   firstName: string;
   lastName: string;
   phone: string;
+  photoURL?: string;
+  addressStreet: string;
+  addressCity: string;
+  addressState: string;
+  addressZipCode: string;
+  bio: string;
   organization: string;
   organizationId?: string;
   title: string;
+  yearsOfExperience: number;
+  expertise: string[];
+  languages: string[];
   region: string;
-  bio: string;
-  photoURL?: string;
-  photoFile?: File;
+  primaryCounty: string;
+  countiesServed: string[];
+  certificationStatus: string;
+  certificationNumber: string;
+  certificationExpiration: string;
 }
 
 const NC_REGIONS = [
@@ -65,25 +84,43 @@ const NC_REGIONS = [
   { value: 'Region 6', label: 'Region 6 - Eastern' },
 ];
 
-export default function ProfileCompletionModal({ 
-  open, 
-  onClose, 
+const CERTIFICATION_STATUSES = [
+  { value: 'not_certified', label: 'Not Certified' },
+  { value: 'certified', label: 'Certified' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'expired', label: 'Expired' },
+];
+
+export default function ProfileCompletionModal({
+  open,
+  onClose,
   onSave,
   initialData,
-  linkedOrganization
+  linkedOrganization,
 }: ProfileCompletionModalProps) {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
     firstName: initialData?.firstName || '',
     lastName: initialData?.lastName || '',
     phone: initialData?.phone || '',
+    photoURL: initialData?.photoURL || '',
+    addressStreet: initialData?.addressStreet || '',
+    addressCity: initialData?.addressCity || '',
+    addressState: initialData?.addressState || 'NC',
+    addressZipCode: initialData?.addressZipCode || '',
+    bio: initialData?.bio || '',
     organization: initialData?.organization || '',
     organizationId: initialData?.organizationId || '',
     title: initialData?.title || '',
+    yearsOfExperience: initialData?.yearsOfExperience || 0,
+    expertise: initialData?.expertise || [],
+    languages: initialData?.languages || ['English'],
     region: initialData?.region || '',
-    bio: initialData?.bio || '',
-    photoURL: initialData?.photoURL || '',
-    photoFile: initialData?.photoFile,
+    primaryCounty: initialData?.primaryCounty || '',
+    countiesServed: initialData?.countiesServed || [],
+    certificationStatus: initialData?.certificationStatus || 'not_certified',
+    certificationNumber: initialData?.certificationNumber || '',
+    certificationExpiration: initialData?.certificationExpiration || '',
   });
   const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photoURL || null);
 
@@ -119,13 +156,24 @@ export default function ProfileCompletionModal({
         firstName: initialData.firstName || '',
         lastName: initialData.lastName || '',
         phone: initialData.phone || '',
+        photoURL: initialData.photoURL || '',
+        addressStreet: initialData.addressStreet || '',
+        addressCity: initialData.addressCity || '',
+        addressState: initialData.addressState || 'NC',
+        addressZipCode: initialData.addressZipCode || '',
+        bio: initialData.bio || '',
         organization: initialData.organization || '',
         organizationId: initialData.organizationId || '',
         title: initialData.title || '',
+        yearsOfExperience: initialData.yearsOfExperience || 0,
+        expertise: initialData.expertise || [],
+        languages: initialData.languages || ['English'],
         region: initialData.region || '',
-        bio: initialData.bio || '',
-        photoURL: initialData.photoURL || '',
-        photoFile: initialData.photoFile,
+        primaryCounty: initialData.primaryCounty || '',
+        countiesServed: initialData.countiesServed || [],
+        certificationStatus: initialData.certificationStatus || 'not_certified',
+        certificationNumber: initialData.certificationNumber || '',
+        certificationExpiration: initialData.certificationExpiration || '',
       });
       setPhotoPreview(initialData.photoURL || null);
     }
@@ -138,21 +186,47 @@ export default function ProfileCompletionModal({
       setFormData(prev => ({
         ...prev,
         organization: linkedOrganization.name,
-        organizationId: linkedOrganization.id
+        organizationId: linkedOrganization.id,
       }));
     }
   }, [linkedOrganization]);
 
-  const handleChange = (field: keyof ProfileFormData, value: string) => {
+  const handleChange = (field: keyof ProfileFormData, value: ProfileFormData[keyof ProfileFormData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleArraySelect = (field: 'expertise' | 'languages' | 'countiesServed', e: React.ChangeEvent<HTMLSelectElement>) => {
+    const values = Array.from(e.target.selectedOptions).map(o => o.value);
+    setFormData(prev => ({ ...prev, [field]: values }));
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, photoFile: file }));
-      setPhotoPreview(URL.createObjectURL(file));
-    }
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 256;
+        let { width, height } = img;
+        if (width > height) {
+          if (width > max) { height = Math.round(height * max / width); width = max; }
+        } else if (height > max) {
+          width = Math.round(width * max / height); height = max;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        handleChange('photoURL', dataUrl);
+        setPhotoPreview(dataUrl);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   // Search organizations
@@ -163,8 +237,7 @@ export default function ProfileCompletionModal({
     }
     setSearchingOrgs(true);
     try {
-      // Search in existing orgs first
-      const filtered = existingOrgs.filter(org => 
+      const filtered = existingOrgs.filter(org =>
         org.name.toLowerCase().includes(orgSearchQuery.toLowerCase())
       );
       setOrgSearchResults(filtered);
@@ -193,7 +266,7 @@ export default function ProfileCompletionModal({
     setFormData(prev => ({
       ...prev,
       organization: org.name,
-      organizationId: org.id
+      organizationId: org.id,
     }));
     setShowOrgSearch(false);
     setOrgSearchQuery('');
@@ -206,7 +279,7 @@ export default function ProfileCompletionModal({
     setFormData(prev => ({
       ...prev,
       organization: '',
-      organizationId: undefined
+      organizationId: '',
     }));
   };
 
@@ -226,25 +299,25 @@ export default function ProfileCompletionModal({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <User className="h-5 w-5 text-blue-600" />
-            Complete Your Profile
+            Complete Your CHW Profile
           </DialogTitle>
           <DialogDescription className="text-slate-600">
-            Help us personalize your experience by providing some basic information.
+            Please answer each section so we can build your full profile.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-4">
-          {/* Basic Information Section */}
+        <div className="space-y-6 py-4">
+          {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2 border-b pb-2">
               <User className="h-4 w-4" />
               Basic Information
             </h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name *</Label>
@@ -304,7 +377,55 @@ export default function ProfileCompletionModal({
             </div>
           </div>
 
-          {/* Professional Information Section */}
+          {/* Address */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2 border-b pb-2">
+              <Home className="h-4 w-4" />
+              Address
+            </h3>
+
+            <div className="space-y-2">
+              <Label htmlFor="addressStreet">Street</Label>
+              <Input
+                id="addressStreet"
+                value={formData.addressStreet}
+                onChange={(e) => handleChange('addressStreet', e.target.value)}
+                placeholder="123 Main St"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="addressCity">City</Label>
+                <Input
+                  id="addressCity"
+                  value={formData.addressCity}
+                  onChange={(e) => handleChange('addressCity', e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="addressState">State</Label>
+                <Input
+                  id="addressState"
+                  value={formData.addressState}
+                  onChange={(e) => handleChange('addressState', e.target.value)}
+                  placeholder="NC"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="addressZipCode">ZIP</Label>
+                <Input
+                  id="addressZipCode"
+                  value={formData.addressZipCode}
+                  onChange={(e) => handleChange('addressZipCode', e.target.value)}
+                  placeholder="27514"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Professional Information */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2 border-b pb-2">
               <Briefcase className="h-4 w-4" />
@@ -316,8 +437,7 @@ export default function ProfileCompletionModal({
                 <Building2 className="h-3 w-3" />
                 Organization
               </Label>
-              
-              {/* Show selected organization or search interface */}
+
               {selectedOrg ? (
                 <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -349,8 +469,7 @@ export default function ProfileCompletionModal({
                       <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
                     )}
                   </div>
-                  
-                  {/* Search results */}
+
                   {orgSearchResults.length > 0 && (
                     <div className="max-h-40 overflow-y-auto border rounded-lg divide-y">
                       {orgSearchResults.map((org) => (
@@ -362,7 +481,9 @@ export default function ProfileCompletionModal({
                           <div>
                             <p className="font-medium text-sm">{org.name}</p>
                             {org.address?.city && (
-                              <p className="text-xs text-slate-500">{org.address.city}, {org.address.state}</p>
+                              <p className="text-xs text-slate-500">
+                                {org.address.city}, {org.address.state}
+                              </p>
                             )}
                           </div>
                           <Building2 className="h-4 w-4 text-slate-400" />
@@ -370,11 +491,11 @@ export default function ProfileCompletionModal({
                       ))}
                     </div>
                   )}
-                  
+
                   {orgSearchQuery.length >= 2 && orgSearchResults.length === 0 && !searchingOrgs && (
                     <p className="text-sm text-slate-500 text-center py-2">No organizations found</p>
                   )}
-                  
+
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -393,9 +514,8 @@ export default function ProfileCompletionModal({
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        // Allow manual entry
                         if (orgSearchQuery) {
-                          setFormData(prev => ({ ...prev, organization: orgSearchQuery }));
+                          handleChange('organization', orgSearchQuery);
                         }
                         setShowOrgSearch(false);
                         setOrgSearchQuery('');
@@ -429,36 +549,26 @@ export default function ProfileCompletionModal({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="title">Job Title / Role</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="e.g., Community Health Worker, Program Manager"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="region" className="flex items-center gap-2">
-                <MapPin className="h-3 w-3" />
-                NC Region
-              </Label>
-              <Select
-                value={formData.region}
-                onValueChange={(value) => handleChange('region', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {NC_REGIONS.map((region) => (
-                    <SelectItem key={region.value} value={region.value}>
-                      {region.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Job Title / Role</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleChange('title', e.target.value)}
+                  placeholder="e.g., Community Health Worker"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="yearsOfExperience">Years of Experience</Label>
+                <Input
+                  id="yearsOfExperience"
+                  type="number"
+                  min={0}
+                  value={formData.yearsOfExperience}
+                  onChange={(e) => handleChange('yearsOfExperience', parseInt(e.target.value) || 0)}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -467,9 +577,158 @@ export default function ProfileCompletionModal({
                 id="bio"
                 value={formData.bio}
                 onChange={(e) => handleChange('bio', e.target.value)}
-                placeholder="Tell us a bit about yourself and your work in community health..."
+                placeholder="Tell us about your work in community health..."
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="expertise" className="flex items-center gap-2">
+                <Briefcase className="h-3 w-3" />
+                Areas of Expertise (Ctrl/Cmd + click to select multiple)
+              </Label>
+              <select
+                id="expertise"
+                multiple
+                value={formData.expertise}
+                onChange={(e) => handleArraySelect('expertise', e)}
+                className="w-full h-32 rounded-md border border-slate-200 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {EXPERTISE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="languages" className="flex items-center gap-2">
+                <Globe className="h-3 w-3" />
+                Languages (Ctrl/Cmd + click to select multiple)
+              </Label>
+              <select
+                id="languages"
+                multiple
+                value={formData.languages}
+                onChange={(e) => handleArraySelect('languages', e)}
+                className="w-full h-32 rounded-md border border-slate-200 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Service Area */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2 border-b pb-2">
+              <MapPin className="h-4 w-4" />
+              Service Area
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="region">NC Region</Label>
+                <Select
+                  value={formData.region}
+                  onValueChange={(value) => handleChange('region', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {NC_REGIONS.map((region) => (
+                      <SelectItem key={region.value} value={region.value}>
+                        {region.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="primaryCounty">Primary County</Label>
+                <Select
+                  value={formData.primaryCounty}
+                  onValueChange={(value) => handleChange('primaryCounty', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select county" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {NC_COUNTIES.map((county) => (
+                      <SelectItem key={county} value={county}>
+                        {county}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="countiesServed">
+                Counties Served (Ctrl/Cmd + click to select multiple)
+              </Label>
+              <select
+                id="countiesServed"
+                multiple
+                value={formData.countiesServed}
+                onChange={(e) => handleArraySelect('countiesServed', e)}
+                className="w-full h-40 rounded-md border border-slate-200 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {NC_COUNTIES.map((county) => (
+                  <option key={county} value={county}>{county}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Certification */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2 border-b pb-2">
+              <Award className="h-4 w-4" />
+              Certification
+            </h3>
+
+            <div className="space-y-2">
+              <Label htmlFor="certificationStatus">Certification Status</Label>
+              <Select
+                value={formData.certificationStatus}
+                onValueChange={(value) => handleChange('certificationStatus', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CERTIFICATION_STATUSES.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="certificationNumber">Certification Number</Label>
+                <Input
+                  id="certificationNumber"
+                  value={formData.certificationNumber}
+                  onChange={(e) => handleChange('certificationNumber', e.target.value)}
+                  placeholder="CHW-12345"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="certificationExpiration">Expiration Date</Label>
+                <Input
+                  id="certificationExpiration"
+                  type="date"
+                  value={formData.certificationExpiration}
+                  onChange={(e) => handleChange('certificationExpiration', e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -478,8 +737,8 @@ export default function ProfileCompletionModal({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             Skip for Now
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={!isFormValid || saving}
           >
             {saving ? (

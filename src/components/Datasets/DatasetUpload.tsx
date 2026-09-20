@@ -10,7 +10,8 @@ import {
   CircularProgress,
   Alert,
   Stack,
-  Chip
+  Chip,
+  MenuItem
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import { dataProcessingService } from '@/services/bmad/DataProcessingService';
@@ -25,22 +26,40 @@ export default function DatasetUpload({ onUploadComplete }: DatasetUploadProps) 
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [sheetNames, setSheetNames] = useState<string[]>([]);
+  const [selectedSheet, setSelectedSheet] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { currentUser } = useAuth();
   
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const selectedFile = event.target.files[0];
-      setFile(selectedFile);
-      
-      // Auto-populate name if empty
-      if (!name) {
-        setName(selectedFile.name.split('.')[0]);
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || !event.target.files[0]) return;
+
+    const selectedFile = event.target.files[0];
+    setFile(selectedFile);
+    setSheetNames([]);
+    setSelectedSheet('');
+    
+    // Auto-populate name if empty
+    if (!name) {
+      setName(selectedFile.name.split('.')[0]);
+    }
+    
+    // Clear any previous errors
+    setError(null);
+
+    // Detect spreadsheet tabs for multi-sheet Excel workbooks
+    const ext = selectedFile.name.split('.').pop()?.toLowerCase();
+    if (ext === 'xlsx' || ext === 'xls') {
+      try {
+        const names = await dataProcessingService.getSheetNames(selectedFile);
+        setSheetNames(names);
+        if (names.length > 0) {
+          setSelectedSheet(names[0]);
+        }
+      } catch (err) {
+        console.error('Error reading spreadsheet tabs:', err);
       }
-      
-      // Clear any previous errors
-      setError(null);
     }
   };
   
@@ -66,15 +85,19 @@ export default function DatasetUpload({ onUploadComplete }: DatasetUploadProps) 
     setError(null);
     
     try {
-      const result = await dataProcessingService.processFile(file);
+      const result = await dataProcessingService.processFile(
+        file,
+        selectedSheet || undefined
+      );
 
       if (result.success) {
         const newDataset: Dataset = {
           ...result.data,
           name: name,
           description: description,
-          createdBy: currentUser.uid,
+          userId: currentUser.uid,
           createdAt: new Date(),
+          updatedAt: new Date(),
         };
         onUploadComplete(newDataset);
       } else {
@@ -149,6 +172,24 @@ export default function DatasetUpload({ onUploadComplete }: DatasetUploadProps) 
             fullWidth
             required
           />
+
+          {sheetNames.length > 1 && (
+            <TextField
+              select
+              label="Spreadsheet tab to upload"
+              value={selectedSheet}
+              onChange={(e) => setSelectedSheet(e.target.value)}
+              fullWidth
+              required
+              helperText={`This workbook has ${sheetNames.length} tabs`}
+            >
+              {sheetNames.map((sheet) => (
+                <MenuItem key={sheet} value={sheet}>
+                  {sheet}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
           
           <TextField
             label="Description (optional)"

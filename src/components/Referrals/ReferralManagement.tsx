@@ -27,7 +27,9 @@ import {
   Tabs,
   Tab,
   Link,
-  InputAdornment
+  InputAdornment,
+  Stack,
+  Divider
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -902,6 +904,7 @@ export default function ReferralManagement() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [orgSearchTerm, setOrgSearchTerm] = useState('');
   const [orgCategoryFilter, setOrgCategoryFilter] = useState('All');
@@ -1133,7 +1136,13 @@ export default function ReferralManagement() {
     }
   };
 
+  const viewReferral = (referral: Referral) => {
+    setSelectedReferral(referral);
+    setViewDialogOpen(true);
+  };
+
   const editReferral = (referral: Referral) => {
+    setViewDialogOpen(false);
     setSelectedReferral(referral);
     setFormData({
       clientId: referral.clientId,
@@ -1214,7 +1223,7 @@ export default function ReferralManagement() {
   });
 
   return (
-    <Box sx={{ width: '100%', py: 4 }}>
+    <Box sx={{ width: '100%', px: { xs: 2, md: 3 }, py: 4 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box>
@@ -1394,6 +1403,7 @@ export default function ReferralManagement() {
                             variant="outlined"
                             size="small"
                             startIcon={<VisibilityIcon />}
+                            onClick={() => viewReferral(referral)}
                           >
                             View
                           </Button>
@@ -1636,6 +1646,215 @@ export default function ReferralManagement() {
               </Button>
             </DialogActions>
           </form>
+        </Dialog>
+
+        {/* View Referral Summary Dialog */}
+        <Dialog open={viewDialogOpen} onClose={() => setViewDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>
+            Referral Details
+          </DialogTitle>
+          <DialogContent>
+            {selectedReferral && (
+              <Box sx={{ py: 1 }}>
+                <Grid container spacing={2}>
+                  {/* Client Summary */}
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined" sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+                          Client
+                        </Typography>
+                        {(() => {
+                          const client = clients.find(c => c.id === selectedReferral.clientId);
+                          return (
+                            <Stack spacing={1}>
+                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                {client ? `${client.firstName} ${client.lastName}` : 'Unknown Client'}
+                              </Typography>
+                              {client?.phoneNumber && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Phone:</strong> {client.phoneNumber}
+                                </Typography>
+                              )}
+                              {client?.email && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Email:</strong> {client.email}
+                                </Typography>
+                              )}
+                              {client?.address && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Address:</strong> {client.address.street}, {client.address.city}, {client.address.state} {client.address.zipCode}
+                                </Typography>
+                              )}
+                              {client?.dateOfBirth && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Date of Birth:</strong> {client.dateOfBirth.toLocaleDateString()}
+                                </Typography>
+                              )}
+                            </Stack>
+                          );
+                        })()}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* Resource Summary */}
+                  <Grid item xs={12} md={6}>
+                    <Card variant="outlined" sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+                          Resource
+                        </Typography>
+                        {(() => {
+                          const resource = resources.find(r => r.id === selectedReferral.resourceId);
+                          return (
+                            <Stack spacing={1}>
+                              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                {resource?.name || 'Unknown Resource'}
+                              </Typography>
+                              {resource?.organization && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Organization:</strong> {resource.organization}
+                                </Typography>
+                              )}
+                              {resource?.category && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Category:</strong> {resource.category}
+                                </Typography>
+                              )}
+                              {resource?.description && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Description:</strong> {resource.description}
+                                </Typography>
+                              )}
+                              {resource?.contactInfo?.phone && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Phone:</strong> {resource.contactInfo.phone}
+                                </Typography>
+                              )}
+                              {resource?.contactInfo?.email && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Email:</strong> {resource.contactInfo.email}
+                                </Typography>
+                              )}
+                              {resource?.address && (
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Address:</strong> {resource.address.street}, {resource.address.city}, {resource.address.state} {resource.address.zipCode}
+                                </Typography>
+                              )}
+                            </Stack>
+                          );
+                        })()}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  {/* Referral Status */}
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card variant="outlined" sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                          Status
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                          {getStatusIcon(selectedReferral.status)}
+                          <Chip
+                            label={selectedReferral.status.replace(/_/g, ' ')}
+                            color={getStatusColor(selectedReferral.status)}
+                            size="small"
+                          />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card variant="outlined" sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                          Urgency
+                        </Typography>
+                        <Box sx={{ mt: 1 }}>
+                          <Chip
+                            label={selectedReferral.urgency}
+                            color={getUrgencyColor(selectedReferral.urgency)}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card variant="outlined" sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                          Created
+                        </Typography>
+                        <Typography variant="body1" sx={{ mt: 1 }}>
+                          {selectedReferral.createdAt.toLocaleDateString()}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card variant="outlined" sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                          Follow-up
+                        </Typography>
+                        <Typography variant="body1" sx={{ mt: 1 }}>
+                          {selectedReferral.followUpDate ? selectedReferral.followUpDate.toLocaleDateString() : 'Not set'}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
+                          Reason
+                        </Typography>
+                        <Typography variant="body1">
+                          {selectedReferral.reason}
+                        </Typography>
+                        {selectedReferral.notes && (
+                          <>
+                            <Divider sx={{ my: 2 }} />
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
+                              Notes
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary">
+                              {selectedReferral.notes}
+                            </Typography>
+                          </>
+                        )}
+                        {selectedReferral.outcomeNotes && (
+                          <>
+                            <Divider sx={{ my: 2 }} />
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
+                              Outcome
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary">
+                              {selectedReferral.outcomeNotes}
+                            </Typography>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setViewDialogOpen(false); setSelectedReferral(null); }}>
+              Close
+            </Button>
+          </DialogActions>
         </Dialog>
 
         {/* Floating Action Button */}

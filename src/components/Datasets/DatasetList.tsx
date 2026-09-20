@@ -114,7 +114,8 @@ export default function DatasetList({
   }
   
   return (
-    <Grid container spacing={3}>
+    <Box sx={{ px: { xs: 2, md: 3 } }}>
+      <Grid container spacing={3}>
       {datasets.map((dataset) => (
         <Grid item xs={12} sm={6} md={4} key={dataset.id}>
           <Card 
@@ -291,6 +292,7 @@ export default function DatasetList({
           <ListItemText>Delete</ListItemText>
         </MenuItem>
       </Menu>
-    </Grid>
+      </Grid>
+    </Box>
   );
 }

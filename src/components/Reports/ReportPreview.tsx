@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Box, 
   Paper, 
@@ -14,7 +14,10 @@ import {
   Stack,
   Chip,
   IconButton,
-  Tooltip
+  Tooltip,
+  Grid,
+  Card,
+  CardContent
 } from '@mui/material';
 import { 
   PictureAsPdf as PdfIcon,
@@ -67,7 +70,17 @@ export default function ReportPreview({
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportUrl, setExportUrl] = useState<string | null>(null);
-  
+  const exportUrlRef = useRef<string | null>(null);
+
+  // Keep a ref in sync so unmount can revoke the latest blob URL.
+  useEffect(() => {
+    exportUrlRef.current = exportUrl;
+  }, [exportUrl]);
+
+  useEffect(() => () => {
+    if (exportUrlRef.current) URL.revokeObjectURL(exportUrlRef.current);
+  }, []);
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
@@ -75,10 +88,21 @@ export default function ReportPreview({
   const handleExportToPdf = async () => {
     setExportLoading(true);
     setExportError(null);
-    
+
     try {
       const pdfUrl = await reportGenerationService.exportToPdf(report);
+
+      // Release the previously generated blob before replacing it.
+      if (exportUrl) URL.revokeObjectURL(exportUrl);
       setExportUrl(pdfUrl);
+
+      // Trigger an automatic download using a hidden anchor element
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `${report.config.title?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'report'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Error exporting to PDF:', error);
       setExportError(`Failed to export to PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -132,7 +156,7 @@ export default function ReportPreview({
                   <tr key={rowIndex}>
                     {section.tableColumns!.map((column, colIndex) => (
                       <td key={colIndex} style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>
-                        {String(row[column] || '')}
+                        {String(row[column] ?? '')}
                       </td>
                     ))}
                   </tr>
@@ -284,6 +308,7 @@ export default function ReportPreview({
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="report tabs">
           <Tab label="Preview" id="report-tab-0" aria-controls="report-tabpanel-0" />
           <Tab label="Details" id="report-tab-1" aria-controls="report-tabpanel-1" />
+          <Tab label="Summary" id="report-tab-2" aria-controls="report-tabpanel-2" />
         </Tabs>
       </Box>
       
@@ -407,6 +432,64 @@ export default function ReportPreview({
                 )}
               </Box>
             </Box>
+          </Box>
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={2}>
+          <Box sx={{ p: 1 }}>
+            <Grid container spacing={2}>
+              {[
+                { label: 'Report ID', value: report.id || 'N/A' },
+                { label: 'Status', value: report.status ? report.status.toUpperCase() : 'N/A' },
+                { label: 'Owner', value: report.userId || 'Unknown' },
+                { label: 'Datasets', value: (report.config.datasets?.length ?? 0).toString() },
+                { label: 'Sections', value: (report.config.sections?.length ?? 0).toString() },
+                { label: 'Visualizations', value: (report.config.visualizations?.length ?? 0).toString() },
+                { label: 'Created', value: new Date(report.createdAt).toLocaleString() },
+                { label: 'Updated', value: new Date(report.updatedAt).toLocaleString() }
+              ].map((stat, i) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
+                  <Card variant="outlined" sx={{ height: '100%' }}>
+                    <CardContent>
+                      <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                        {stat.label}
+                      </Typography>
+                      <Typography variant="h6" sx={{ mt: 1, wordBreak: 'break-word' }}>
+                        {stat.value}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            
+            {report.config.description && (
+              <Card variant="outlined" sx={{ mt: 2 }}>
+                <CardContent>
+                  <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                    Description
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1 }}>
+                    {report.config.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+            
+            {report.pdfUrl && (
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<PdfIcon />}
+                  href={report.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Download PDF
+                </Button>
+              </Box>
+            )}
           </Box>
         </TabPanel>
       </Box>

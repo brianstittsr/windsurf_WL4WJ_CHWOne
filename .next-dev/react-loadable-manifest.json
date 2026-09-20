@@ -1,0 +1,18 @@
+{
+  "src\\app\\fetch-error-handler.ts -> ../utils/fetch-error-handler": {
+    "id": "src\\app\\fetch-error-handler.ts -> ../utils/fetch-error-handler",
+    "files": [
+      "static/chunks/_app-pages-browser_src_utils_fetch-error-handler_ts.js"
+    ]
+  },
+  "src\\components\\Common\\TestModeWrapper.tsx -> @/components/Common/TestModeToggle": {
+    "id": "src\\components\\Common\\TestModeWrapper.tsx -> @/components/Common/TestModeToggle",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_Common_TestModeToggle_tsx.js"
+    ]
+  },
+  "src\\lib\\firebase\\firebaseConfig.ts -> ../schema/initialize-schema": {
+    "id": "src\\lib\\firebase\\firebaseConfig.ts -> ../schema/initialize-schema",
+    "files": []
+  }
+}

@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase';
+import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import WelcomeModal from './WelcomeModal';
 import ProfileCompletionModal, { ProfileFormData } from './ProfileCompletionModal';
 import { Button } from '@/components/ui/button';
 import { PlayCircle } from 'lucide-react';
+import { COLLECTIONS } from '@/lib/schema/unified-schema';
+import { DEFAULT_CHW_PROFILE } from '@/types/chw-profile.types';
 
 interface OnboardingFlowProps {
   children: React.ReactNode;
@@ -117,26 +118,54 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
       throw new Error('Not authenticated');
     }
 
-    let photoURL = data.photoURL || userProfile?.photoURL || null;
-    if (data.photoFile) {
-      const storageRef = ref(storage, `users/${currentUser.uid}/profile-photo`);
-      await uploadBytes(storageRef, data.photoFile);
-      photoURL = await getDownloadURL(storageRef);
-    }
+    const photoURL = data.photoURL || userProfile?.photoURL || null;
 
     try {
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, unknown> = {
         firstName: data.firstName,
         lastName: data.lastName,
         displayName: `${data.firstName} ${data.lastName}`,
         phoneNumber: data.phone || null,
+        phone: data.phone || null,
         organization: data.organization || null,
         title: data.title || null,
         region: data.region || null,
         bio: data.bio || null,
         photoURL: photoURL || null,
+        profilePicture: photoURL || null,
+        yearsOfExperience: data.yearsOfExperience || 0,
+        profileCompleted: true,
         profileCompletedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+        address: {
+          street: data.addressStreet || '',
+          city: data.addressCity || '',
+          state: data.addressState || 'NC',
+          zipCode: data.addressZipCode || '',
+        },
+        professional: {
+          bio: data.bio || '',
+          expertise: data.expertise || [],
+          languages: data.languages || ['English'],
+          yearsOfExperience: data.yearsOfExperience || 0,
+          currentOrganization: data.organization || '',
+          currentPosition: data.title || '',
+          specializations: data.expertise || [],
+          availableForOpportunities: false,
+        },
+        serviceArea: {
+          region: data.region || '',
+          primaryCounty: data.primaryCounty || '',
+          countiesWorkedIn: data.countiesServed || [],
+          countyResideIn: data.primaryCounty || '',
+          currentOrganization: data.organization || '',
+          role: data.title || '',
+        },
+        certification: {
+          certificationNumber: data.certificationNumber || '',
+          certificationStatus: data.certificationStatus || 'not_certified',
+          certificationExpiration: data.certificationExpiration || '',
+        },
       };
 
       // If an organization was selected from search, also save the linkedNonprofitId
@@ -145,6 +174,56 @@ export default function OnboardingFlow({ children, showLaunchButton = false }: O
       }
 
       await updateDoc(doc(db, 'users', currentUser.uid), updateData);
+
+      // Also create/merge the dedicated CHW profile document for the profile page
+      const chwProfileData: Record<string, unknown> = {
+        ...DEFAULT_CHW_PROFILE,
+        userId: currentUser.uid,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: currentUser.email || '',
+        phone: data.phone || '',
+        displayName: `${data.firstName} ${data.lastName}`,
+        profilePicture: photoURL || '',
+        address: {
+          street: data.addressStreet || '',
+          city: data.addressCity || '',
+          state: data.addressState || 'NC',
+          zipCode: data.addressZipCode || '',
+        },
+        professional: {
+          ...(DEFAULT_CHW_PROFILE.professional || {}),
+          bio: data.bio || '',
+          expertise: data.expertise || [],
+          languages: data.languages || ['English'],
+          yearsOfExperience: data.yearsOfExperience || 0,
+          currentOrganization: data.organization || '',
+          currentPosition: data.title || '',
+          specializations: data.expertise || [],
+        },
+        serviceArea: {
+          ...(DEFAULT_CHW_PROFILE.serviceArea || {}),
+          region: data.region || '',
+          primaryCounty: data.primaryCounty || '',
+          countiesWorkedIn: data.countiesServed || [],
+          countyResideIn: data.primaryCounty || '',
+          currentOrganization: data.organization || '',
+          role: data.title || '',
+        },
+        certification: {
+          certificationNumber: data.certificationNumber || '',
+          certificationStatus: data.certificationStatus || 'not_certified',
+          certificationExpiration: data.certificationExpiration || '',
+        },
+        updatedAt: new Date().toISOString(),
+      };
+
+      await setDoc(doc(db, COLLECTIONS.CHW_PROFILES, currentUser.uid), chwProfileData, { merge: true });
+
+      // Reload so the profile page re-fetches and displays the new data
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Error saving profile:', error);
       throw error;
