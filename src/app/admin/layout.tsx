@@ -22,7 +22,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <header className="bg-white shadow p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">Admin Dashboard</h1>
         <nav className="space-x-4">
-          <a href="/admin/forms" className="text-blue-600 hover:underline">Forms</a>
+          <Link href="/admin/forms" className="text-blue-600 hover:underline">
+          <a>Forms</a>
+</Link>
           <a href="/admin/tags" className="text-blue-600 hover:underline">Tags</a>
         </nav>
       </header>
