@@ -28,7 +28,7 @@ import {
   CalendarToday as CalendarIcon,
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, NotFound } from 'next/navigation';
 
 // Class information for the Digital Literacy program
 const CLASS_INFO: Record<string, { title: string; titleSpanish: string; unitsEn: string[]; unitsEs: string[] }> = {
@@ -118,8 +118,7 @@ interface RegisteredStudent {
 export default function ClassCheckInPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  if (!params?.classId) return <NotFound/>;
-   const classId = params.classId as string;
+  const classId = params.classId as string;
   const locationParam = searchParams.get('location');
   
   const [selectedStudent, setSelectedStudent] = useState<RegisteredStudent | null>(null);
@@ -132,9 +131,11 @@ export default function ClassCheckInPage() {
   const [language, setLanguage] = useState<'en' | 'es'>('en');
   const [currentDate, setCurrentDate] = useState<string>('');
   const [location, setLocation] = useState(locationParam || '');
-  const [mounted, setMounted] = useState(false);
+const [mounted, setMounted] = useState(false);
 
-  // Set mounted state and initialize date on client only
+if (!params?.classId) return <NotFound/>;
+
+// Set mounted state and initialize date on client only
   useEffect(() => {
     setMounted(true);
     const now = new Date();
