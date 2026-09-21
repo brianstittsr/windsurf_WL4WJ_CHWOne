@@ -133,8 +133,6 @@ export default function ClassCheckInPage() {
   const [location, setLocation] = useState(locationParam || '');
 const [mounted, setMounted] = useState(false);
 
-if (!params?.classId) return <NotFound/>;
-
 // Set mounted state and initialize date on client only
   useEffect(() => {
     setMounted(true);
