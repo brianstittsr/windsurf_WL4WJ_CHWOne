@@ -160,7 +160,7 @@ export default function FeedbackFormPage() {
               Sus comentarios nos ayudan a mejorar el programa.
             </p>
             <Link
-              href="/"
+              href="/chwone"
               className="inline-block px-6 py-3 bg-[#5856D6] text-white rounded-xl font-medium hover:bg-[#4B49B8] transition-colors"
             >
               Return Home | Volver al Inicio

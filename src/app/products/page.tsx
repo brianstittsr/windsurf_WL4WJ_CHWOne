@@ -9,7 +9,7 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-[#F5F5F7] py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <Link 
-          href="/"
+          href="/chwone"
           className="inline-flex items-center text-[#5856D6] hover:text-[#4B49B8] mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

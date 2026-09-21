@@ -113,7 +113,7 @@ function CarouselAdminContent() {
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" asChild>
-                <Link href="/" target="_blank">
+                <Link href="/chwone" target="_blank">
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Preview Home
                 </Link>

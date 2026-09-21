@@ -110,7 +110,7 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
         }}
       >
         <Toolbar>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}>
+          <Link href="/chwone" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', color: 'inherit' }}>
             <Image 
               src="/images/CHWOneLogoDesign.png" 
               width={40}

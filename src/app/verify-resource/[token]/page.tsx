@@ -165,7 +165,7 @@ export default function VerifyResourcePage() {
             <Typography color="text.secondary" sx={{ mb: 3 }}>
               {error}
             </Typography>
-            <Button variant="contained" onClick={() => router.push('/')}>
+            <Button variant="contained" onClick={() => router.push('/chwone')}>
               Return Home
             </Button>
           </CardContent>
@@ -187,7 +187,7 @@ export default function VerifyResourcePage() {
               Your resource information has been verified successfully.
               {!isStillAvailable && ' We will review and update the listing accordingly.'}
             </Typography>
-            <Button variant="contained" onClick={() => router.push('/')}>
+            <Button variant="contained" onClick={() => router.push('/chwone')}>
               Return Home
             </Button>
           </CardContent>

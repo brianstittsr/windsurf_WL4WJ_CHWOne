@@ -271,7 +271,7 @@ function NonprofitRegistrationContent() {
           <Button 
             variant="contained" 
             color="primary" 
-            href="/"
+            href="/chwone"
             sx={{ mt: 2 }}
           >
             Return to Home

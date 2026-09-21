@@ -157,7 +157,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
         <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/chwone" className="flex items-center gap-2">
               <Image 
                 src="/images/CHWOneLogoDesign.png" 
                 width={40}
@@ -208,7 +208,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
           {/* Sidebar Header */}
           <div className="h-16 flex items-center justify-between px-4 border-b border-[#3D3D3F] shrink-0">
             {!sidebarCollapsed && (
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/chwone" className="flex items-center gap-2">
                 <Image 
                   src="/images/CHWOneLogoDesign.png" 
                   width={32}
@@ -220,7 +220,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               </Link>
             )}
             {sidebarCollapsed && (
-              <Link href="/" className="mx-auto">
+              <Link href="/chwone" className="mx-auto">
                 <Image 
                   src="/images/CHWOneLogoDesign.png" 
                   width={32}
@@ -326,7 +326,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               <>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
-                    <Link href="/" className="flex items-center justify-center p-2 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
+                    <Link href="/chwone" className="flex items-center justify-center p-2 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
                       <Home className="h-5 w-5" />
                     </Link>
                   </TooltipTrigger>
@@ -357,7 +357,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
               </>
             ) : (
               <>
-                <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
+                <Link href="/chwone" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
                   <Home className="h-5 w-5 flex-shrink-0" />
                   <span className="text-sm">Home</span>
                 </Link>
@@ -382,7 +382,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
         {/* Mobile Header */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#1D1D1F] text-white h-16 flex items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/chwone" className="flex items-center gap-2">
             <Image 
               src="/images/CHWOneLogoDesign.png" 
               width={32}
@@ -439,7 +439,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                 );
               })}
               <div className="border-t border-[#3D3D3F] pt-4 mt-4">
-                <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/chwone" onClick={() => setMobileMenuOpen(false)}>
                   <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#A1A1A6] hover:bg-[#2D2D2F] hover:text-white transition-all">
                     <Home className="h-5 w-5" />
                     <span>Home</span>

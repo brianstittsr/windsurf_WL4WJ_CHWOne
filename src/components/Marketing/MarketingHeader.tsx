@@ -28,7 +28,7 @@ import { usePathname } from 'next/navigation';
 
 // Define the navigation structure
 const navigation = [
-  { name: 'Home', href: '/' },
+  { name: 'Home', href: '/chwone' },
   { name: 'Platform Overview', href: '/platform' },
   { 
     name: 'For CHWs', 

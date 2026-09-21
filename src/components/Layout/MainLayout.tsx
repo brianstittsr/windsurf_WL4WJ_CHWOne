@@ -154,7 +154,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* Simple header for non-logged in users */}
         <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/chwone" className="flex items-center gap-2">
               <Image 
                 src="/images/CHWOneLogoDesign.png" 
                 width={40}
@@ -194,7 +194,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         {/* Sidebar Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-700">
           {sidebarOpen && (
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/chwone" className="flex items-center gap-2">
               <Image 
                 src="/images/CHWOneLogoDesign.png" 
                 width={32}
@@ -283,7 +283,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
         {/* Sidebar Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-slate-700">
-          <Link href="/">
+          <Link href="/chwone">
             <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
               <Home className="h-5 w-5 flex-shrink-0" />
               {sidebarOpen && <span className="text-sm">Home</span>}
@@ -301,7 +301,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white h-16 flex items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/chwone" className="flex items-center gap-2">
           <Image 
             src="/images/CHWOneLogoDesign.png" 
             width={32}

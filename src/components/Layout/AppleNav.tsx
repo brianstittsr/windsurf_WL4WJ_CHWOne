@@ -52,7 +52,7 @@ export default function AppleNav({ variant = 'light' }: AppleNavProps) {
       >
         <div className="max-w-[980px] mx-auto px-[22px] h-full flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/chwone" className="flex items-center gap-2">
             <Image 
               src="/images/CHWOneLogoDesign.png" 
               alt="CHWOne" 

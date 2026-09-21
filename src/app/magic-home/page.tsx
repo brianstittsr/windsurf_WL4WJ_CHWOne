@@ -37,7 +37,7 @@ function MagicHomeContent() {
       {/* Top Navigation */}
       <AppBar position="sticky" color="default" elevation={1} sx={{ backdropFilter: 'blur(10px)' }}>
         <Toolbar>
-          <Typography variant="h6" component={Link} href="/" sx={{ fontWeight: 'bold', textDecoration: 'none', color: 'inherit', flexGrow: 0 }}>
+          <Typography variant="h6" component={Link} href="/chwone" sx={{ fontWeight: 'bold', textDecoration: 'none', color: 'inherit', flexGrow: 0 }}>
             CHWOne
           </Typography>
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', gap: 4, alignItems: 'center' }}>

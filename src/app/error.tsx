@@ -41,7 +41,7 @@ export default function Error({
             </button>
             
             <Link
-              href="/"
+              href="/chwone"
               className="inline-flex items-center gap-2 px-5 py-2.5 border border-[#D2D2D7] text-[#1D1D1F] rounded-xl font-medium hover:bg-[#F5F5F7] transition-colors"
             >
               <Home className="w-4 h-4" />

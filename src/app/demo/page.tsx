@@ -84,7 +84,7 @@ export default function DemoPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" asChild>
-                <Link href="/">
+                <Link href="/chwone">
                   <ArrowLeft className="h-5 w-5" />
                 </Link>
               </Button>

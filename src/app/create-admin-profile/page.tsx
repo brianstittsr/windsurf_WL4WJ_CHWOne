@@ -295,7 +295,7 @@ export default function CreateAdminProfilePage() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               CHWOne Platform
             </Typography>
-            <Button color="inherit" href="/">
+            <Button color="inherit" href="/chwone">
               Home
             </Button>
             <Button color="inherit" href="/login">

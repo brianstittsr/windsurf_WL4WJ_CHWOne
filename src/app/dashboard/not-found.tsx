@@ -36,7 +36,7 @@ export default function DashboardNotFound() {
               </button>
               
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/chwone')}
                 className="flex items-center justify-center gap-2 w-full py-3 border border-[#D2D2D7] text-[#1D1D1F] rounded-xl font-medium hover:bg-[#F5F5F7] transition-colors"
               >
                 <Home className="w-4 h-4" />

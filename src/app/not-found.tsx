@@ -35,7 +35,7 @@ export default function NotFound() {
             variant="contained" 
             color="primary"
             component={Link} 
-            href="/"
+            href="/chwone"
             size="large"
           >
             Return Home
