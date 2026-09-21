@@ -2,7 +2,7 @@
 
 // Create admin user
 async function createAdminUser() {
-  const email = 'brians@wl4wl.org';
+  const email = 'brians@wl4wj.oth';
   const password = 'Yfhk9r76q@@123456';
   const displayName = 'Brian Stitts';
   
