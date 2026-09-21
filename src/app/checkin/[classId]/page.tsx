@@ -118,7 +118,8 @@ interface RegisteredStudent {
 export default function ClassCheckInPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const classId = params.classId as string;
+  if (!params?.classId) return <NotFound/>;
+   const classId = params.classId as string;
   const locationParam = searchParams.get('location');
   
   const [selectedStudent, setSelectedStudent] = useState<RegisteredStudent | null>(null);
