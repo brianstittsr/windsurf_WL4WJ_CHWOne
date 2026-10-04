@@ -65,7 +65,7 @@ interface Dataset {
 
 function DatasetViewContent() {
   const params = useParams();
-  const datasetId = params.id as string;
+  const datasetId = (params?.id as string) || '';
   const router = useRouter();
   const { currentUser } = useAuth();
 

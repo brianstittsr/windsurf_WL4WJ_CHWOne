@@ -106,7 +106,7 @@ interface RegisteredStudent {
 }
 
 export default function ParticipantProgressPage() {
-  const params = useParams();
+  const params = useParams() || {};
   const studentIdParam = params.studentId as string;
 
   const [loading, setLoading] = useState(true);

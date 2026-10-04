@@ -1,18 +1,20 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 interface Form {
   id: string;
   name: string;
   description?: string;
   tags: string[];
+  fields?: string[];
 }
 
 export default function EditFormPage() {
   const router = useRouter();
-  const [formId] = router.query as { formId: string };
+  const params = useParams();
+  const formId = (params?.formId as string) || '';
 
   const [form, setForm] = useState<Form | null>(null);
   const [loading, setLoading] = useState(true);

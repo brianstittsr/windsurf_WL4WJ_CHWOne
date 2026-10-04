@@ -52,7 +52,7 @@ interface Form {
 
 export default function PublicFormPage() {
   // Get params using useParams hook - this is already a regular object in client components
-  const params = useParams();
+  const params = useParams() || {};
   // In client components, useParams() already returns a regular object, not a promise
   // so we don't need to use React.use()
   const formId = params.formId as string;

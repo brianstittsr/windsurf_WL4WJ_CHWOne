@@ -8,7 +8,7 @@ import RegionDashboard from '@/components/Dashboard/RegionDashboard';
 
 function RegionPageContent() {
   const params = useParams();
-  const regionId = params.regionId as string;
+  const regionId = params?.regionId as string || '';
 
   return (
     <AdminLayout>

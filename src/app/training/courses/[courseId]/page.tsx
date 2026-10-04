@@ -300,6 +300,7 @@ const mockReviews = [
 function CourseDetailContent() {
   const { currentUser, loading: authLoading } = useAuth();
   const params = useParams();
+  const courseId = (params?.courseId as string) || '';
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
@@ -323,7 +324,7 @@ function CourseDetailContent() {
     };
     
     loadCourse();
-  }, [params.courseId]);
+  }, [courseId]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -331,7 +332,7 @@ function CourseDetailContent() {
 
   const handleEnroll = async () => {
     if (!currentUser) {
-      router.push('/login?redirect=/training/courses/' + params.courseId);
+      router.push('/login?redirect=/training/courses/' + courseId);
       return;
     }
 
@@ -343,7 +344,7 @@ function CourseDetailContent() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Redirect to the course content page
-      router.push(`/training/courses/${params.courseId}/learn`);
+      router.push(`/training/courses/${courseId}/learn`);
     } catch (err) {
       console.error('Error enrolling in course:', err);
       setError(`Failed to enroll in course: ${err instanceof Error ? err.message : 'Unknown error'}`);

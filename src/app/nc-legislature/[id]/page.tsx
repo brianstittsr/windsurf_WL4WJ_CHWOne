@@ -26,7 +26,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 export default function RepresentativeDetailPage() {
-  const params = useParams();
+  const params = useParams() || {};
   const id = params.id as string;
   const [representative, setRepresentative] = useState<NCRepresentative | null>(null);
   const [loading, setLoading] = useState(true);

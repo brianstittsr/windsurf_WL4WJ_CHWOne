@@ -28,7 +28,7 @@ import {
   CalendarToday as CalendarIcon,
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
-import { useParams, useSearchParams, NotFound } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
 // Class information for the Digital Literacy program
 const CLASS_INFO: Record<string, { title: string; titleSpanish: string; unitsEn: string[]; unitsEs: string[] }> = {
@@ -118,8 +118,8 @@ interface RegisteredStudent {
 export default function ClassCheckInPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const classId = params.classId as string;
-  const locationParam = searchParams.get('location');
+  const classId = (params?.classId as string) || '';
+  const locationParam = searchParams?.get('location') ?? '';
   
   const [selectedStudent, setSelectedStudent] = useState<RegisteredStudent | null>(null);
   const [registeredStudents, setRegisteredStudents] = useState<RegisteredStudent[]>([]);

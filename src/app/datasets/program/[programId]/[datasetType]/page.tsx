@@ -80,8 +80,8 @@ function ProgramDatasetContent() {
   const router = useRouter();
   const { currentUser, loading: authLoading } = useAuth();
   
-  const programId = params.programId as string;
-  const datasetType = params.datasetType as 'instructor' | 'student' | 'nonprofit';
+  const programId = (params?.programId as string) || '';
+  const datasetType = (params?.datasetType as 'instructor' | 'student' | 'nonprofit') || 'instructor';
   
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState<any[]>([]);

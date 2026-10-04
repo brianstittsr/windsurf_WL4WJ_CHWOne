@@ -10,8 +10,8 @@ interface Form {
 }
 
 export default function PreviewPage() {
-  const router = useRouter();
-  const [formId] = router.query as { formId: string };
+  const router = useRouter() as any;
+  const { formId } = router.query;
   const [qrUrl, setQrUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
 

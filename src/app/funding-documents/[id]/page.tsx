@@ -41,7 +41,7 @@ const CONTRIBUTION_SECTIONS = [
 ];
 
 export default function ProjectDetailPage() {
-  const params = useParams();
+  const params = useParams() || {};
   const projectId = params.id as string;
 
   // Mock project data - in real app, fetch from API

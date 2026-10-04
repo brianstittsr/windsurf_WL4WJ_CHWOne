@@ -59,6 +59,7 @@ const mockCourse: Course = {
 function CheckoutContent() {
   const { currentUser, loading: authLoading } = useAuth();
   const params = useParams();
+  const courseId = (params?.courseId as string) || '';
   const router = useRouter();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,14 +85,14 @@ function CheckoutContent() {
     };
     
     loadCourse();
-  }, [params.courseId]);
+  }, [courseId]);
 
   useEffect(() => {
     // Redirect to login if not authenticated
     if (!authLoading && !currentUser) {
-      router.push(`/login?redirect=/training/checkout/${params.courseId}`);
+      router.push(`/login?redirect=/training/checkout/${courseId}`);
     }
-  }, [authLoading, currentUser, router, params.courseId]);
+  }, [authLoading, currentUser, router, courseId]);
 
   const handlePaymentSuccess = (paymentId: string) => {
     setPaymentId(paymentId);

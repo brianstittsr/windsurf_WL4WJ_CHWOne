@@ -84,7 +84,7 @@ function LoginFormContent() {
 
   // Check for redirect parameter
   useEffect(() => {
-    const redirect = searchParams.get('redirect');
+    const redirect = searchParams?.get('redirect');
     if (redirect) {
       // Store the redirect URL in session storage
       sessionStorage.setItem('redirectAfterLogin', redirect);

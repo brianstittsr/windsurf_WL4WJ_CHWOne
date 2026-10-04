@@ -22,7 +22,7 @@ function UploadContentWithParams() {
   const { currentUser, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const organization = (searchParams.get('org') as 'region5' | 'wl4wj' | 'general') || 'general';
+  const organization = (searchParams?.get('org') as 'region5' | 'wl4wj' | 'general') || 'general';
 
   if (loading) {
     return (

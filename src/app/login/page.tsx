@@ -77,7 +77,7 @@ function LoginFormContent() {
   const currentConfig = loginType ? loginTypeConfig[loginType] : null;
 
   useEffect(() => {
-    const redirect = searchParams.get('redirect');
+    const redirect = searchParams?.get('redirect');
     if (redirect) {
       sessionStorage.setItem('redirectAfterLogin', redirect);
     }

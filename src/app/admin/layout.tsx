@@ -8,12 +8,12 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const { user, isLoading } = useAuth();
+  const { currentUser: user, loading } = useAuth();
 
-  if (isLoading) return <div>Loading…</div>;
+  if (loading) return <div>Loading…</div>;
 
   // Only allow users with role admin or manager
-  if (!user || !['admin', 'manager'].includes(user.role)) {
+  if (!user || !['admin', 'manager'].includes((user as any).role ?? '')) {
     redirect('/login');
   }
 
